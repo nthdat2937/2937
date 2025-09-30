@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2937 - Nền tảng Hiện đại</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style/style.css">
+    <style>
+      /* Tách không gian view + transition chuyển cảnh theo hướng */
+      .view {
+        opacity: 0;
+        transform: translateX(0);
+        transition: opacity .25s ease, transform .25s ease;
+        pointer-events: none;
+        height: 0;
+        overflow: hidden;
+      }
+      .view.active {
+        opacity: 1;
+        transform: translateX(0);
+        pointer-events: auto;
+        height: auto;
+        overflow: visible;
+      }
+      /* trạng thái vào theo hướng */
+      .view.from-right { transform: translateX(24px); }
+      .view.from-left  { transform: translateX(-24px); }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-container">
+            <div class="nav-left">
+                <div class="logo-container">
+                    <a href="#">    
+                        <div class="logo">
+                            <img src="image/logo.png" alt="2937 Logo" class="logo-img">
+                        </div>
+                    </a>
+                </div>
+            </div>
+            
+            <div class="nav-middle">
+                <a href="#home" class="nav-link active">
+                    <i class="fas fa-home"></i>
+                    <span>Trang chủ</span>
+                </a>
+                <a href="#tools" class="nav-link">
+                    <i class="fas fa-tools"></i>
+                    <span>Công cụ</span>
+                </a>
+                <a href="#settings" class="nav-link">
+                    <i class="fas fa-cog"></i>
+                    <span>Cài đặt</span>
+                </a>
+            </div>
+            
+            <div class="nav-right">
+                <div id="authButtons" class="auth-buttons">
+                    <a href="login.html" class="nav-btn secondary">Đăng nhập</a>
+                    <a href="register.html" class="nav-btn primary">Đăng ký</a>
+                </div>
+                <div id="userInfo" class="user-info hidden">
+                    <img id="userAvatar" class="user-avatar" src="image/default-avatar.png" alt="Avatar">
+                    <span id="userName" class="user-name">Người dùng</span>
+                    <button id="logoutBtn" class="nav-btn secondary">Đăng xuất</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <!-- Trang chủ -->
+        <section id="home" class="view active">
+          <div class="section-header">
+            <div class="section-title">
+              <i class="fas fa-home"></i>
+              <h2>Chào mừng đến với 2937</h2>
+            </div>
+            <p class="section-desc">Nền tảng hiện đại với công nghệ tiên tiến và giao diện tuyệt đẹp</p>
+          </div>
+
+          <div class="features-grid">
+              <div class="feature-card">
+                  <div class="feature-icon">
+                      <i class="fas fa-bolt"></i>
+                  </div>
+                  <h3 class="feature-title">Cực kỳ nhanh</h3>
+                  <p class="feature-description">Trải nghiệm tốc độ vượt trội với công nghệ tối ưu hóa hiện đại nhất</p>
+              </div>
+
+              <div class="feature-card">
+                  <div class="feature-icon">
+                      <i class="fas fa-shield-alt"></i>
+                  </div>
+                  <h3 class="feature-title">An toàn tuyệt đối</h3>
+                  <p class="feature-description">Bảo mật cao cấp với mã hóa đầu cuối, bảo vệ dữ liệu của bạn 24/7</p>
+              </div>
+
+              <div class="feature-card">
+                  <div class="feature-icon">
+                      <i class="fas fa-magic"></i>
+                  </div>
+                  <h3 class="feature-title">Dễ sử dụng</h3>
+                  <p class="feature-description">Giao diện trực quan, thân thiện giúp bạn làm việc hiệu quả hơn</p>
+              </div>
+
+              <div class="feature-card">
+                  <div class="feature-icon">
+                      <i class="fas fa-globe"></i>
+                  </div>
+                  <h3 class="feature-title">Kết nối toàn cầu</h3>
+                  <p class="feature-description">Làm việc mọi lúc mọi nơi với hệ thống đám mây mạnh mẽ</p>
+              </div>
+
+              <div class="feature-card">
+                  <div class="feature-icon">
+                      <i class="fas fa-chart-line"></i>
+                  </div>
+                  <h3 class="feature-title">Phân tích thông minh</h3>
+                  <p class="feature-description">Báo cáo chi tiết và thống kê theo thời gian thực</p>
+              </div>
+
+              <div class="feature-card">
+                  <div class="feature-icon">
+                      <i class="fas fa-users"></i>
+                  </div>
+                  <h3 class="feature-title">Cộng đồng sôi động</h3>
+                  <p class="feature-description">Kết nối với hàng ngàn người dùng trên toàn thế giới</p>
+              </div>
+          </div>
+        </section>
+
+        <!-- Công cụ -->
+        <section id="tools" class="view">
+          <div class="section-header">
+            <div class="section-title">
+              <i class="fas fa-tools"></i>
+              <h2>Công cụ</h2>
+            </div>
+            <p class="section-desc">Danh sách công cụ được tải tự động từ thư mục tools.</p>
+          </div>
+
+          <div id="toolsGrid" class="features-grid" aria-live="polite">
+            <!-- Cards sẽ được render bằng JS -->
+          </div>
+          <noscript>
+            <p class="section-note">Vui lòng bật JavaScript để hiển thị danh sách công cụ.</p>
+          </noscript>
+        </section>
+
+        <!-- Cài đặt -->
+        <section id="settings" class="view">
+          <div class="section-header">
+            <div class="section-title">
+              <i class="fas fa-cog"></i>
+              <h2>Cài đặt</h2>
+            </div>
+            <p class="section-desc">Tùy chỉnh trải nghiệm và cấu hình hệ thống.</p>
+          </div>
+
+          <div class="settings-grid">
+            <div class="setting-card">
+              <div class="setting-row">
+                <div>
+                  <div class="setting-title">Chế độ tối</div>
+                  <div class="setting-desc">Bật/tắt giao diện tối (Dark/Light)</div>
+                </div>
+                <label class="switch">
+                  <input type="checkbox" id="toggleTheme" onclick="canhbaoanhsang()">
+                  <span class="slider"></span>
+                </label>
+              </div>
+            </div>
+
+            <div class="setting-card">
+              <div class="setting-row">
+                <div>
+                  <div class="setting-title">Hiệu ứng động</div>
+                  <div class="setting-desc">Bật/tắt animation và transition</div>
+                </div>
+                <label class="switch">
+                  <input type="checkbox" id="toggleAnimations">
+                  <span class="slider"></span>
+                </label>
+              </div>
+            </div>
+
+            <div class="setting-card">
+              <div class="setting-row">
+                <div>
+                  <div class="setting-title">Hiệu ứng giao diện</div>
+                  <div class="setting-desc">Bật/tắt blur, shadow, hiệu ứng nền</div>
+                </div>
+                <label class="switch">
+                  <input type="checkbox" id="toggleEffects">
+                  <span class="slider"></span>
+                </label>
+              </div>
+            </div>
+
+            <div class="setting-card">
+              <div class="setting-row">
+                <div>
+                  <div class="setting-title">Chế độ cô đọng</div>
+                  <div class="setting-desc">Giảm padding, khoảng cách hiển thị nhiều hơn</div>
+                </div>
+                <label class="switch">
+                  <input type="checkbox" id="toggleCompact">
+                  <span class="slider"></span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </section>
+    </main>
+    <footer class="site-footer">
+      <div class="footer-inner">
+        <div class="footer-brand">
+          <div class="footer-brand-top">
+            <div class="logo">
+              <img src="image/logo.png" alt="2937 Logo" class="logo-img">
+            </div>
+            <div class="brand-text">
+              <div class="brand-name">2937</div>
+              <div class="brand-tagline">Nền tảng hiện đại, trải nghiệm tinh gọn</div>
+            </div>
+          </div>
+          <p class="footer-note">Thiết kế lấy người dùng làm trung tâm với hiệu năng và tính bảo mật cao.</p>
+        </div>
+
+        <div class="footer-col">
+          <h4 class="footer-title">Liên hệ</h4>
+          <ul class="footer-links">
+            <li><a>Số điện thoại: 0934537548</a></li>
+            <li><a>Địa chỉ: Quận Bình Thạnh, Thành phố Hồ Chí Minh</a></li>
+            <li><a></a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4 class="footer-title">Hỗ trợ</h4>
+          <ul class="footer-links">
+            <li><a href="login.html">Đăng nhập</a></li>
+            <li><a href="register.html">Đăng ký</a></li>
+            <li><a href="javascript:void(0)" onclick="contact_Admin()">Liên hệ quản trị</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4 class="footer-title">Kết nối</h4>
+          <div class="footer-social">
+            <a href="#" aria-label="Facebook"><i class="fab fa-facebook"></i></a>
+            <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+            <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+            <a href="#" aria-label="Github"><i class="fab fa-github"></i></a>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <span>© 2025 2937. All rights reserved.</span>
+        <div class="footer-mini-links">
+          <a href="#home">Trang chủ</a>
+          <a href="#settings">Cài đặt</a>
+        </div>
+      </div>
+    </footer>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/settings.js"></script>
+    <script src="js/tools.js"></script>
+    <script>
+      // Router đơn giản bằng hash + hiệu ứng trượt trái/phải theo thứ tự tab
+      (function() {
+        const order = ['home', 'tools', 'settings'];
+        let current = 'home';
+
+        function highlight(target) {
+          document.querySelectorAll('.nav-middle .nav-link').forEach(a => {
+            const href = a.getAttribute('href') || '';
+            a.classList.toggle('active', href === '#' + target);
+          });
+        }
+
+        function showView(v) {
+          const target = (v && document.getElementById(v)) ? v : 'home';
+          if (target === current) { highlight(target); return; }
+
+          const incoming = document.getElementById(target);
+          const outgoing = document.getElementById(current);
+
+          const oldIdx = order.indexOf(current);
+          const newIdx = order.indexOf(target);
+          const dirClass = (newIdx > oldIdx) ? 'from-right' : 'from-left';
+
+          incoming.classList.add(dirClass);
+          // force reflow để transition áp dụng đúng
+          void incoming.offsetWidth;
+
+          incoming.classList.add('active');
+          if (outgoing) outgoing.classList.remove('active');
+
+          const cleanup = () => {
+            incoming.classList.remove(dirClass);
+            incoming.removeEventListener('transitionend', cleanup);
+          };
+          incoming.addEventListener('transitionend', cleanup);
+
+          highlight(target);
+          current = target;
+        }
+
+        function route() {
+          showView(location.hash.slice(1));
+        }
+
+        window.addEventListener('hashchange', route);
+        document.addEventListener('DOMContentLoaded', () => {
+          const initialHash = location.hash.slice(1);
+          const initial = (initialHash && document.getElementById(initialHash)) ? initialHash : 'home';
+          current = initial;
+          document.querySelectorAll('.view').forEach(s => s.classList.toggle('active', s.id === current));
+          highlight(current);
+        });
+      })();
+    </script>
+</body>
+</html>

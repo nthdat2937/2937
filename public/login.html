@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng nhập - 2937</title>
+    <link rel="icon" href="image/logo.png">
+    <link rel="stylesheet" href="style/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/auth.js" defer></script>
+</head>
+<body>
+    <div class="auth-overlay">
+        <div class="auth-container">
+            <div class="auth-box">
+                <div class="logo-container">
+                    <div class="logo-login">
+                        <img src="image/logo.png" alt="2937 Logo" class="logo-img-login">
+                    </div>
+                </div>
+                <h2 class="auth-title">Đăng nhập</h2>
+                <form id="loginForm" class="auth-form">
+                    <div class="form-group">
+                        <i class="fas fa-user"></i>
+                        <input type="text" name="username" placeholder="Tên tài khoản" required>
+                    </div>
+                    <div class="form-group">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" placeholder="Mật khẩu" required>
+                    </div>
+                    <button type="submit" class="nav-btn primary">Đăng nhập</button>
+                    <div class="auth-links">
+                        <a href="#" onclick="contact_Admin()">Quên mật khẩu?</a>
+                        <a href="register.html">Đăng ký tài khoản mới</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

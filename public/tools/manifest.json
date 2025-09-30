@@ -1,0 +1,16 @@
+[
+  {
+    "id": "taocodesinhnhat",
+    "name": "Tạo Code Sinh Nhật",
+    "description": "Tạo trang chúc mừng sinh nhật nhanh chóng và đẹp mắt.",
+    "path": "tools/taocodesinhnhat/index.html",
+    "icon": "fa-gift"
+  },
+  {
+    "id": "luyen_tieng_han",
+    "name": "Luyện tiếng Hàn",
+    "description": "Luyện từ vựng tiếng Hàn phổ biến",
+    "path": "tools/luyen_tieng_han/index.html",
+    "icon": "fa-book"
+  }
+]

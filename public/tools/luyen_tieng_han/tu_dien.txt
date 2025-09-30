@@ -1,0 +1,351 @@
+이것
+this
+cái này
+그것
+that
+cái đó
+저것
+that
+cái kia
+무엇
+what
+cái gì
+책
+book
+quyển sách
+공책
+notebook
+quyển vở
+한국어
+korean
+tiếng Hàn
+의자
+chair
+cái ghế
+책상
+desk
+cái bàn
+볼핀
+pen
+bút bi
+연필
+pencil
+bút chì
+필통
+pencil case
+hộp bút
+양말
+sock
+vớ
+구두
+shoe
+giày
+운동화
+sport shoe
+giày thể thao
+안경
+glass surface
+mắt kính
+가방
+bag
+cặp
+창문
+window
+cửa sổ
+문
+door
+cửa
+에어컨
+air-conditioner
+máy lạnh
+선풍기
+fan
+quạt máy
+시계
+clock
+đồng hồ
+컴퓨터
+computer
+máy tính
+노트북
+laptop
+laptop
+휴대폰
+phone
+điện thoại
+신문
+news
+báo
+사전
+dictionary
+từ điển
+칠판
+board
+cái bảng
+나무
+tree
+cây cối
+꽃
+flower
+hoa
+네
+yes
+vâng
+아니요
+no
+không
+이다
+is
+là
+아니다
+is not
+không phải là
+안녕하세요
+hello
+xin chào
+안녕히 계세요
+goodbye
+tạm biệt
+이름
+name
+tên
+저/나
+i
+tôi/mình
+씨
+you
+bạn
+친구
+friend
+bạn bè
+남자
+boy
+con trai
+여자
+girl
+con gái
+언니/누나
+sister
+chị gái
+오빠/형
+brother
+anh trai
+아버지/아빠
+father
+ba
+어머니/엄마
+mother
+mẹ
+남동생
+brother
+em trai
+여동생
+sister
+em gái
+유학생
+international student
+du học sinh
+회사윈
+company employee
+nhân viên công ty
+기자
+journalist
+nhà báo
+사과
+apple
+quả táo
+배
+pear
+quả lê
+딸기
+strawberry
+dâu tây
+물
+water
+nước
+밥
+rice
+cơm
+라면
+noodle
+mì gói
+쌀국수
+pho
+phở
+비빔밥
+mixed rice
+cơm trộn
+김지
+kimchi
+kimchi
+보다
+watch
+xem
+하다
+do
+làm
+일하다
+do work
+làm việc
+먹다
+eat
+ăn
+마시다
+drink
+uống
+공부하다
+study
+học
+사람
+people
+người
+베트남
+Vietnam
+Việt Nam
+영국
+United Kingdom
+nước Anh
+미국
+United State
+nước Mĩ
+호주
+Australia
+nước Úc
+중국
+China
+Trung Quốc
+일본
+Japan
+Nhật Bản
+선생님
+teacher
+giáo viên
+의사
+doctor
+bác sĩ
+학생
+student
+học sinh
+사장님
+boss
+giám đốc/sếp
+회계워
+accountant
+kế toán
+배우다
+study
+học
+자다
+sleep
+ngủ
+사다
+buy
+mua
+팔다
+sell
+bán
+쉬다
+rest
+nghỉ ngơi
+쓰다
+writing
+viết
+읽다
+reading
+đọc
+말하다
+speaking
+nói
+듣다
+listening
+nghe
+어디
+where
+ở đâu
+여디
+here
+ở đây
+거기
+there
+ở đó
+저기
+over there
+ở kia
+시장
+market
+chợ
+학교
+school
+trường học
+기숙사
+university
+trường đại học
+회사
+company
+công ty
+유학원
+study abroad center
+trung tâm du học
+도서관
+library
+thư viện
+서정
+bookstore
+nhà sách
+영사관
+consulate
+lanh sự quán
+부엌
+kitchen
+phòng bếp
+화장실
+toilet
+nhà vệ sinh
+극장
+theater
+rạp phim/nhà hát
+집
+house
+nhà
+방
+room
+phòng
+정문
+main door
+cửa chính
+신당
+restaurant
+nhà hàng/quán ăn
+사무실
+office
+văn phòng
+병원
+hospital
+bệnh viện
+가다
+go
+đi
+오다
+arrive
+đến
+유학하다
+study abroad
+du học
+유학가다
+study abroad
+du học
+여행하다
+travel
+du lịch
+여행가다
+travel
+du lịch
+가르치다
+teach
+dạy/chỉ
+이야기다
+chat
+trò chuyện
+만나다
+meet
+gặp gỡ
