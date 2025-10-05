@@ -6,34 +6,13 @@
     <title>2937 - Nền tảng Hiện đại</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style/style.css">
-    <style>
-      /* Tách không gian view + transition chuyển cảnh theo hướng */
-      .view {
-        opacity: 0;
-        transform: translateX(0);
-        transition: opacity .25s ease, transform .25s ease;
-        pointer-events: none;
-        height: 0;
-        overflow: hidden;
-      }
-      .view.active {
-        opacity: 1;
-        transform: translateX(0);
-        pointer-events: auto;
-        height: auto;
-        overflow: visible;
-      }
-      /* trạng thái vào theo hướng */
-      .view.from-right { transform: translateX(24px); }
-      .view.from-left  { transform: translateX(-24px); }
-    </style>
 </head>
 <body>
     <nav class="navbar">
         <div class="navbar-container">
             <div class="nav-left">
                 <div class="logo-container">
-                    <a href="#">    
+                    <a href="javascript:void(0)" data-view="home">    
                         <div class="logo">
                             <img src="image/logo.png" alt="2937 Logo" class="logo-img">
                         </div>
@@ -42,15 +21,15 @@
             </div>
             
             <div class="nav-middle">
-                <a href="#home" class="nav-link active">
+                <a href="javascript:void(0)" data-view="home" class="nav-link active">
                     <i class="fas fa-home"></i>
                     <span>Trang chủ</span>
                 </a>
-                <a href="#tools" class="nav-link">
+                <a href="javascript:void(0)" data-view="tools" class="nav-link">
                     <i class="fas fa-tools"></i>
                     <span>Công cụ</span>
                 </a>
-                <a href="#settings" class="nav-link">
+                <a href="javascript:void(0)" data-view="settings" class="nav-link">
                     <i class="fas fa-cog"></i>
                     <span>Cài đặt</span>
                 </a>
@@ -215,6 +194,7 @@
           </div>
         </section>
     </main>
+
     <footer class="site-footer">
       <div class="footer-inner">
         <div class="footer-brand">
@@ -262,30 +242,32 @@
       <div class="footer-bottom">
         <span>© 2025 2937. All rights reserved.</span>
         <div class="footer-mini-links">
-          <a href="#home">Trang chủ</a>
-          <a href="#settings">Cài đặt</a>
+          <a href="javascript:void(0)" data-view="home">Trang chủ</a>
+          <a href="javascript:void(0)" data-view="settings">Cài đặt</a>
         </div>
       </div>
     </footer>
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/auth.js"></script>
     <script src="js/settings.js"></script>
     <script src="js/tools.js"></script>
+    
     <script>
-      // Router đơn giản bằng hash + hiệu ứng trượt trái/phải theo thứ tự tab
+      // Router mới dùng data-view thay vì hash
       (function() {
         const order = ['home', 'tools', 'settings'];
         let current = 'home';
 
         function highlight(target) {
           document.querySelectorAll('.nav-middle .nav-link').forEach(a => {
-            const href = a.getAttribute('href') || '';
-            a.classList.toggle('active', href === '#' + target);
+            const view = a.getAttribute('data-view') || '';
+            a.classList.toggle('active', view === target);
           });
         }
 
-        function showView(v) {
-          const target = (v && document.getElementById(v)) ? v : 'home';
+        function showView(target) {
+          if (!target || !document.getElementById(target)) target = 'home';
           if (target === current) { highlight(target); return; }
 
           const incoming = document.getElementById(target);
@@ -296,7 +278,6 @@
           const dirClass = (newIdx > oldIdx) ? 'from-right' : 'from-left';
 
           incoming.classList.add(dirClass);
-          // force reflow để transition áp dụng đúng
           void incoming.offsetWidth;
 
           incoming.classList.add('active');
@@ -312,17 +293,19 @@
           current = target;
         }
 
-        function route() {
-          showView(location.hash.slice(1));
-        }
+        // Click handler cho nav links
+        document.addEventListener('click', (e) => {
+          const link = e.target.closest('[data-view]');
+          if (link) {
+            e.preventDefault();
+            const view = link.getAttribute('data-view');
+            showView(view);
+          }
+        });
 
-        window.addEventListener('hashchange', route);
+        // Initialize
         document.addEventListener('DOMContentLoaded', () => {
-          const initialHash = location.hash.slice(1);
-          const initial = (initialHash && document.getElementById(initialHash)) ? initialHash : 'home';
-          current = initial;
-          document.querySelectorAll('.view').forEach(s => s.classList.toggle('active', s.id === current));
-          highlight(current);
+          showView('home');
         });
       })();
     </script>

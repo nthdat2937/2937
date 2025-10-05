@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Music Library - Danh Sách Bài Hát Hay</title>
+    <link rel="stylesheet" href="../style/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        /* Music Player Styles */
+        .music-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .song-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05));
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 1.8rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .song-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transition: left 0.5s;
+        }
+
+        .song-card:hover::before {
+            left: 100%;
+        }
+
+        .song-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+
+        .song-header {
+            display: flex;
+            align-items: center;
+            gap: 1.2rem;
+            margin-bottom: 1.2rem;
+        }
+
+        .song-cover {
+            width: 80px;
+            height: 80px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            color: white;
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .song-card:hover .song-cover {
+            transform: scale(1.1);
+        }
+
+        .song-number {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            width: 35px;
+            height: 35px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 0.9rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .song-info h3 {
+            color: white;
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 0.3rem;
+            line-height: 1.3;
+        }
+
+        .song-artist {
+            color: rgba(255, 255, 255, 0.85);
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .song-details {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .detail-row {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            margin-bottom: 0.7rem;
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 0.9rem;
+        }
+
+        .detail-row i {
+            width: 20px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .open-button {
+            position: absolute;
+            bottom: 1.5rem;
+            right: 1.5rem;
+            padding: 0.7rem 1.5rem;
+            background: linear-gradient(135deg, #fff, #f0f0f0);
+            border-radius: 25px;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #667eea;
+            font-size: 0.95rem;
+            font-weight: 700;
+            box-shadow: 0 5px 15px rgba(255, 255, 255, 0.3);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            opacity: 0;
+            transform: scale(0.8);
+            text-decoration: none;
+        }
+
+        .song-card:hover .open-button {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .open-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 25px rgba(255, 255, 255, 0.5);
+        }
+
+        .filter-bar {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .filter-btn {
+            padding: 0.8rem 1.8rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 25px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .filter-btn:hover,
+        .filter-btn.active {
+            background: rgba(255, 255, 255, 0.25);
+            border-color: rgba(255, 255, 255, 0.5);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .stats-bar {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05));
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: white;
+            margin-bottom: 0.3rem;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .stat-label {
+            color: rgba(255, 255, 255, 0.85);
+            font-size: 0.95rem;
+            font-weight: 600;
+        }
+
+        /* Search bar */
+        .search-container {
+            max-width: 600px;
+            margin: 0 auto 2rem;
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 1rem 1.5rem 1rem 3.5rem;
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 25px;
+            color: white;
+            font-size: 1rem;
+            backdrop-filter: blur(20px);
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.5);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .search-input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 1.3rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 1.1rem;
+        }
+
+        /* Light theme overrides */
+        body.theme-light .song-card {
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        }
+
+        body.theme-light .song-info h3 {
+            color: #111827;
+        }
+
+        body.theme-light .song-artist,
+        body.theme-light .detail-row {
+            color: #374151;
+        }
+
+        body.theme-light .song-number {
+            background: rgba(0, 0, 0, 0.1);
+            color: #111827;
+        }
+
+        body.theme-light .stat-card {
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
+        }
+
+        body.theme-light .stat-number {
+            color: #111827;
+        }
+
+        body.theme-light .stat-label {
+            color: #4b5563;
+        }
+
+        body.theme-light .search-input {
+            background: #ffffff;
+            border: 1px solid #d1d5db;
+            color: #111827;
+        }
+
+        body.theme-light .search-input::placeholder {
+            color: #9ca3af;
+        }
+
+        body.theme-light .search-icon {
+            color: #6b7280;
+        }
+
+        body.theme-light .filter-btn {
+            background: #ffffff;
+            border: 1px solid #d1d5db;
+            color: #374151;
+        }
+
+        body.theme-light .filter-btn:hover,
+        body.theme-light .filter-btn.active {
+            background: #f3f4f6;
+            border-color: #9ca3af;
+        }
+
+        @media (max-width: 768px) {
+            .music-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-bar {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!--Nave Bar-->
+    <nav class="navbar">
+        <div class="navbar-container">
+            <div class="nav-left">
+                <div class="logo-container">
+                    <a href="#">    
+                        <div class="logo">
+                            <img src="../../image/logo.png" alt="2937 Logo" class="logo-img">
+                        </div>
+                    </a>
+                </div>
+            </div>
+            
+            <div class="nav-right">
+                <div id="userInfo" class="user-info hidden">
+                    <img id="userAvatar" class="user-avatar" src="image/default-avatar.png" alt="Avatar">
+                    <span id="userName" class="user-name">Người dùng</span>
+                    <button id="logoutBtn" class="nav-btn secondary">Đăng xuất</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Hero Section -->
+        <div class="hero-section">
+            <h1 class="hero-title">🎵 Thư Viện Âm Nhạc</h1>
+            <p class="hero-subtitle">Khám phá những bài hát hay nhất mọi thời đại</p>
+        </div>
+
+        <!-- Search -->
+        <div class="search-container">
+            <i class="fas fa-search search-icon"></i>
+            <input type="text" class="search-input" placeholder="Tìm kiếm bài hát, nghệ sĩ..." id="searchInput">
+        </div>
+
+        <!-- Filter Bar -->
+        <div class="filter-bar">
+            <button class="filter-btn active" data-filter="all">Tất cả</button>
+            <button class="filter-btn" data-filter="vpop">V-Pop</button>
+            <button class="filter-btn" data-filter="kpop">K-Pop</button>
+            <button class="filter-btn" data-filter="usuk">US-UK</button>
+            <button class="filter-btn" data-filter="ballad">Ballad</button>
+        </div>
+
+        <!-- Music Grid -->
+        <div class="music-grid" id="musicGrid">
+            <!-- Songs will be inserted here by JavaScript -->
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+        <div class="footer-inner">
+            <div>
+                <div class="footer-brand-top">
+                    <div class="logo" style="width: 40px; height: 40px; font-size: 1.2rem;">
+                        <i class="fas fa-music"></i>
+                    </div>
+                    <span class="brand-name">MUSICA</span>
+                </div>
+                <p class="brand-tagline">Nơi âm nhạc kết nối con tim</p>
+                <p class="footer-note">Khám phá và thưởng thức những giai điệu tuyệt vời nhất.</p>
+            </div>
+            <div>
+                <h4 class="footer-title">Khám phá</h4>
+                <ul class="footer-links">
+                    <li><a href="#">Bảng xếp hạng</a></li>
+                    <li><a href="#">Playlist</a></li>
+                    <li><a href="#">Radio</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="footer-title">Hỗ trợ</h4>
+                <ul class="footer-links">
+                    <li><a href="#">Trung tâm trợ giúp</a></li>
+                    <li><a href="#">Liên hệ</a></li>
+                    <li><a href="#">Báo lỗi</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="footer-title">Theo dõi</h4>
+                <div class="footer-social">
+                    <a href="#"><i class="fab fa-facebook"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                    <a href="#"><i class="fab fa-youtube"></i></a>
+                    <a href="#"><i class="fab fa-spotify"></i></a>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <span>&copy; 2025 MUSICA. All rights reserved.</span>
+            <div class="footer-mini-links">
+                <a href="#">Điều khoản</a>
+                <a href="#">Quyền riêng tư</a>
+            </div>
+        </div>
+    </footer>
+
+    <script src="../../js/auth.js"></script>
+    <script>
+        // Song data with links
+        const songs = [
+            { id: 1, title: "Nơi Này Có Anh", artist: "Sơn Tùng M-TP", composer: "Sơn Tùng M-TP", releaseDate: "01/07/2014", genre: "vpop", icon: "5 ⭐", link: "https://www.youtube.com/watch?v=FN7ALfpGxiI" },
+            { id: 2, title: "Lạc Trôi", artist: "Sơn Tùng M-TP", composer: "Sơn Tùng M-TP", releaseDate: "01/01/2017", genre: "vpop", icon: "5 ⭐", link: "https://www.youtube.com/watch?v=DrY_K0mT-As" },
+            { id: 3, title: "Hãy Trao Cho Anh", artist: "Sơn Tùng M-TP", composer: "Sơn Tùng M-TP", releaseDate: "01/07/2019", genre: "vpop", icon: "5 ⭐", link: "https://www.youtube.com/watch?v=knW7-x7Y7RE" },
+            { id: 4, title: "Muộn Rồi Mà Sao Còn", artist: "Sơn Tùng M-TP", composer: "Sơn Tùng M-TP", releaseDate: "29/04/2021", genre: "vpop", icon: "5 ⭐", link: "https://www.youtube.com/watch?v=XkOliphJ1Zc" },
+            { id: 5, title: "Chúng Ta Của Hiện Tại", artist: "Sơn Tùng M-TP", composer: "Sơn Tùng M-TP", releaseDate: "29/07/2022", genre: "vpop", icon: "5 ⭐", link: "https://www.youtube.com/watch?v=psZ1g9fMfeo" },
+            { id: 6, title: "Đừng Làm Trái Tim Anh Đau", artist: "Sơn Tùng M-TP", composer: "Sơn Tùng M-TP", releaseDate: "29/10/2023", genre: "vpop", icon: "5 ⭐", link: "https://www.youtube.com/watch?v=abPmZCZZrFA" },
+            { id: 7, title: "Dynamite", artist: "BTS", composer: "David Stewart, Jessica Agombar", releaseDate: "21/08/2020", genre: "kpop", icon: "5 ⭐", link: "https://www.youtube.com/watch?v=gdZLi9oWNZg" },
+            { id: 8, title: "Butter", artist: "BTS", composer: "Rob Grimaldi, Stephen Kirk", releaseDate: "21/05/2021", genre: "kpop", icon: "5 ⭐", link: "https://www.youtube.com/watch?v=WMweEpGlu_U" },
+            { id: 9, title: "Permission to Dance", artist: "BTS", composer: "Ed Sheeran, Johnny McDaid", releaseDate: "09/07/2021", genre: "kpop", icon: "5 ⭐", link: "https://www.youtube.com/watch?v=CuklIb9d3fI" },
+            { id: 10, title: "My Universe", artist: "Coldplay & BTS", composer: "Chris Martin, Max Martin", releaseDate: "24/09/2021", genre: "kpop", icon: "5 ⭐", link: "https://www.youtube.com/watch?v=3YqPKLZF_WU" },
+            { id: 11, title: "How You Like That", artist: "BLACKPINK", composer: "Teddy Park, R.Tee", releaseDate: "26/06/2020", genre: "kpop", icon: "5 ⭐", link: "https://www.youtube.com/watch?v=ioNng23DkIM" },
+            { id: 12, title: "Pink Venom", artist: "BLACKPINK", composer: "Teddy Park, 24", releaseDate: "19/08/2022", genre: "kpop", icon: "5 ⭐", link: "https://www.youtube.com/watch?v=gQlMMD8auMs" },
+            { id: 13, title: "Shape of You", artist: "Ed Sheeran", composer: "Ed Sheeran, Steve Mac", releaseDate: "06/01/2017", genre: "usuk", icon: "5 ⭐", link: "https://www.youtube.com/watch?v=JGwWNGJdvx8" },
+            { id: 14, title: "Perfect", artist: "Ed Sheeran", composer: "Ed Sheeran", releaseDate: "26/09/2017", genre: "usuk", icon: "5 ⭐", link: "https://www.youtube.com/watch?v=2Vv-BfVoq4g" },
+            { id: 15, title: "Blinding Lights", artist: "The Weeknd", composer: "The Weeknd, Max Martin", releaseDate: "29/11/2019", genre: "usuk", icon: "5 ⭐", link: "https://www.youtube.com/watch?v=4NRXx6U8ABQ" },
+            { id: 16, title: "Levitating", artist: "Dua Lipa", composer: "Dua Lipa, Clarence Coffee Jr", releaseDate: "27/03/2020", genre: "usuk", icon: "5 ⭐", link: "https://www.youtube.com/watch?v=TUVcZfQe-Kw" },
+            { id: 17, title: "As It Was", artist: "Harry Styles", composer: "Harry Styles, Tyler Johnson", releaseDate: "01/04/2022", genre: "usuk", icon: "5 ⭐", link: "https://www.youtube.com/watch?v=H5v3kku4y6Q" },
+            { id: 18, title: "Anti-Hero", artist: "Taylor Swift", composer: "Taylor Swift, Jack Antonoff", releaseDate: "21/10/2022", genre: "usuk", icon: "5 ⭐", link: "https://www.youtube.com/watch?v=b1kbLwvqugk" },
+            { id: 19, title: "Anh Đã Quen Với Cô Đơn", artist: "Soobin Hoàng Sơn", composer: "Soobin Hoàng Sơn", releaseDate: "15/03/2020", genre: "ballad", icon: "5 ⭐", link: "https://www.youtube.com/watch?v=e5F0Je7yNIY" },
+            { id: 20, title: "Em Của Ngày Hôm Qua", artist: "Sơn Tùng M-TP", composer: "Sơn Tùng M-TP", releaseDate: "03/04/2014", genre: "ballad", icon: "5 ⭐", link: "https://www.youtube.com/watch?v=6dKJeGzuLDo" },
+            { id: 21, title: "Yêu Một Người Có Lẽ", artist: "Lou Hoàng", composer: "Lou Hoàng", releaseDate: "01/05/2019", genre: "ballad", icon: "5 ⭐", link: "https://www.youtube.com/watch?v=lx_AEffMTeg" },
+            { id: 22, title: "Sao Anh Chưa Về Nhà", artist: "Amee, Ricky Star", composer: "Amee", releaseDate: "01/11/2019", genre: "vpop", icon: "5 ⭐", link: "https://www.youtube.com/watch?v=sJmXD6ECkao" },
+            { id: 23, title: "3107", artist: "W/n ft. Nâu, Duongg, Titie", composer: "W/n", releaseDate: "31/07/2020", genre: "vpop", icon: "5 ⭐", link: "https://www.youtube.com/watch?v=wjbmqwVj8RQ" },
+            { id: 24, title: "Vì Mẹ Anh Bắt Chia Tay", artist: "Miu Lê, Đen", composer: "Miu Lê", releaseDate: "12/05/2021", genre: "vpop", icon: "5 ⭐", link: "https://www.youtube.com/watch?v=FDUqJLfXkoY" }
+        ];
+
+        // Render songs
+        function renderSongs(songsToRender) {
+            const musicGrid = document.getElementById('musicGrid');
+            musicGrid.innerHTML = songsToRender.map(song => `
+                <div class="song-card" data-genre="${song.genre}">
+                    <div class="song-number">#${song.id}</div>
+                    <div class="song-header">
+                        <div class="song-cover">
+                            ${song.icon}
+                        </div>
+                        <div class="song-info">
+                            <h3>${song.title}</h3>
+                            <div class="song-artist">
+                                <i class="fas fa-user"></i>
+                                ${song.artist}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="song-details">
+                        <div class="detail-row">
+                            <i class="fas fa-pen"></i>
+                            <span>${song.composer}</span>
+                        </div>
+                        <div class="detail-row">
+                            <i class="fas fa-calendar"></i>
+                            <span>${song.releaseDate}</span>
+                        </div>
+                    </div>
+                    <a href="${song.link}" target="_blank" class="open-button">
+                        <i class="fas fa-external-link-alt"></i>
+                        Mở
+                    </a>
+                </div>
+            `).join('');
+        }
+
+        // Filter functionality
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                const filter = btn.dataset.filter;
+                const filtered = filter === 'all' ? songs : songs.filter(song => song.genre === filter);
+                renderSongs(filtered);
+            });
+        });
+
+        // Search functionality
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            const filtered = songs.filter(song => 
+                song.title.toLowerCase().includes(searchTerm) ||
+                song.artist.toLowerCase().includes(searchTerm) ||
+                song.composer.toLowerCase().includes(searchTerm)
+            );
+            renderSongs(filtered);
+        });
+
+        // Initial render
+        renderSongs(songs);
+
+        // Add card hover effect
+        document.addEventListener('mouseenter', (e) => {
+            const card = e.target.closest('.song-card');
+            if (card) {
+                card.style.transition = 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
+            }
+        }, true);
+    </script>
+</body>
+</html>

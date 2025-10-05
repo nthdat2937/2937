@@ -1,16 +1,23 @@
 [
   {
-    "id": "taocodesinhnhat",
+    "id": "1",
     "name": "Tạo Code Sinh Nhật",
     "description": "Tạo trang chúc mừng sinh nhật nhanh chóng và đẹp mắt.",
     "path": "tools/taocodesinhnhat/index.html",
     "icon": "fa-gift"
   },
   {
-    "id": "luyen_tieng_han",
+    "id": "2",
     "name": "Luyện tiếng Hàn",
     "description": "Luyện từ vựng tiếng Hàn phổ biến",
     "path": "tools/luyen_tieng_han/index.html",
     "icon": "fa-book"
+  },
+  {
+    "id": "3",
+    "name": "Danh sách nhạc hay",
+    "description": "Nhạc hay theo thể loại",
+    "path": "tools/music-list/index.html",
+    "icon": "fa-music"
   }
 ]
