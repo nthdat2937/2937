@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Bảng từ vựng</title>
+  <style>
+    :root {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      --primary: #4f46e5;
+      --primary-light: #818cf8;
+    }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      padding: 24px;
+      background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+      color: #1e293b;
+    }
+    .card {
+      background: white;
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.06);
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    h1 {
+      margin: 0 0 20px;
+      font-size: 24px;
+      font-weight: 600;
+      color: #0f172a;
+    }
+    .controls {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    input[type=text] {
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: 1px solid #e2e8f0;
+      min-width: 220px;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+    input[type=text]:focus {
+      outline: none;
+      border-color: var(--primary-light);
+      box-shadow: 0 0 0 3px rgba(79,70,229,0.1);
+    }
+    button {
+      padding: 10px 16px;
+      border-radius: 10px;
+      border: 0;
+      background: var(--primary);
+      color: white;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    button:hover {
+      background: var(--primary-light);
+      transform: translateY(-1px);
+    }
+    button.secondary {
+      background: #f1f5f9;
+      color: #334155;
+    }
+    button.secondary:hover {
+      background: #e2e8f0;
+    }
+    .table-wrap {
+      overflow: auto;
+      border-radius: 12px;
+      border: 1px solid #e2e8f0;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      min-width: 680px;
+    }
+    th, td {
+      padding: 12px 16px;
+      border-bottom: 1px solid #e2e8f0;
+      text-align: left;
+      font-size: 14px;
+    }
+    th {
+      position: relative;
+      background: #f8fafc;
+      font-weight: 600;
+      cursor: pointer;
+      user-select: none;
+      white-space: nowrap;
+    }
+    th:hover {
+      background: #f1f5f9;
+    }
+    th .sort-ind {
+      position: absolute;
+      right: 12px;
+      top: 12px;
+      font-size: 12px;
+      color: #64748b;
+    }
+    tr:hover td {
+      background: #f8fafc;
+    }
+    .small {
+      font-size: 13px;
+      color: #64748b;
+    }
+    .notice {
+      padding: 12px 16px;
+      border-radius: 10px;
+      background: #fef3c7;
+      border: 1px solid #fde68a;
+      color: #92400e;
+      margin-bottom: 16px;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Bảng từ vựng</h1>
+
+    <div class="controls" style="margin-top:10px">
+      <span id="sheetId" type="text" placeholder="SHEET_ID (vd: 1aBcD...)"></span>
+      <span id="gid" type="text" placeholder="GID (vd: 0)" value="0"></span>
+      <span id="refreshSec" type="text" placeholder="Auto-refresh (s) - 0 để tắt" value="60" style="width:140px"></span>
+      <button id="loadBtn">Làm mới</button>
+      <button id="copyUrlBtn" class="secondary">Copy CSV URL</button>
+      <a href="https://script.google.com/macros/s/AKfycbzYfvfsRvf5q097brHCiUclEFjbizyG3d-EW4_0nXhNbEqPNB6R8Ougk3zbJ0lRGOHFlw/exec"><button>New word (admin only)</button></a>
+    </div>
+
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px">
+      <input id="search" type="text" placeholder="Tìm kiếm..." style="flex:1" />
+      <div class="small">Hàng: <span id="rowCount">0</span></div>
+    </div>
+
+    <div id="notice" class="notice" style="display:none"></div>
+
+    <div class="table-wrap" id="tableWrap">
+      <table id="sheetTable"><thead></thead><tbody></tbody></table>
+    </div>
+  </div>
+
+<script>
+// Cấu hình mặc định (thay thế nếu muốn)
+const defaults = {
+  sheetId: '1vyeom_jNLjTY6_K0xA-oBH5Vc5ISGF-fe9_JM2iVYDw', // điền SHEET_ID ở đây nếu muốn mặc định
+  gid: '0',
+  autoRefreshSec: 0.1
+}
+
+// Utils: parse CSV (simple, supports quoted fields)
+function parseCSV(text){
+  const rows = [];
+  let cur = '';
+  let row = [];
+  let inQuotes = false;
+  for(let i=0;i<text.length;i++){
+    const ch = text[i];
+    const nxt = text[i+1];
+    if(inQuotes){
+      if(ch==='"'){
+        if(nxt==='"'){ cur+='"'; i++; } else { inQuotes=false; }
+      } else { cur+=ch }
+    } else {
+      if(ch==='"'){ inQuotes=true }
+      else if(ch===','){ row.push(cur); cur=''; }
+      else if(ch==='\r') continue;
+      else if(ch==='\n'){ row.push(cur); rows.push(row); row=[]; cur=''; }
+      else cur+=ch;
+    }
+  }
+  if(cur!==''||row.length>0){ row.push(cur); rows.push(row); }
+  return rows;
+}
+
+// DOM refs
+const sheetIdInput = document.getElementById('sheetId');
+const gidInput = document.getElementById('gid');
+const loadBtn = document.getElementById('loadBtn');
+const tableHead = document.querySelector('#sheetTable thead');
+const tableBody = document.querySelector('#sheetTable tbody');
+const searchInput = document.getElementById('search');
+const rowCountEl = document.getElementById('rowCount');
+const notice = document.getElementById('notice');
+const refreshInput = document.getElementById('refreshSec');
+const copyUrlBtn = document.getElementById('copyUrlBtn');
+
+// state
+let data = []; // array of objects
+let headers = [];
+let sortState = {col: null, dir: 1};
+let autoRefreshTimer = null;
+
+function makeCsvUrl(sheetId, gid){
+  return `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&gid=${gid}`;
+}
+
+async function fetchSheet(sheetId, gid){
+  const url = makeCsvUrl(sheetId,gid);
+  try{
+    const res = await fetch(url);
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    const txt = await res.text();
+    return txt;
+  }catch(e){
+    throw e;
+  }
+}
+
+function renderTable(rows){
+  tableHead.innerHTML=''; tableBody.innerHTML='';
+  if(!rows || rows.length===0) return;
+  headers = rows[0];
+  const headRow = document.createElement('tr');
+  headers.forEach((h, i)=>{
+    const th = document.createElement('th');
+    th.textContent = h || `Col ${i+1}`;
+    const sortInd = document.createElement('span'); sortInd.className='sort-ind'; sortInd.textContent='↕';
+    th.appendChild(sortInd);
+    th.addEventListener('click', ()=>{
+      if(sortState.col===i) sortState.dir = -sortState.dir; else { sortState.col = i; sortState.dir = 1; }
+      applySortFilter();
+      updateSortIcons();
+    });
+    headRow.appendChild(th);
+  });
+  tableHead.appendChild(headRow);
+
+  // build objects
+  data = rows.slice(1).map(r=>{
+    const obj = {};
+    headers.forEach((h,idx)=> obj[h||`Col ${idx+1}`] = r[idx] ?? '');
+    return obj;
+  });
+  applySortFilter();
+}
+
+function updateSortIcons(){
+  const ths = tableHead.querySelectorAll('th');
+  ths.forEach((th, idx)=>{
+    const span = th.querySelector('.sort-ind');
+    if(sortState.col===idx) span.textContent = sortState.dir===1? '↑':'↓'; else span.textContent='↕';
+  });
+}
+
+function applySortFilter(){
+  const q = searchInput.value.trim().toLowerCase();
+  let rows = data.slice();
+  if(sortState.col!==null){
+    const key = headers[sortState.col] || `Col ${sortState.col+1}`;
+    rows.sort((a,b)=>{
+      const A = (a[key]||'').toString();
+      const B = (b[key]||'').toString();
+      return A.localeCompare(B, undefined, {numeric:true}) * sortState.dir;
+    });
+  }
+  if(q.length>0){
+    rows = rows.filter(r=> headers.some(h=> (r[h]||'').toString().toLowerCase().includes(q) ));
+  }
+  // render body
+  tableBody.innerHTML='';
+  rows.forEach(r=>{
+    const tr = document.createElement('tr');
+    headers.forEach(h=>{
+      const td = document.createElement('td');
+      td.textContent = r[h] ?? '';
+      tr.appendChild(td);
+    });
+    tableBody.appendChild(tr);
+  });
+  rowCountEl.textContent = rows.length.toString();
+}
+
+async function loadAndRender(){
+  const sheetId = sheetIdInput.value.trim() || defaults.sheetId;
+  const gid = gidInput.value.trim() || defaults.gid;
+  if(!sheetId){ notice.style.display='block'; notice.textContent='Cần nhập SHEET_ID.'; return; }
+  notice.style.display='none';
+  try{
+    loadBtn.disabled=true; loadBtn.textContent='Đang tải...';
+    const csv = await fetchSheet(sheetId,gid);
+    const rows = parseCSV(csv);
+    if(rows.length===0){ notice.style.display='block'; notice.textContent='Sheet rỗng hoặc không thể phân tích.'; }
+    renderTable(rows);
+  }catch(e){
+    notice.style.display='block'; notice.textContent = 'Lỗi tải sheet: '+e.message + ' — Kiểm tra xem sheet đã public chưa?';
+    tableHead.innerHTML=''; tableBody.innerHTML=''; rowCountEl.textContent='0';
+  }finally{ loadBtn.disabled=false; loadBtn.textContent='Làm mới'; }
+}
+
+loadBtn.addEventListener('click', ()=>{
+  sortState = {col:null,dir:1};
+  clearInterval(autoRefreshTimer);
+  loadAndRender();
+  const sec = parseInt(refreshInput.value||'0');
+  if(sec>0){ autoRefreshTimer = setInterval(loadAndRender, Math.max(5,sec)*1000); }
+});
+
+searchInput.addEventListener('input', ()=> applySortFilter());
+
+copyUrlBtn.addEventListener('click', ()=>{
+  const id = sheetIdInput.value.trim(); const gid = gidInput.value.trim()||'0';
+  if(!id){ notice.style.display='block'; notice.textContent='Cần SHEET_ID để copy URL.'; return; }
+  const url = makeCsvUrl(id,gid);
+  navigator.clipboard.writeText(url).then(()=>{
+    notice.style.display='block'; notice.textContent='Đã copy URL CSV vào clipboard.';
+    setTimeout(()=> notice.style.display='none',2000);
+  });
+});
+
+// prefill from defaults
+sheetIdInput.value = defaults.sheetId;
+gidInput.value = defaults.gid;
+refreshInput.value = defaults.autoRefreshSec;
+
+// auto-load if defaults present
+if(defaults.sheetId){ loadBtn.click(); }
+</script>
+</body>
+</html>
