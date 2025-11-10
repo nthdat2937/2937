@@ -4,220 +4,396 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Luyện Tiếng Hàn</title>
-    <link rel="icon" href="../../image/logo.png">
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         :root {
-            --primary: white;
-            --success: #2ecc71;
-            --error: #ff7a6b;
-            --text: #2c3e50;
+            --primary: #4f46e5;
+            --primary-dark: #4338ca;
+            --success: #10b981;
+            --error: #ef4444;
+            --text: #1f2937;
+            --text-light: #6b7280;
+            --bg-light: #f9fafb;
+            --border: #e5e7eb;
+            --shadow: rgba(0, 0, 0, 0.1);
         }
+
         body {
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
-            color: var(--text);
-        }
-        .container {
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05));
-            padding: 30px;
-            border-radius: 16px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-            transition: transform 0.2s;
-            margin: 10rem;
-        }
-        .container:hover {
-            transform: translateY(-2px);
-        }
-        .header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        .title {
-            font-size: 2.5em;
-            color: var(--primary);
-            margin-bottom: 10px;
-            font-weight: 900;
-        }
-        .progress {
-            background: #eee;
-            height: 8px;
-            border-radius: 4px;
-            margin: 20px 0;
-            overflow: hidden;
-        }
-        .progress-bar {
-            height: 100%;
-            background: violet;
-            width: 0%;
-            transition: width 0.3s ease;
-            border-radius: 5px;
-        }
-        .score {
+            font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
             display: flex;
+            align-items: center;
             justify-content: center;
-            gap: 20px;
-            font-size: 1.2em;
-            margin-bottom: 30px;
-        }
-        .score span {
-            padding: 15px 25px;
-            border-radius: 20px;
-            background: #f8f9fa;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            transition: all 0.3s ease;
+            padding: 20px;
             position: relative;
+            overflow-x: hidden;
         }
-        .score span:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+
+        /* Animated background particles */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.08) 0%, transparent 50%);
+            animation: float 20s ease-in-out infinite;
+            z-index: 0;
         }
-        .score-change {
-            position: absolute;
-            animation: floatUp 0.8s ease-out forwards;
-            font-weight: bold;
-            pointer-events: none;
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(30px, 30px); }
         }
-        .score-plus {
-            color: var(--success);
+
+        .container {
+            position: relative;
+            z-index: 1;
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(20px);
+            padding: 48px;
+            border-radius: 24px;
+            box-shadow: 
+                0 20px 60px rgba(0, 0, 0, 0.2),
+                0 0 0 1px rgba(255, 255, 255, 0.3);
+            max-width: 700px;
+            width: 100%;
+            animation: slideUp 0.6s ease-out;
         }
-        .score-minus {
-            color: var(--error);
-        }
-        @keyframes floatUp {
-            0% {
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
                 opacity: 1;
                 transform: translateY(0);
             }
-            100% {
-                opacity: 0;
-                transform: translateY(-20px);
-            }
         }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 24px;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .title {
+            font-size: 2.5rem;
+            color: var(--text);
+            margin-bottom: 8px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            font-size: 0.95rem;
+            color: var(--text-light);
+            font-weight: 500;
+        }
+
+        .mode-switch {
+            margin: 20px 0;
+            display: flex;
+            justify-content: center;
+        }
+
+        .mode-switch button {
+            background: var(--bg-light);
+            border: 2px solid var(--border);
+            color: var(--text);
+            padding: 10px 24px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .mode-switch button:hover {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+        }
+
+        .progress {
+            background: var(--bg-light);
+            height: 6px;
+            border-radius: 3px;
+            margin: 24px 0;
+            overflow: hidden;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            width: 0%;
+            transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 3px;
+            box-shadow: 0 0 10px rgba(102, 126, 234, 0.5);
+        }
+
+        .score {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .score-item {
+            position: relative;
+            padding: 16px 32px;
+            border-radius: 16px;
+            background: var(--bg-light);
+            border: 2px solid var(--border);
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text);
+            min-width: 140px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .score-item:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px var(--shadow);
+        }
+
+        .score-item.correct-highlight {
+            background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+            border-color: var(--success);
+            animation: pulse 0.4s ease;
+        }
+
+        .score-item.wrong-highlight {
+            background: linear-gradient(135deg, #fee2e2, #fecaca);
+            border-color: var(--error);
+            animation: pulse 0.4s ease;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .score-number {
+            display: block;
+            font-size: 2rem;
+            font-weight: 800;
+            margin-top: 4px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .word-container {
+            background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+            padding: 48px 32px;
+            border-radius: 20px;
+            margin: 32px 0;
+            border: 2px solid #bae6fd;
+            box-shadow: 0 4px 20px rgba(14, 165, 233, 0.15);
+        }
+
         .word {
-            font-size: 3em;
-            margin: 30px 0;
+            font-size: 3.5rem;
             text-align: center;
             color: var(--text);
-            font-weight: bold;
+            font-weight: 800;
+            line-height: 1.2;
+            letter-spacing: 2px;
         }
+
         .input-group {
             display: flex;
-            gap: 10px;
-            justify-content: center;
-            margin: 20px 0;
+            flex-direction: column;
+            gap: 16px;
+            margin: 32px 0;
         }
+
         input {
-            padding: 12px 20px;
-            font-size: 1.1em;
-            width: 300px;
-            border: 2px solid #ddd;
-            border-radius: 25px;
-            transition: all 0.3s;
-            background-color: rgba(255, 255, 255, 0.1);
-            color: white;
+            padding: 18px 24px;
+            font-size: 1.15rem;
+            border: 2px solid var(--border);
+            border-radius: 16px;
+            transition: all 0.2s ease;
+            background: var(--bg-light);
+            color: var(--text);
+            font-weight: 500;
         }
+
         input:focus {
             outline: none;
             border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(74,144,226,0.2);
+            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+            background: white;
         }
+
         input::placeholder {
-          color: white;
+            color: var(--text-light);
         }
-        button {
-            padding: 12px 25px;
-            background: var(--primary);
-            color: #667eea;
-            border: none;
-            border-radius: 25px;
-            font-size: 1.1em;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-weight: 700;
-        }
-        button:hover {
-            background: #357abd;
+
+        button.check-btn {
+            padding: 18px 32px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
             color: white;
-            transform: translateY(-1px);
+            border: none;
+            border-radius: 16px;
+            font-size: 1.15rem;
             font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 16px rgba(79, 70, 229, 0.3);
         }
+
+        button.check-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 24px rgba(79, 70, 229, 0.4);
+        }
+
+        button.check-btn:active {
+            transform: translateY(-1px);
+        }
+
         .result {
             text-align: center;
-            margin-top: 20px;
-            font-size: 1.2em;
-            min-height: 30px;
-            animation: fadeIn 0.3s;
+            margin-top: 24px;
+            font-size: 1.2rem;
+            min-height: 40px;
+            padding: 16px;
+            border-radius: 12px;
+            font-weight: 600;
+            animation: fadeIn 0.3s ease;
         }
-        .correct { 
+
+        .result.correct {
             color: var(--success);
-            font-weight: bold;
+            background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+            border: 2px solid var(--success);
         }
-        .wrong { 
+
+        .result.wrong {
             color: var(--error);
-            font-weight: bold;
+            background: linear-gradient(135deg, #fee2e2, #fecaca);
+            border: 2px solid var(--error);
         }
+
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
+
         .language-modal {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.8);
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(8px);
             display: flex;
             justify-content: center;
             align-items: center;
             z-index: 1000;
+            animation: fadeIn 0.3s ease;
         }
+
         .language-selection {
             background: white;
-            padding: 30px;
-            border-radius: 16px;
+            padding: 48px;
+            border-radius: 24px;
             text-align: center;
+            box-shadow: 0 25px 70px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.4s ease-out;
         }
+
         .language-selection h2 {
-            color: #667eea;
-            margin-bottom: 20px;
+            color: var(--text);
+            margin-bottom: 32px;
+            font-size: 1.8rem;
+            font-weight: 800;
         }
+
         .language-options {
             display: flex;
             gap: 20px;
             justify-content: center;
         }
+
         .language-option {
-            padding: 15px 30px;
-            background: var(--primary);
-            color: #667eea;
-            border: 2px #667eea solid;
-            border-radius: 25px;
-            font-size: 1.1em;
-            cursor: pointer;
-            transition: all 0.3s;
+            padding: 20px 40px;
+            background: var(--bg-light);
+            color: var(--text);
+            border: 2px solid var(--border);
+            border-radius: 16px;
+            font-size: 1.15rem;
             font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
         }
+
         .language-option:hover {
-            background: #667eea;
-            transform: translateY(-2px);
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border-color: var(--primary);
             color: white;
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(79, 70, 229, 0.4);
         }
-        .mode-switch {
-            margin: 10px 0;
-            text-align: center;
-        }
-        .mode-switch button {
-            background: transparent;
-            border: 2px solid var(--primary);
-            color: var(--primary);
-        }
-        .mode-switch button:hover {
-            background: var(--primary);
-            color: #667eea;
+
+        /* Mobile responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 32px 24px;
+                border-radius: 20px;
+            }
+
+            .title {
+                font-size: 2rem;
+            }
+
+            .word {
+                font-size: 2.5rem;
+            }
+
+            .score {
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .score-item {
+                min-width: auto;
+            }
+
+            .language-selection {
+                padding: 32px 24px;
+                margin: 20px;
+            }
+
+            .language-options {
+                flex-direction: column;
+            }
         }
     </style>
 </head>
@@ -235,22 +411,35 @@
     <div class="container">
         <div class="header">
             <div class="title">Luyện Tiếng Hàn</div>
+            <div class="subtitle">Master Korean Vocabulary</div>
             <div class="mode-switch">
                 <button onclick="toggleMode()" id="modeButton">Chuyển sang chế độ viết tiếng Hàn</button>
             </div>
             <div class="progress">
                 <div class="progress-bar" id="progress"></div>
             </div>
-            <div class="score">
-                <span>Đúng: <b id="dung">0</b></span>
-                <span>Sai: <b id="sai">0</b></span>
+        </div>
+
+        <div class="score">
+            <div class="score-item" id="correctScore">
+                <span>Đúng</span>
+                <span class="score-number" id="dung">0</span>
+            </div>
+            <div class="score-item" id="wrongScore">
+                <span>Sai</span>
+                <span class="score-number" id="sai">0</span>
             </div>
         </div>
-        <div class="word" id="word"></div>
+
+        <div class="word-container">
+            <div class="word" id="word"></div>
+        </div>
+
         <div id="result" class="result"></div>
+
         <div class="input-group">
-            <input type="text" id="answer" placeholder="Nhập nghĩa...">
-            <button onclick="checkAnswer()">Kiểm tra</button>
+            <input type="text" id="answer" placeholder="Nhập nghĩa..." autofocus>
+            <button onclick="checkAnswer()" class="check-btn">Kiểm tra</button>
         </div>
     </div>
 
@@ -258,8 +447,8 @@
         function removeAccents(str) {
             return str.normalize('NFD')
                      .replace(/[\u0300-\u036f]/g, '')
-                     .replace(/đ/g, 'd')
-                     .replace(/Đ/g, 'D');
+                     .replace(/Ä'/g, 'd')
+                     .replace(/Ä/g, 'D');
         }
 
         const dictionary = {
@@ -302,8 +491,9 @@
         const translations = {
             viet: {
                 title: "Luyện Tiếng Hàn",
-                correct: "Đúng:",
-                wrong: "Sai:",
+                subtitle: "Master Korean Vocabulary",
+                correct: "Đúng",
+                wrong: "Sai",
                 placeholder: "Nhập nghĩa tiếng Việt...",
                 checkButton: "Kiểm tra",
                 correctAnswer: "Chính xác!",
@@ -315,8 +505,9 @@
             },
             eng: {
                 title: "Korean Practice",
-                correct: "Correct:",
-                wrong: "Wrong:",
+                subtitle: "Master Korean Vocabulary",
+                correct: "Correct",
+                wrong: "Wrong",
                 placeholder: "Enter English meaning...",
                 checkButton: "Check",
                 correctAnswer: "Correct!",
@@ -337,10 +528,11 @@
         function updateUILanguage(lang) {
             const t = translations[lang];
             document.querySelector('.title').textContent = t.title;
-            document.querySelector('.score span:first-child').innerHTML = `${t.correct} <b id="dung">0</b>`;
-            document.querySelector('.score span:last-child').innerHTML = `${t.wrong} <b id="sai">0</b>`;
-            document.getElementById('answer').placeholder = t.placeholder;
-            document.querySelector('.input-group button').textContent = t.checkButton;
+            document.querySelector('.subtitle').textContent = t.subtitle;
+            document.querySelector('#correctScore span:first-child').textContent = t.correct;
+            document.querySelector('#wrongScore span:first-child').textContent = t.wrong;
+            document.getElementById('answer').placeholder = isKoreanMode ? t.koreanPlaceholder : t.placeholder;
+            document.querySelector('.check-btn').textContent = t.checkButton;
             document.getElementById('modeButton').textContent = isKoreanMode ? t.modeButtonAlt : t.modeButton;
         }
 
@@ -368,39 +560,26 @@
                 const meanings = currentLanguage === 'viet' 
                     ? dictionary.tieng_viet[currentIndex]
                     : dictionary.tieng_anh[currentIndex];
-                // Show all meanings separated by slash
                 word.textContent = meanings.split('/').map(m => m.trim()).join(' / ');
             } else {
-                // For Korean words, show all variations
                 word.textContent = dictionary.tieng_han[currentIndex].split('/').map(k => k.trim()).join(' / ');
             }
             document.getElementById('answer').value = '';
             document.getElementById('result').textContent = '';
+            document.getElementById('answer').focus();
         }
 
         function updateScore(isCorrect) {
             const scoreElement = document.getElementById(isCorrect ? 'dung' : 'sai');
-            const scoreContainer = scoreElement.parentElement;
-            const scoreChange = document.createElement('span');
+            const scoreContainer = document.getElementById(isCorrect ? 'correctScore' : 'wrongScore');
             
-            scoreChange.textContent = isCorrect ? '+1' : '-1';
-            scoreChange.className = `score-change ${isCorrect ? 'score-plus' : 'score-minus'}`;
-            
-            // Position the floating number
-            scoreChange.style.left = `${Math.random() * 40 + 30}%`;
-            scoreChange.style.top = '50%';
-            
-            scoreContainer.appendChild(scoreChange);
-            
-            // Update the actual score
             scoreElement.textContent = isCorrect ? ++dung : ++sai;
             
-            // Remove the floating number after animation
-            setTimeout(() => scoreChange.remove(), 800);
-
-            // Highlight effect on score container
-            scoreContainer.style.transform = 'scale(1.1)';
-            setTimeout(() => scoreContainer.style.transform = '', 200);
+            // Add highlight effect
+            scoreContainer.classList.add(isCorrect ? 'correct-highlight' : 'wrong-highlight');
+            setTimeout(() => {
+                scoreContainer.classList.remove('correct-highlight', 'wrong-highlight');
+            }, 400);
         }
 
         function checkAnswer() {
@@ -409,13 +588,11 @@
             let displayAnswers;
             
             if (isKoreanMode) {
-                // Korean mode - check against all Korean variations
                 correctAnswers = dictionary.tieng_han[currentIndex].split('/').map(k => 
                     removeAccents(k.trim().toLowerCase())
                 );
                 displayAnswers = dictionary.tieng_han[currentIndex].split('/').map(k => k.trim());
             } else {
-                // Translation mode - check against all meaning variations
                 const answers = currentLanguage === 'viet' 
                     ? dictionary.tieng_viet[currentIndex].split('/')
                     : dictionary.tieng_anh[currentIndex].split('/');
@@ -431,16 +608,15 @@
                 result.textContent = t.correctAnswer;
                 result.className = 'result correct';
                 updateScore(true);
-                setTimeout(getRandomWord, 500);
+                setTimeout(getRandomWord, 800);
             } else {
                 const allAnswers = displayAnswers.join(' / ');
                 result.textContent = `${t.wrongAnswer} ${allAnswers}`;
                 result.className = 'result wrong';
                 updateScore(false);
-                setTimeout(getRandomWord, 1000);
+                setTimeout(getRandomWord, 1500);
             }
 
-            // Update progress bar
             const progress = ((dung + sai) / 100) * 100;
             document.getElementById('progress').style.width = `${progress}%`;
 

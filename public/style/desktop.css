@@ -244,11 +244,13 @@ nav.navbar,
 .nav-link.active {
     background: linear-gradient(135deg, rgba(255, 255, 255, 0.25), rgba(255, 255, 255, 0.1));
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    background: linear-gradient(45deg, #ff0080, #ff8c00);
 }
 
 .nav-link:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+    background: linear-gradient(45deg, #ff0080, #ff8c00);
 }
 
 .nav-link i {
@@ -730,4 +732,34 @@ nav.navbar,
         flex-direction: column;
         gap: 0.5rem;
     }
+}
+.social-icons {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    margin-bottom: 30px;
+}
+
+.social-icon {
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    color: #ffffff;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.social-icon:hover {
+    background: linear-gradient(45deg, #ff0080, #ff8c00);
+    transform: translateY(-5px) rotate(360deg);
+    box-shadow: 0 10px 30px rgba(255, 0, 128, 0.4);
+}
+
+.social-icon svg {
+    width: 24px;
+    height: 24px;
 }

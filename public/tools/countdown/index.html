@@ -1,0 +1,1420 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⏰ Event Countdown 2.0 - Import & Custom Background</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        * {
+            font-family: 'Poppins', sans-serif;
+        }
+
+        /* Background Gradient Animation */
+        .gradient-bg {
+            background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+        }
+
+        .gradient-bg-dark {
+            background: linear-gradient(-45deg, #1a1a2e, #16213e, #0f3460, #533483);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Glassmorphism Effect */
+        .glass {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+        }
+
+        .glass-dark {
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+        }
+
+        /* Particle Background */
+        .particles {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+            animation: float 20s infinite;
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0) translateX(0);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100vh) translateX(100px);
+                opacity: 0;
+            }
+        }
+
+        /* Flip Animation */
+        .flip-card {
+            perspective: 1000px;
+            transition: transform 0.6s;
+        }
+
+        .flip-card:hover {
+            transform: scale(1.05);
+        }
+
+        /* Pulse Animation */
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1.05);
+                opacity: 0.8;
+            }
+        }
+
+        .pulse {
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        /* Smooth Transitions */
+        * {
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 5px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        /* Modal Animation */
+        .modal-open {
+            animation: modalFadeIn 0.3s ease;
+        }
+
+        @keyframes modalFadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        /* Number Counter Animation */
+        .counter-number {
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* Glow Effect */
+        .glow {
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+        }
+
+        /* Button Hover Effect */
+        .btn-hover {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-hover::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .btn-hover:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        /* Background Preset Selector */
+        .bg-preset {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            cursor: pointer;
+            border: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .bg-preset:hover {
+            transform: scale(1.1);
+            border-color: white;
+        }
+
+        .bg-preset.selected {
+            border-color: white;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+        }
+
+        /* Event Card Custom Background */
+        .event-card {
+            position: relative;
+            overflow: hidden;
+            height: 300px; /* Add fixed height */
+        }
+
+        .event-card-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0.9;
+        }
+
+        .event-card-content {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .event-card-counter {
+            margin-top: auto;
+        }
+
+        /* Upload Zone */
+        .upload-zone {
+            border: 2px dashed rgba(255, 255, 255, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .upload-zone:hover {
+            border-color: rgba(255, 255, 255, 0.6);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .upload-zone.drag-over {
+            border-color: white;
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 16px 24px;
+            border-radius: 12px;
+            color: white;
+            font-weight: 600;
+            z-index: 1000;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .toast.success {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .toast.error {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        /* Image preview */
+        .image-preview {
+            max-width: 100%;
+            max-height: 200px;
+            border-radius: 12px;
+            margin-top: 10px;
+        }
+
+        /* Color Picker Container */
+        .color-picker {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(30px, 1fr));
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .color-swatch {
+            width: 100%;
+            padding-bottom: 100%;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.2s;
+            border: 2px solid transparent;
+        }
+
+        .color-swatch:hover {
+            transform: scale(1.1);
+        }
+
+        .color-swatch.selected {
+            border-color: white;
+            box-shadow: 0 0 10px rgba(255,255,255,0.5);
+        }
+
+        /* Background Image Fit Options */
+        .bg-fit-option {
+            padding: 8px;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.1);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .bg-fit-option:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .bg-fit-option.selected {
+            background: rgba(255,255,255,0.3);
+            box-shadow: 0 0 10px rgba(255,255,255,0.2);
+        }
+    </style>
+</head>
+<body class="min-h-screen gradient-bg overflow-x-hidden">
+    
+    <!-- Particle Background -->
+    <div class="particles" id="particles"></div>
+
+    <!-- Container chính -->
+    <div class="relative z-10 min-h-screen p-4 md:p-8">
+        
+        <!-- Header -->
+        <header class="max-w-7xl mx-auto mb-8">
+            <div class="glass rounded-2xl p-6 flex flex-col md:flex-row justify-between items-center gap-4">
+                <div class="text-center md:text-left">
+                    <h1 class="text-3xl md:text-4xl font-bold text-white mb-2">
+                        ⏰ Event Countdown 2.0
+                    </h1>
+                    <p class="text-white/80 text-sm md:text-base">
+                        Đếm ngược với custom background & import từ file
+                    </p>
+                </div>
+                
+                <div class="flex flex-wrap gap-3 justify-center">
+                    <!-- Import Button -->
+                    <button onclick="document.getElementById('fileInput').click()" 
+                            class="glass px-4 py-2 rounded-xl text-white hover:scale-105 transition-transform btn-hover">
+                        <i class="fas fa-file-import mr-2"></i>Import
+                    </button>
+                    <input type="file" id="fileInput" accept=".json" class="hidden" onchange="importFromFile(event)">
+                    
+                    <!-- Export Button -->
+                    <button onclick="exportToFile()" 
+                            class="glass px-4 py-2 rounded-xl text-white hover:scale-105 transition-transform btn-hover">
+                        <i class="fas fa-file-export mr-2"></i>Export
+                    </button>
+                    
+                    <!-- Dark/Light Mode Toggle -->
+                    <button onclick="toggleTheme()" 
+                            class="glass px-4 py-2 rounded-xl text-white hover:scale-105 transition-transform btn-hover">
+                        <i class="fas fa-moon" id="themeIcon"></i>
+                        <span class="ml-2 hidden md:inline">Chủ đề</span>
+                    </button>
+                    
+                    <!-- Add Event Button -->
+                    <button onclick="openModal()" 
+                            class="bg-white/20 px-6 py-2 rounded-xl text-white font-semibold hover:bg-white/30 transition-all btn-hover glow">
+                        <i class="fas fa-plus mr-2"></i>
+                        Thêm sự kiện
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Current Time Display -->
+        <div class="max-w-7xl mx-auto mb-8">
+            <div class="glass rounded-2xl p-6 text-center">
+                <p class="text-white/70 text-sm mb-2">Thời gian hiện tại</p>
+                <div class="text-white text-2xl md:text-3xl font-bold counter-number" id="currentTime">
+                    --:--:--
+                </div>
+                <p class="text-white/70 text-sm mt-2" id="currentDate">
+                    -- / -- / ----
+                </p>
+            </div>
+        </div>
+
+        <!-- Events Grid -->
+        <div class="max-w-7xl mx-auto">
+            <div id="eventsContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Events sẽ được thêm vào đây bằng JavaScript -->
+            </div>
+            
+            <!-- Empty State -->
+            <div id="emptyState" class="text-center py-20">
+                <div class="glass rounded-2xl p-12 max-w-md mx-auto">
+                    <i class="fas fa-calendar-plus text-6xl text-white/50 mb-4"></i>
+                    <h3 class="text-2xl font-bold text-white mb-2">Chưa có sự kiện nào</h3>
+                    <p class="text-white/70 mb-6">Hãy thêm sự kiện hoặc import từ file!</p>
+                    <div class="flex gap-3 justify-center">
+                        <button onclick="openModal()" 
+                                class="bg-white/20 px-8 py-3 rounded-xl text-white font-semibold hover:bg-white/30 transition-all btn-hover">
+                            <i class="fas fa-plus mr-2"></i>
+                            Tạo mới
+                        </button>
+                        <button onclick="document.getElementById('fileInput').click()" 
+                                class="bg-white/20 px-8 py-3 rounded-xl text-white font-semibold hover:bg-white/30 transition-all btn-hover">
+                            <i class="fas fa-file-import mr-2"></i>
+                            Import
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="max-w-7xl mx-auto mt-16 mb-8">
+            <div class="glass rounded-2xl p-6 text-center">
+                <p class="text-white/90">
+                    Made with <i class="fas fa-heart text-red-400 pulse"></i> by 
+                    <span class="font-bold">Your Name</span>
+                </p>
+                <p class="text-white/60 text-sm mt-2">
+                    © 2024 Event Countdown 2.0. All rights reserved.
+                </p>
+                <div class="flex justify-center gap-4 mt-4">
+                    <a href="#" class="text-white/70 hover:text-white transition-colors">
+                        <i class="fab fa-github text-xl"></i>
+                    </a>
+                    <a href="#" class="text-white/70 hover:text-white transition-colors">
+                        <i class="fab fa-twitter text-xl"></i>
+                    </a>
+                    <a href="#" class="text-white/70 hover:text-white transition-colors">
+                        <i class="fab fa-facebook text-xl"></i>
+                    </a>
+                </div>
+            </div>
+        </footer>
+
+    </div>
+
+    <!-- Modal Thêm/Sửa Sự Kiện -->
+    <div id="modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center z-50 p-4 overflow-y-auto">
+        <div class="glass rounded-2xl p-8 max-w-2xl w-full modal-open my-8">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-white">
+                    <i class="fas fa-calendar-plus mr-2"></i>
+                    <span id="modalTitle">Thêm sự kiện mới</span>
+                </h2>
+                <button onclick="closeModal()" class="text-white/70 hover:text-white text-2xl">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <form onsubmit="saveEvent(event)" class="space-y-4">
+                <!-- Tên sự kiện -->
+                <div>
+                    <label class="text-white/90 font-semibold block mb-2">
+                        <i class="fas fa-tag mr-2"></i>Tên sự kiện
+                    </label>
+                    <input type="text" 
+                           id="eventName" 
+                           required
+                           placeholder="Ví dụ: Sinh nhật của tôi"
+                           class="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/50">
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Ngày sự kiện -->
+                    <div>
+                        <label class="text-white/90 font-semibold block mb-2">
+                            <i class="fas fa-calendar mr-2"></i>Ngày sự kiện
+                        </label>
+                        <input type="date" 
+                               id="eventDate" 
+                               required
+                               class="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white focus:outline-none focus:ring-2 focus:ring-white/50">
+                    </div>
+
+                    <!-- Thời gian -->
+                    <div>
+                        <label class="text-white/90 font-semibold block mb-2">
+                            <i class="fas fa-clock mr-2"></i>Thời gian
+                        </label>
+                        <input type="time" 
+                               id="eventTime" 
+                               class="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white focus:outline-none focus:ring-2 focus:ring-white/50">
+                    </div>
+                </div>
+
+                <!-- Icon -->
+                <div>
+                    <label class="text-white/90 font-semibold block mb-2">
+                        <i class="fas fa-icons mr-2"></i>Biểu tượng
+                    </label>
+                    <div class="grid grid-cols-6 md:grid-cols-8 gap-2">
+                        <button type="button" onclick="selectIcon('🎂')" class="icon-btn text-3xl p-2 rounded-lg hover:bg-white/20 transition-all">🎂</button>
+                        <button type="button" onclick="selectIcon('🎉')" class="icon-btn text-3xl p-2 rounded-lg hover:bg-white/20 transition-all">🎉</button>
+                        <button type="button" onclick="selectIcon('💍')" class="icon-btn text-3xl p-2 rounded-lg hover:bg-white/20 transition-all">💍</button>
+                        <button type="button" onclick="selectIcon('🎓')" class="icon-btn text-3xl p-2 rounded-lg hover:bg-white/20 transition-all">🎓</button>
+                        <button type="button" onclick="selectIcon('✈️')" class="icon-btn text-3xl p-2 rounded-lg hover:bg-white/20 transition-all">✈️</button>
+                        <button type="button" onclick="selectIcon('❤️')" class="icon-btn text-3xl p-2 rounded-lg hover:bg-white/20 transition-all">❤️</button>
+                        <button type="button" onclick="selectIcon('🎄')" class="icon-btn text-3xl p-2 rounded-lg hover:bg-white/20 transition-all">🎄</button>
+                        <button type="button" onclick="selectIcon('🎃')" class="icon-btn text-3xl p-2 rounded-lg hover:bg-white/20 transition-all">🎃</button>
+                        <button type="button" onclick="selectIcon('🌟')" class="icon-btn text-3xl p-2 rounded-lg hover:bg-white/20 transition-all">🌟</button>
+                        <button type="button" onclick="selectIcon('🏆')" class="icon-btn text-3xl p-2 rounded-lg hover:bg-white/20 transition-all">🏆</button>
+                        <button type="button" onclick="selectIcon('🎸')" class="icon-btn text-3xl p-2 rounded-lg hover:bg-white/20 transition-all">🎸</button>
+                        <button type="button" onclick="selectIcon('🌈')" class="icon-btn text-3xl p-2 rounded-lg hover:bg-white/20 transition-all">🌈</button>
+                        <button type="button" onclick="selectIcon('🚀')" class="icon-btn text-3xl p-2 rounded-lg hover:bg-white/20 transition-all">🚀</button>
+                        <button type="button" onclick="selectIcon('🎮')" class="icon-btn text-3xl p-2 rounded-lg hover:bg-white/20 transition-all">🎮</button>
+                        <button type="button" onclick="selectIcon('🎬')" class="icon-btn text-3xl p-2 rounded-lg hover:bg-white/20 transition-all">🎬</button>
+                        <button type="button" onclick="selectIcon('⚽')" class="icon-btn text-3xl p-2 rounded-lg hover:bg-white/20 transition-all">⚽</button>
+                    </div>
+                    <input type="hidden" id="eventIcon" value="🎉">
+                </div>
+
+                <!-- Background Selection -->
+                <div>
+                    <label class="text-white/90 font-semibold block mb-2">
+                        <i class="fas fa-palette mr-2"></i>Nền cho sự kiện
+                    </label>
+                    
+                    <!-- Background Type Tabs -->
+                    <div class="flex gap-2 mb-3">
+                        <button type="button" onclick="selectBgType('gradient')" id="bgTabGradient" 
+                                class="flex-1 px-4 py-2 rounded-lg bg-white/30 text-white font-semibold hover:bg-white/40 transition-all">
+                            Gradient
+                        </button>
+                        <button type="button" onclick="selectBgType('solid')" id="bgTabSolid"
+                                class="flex-1 px-4 py-2 rounded-lg bg-white/10 text-white font-semibold hover:bg-white/40 transition-all">
+                            Màu đơn
+                        </button>
+                        <button type="button" onclick="selectBgType('image')" id="bgTabImage"
+                                class="flex-1 px-4 py-2 rounded-lg bg-white/10 text-white font-semibold hover:bg-white/40 transition-all">
+                            Hình ảnh
+                        </button>
+                    </div>
+
+                    <!-- Gradient Presets -->
+                    <div id="gradientPresets" class="grid grid-cols-4 md:grid-cols-6 gap-2 mb-3">
+                        <!-- Will be populated by JS -->
+                    </div>
+
+                    <!-- Solid Color Presets -->
+                    <div id="solidPresets" class="hidden grid-cols-4 md:grid-cols-6 gap-2 mb-3">
+                        <!-- Will be populated by JS -->
+                    </div>
+
+                    <!-- Image Upload -->
+                    <div id="imageUpload" class="hidden">
+                        <div class="upload-zone text-center p-8 rounded-xl cursor-pointer" 
+                             onclick="document.getElementById('bgImageInput').click()"
+                             ondragover="handleDragOver(event)"
+                             ondragleave="handleDragLeave(event)"
+                             ondrop="handleDrop(event)">
+                            <i class="fas fa-cloud-upload-alt text-4xl text-white/50 mb-2"></i>
+                            <p class="text-white/70">Click hoặc kéo thả ảnh vào đây</p>
+                            <p class="text-white/50 text-sm mt-1">Hỗ trợ: JPG, PNG, GIF</p>
+                        </div>
+                        <input type="file" id="bgImageInput" accept="image/*" class="hidden" onchange="handleImageUpload(event)">
+                        <div id="imagePreviewContainer"></div>
+                    </div>
+
+                    <!-- Image Background Options -->
+                    <div id="imageOptions" class="hidden mt-3 space-y-3">
+                        <label class="text-white/90 font-semibold block">
+                            <i class="fas fa-crop mr-2"></i>Căn chỉnh ảnh
+                        </label>
+                        <div class="grid grid-cols-3 gap-2">
+                            <div class="bg-fit-option text-center text-white/80 text-sm" 
+                                 onclick="selectBgFit('cover')" 
+                                 data-fit="cover">
+                                <i class="fas fa-expand mb-1"></i>
+                                <div>Phủ đầy</div>
+                            </div>
+                            <div class="bg-fit-option text-center text-white/80 text-sm" 
+                                 onclick="selectBgFit('contain')" 
+                                 data-fit="contain">
+                                <i class="fas fa-compress mb-1"></i>
+                                <div>Vừa khung</div>
+                            </div>
+                            <div class="bg-fit-option text-center text-white/80 text-sm" 
+                                 onclick="selectBgFit('auto')" 
+                                 data-fit="auto">
+                                <i class="fas fa-arrows-alt mb-1"></i>
+                                <div>Tự động</div>
+                            </div>
+                        </div>
+
+                        <label class="text-white/90 font-semibold block mt-3">
+                            <i class="fas fa-palette mr-2"></i>Màu nền phụ
+                        </label>
+                        <div class="color-picker" id="bgColorPicker">
+                            <!-- Will be populated by JS -->
+                        </div>
+                    </div>
+
+                    <!-- Custom Input -->
+                    <div class="mt-3">
+                        <input type="text" 
+                               id="customBgValue" 
+                               placeholder="Hoặc nhập CSS gradient/color/URL tùy chỉnh..."
+                               class="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white text-sm placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/50">
+                    </div>
+
+                    <input type="hidden" id="eventBgType" value="gradient">
+                    <input type="hidden" id="eventBgValue" value="">
+                </div>
+
+                <!-- Loại đếm -->
+                <div>
+                    <label class="text-white/90 font-semibold block mb-2">
+                        <i class="fas fa-hourglass-half mr-2"></i>Loại đếm
+                    </label>
+                    <select id="eventType" 
+                            class="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white focus:outline-none focus:ring-2 focus:ring-white/50">
+                        <option value="countdown">⏳ Đếm ngược (Countdown)</option>
+                        <option value="countup">⏰ Đếm tiến (Đã qua bao lâu)</option>
+                    </select>
+                </div>
+
+                <!-- Buttons -->
+                <div class="flex gap-3 pt-4">
+                    <button type="button" 
+                            onclick="closeModal()" 
+                            class="flex-1 px-6 py-3 rounded-xl bg-white/10 text-white font-semibold hover:bg-white/20 transition-all">
+                        Hủy
+                    </button>
+                    <button type="submit" 
+                            class="flex-1 px-6 py-3 rounded-xl bg-white/30 text-white font-semibold hover:bg-white/40 transition-all glow">
+                        <i class="fas fa-save mr-2"></i>Lưu
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Share Modal -->
+    <div id="shareModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+        <div class="glass rounded-2xl p-8 max-w-md w-full modal-open">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-white">
+                    <i class="fas fa-share-alt mr-2"></i>Chia sẻ
+                </h2>
+                <button onclick="closeShareModal()" class="text-white/70 hover:text-white text-2xl">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div class="space-y-4">
+                <button onclick="shareToFacebook()" 
+                        class="w-full px-6 py-3 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-all">
+                    <i class="fab fa-facebook mr-2"></i>Chia sẻ lên Facebook
+                </button>
+                <button onclick="shareToTwitter()" 
+                        class="w-full px-6 py-3 rounded-xl bg-sky-500 text-white font-semibold hover:bg-sky-600 transition-all">
+                    <i class="fab fa-twitter mr-2"></i>Chia sẻ lên Twitter
+                </button>
+                <button onclick="copyLink()" 
+                        class="w-full px-6 py-3 rounded-xl bg-white/20 text-white font-semibold hover:bg-white/30 transition-all">
+                    <i class="fas fa-copy mr-2"></i>Copy Link
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // BIẾN TOÀN CỤC
+        // ============================================
+        let events = [];
+        let isDarkMode = localStorage.getItem('darkMode') === 'true';
+        let currentEditingId = null;
+        let selectedIcon = '🎉';
+        let selectedBgType = 'gradient';
+        let selectedBgValue = '';
+        let selectedBgFit = 'cover';
+        let selectedBgColor = 'rgba(0,0,0,0.5)';
+
+        const backgroundColors = [
+            'rgba(0,0,0,0.5)', 'rgba(255,255,255,0.1)', 
+            '#ff5555', '#ff8855', '#ffbb55', '#ffdd55',
+            '#55ff55', '#55ffff', '#5555ff', '#ff55ff',
+            '#ffffff', '#000000'
+        ];
+
+        // Load events from file
+        async function loadEventsFromFile() {
+            try {
+                const response = await fetch('events.json');
+                const data = await response.json();
+                events = data.events;
+                renderEvents();
+            } catch (error) {
+                console.error('Error loading events:', error);
+                showToast('Không thể tải dữ liệu sự kiện!', 'error');
+            }
+        }
+
+        // ============================================
+        // KHỞI TẠO
+        // ============================================
+        document.addEventListener('DOMContentLoaded', function() {
+            loadEventsFromFile(); // Load events when page loads
+            initializeApp();
+            createParticles();
+            updateCurrentTime();
+            setInterval(updateCurrentTime, 1000);
+            setInterval(updateAllCounters, 1000);
+            initializeBackgroundPresets();
+            initializeColorPicker();
+            selectBgFit('cover'); // Set default fit
+            selectBgColor('rgba(0,0,0,0.5)'); // Set default color
+        });
+
+        function initializeApp() {
+            if (isDarkMode) {
+                applyDarkMode();
+            }
+            renderEvents();
+        }
+
+        // ============================================
+        // BACKGROUND PRESETS
+        // ============================================
+        function initializeBackgroundPresets() {
+            const gradientContainer = document.getElementById('gradientPresets');
+            const solidContainer = document.getElementById('solidPresets');
+
+            // Gradient presets
+            gradientContainer.innerHTML = gradientPresets.map((gradient, index) => `
+                <div class="bg-preset" 
+                     style="background: ${gradient}"
+                     onclick="selectBackground('gradient', '${gradient.replace(/'/g, "\\'")}')"
+                     data-type="gradient"
+                     data-value="${gradient}">
+                </div>
+            `).join('');
+
+            // Solid color presets
+            solidContainer.innerHTML = solidColors.map((color, index) => `
+                <div class="bg-preset" 
+                     style="background: ${color}"
+                     onclick="selectBackground('solid', '${color}')"
+                     data-type="solid"
+                     data-value="${color}">
+                </div>
+            `).join('');
+
+            // Set default
+            selectBackground('gradient', gradientPresets[0]);
+        }
+
+        function initializeColorPicker() {
+            const picker = document.getElementById('bgColorPicker');
+            picker.innerHTML = backgroundColors.map(color => `
+                <div class="color-swatch" 
+                     style="background-color: ${color}"
+                     onclick="selectBgColor('${color}')"
+                     data-color="${color}">
+                </div>
+            `).join('');
+        }
+
+        function selectBgColor(color) {
+            selectedBgColor = color;
+            document.querySelectorAll('.color-swatch').forEach(swatch => {
+                swatch.classList.toggle('selected', swatch.dataset.color === color);
+            });
+        }
+
+        function selectBgFit(fit) {
+            selectedBgFit = fit;
+            document.querySelectorAll('.bg-fit-option').forEach(option => {
+                option.classList.toggle('selected', option.dataset.fit === fit);
+            });
+        }
+
+        function selectBgType(type) {
+            selectedBgType = type;
+            document.getElementById('eventBgType').value = type;
+
+            // Update tab styles
+            ['gradient', 'solid', 'image'].forEach(t => {
+                const tab = document.getElementById(`bgTab${t.charAt(0).toUpperCase() + t.slice(1)}`);
+                if (t === type) {
+                    tab.classList.remove('bg-white/10');
+                    tab.classList.add('bg-white/30');
+                } else {
+                    tab.classList.remove('bg-white/30');
+                    tab.classList.add('bg-white/10');
+                }
+            });
+
+            // Show/hide relevant sections
+            document.getElementById('gradientPresets').style.display = type === 'gradient' ? 'grid' : 'none';
+            document.getElementById('solidPresets').style.display = type === 'solid' ? 'grid' : 'none';
+            document.getElementById('imageUpload').style.display = type === 'image' ? 'block' : 'none';
+            document.getElementById('imageOptions').style.display = type === 'image' ? 'block' : 'none';
+        }
+
+        function selectBackground(type, value) {
+            selectedBgType = type;
+            selectedBgValue = value;
+            document.getElementById('eventBgType').value = type;
+            document.getElementById('eventBgValue').value = value;
+            document.getElementById('customBgValue').value = value;
+
+            // Update selected state
+            document.querySelectorAll('.bg-preset').forEach(preset => {
+                preset.classList.remove('selected');
+                if (preset.dataset.type === type && preset.dataset.value === value) {
+                    preset.classList.add('selected');
+                }
+            });
+        }
+
+        // ============================================
+        // IMAGE UPLOAD
+        // ============================================
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.currentTarget.classList.add('drag-over');
+        }
+
+        function handleDragLeave(e) {
+            e.currentTarget.classList.remove('drag-over');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            e.currentTarget.classList.remove('drag-over');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                processImageFile(files[0]);
+            }
+        }
+
+        function handleImageUpload(e) {
+            const files = e.target.files;
+            if (files.length > 0) {
+                processImageFile(files[0]);
+            }
+        }
+
+        function processImageFile(file) {
+            if (!file.type.startsWith('image/')) {
+                showToast('Vui lòng chọn file hình ảnh!', 'error');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const imageUrl = e.target.result;
+                selectedBgValue = imageUrl;
+                document.getElementById('eventBgValue').value = imageUrl;
+                document.getElementById('customBgValue').value = imageUrl;
+
+                // Show preview
+                const previewContainer = document.getElementById('imagePreviewContainer');
+                previewContainer.innerHTML = `
+                    <div class="mt-3 relative">
+                        <img src="${imageUrl}" class="image-preview" alt="Preview">
+                        <button type="button" onclick="removeImage()" 
+                                class="absolute top-2 right-2 bg-red-500 text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-red-600 transition-all">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                `;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function removeImage() {
+            document.getElementById('imagePreviewContainer').innerHTML = '';
+            document.getElementById('bgImageInput').value = '';
+            selectedBgValue = '';
+            document.getElementById('eventBgValue').value = '';
+        }
+
+        // ============================================
+        // IMPORT/EXPORT
+        // ============================================
+        function importFromFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    
+                    if (data.events && Array.isArray(data.events)) {
+                        // Validate and import events
+                        const validEvents = data.events.filter(event => {
+                            return event.name && event.date && event.type && event.icon;
+                        });
+
+                        if (validEvents.length === 0) {
+                            showToast('File không chứa sự kiện hợp lệ!', 'error');
+                            return;
+                        }
+
+                        // Ask user if they want to replace or merge
+                        if (events.length > 0) {
+                            if (confirm('Bạn muốn thay thế tất cả sự kiện hiện tại?\n\nChọn OK để thay thế, Cancel để thêm vào.')) {
+                                events = validEvents;
+                            } else {
+                                events = [...events, ...validEvents];
+                            }
+                        } else {
+                            events = validEvents;
+                        }
+
+                        localStorage.setItem('events', JSON.stringify(events));
+                        renderEvents();
+                        showToast(`✅ Đã import ${validEvents.length} sự kiện!`, 'success');
+                    } else {
+                        showToast('Định dạng file không đúng!', 'error');
+                    }
+                } catch (error) {
+                    showToast('Lỗi khi đọc file! Vui lòng kiểm tra định dạng JSON.', 'error');
+                    console.error(error);
+                }
+            };
+            reader.readAsText(file);
+            
+            // Reset input
+            event.target.value = '';
+        }
+
+        function exportToFile() {
+            if (events.length === 0) {
+                showToast('Không có sự kiện nào để export!', 'error');
+                return;
+            }
+
+            const data = {
+                version: '2.0',
+                exportDate: new Date().toISOString(),
+                events: events
+            };
+
+            const jsonString = JSON.stringify(data, null, 2);
+            const blob = new Blob([jsonString], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `events_backup_${new Date().getTime()}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            showToast('✅ Đã export file thành công!', 'success');
+        }
+
+        // ============================================
+        // TOAST NOTIFICATION
+        // ============================================
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'} mr-2"></i>
+                ${message}
+            `;
+            document.body.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.animation = 'slideIn 0.3s ease reverse';
+                setTimeout(() => {
+                    document.body.removeChild(toast);
+                }, 300);
+            }, 3000);
+        }
+
+        // ============================================
+        // PARTICLE BACKGROUND
+        // ============================================
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles');
+            const particleCount = 50;
+
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 20 + 's';
+                particle.style.animationDuration = (Math.random() * 10 + 15) + 's';
+                particlesContainer.appendChild(particle);
+            }
+        }
+
+        // ============================================
+        // THEME TOGGLE
+        // ============================================
+        function toggleTheme() {
+            isDarkMode = !isDarkMode;
+            localStorage.setItem('darkMode', isDarkMode);
+            
+            if (isDarkMode) {
+                applyDarkMode();
+            } else {
+                applyLightMode();
+            }
+        }
+
+        function applyDarkMode() {
+            document.body.classList.remove('gradient-bg');
+            document.body.classList.add('gradient-bg-dark');
+            document.getElementById('themeIcon').className = 'fas fa-sun';
+            
+            document.querySelectorAll('.glass').forEach(el => {
+                el.classList.add('glass-dark');
+            });
+        }
+
+        function applyLightMode() {
+            document.body.classList.remove('gradient-bg-dark');
+            document.body.classList.add('gradient-bg');
+            document.getElementById('themeIcon').className = 'fas fa-moon';
+            
+            document.querySelectorAll('.glass').forEach(el => {
+                el.classList.remove('glass-dark');
+            });
+        }
+
+        // ============================================
+        // CURRENT TIME
+        // ============================================
+        function updateCurrentTime() {
+            const now = new Date();
+            
+            const timeString = now.toLocaleTimeString('vi-VN', {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            
+            const dateString = now.toLocaleDateString('vi-VN', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+            
+            document.getElementById('currentTime').textContent = timeString;
+            document.getElementById('currentDate').textContent = dateString;
+        }
+
+        // ============================================
+        // MODAL
+        // ============================================
+        function openModal() {
+            document.getElementById('modal').classList.remove('hidden');
+            document.getElementById('modal').classList.add('flex');
+            resetForm();
+        }
+
+        function closeModal() {
+            document.getElementById('modal').classList.add('hidden');
+            document.getElementById('modal').classList.remove('flex');
+            currentEditingId = null;
+        }
+
+        function resetForm() {
+            document.getElementById('eventName').value = '';
+            document.getElementById('eventDate').value = '';
+            document.getElementById('eventTime').value = '';
+            document.getElementById('eventType').value = 'countdown';
+            selectedIcon = '🎉';
+            currentEditingId = null;
+            document.getElementById('modalTitle').textContent = 'Thêm sự kiện mới';
+            
+            // Reset background
+            selectBgType('gradient');
+            selectBackground('gradient', gradientPresets[0]);
+            document.getElementById('customBgValue').value = '';
+            removeImage();
+            selectBgFit('cover');
+            selectBgColor('rgba(0,0,0,0.5)');
+        }
+
+        // ============================================
+        // ICON SELECTION
+        // ============================================
+        function selectIcon(icon) {
+            selectedIcon = icon;
+            document.getElementById('eventIcon').value = icon;
+            
+            // Highlight selected icon
+            document.querySelectorAll('.icon-btn').forEach(btn => {
+                btn.classList.remove('bg-white/30');
+            });
+            event.target.classList.add('bg-white/30');
+        }
+
+        // ============================================
+        // SAVE EVENT
+        // ============================================
+        function saveEvent(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('eventName').value;
+            const date = document.getElementById('eventDate').value;
+            const time = document.getElementById('eventTime').value || '00:00';
+            const type = document.getElementById('eventType').value;
+            const customBgValue = document.getElementById('customBgValue').value;
+            
+            const eventDate = new Date(`${date}T${time}`);
+            
+            // Use custom value if provided, otherwise use selected
+            const finalBgValue = customBgValue || selectedBgValue;
+            
+            const newEvent = {
+                id: currentEditingId || Date.now(),
+                name: name,
+                date: eventDate.toISOString(),
+                type: type,
+                icon: selectedIcon,
+                background: {
+                    type: selectedBgType,
+                    value: finalBgValue,
+                    fit: selectedBgFit,
+                    color: selectedBgColor
+                }
+            };
+            
+            if (currentEditingId) {
+                const index = events.findIndex(e => e.id === currentEditingId);
+                events[index] = newEvent;
+            } else {
+                events.push(newEvent);
+            }
+            
+            localStorage.setItem('events', JSON.stringify(events));
+            renderEvents();
+            closeModal();
+            showToast('✅ Đã lưu sự kiện!', 'success');
+        }
+
+        // ============================================
+        // RENDER EVENTS
+        // ============================================
+        function renderEvents() {
+            const container = document.getElementById('eventsContainer');
+            const emptyState = document.getElementById('emptyState');
+            
+            if (events.length === 0) {
+                container.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                return;
+            }
+            
+            emptyState.classList.add('hidden');
+            container.innerHTML = events.map(event => createEventCard(event)).join('');
+            updateAllCounters();
+        }
+
+        function createEventCard(event) {
+            const eventDate = new Date(event.date);
+            const background = event.background || { 
+                type: 'gradient', 
+                value: gradientPresets[0],
+                fit: 'cover',
+                color: 'rgba(0,0,0,0.5)'
+            };
+            
+            let bgStyle = '';
+            if (background.type === 'gradient' || background.type === 'solid') {
+                bgStyle = `background: ${background.value};`;
+            } else if (background.type === 'image') {
+                bgStyle = `
+                    background-image: url('${background.value}');
+                    background-size: ${background.fit || 'cover'};
+                    background-position: center;
+                    background-repeat: no-repeat;
+                    background-color: ${background.color || 'rgba(0,0,0,0.5)'};
+                `;
+            }
+            
+            return `
+                <div class="event-card glass rounded-2xl p-6 flip-card relative overflow-hidden">
+                    <!-- Custom Background -->
+                    <div class="event-card-bg" style="${bgStyle}"></div>
+                    
+                    <!-- Content -->
+                    <div class="event-card-content relative z-10">
+                        <!-- Header -->
+                        <div class="flex justify-between items-start mb-4">
+                            <div class="text-5xl">${event.icon}</div>
+                            <div class="flex gap-2">
+                                <button onclick="editEvent(${event.id})" 
+                                        class="text-white/70 hover:text-white transition-colors">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button onclick="deleteEvent(${event.id})" 
+                                        class="text-white/70 hover:text-red-400 transition-colors">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Event Name -->
+                        <h3 class="text-xl font-bold text-white mb-2 drop-shadow-lg">${event.name}</h3>
+                        
+                        <!-- Event Date -->
+                        <p class="text-white/90 text-sm mb-4 drop-shadow">
+                            <i class="fas fa-calendar mr-1"></i>
+                            ${formatDate(eventDate)}
+                        </p>
+                        
+                        <!-- Counter -->
+                        <div class="event-card-counter bg-black/30 backdrop-blur-sm rounded-xl p-4 mb-4" id="counter-${event.id}">
+                            <!-- Counter sẽ được cập nhật bằng JavaScript -->
+                        </div>
+                        
+                        <!-- Status Badge -->
+                        <div class="flex items-center justify-between">
+                            <span class="px-3 py-1 rounded-full text-xs font-semibold backdrop-blur-sm ${
+                                event.type === 'countdown' 
+                                    ? 'bg-blue-500/40 text-blue-100' 
+                                    : 'bg-green-500/40 text-green-100'
+                            }">
+                                ${event.type === 'countdown' ? '⏳ Đếm ngược' : '⏰ Đã qua'}
+                            </span>
+                            <button onclick="openShareModal(${event.id})" 
+                                    class="text-white/70 hover:text-white transition-colors">
+                                <i class="fas fa-share-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // ============================================
+        // UPDATE COUNTERS
+        // ============================================
+        function updateAllCounters() {
+            events.forEach(event => {
+                updateCounter(event);
+            });
+        }
+
+        function updateCounter(event) {
+            const counterElement = document.getElementById(`counter-${event.id}`);
+            if (!counterElement) return;
+            
+            const eventDate = new Date(event.date);
+            const now = new Date();
+            let diff;
+            
+            if (event.type === 'countdown') {
+                diff = eventDate - now;
+            } else {
+                diff = now - eventDate;
+            }
+            
+            const isPast = diff < 0;
+            diff = Math.abs(diff);
+            
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+            
+            if (event.type === 'countdown' && isPast) {
+                counterElement.innerHTML = `
+                    <div class="text-center">
+                        <p class="text-white/90 text-sm mb-2">Sự kiện đã diễn ra!</p>
+                        <div class="text-3xl font-bold text-white">🎊</div>
+                    </div>
+                `;
+            } else {
+                counterElement.innerHTML = `
+                    <div class="grid grid-cols-4 gap-2 text-center">
+                        <div>
+                            <div class="text-2xl md:text-3xl font-bold text-white counter-number drop-shadow-lg">${days}</div>
+                            <div class="text-white/80 text-xs mt-1 drop-shadow">Ngày</div>
+                        </div>
+                        <div>
+                            <div class="text-2xl md:text-3xl font-bold text-white counter-number drop-shadow-lg">${hours}</div>
+                            <div class="text-white/80 text-xs mt-1 drop-shadow">Giờ</div>
+                        </div>
+                        <div>
+                            <div class="text-2xl md:text-3xl font-bold text-white counter-number drop-shadow-lg">${minutes}</div>
+                            <div class="text-white/80 text-xs mt-1 drop-shadow">Phút</div>
+                        </div>
+                        <div>
+                            <div class="text-2xl md:text-3xl font-bold text-white counter-number drop-shadow-lg">${seconds}</div>
+                            <div class="text-white/80 text-xs mt-1 drop-shadow">Giây</div>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        // ============================================
+        // EDIT EVENT
+        // ============================================
+        function editEvent(id) {
+            const event = events.find(e => e.id === id);
+            if (!event) return;
+            
+            currentEditingId = id;
+            
+            const eventDate = new Date(event.date);
+            document.getElementById('eventName').value = event.name;
+            document.getElementById('eventDate').value = eventDate.toISOString().split('T')[0];
+            document.getElementById('eventTime').value = eventDate.toTimeString().slice(0, 5);
+            document.getElementById('eventType').value = event.type;
+            selectedIcon = event.icon;
+            
+            // Load background settings
+            if (event.background) {
+                selectBgType(event.background.type);
+                selectBackground(event.background.type, event.background.value);
+                
+                if (event.background.type === 'image') {
+                    const previewContainer = document.getElementById('imagePreviewContainer');
+                    previewContainer.innerHTML = `
+                        <div class="mt-3 relative">
+                            <img src="${event.background.value}" class="image-preview" alt="Preview">
+                            <button type="button" onclick="removeImage()" 
+                                    class="absolute top-2 right-2 bg-red-500 text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-red-600 transition-all">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    `;
+                }
+                selectBgFit(event.background.fit || 'cover');
+                selectBgColor(event.background.color || 'rgba(0,0,0,0.5)');
+            }
+            
+            document.getElementById('modalTitle').textContent = 'Chỉnh sửa sự kiện';
+            openModal();
+        }
+
+        // ============================================
+        // DELETE EVENT
+        // ============================================
+        function deleteEvent(id) {
+            if (confirm('Bạn có chắc chắn muốn xóa sự kiện này?')) {
+                events = events.filter(e => e.id !== id);
+                localStorage.setItem('events', JSON.stringify(events));
+                renderEvents();
+                showToast('✅ Đã xóa sự kiện!', 'success');
+            }
+        }
+
+        // ============================================
+        // SHARE FUNCTIONS
+        // ============================================
+        let currentShareEventId = null;
+
+        function openShareModal(id) {
+            currentShareEventId = id;
+            document.getElementById('shareModal').classList.remove('hidden');
+            document.getElementById('shareModal').classList.add('flex');
+        }
+
+        function closeShareModal() {
+            document.getElementById('shareModal').classList.add('hidden');
+            document.getElementById('shareModal').classList.remove('flex');
+        }
+
+        function shareToFacebook() {
+            const event = events.find(e => e.id === currentShareEventId);
+            const text = `${event.icon} ${event.name} - Đếm ngược đến ngày đặc biệt!`;
+            const url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}&quote=${encodeURIComponent(text)}`;
+            window.open(url, '_blank');
+        }
+
+        function shareToTwitter() {
+            const event = events.find(e => e.id === currentShareEventId);
+            const text = `${event.icon} ${event.name} - Đếm ngược đến ngày đặc biệt!`;
+            const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(window.location.href)}`;
+            window.open(url, '_blank');
+        }
+
+        function copyLink() {
+            navigator.clipboard.writeText(window.location.href).then(() => {
+                showToast('✅ Đã copy link!', 'success');
+                closeShareModal();
+            });
+        }
+
+        // ============================================
+        // HELPER FUNCTIONS
+        // ============================================
+        function formatDate(date) {
+            return date.toLocaleDateString('vi-VN', {
+                weekday: 'short',
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+    </script>
+</body>
+</html>
