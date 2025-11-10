@@ -31,7 +31,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 20px;
+            padding: 10px;
             position: relative;
             overflow-x: hidden;
         }
@@ -60,20 +60,23 @@
             z-index: 1;
             display: flex;
             gap: 24px;
-            max-width: 1200px;
+            max-width: 98vw;
             width: 100%;
+            height: 95vh;
             align-items: flex-start;
         }
 
         .container {
             background: rgba(255, 255, 255, 0.98);
             backdrop-filter: blur(20px);
-            padding: 48px;
+            padding: 32px;
             border-radius: 24px;
             box-shadow: 
                 0 20px 60px rgba(0, 0, 0, 0.2),
                 0 0 0 1px rgba(255, 255, 255, 0.3);
             flex: 1;
+            height: 100%;
+            overflow-y: auto;
             animation: slideUp 0.6s ease-out;
         }
 
@@ -86,6 +89,8 @@
                 0 20px 60px rgba(0, 0, 0, 0.2),
                 0 0 0 1px rgba(255, 255, 255, 0.3);
             width: 320px;
+            height: 100%;
+            overflow-y: auto;
             animation: slideUp 0.6s ease-out 0.2s backwards;
         }
 
@@ -259,7 +264,7 @@
             border: 2px solid var(--border);
             font-size: 1.1rem;
             font-weight: 600;
-            color: var(--text);
+            color: var (--text);
             min-width: 140px;
             text-align: center;
             transition: all 0.3s ease;
@@ -355,6 +360,13 @@
             cursor: pointer;
             transition: all 0.3s ease;
             box-shadow: 0 4px 16px rgba(79, 70, 229, 0.3);
+        }
+
+        #startButton {
+            font-size: 2rem;
+            padding: 24px 48px;
+            margin: 20px auto;
+            display: block;
         }
 
         button.check-btn:hover {
@@ -472,12 +484,19 @@
         @media (max-width: 1024px) {
             .main-wrapper {
                 flex-direction: column;
-                align-items: center;
+                height: auto;
+                min-height: 95vh;
             }
 
             .leaderboard-panel {
                 width: 100%;
                 max-width: 700px;
+            }
+
+            .container, .leaderboard-panel {
+                height: auto;
+                width: 100%;
+                max-width: 98vw;
             }
         }
 
@@ -543,7 +562,7 @@
                 </div>
             </div>
 
-            <div class="score">
+            <div class="score hidden">
                 <div class="score-item" id="correctScore">
                     <span>Điểm số</span>
                     <span class="score-number" id="dung">0</span>
@@ -700,6 +719,7 @@
             document.getElementById('answer').classList.remove('hidden');
             document.getElementById('checkButton').classList.remove('hidden');
             document.getElementById('quizArea').classList.remove('hidden');
+            document.querySelector('.score').classList.remove('hidden'); // Add this line
             document.getElementById('answer').focus();
             getRandomWord();
         }

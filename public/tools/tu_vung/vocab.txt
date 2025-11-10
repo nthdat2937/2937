@@ -1,6 +1,249 @@
-한국
-Korea
-Hàn Quốc
-우유
-milk
-sữa
+무엇 / 뭐
+what
+cái gì
+무슨
+what
+gì
+어느
+any
+nào
+어떤
+how
+như thế nào
+누구
+who
+ai
+누가
+who
+ai
+어디
+where
+ở đâu
+언제
+when
+khi nào
+왜
+why
+tại sao
+어떻게
+how
+như thế nào
+몇
+some
+mấy
+얼마
+how much
+bao nhiêu
+얼마나
+how long
+bao lâu
+그리고
+and
+và
+그래서
+so / therefore
+vì vậy / do đó
+그러니 / 그러니까
+so / therefore
+vì vậy / do đó
+그렇기 때문에
+so / therefore
+vì vậy / do đó
+하지만
+but / however
+nhưng / tuy nhiên
+그렇지만
+but / however
+nhưng / tuy nhiên
+그런데
+but / however / by the way
+nhưng / tuy nhiên / tiện thể
+그러나
+but / however
+nhưng / tuy nhiên
+그럼 / 그러면
+if so then
+nếu vậy thì
+그래도
+however
+dù vậy
+물건
+objects
+đồ vật
+책
+book
+sách
+공책
+notebooks
+vở / tập
+사전
+dictionary
+từ điển
+사전을 첮다
+look up in the dictionary
+tra từ điển
+전자 사전
+electronic dictionary / electronic dictionary
+từ điển điện tử / kim từ điển
+핀통
+pencil case
+hộp bút
+볼펜
+ballpoint pen
+bút bi
+연필
+pencil
+bút chì
+지우개
+eraser
+gôm / tẩy
+자
+ruler
+thước
+가방
+briefcase / handbag
+cặp / túi xách
+책상
+table
+bàn
+의자
+chair
+ghế
+친판
+board
+bảng
+모자(를 쓰다)
+hat / cap
+đội nón / nón
+안경(을 쓰다)
+wear glasses / glasses
+mang kính / kính
+우산(을 쓰다)
+umbrella / parasol
+che dù / dù
+신발(을 신다)
+wear shoes / shoes
+mang giày / giày
+시계
+clock
+đồng hồ
+류대폰
+mobile phone / telephone
+điện thoại di động / điện thoại
+카메라
+camera / camera
+máy chụp ảnh / máy ảnh
+노트복
+laptop
+laptop
+컴퓨터
+computer
+máy tính
+신문
+newspaper
+báo
+잡지
+magazine
+tạp chí
+지갑
+wallet / purse / clutch
+ví tiền / ví / bóp
+꽃
+flower
+hoa
+나무
+tree
+cây
+안녕라세요
+hello
+xin chào
+처음 뵙겠습니다
+nice to meet you
+rất hân hạnh được gặp bạn
+만나서 반갑습니다
+nice to meet you
+rất vui được gặp bạn
+만나서 반가워요
+nice to meet you
+rất vui được gặp bạn
+안녕히 가세요
+good luck
+bạn đi mạnh giỏi
+안녕히 계세요
+you stay safe
+bạn ở lại bình an
+또 뵙겠습니다
+see you again
+hẹn gặp lại
+또 만나요
+see you again
+hẹn gặp lại
+나라
+country
+đất nước
+한국 - 한국 사람
+korea - korean people
+Hàn Quốc - người Hàn
+베트남 - 베트남 사람
+vietnam - vietnamese people
+Việt Nam - người Việt
+일본 - 일본 사람
+japan - japanese
+Nhật Bản - người Nhật
+중국 - 중국 사람
+china - chinese people
+Trung Quốc - người Trung
+영국
+older brother
+Anh
+미국
+america
+Mỹ
+독일
+virtue
+Đức
+프랑스
+france
+Pháp
+호주
+australia
+Úc
+몽골
+mongolia
+Mông Cổ
+캐나다
+canada
+Canada
+태국
+thailand
+Thái Lan
+싱가포르
+singapore
+Singapore
+외국
+foreign countries
+nươc ngoài
+베트남어
+vietnamese
+tiếng Việt
+한국어
+korean
+tiếng Hàn
+영국어
+english
+tiếng Anh
+일본어
+japanese
+tiếng Nhật
+프랑스어
+french
+tiếng Pháp
+중국어
+chinese
+tiếng Trung
+외국어
+foreign language / foreign language
+ngoại ngữ / tiếng nước ngoài
+어느 나라 사람
+what nationality
+người nước nào
