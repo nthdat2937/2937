@@ -139,7 +139,7 @@ hoa
 나무
 tree
 cây
-안녕라세요
+안녕하세요
 hello
 xin chào
 처음 뵙겠습니다
