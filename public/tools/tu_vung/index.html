@@ -258,6 +258,9 @@
                 <div>Đang tải chủ đề...</div>
             </div>
         </div>
+
+        <div class="section-title">Từ vựng</div>
+        <button class="topic-card" onclick="bangTuVung()"><span class="topic-icon">📚</span><div class="topic-name">Bảng từ vựng</div></button>
     </div>
 
     <script>
@@ -328,6 +331,10 @@
 
         function navigateToRandom() {
             window.location.href = "ngaunhien.html";
+        }
+
+        function bangTuVung() {
+            window.location.href = "tuvung.html"
         }
 
         loadTopics();

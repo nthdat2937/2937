@@ -2,13 +2,13 @@
   "events": [
     {
       "id": 1,
-      "name": "New Year 2024",
-      "date": "2024-01-01T00:00:00.000Z",
+      "name": "New Year 2026",
+      "date": "2026-01-01T00:00:00.000Z",
       "type": "countdown",
       "icon": "🎆",
       "background": {
         "type": "gradient",
-        "value": "url('https://www.tierra.vn/wp-content/uploads/2025/01/anh-tet-dep-2026.jpg')"
+        "value": "url('')"
       }
     }
   ]
