@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Luyện Tiếng Hàn | 2937</title>
+    <title>Chọn Chủ Đề | 2937</title>
     <link rel="icon" href="image/logo.png">
     <style>
         * {
@@ -12,922 +12,325 @@
             box-sizing: border-box;
         }
 
-        :root {
-            --primary: #4f46e5;
-            --primary-dark: #4338ca;
-            --success: #10b981;
-            --error: #ef4444;
-            --text: #1f2937;
-            --text-light: #6b7280;
-            --bg-light: #f9fafb;
-            --border: #e5e7eb;
-            --shadow: rgba(0, 0, 0, 0.1);
-        }
-
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 10px;
+            padding: 40px 20px;
             position: relative;
-            overflow-x: hidden;
         }
 
+        /* Animated background particles */
         body::before {
             content: '';
             position: fixed;
-            top: 0;
-            left: 0;
             width: 100%;
             height: 100%;
-            background: 
-                radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
-                radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.08) 0%, transparent 50%);
-            animation: float 20s ease-in-out infinite;
-            z-index: 0;
+            top: 0;
+            left: 0;
+            background: radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+            animation: float 8s ease-in-out infinite;
+            pointer-events: none;
         }
 
         @keyframes float {
-            0%, 100% { transform: translate(0, 0); }
-            50% { transform: translate(30px, 30px); }
-        }
-
-        .main-wrapper {
-            position: relative;
-            z-index: 1;
-            display: flex;
-            gap: 24px;
-            max-width: 98vw;
-            width: 100%;
-            height: 95vh;
-            align-items: flex-start;
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
         }
 
         .container {
-            background: rgba(255, 255, 255, 0.98);
-            backdrop-filter: blur(20px);
-            padding: 32px;
-            border-radius: 24px;
-            box-shadow: 
-                0 20px 60px rgba(0, 0, 0, 0.2),
-                0 0 0 1px rgba(255, 255, 255, 0.3);
-            flex: 1;
-            height: 100%;
-            overflow-y: auto;
-            animation: slideUp 0.6s ease-out;
-        }
-
-        .leaderboard-panel {
-            background: rgba(255, 255, 255, 0.98);
-            backdrop-filter: blur(20px);
-            padding: 32px;
-            border-radius: 24px;
-            box-shadow: 
-                0 20px 60px rgba(0, 0, 0, 0.2),
-                0 0 0 1px rgba(255, 255, 255, 0.3);
-            width: 320px;
-            height: 100%;
-            overflow-y: auto;
-            animation: slideUp 0.6s ease-out 0.2s backwards;
-        }
-
-        .leaderboard-title {
-            font-size: 1.5rem;
-            font-weight: 800;
-            color: var(--text);
-            margin-bottom: 20px;
-            text-align: center;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .leaderboard-list {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            max-height: 600px;
-            overflow-y: auto;
-        }
-
-        .leaderboard-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px 16px;
-            background: var(--bg-light);
-            border-radius: 12px;
-            border: 2px solid var(--border);
-            transition: all 0.2s ease;
-        }
-
-        .leaderboard-item:hover {
-            transform: translateX(4px);
-            box-shadow: 0 4px 12px var(--shadow);
-        }
-
-        .leaderboard-rank {
-            font-size: 1.2rem;
-            font-weight: 800;
-            color: var(--primary);
-            min-width: 32px;
-        }
-
-        .leaderboard-rank.top1 {
-            color: #f59e0b;
-        }
-
-        .leaderboard-rank.top2 {
-            color: #9ca3af;
-        }
-
-        .leaderboard-rank.top3 {
-            color: #cd7f32;
-        }
-
-        .leaderboard-info {
-            flex: 1;
-        }
-
-        .leaderboard-name {
-            font-weight: 700;
-            color: var(--text);
-            font-size: 0.95rem;
-            margin-bottom: 2px;
-        }
-
-        .leaderboard-stats {
-            font-size: 0.85rem;
-            color: var(--text-light);
-        }
-
-        .leaderboard-loading {
-            text-align: center;
-            color: var(--text-light);
-            padding: 20px;
-        }
-
-        @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            max-width: 1200px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
         }
 
         .header {
             text-align: center;
-            margin-bottom: 40px;
-            padding-bottom: 24px;
-            border-bottom: 2px solid var(--border);
+            margin-bottom: 50px;
         }
 
-        .title {
-            font-size: 2.5rem;
-            color: var(--text);
-            margin-bottom: 8px;
-            font-weight: 800;
-            letter-spacing: -0.5px;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+        .main-title {
+            font-size: 3.5rem;
+            font-weight: 900;
+            color: white;
+            text-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            margin-bottom: 16px;
+            letter-spacing: -1px;
         }
 
         .subtitle {
-            font-size: 0.95rem;
-            color: var(--text-light);
-            font-weight: 500;
+            font-size: 1.2rem;
+            color: rgba(255, 255, 255, 0.9);
+            font-weight: 400;
         }
 
-        .mode-switch {
-            margin: 20px 0;
-            display: flex;
-            justify-content: center;
-        }
-
-        .mode-switch button {
-            background: var(--bg-light);
-            border: 2px solid var(--border);
-            color: var(--text);
-            padding: 10px 24px;
-            border-radius: 12px;
-            font-size: 0.9rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .mode-switch button:hover {
-            background: var(--primary);
-            border-color: var(--primary);
-            color: white;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
-        }
-
-        .progress {
-            background: var(--bg-light);
-            height: 6px;
-            border-radius: 3px;
-            margin: 24px 0;
-            overflow: hidden;
-            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
-        }
-
-        .progress-bar {
-            height: 100%;
-            background: linear-gradient(90deg, #667eea, #764ba2);
-            width: 0%;
-            transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            border-radius: 3px;
-            box-shadow: 0 0 10px rgba(102, 126, 234, 0.5);
-        }
-
-        .score {
-            display: flex;
-            justify-content: center;
-            gap: 16px;
-            margin-bottom: 32px;
-        }
-
-        .score-item {
-            position: relative;
-            padding: 16px 32px;
-            border-radius: 16px;
-            background: var(--bg-light);
-            border: 2px solid var(--border);
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: var (--text);
-            min-width: 140px;
+        /* Featured Random Button */
+        .featured-card {
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(20px);
+            padding: 40px;
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+            margin-bottom: 40px;
             text-align: center;
-            transition: all 0.3s ease;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            transition: all 0.4s ease;
         }
 
-        .score-item:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 20px var(--shadow);
+        .featured-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.3);
         }
 
-        .score-item.correct-highlight {
-            background: linear-gradient(135deg, #d1fae5, #a7f3d0);
-            border-color: var(--success);
-            animation: pulse 0.4s ease;
+        .featured-title {
+            font-size: 1.5rem;
+            color: #333;
+            margin-bottom: 20px;
+            font-weight: 700;
         }
 
-        .score-item.wrong-highlight {
-            background: linear-gradient(135deg, #fee2e2, #fecaca);
-            border-color: var(--error);
-            animation: pulse 0.4s ease;
-        }
-
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-        }
-
-        .score-number {
-            display: block;
-            font-size: 2rem;
-            font-weight: 800;
-            margin-top: 4px;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .word-container {
-            background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
-            padding: 48px 32px;
-            border-radius: 20px;
-            margin: 32px 0;
-            border: 2px solid #bae6fd;
-            box-shadow: 0 4px 20px rgba(14, 165, 233, 0.15);
-        }
-
-        .word {
-            font-size: 3.5rem;
-            text-align: center;
-            color: var(--text);
-            font-weight: 800;
-            line-height: 1.2;
-            letter-spacing: 2px;
-        }
-
-        .input-group {
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-            margin: 32px 0;
-        }
-
-        input {
-            padding: 18px 24px;
-            font-size: 1.15rem;
-            border: 2px solid var(--border);
-            border-radius: 16px;
-            transition: all 0.2s ease;
-            background: var(--bg-light);
-            color: var(--text);
-            font-weight: 500;
-        }
-
-        input:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
-            background: white;
-        }
-
-        input::placeholder {
-            color: var(--text-light);
-        }
-
-        button.check-btn {
-            padding: 18px 32px;
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        .random-button {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
             color: white;
+            padding: 20px 50px;
             border: none;
             border-radius: 16px;
-            font-size: 1.15rem;
+            font-size: 1.3rem;
             font-weight: 700;
             cursor: pointer;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 16px rgba(79, 70, 229, 0.3);
+            box-shadow: 0 8px 30px rgba(245, 87, 108, 0.4);
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
         }
 
-        #startButton {
+        .random-button:hover {
+            transform: translateY(-4px) scale(1.05);
+            box-shadow: 0 12px 40px rgba(245, 87, 108, 0.6);
+        }
+
+        .random-button:active {
+            transform: translateY(-2px) scale(1.02);
+        }
+
+        /* Topics Section */
+        .section-title {
+            font-size: 1.8rem;
+            color: white;
+            font-weight: 700;
+            margin-bottom: 24px;
+            text-align: center;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .topics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .topic-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 24px;
+            border-radius: 16px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            text-align: left;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .topic-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            transform: scaleY(0);
+            transition: transform 0.3s ease;
+        }
+
+        .topic-card:hover {
+            transform: translateX(8px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .topic-card:hover::before {
+            transform: scaleY(1);
+        }
+
+        .topic-icon {
             font-size: 2rem;
-            padding: 24px 48px;
-            margin: 20px auto;
+            margin-bottom: 12px;
             display: block;
         }
 
-        button.check-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 24px rgba(79, 70, 229, 0.4);
-        }
-
-        button.check-btn:active {
-            transform: translateY(-1px);
-        }
-
-        .result {
-            text-align: center;
-            margin-top: 24px;
-            font-size: 1.2rem;
-            min-height: 40px;
-            padding: 16px;
-            border-radius: 12px;
+        .topic-name {
+            font-size: 1.1rem;
             font-weight: 600;
-            animation: fadeIn 0.3s ease;
-            opacity: 1;
-            visibility: visible;
-            transition: opacity 0.3s ease, visibility 0.3s ease;
+            color: #333;
+            margin: 0;
         }
 
-        .result.correct {
-            color: var (--success);
-            background: linear-gradient(135deg, #d1fae5, #a7f3d0);
-            border: 2px solid var(--success);
-        }
-
-        .result.wrong {
-            color: var(--error);
-            background: linear-gradient(135deg, #fee2e2, #fecaca);
-            border: 2px solid var(--error);
-        }
-
-        .result.hidden {
-            opacity: 0;
-            visibility: hidden;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .language-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.85);
-            backdrop-filter: blur(8px);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            animation: fadeIn 0.3s ease;
-        }
-
-        .language-selection {
-            background: white;
-            padding: 48px;
-            border-radius: 24px;
+        /* Loading State */
+        .loading {
             text-align: center;
-            box-shadow: 0 25px 70px rgba(0, 0, 0, 0.3);
-            animation: slideUp 0.4s ease-out;
-        }
-
-        .language-selection h2 {
-            color: var(--text);
-            margin-bottom: 32px;
-            font-size: 1.8rem;
-            font-weight: 800;
-        }
-
-        .language-options {
-            display: flex;
-            gap: 20px;
-            justify-content: center;
-        }
-
-        .language-option {
-            padding: 20px 40px;
-            background: var(--bg-light);
-            color: var(--text);
-            border: 2px solid var(--border);
-            border-radius: 16px;
-            font-size: 1.15rem;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .language-option:hover {
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            border-color: var(--primary);
+            padding: 60px;
             color: white;
-            transform: translateY(-4px);
-            box-shadow: 0 8px 24px rgba(79, 70, 229, 0.4);
+            font-size: 1.2rem;
         }
 
-        .hidden {
-            display: none !important;
+        .loader {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
         }
 
-        @media (max-width: 1024px) {
-            .main-wrapper {
-                flex-direction: column;
-                height: auto;
-                min-height: 95vh;
-            }
-
-            .leaderboard-panel {
-                width: 100%;
-                max-width: 700px;
-            }
-
-            .container, .leaderboard-panel {
-                height: auto;
-                width: 100%;
-                max-width: 98vw;
-            }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
 
+        /* Responsive */
         @media (max-width: 768px) {
-            .container {
-                padding: 32px 24px;
-                border-radius: 20px;
-            }
-
-            .leaderboard-panel {
-                padding: 24px;
-            }
-
-            .title {
-                font-size: 2rem;
-            }
-
-            .word {
+            .main-title {
                 font-size: 2.5rem;
             }
 
-            .score {
-                flex-direction: column;
-                gap: 12px;
+            .topics-grid {
+                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+                gap: 15px;
             }
 
-            .score-item {
-                min-width: auto;
+            .featured-card {
+                padding: 30px 20px;
             }
 
-            .language-selection {
-                padding: 32px 24px;
-                margin: 20px;
+            .random-button {
+                padding: 16px 40px;
+                font-size: 1.1rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .main-title {
+                font-size: 2rem;
             }
 
-            .language-options {
-                flex-direction: column;
+            .topics-grid {
+                grid-template-columns: 1fr;
             }
         }
     </style>
 </head>
 <body>
-    <div id="languageModal" class="language-modal">
-        <div class="language-selection">
-            <h2>Chọn ngôn ngữ / Select language</h2>
-            <div class="language-options">
-                <button onclick="selectLanguage('viet')" class="language-option">Tiếng Việt</button>
-                <button onclick="selectLanguage('eng')" class="language-option">English</button>
+    <div class="container">
+        <div class="header">
+            <h1 class="main-title">Chọn Chủ Đề</h1>
+            <p class="subtitle">Khám phá và học tập theo cách của bạn</p>
+        </div>
+
+        <div class="featured-card">
+            <div class="featured-title">Không biết chọn gì?</div>
+            <button class="random-button" onclick="navigateToRandom()">
+                <span style="font-size: 1.5rem;">🎲</span>
+                <span>Thử ngẫu nhiên</span>
+            </button>
+        </div>
+
+        <div class="section-title">Tất cả chủ đề</div>
+        
+        <div class="topics-grid" id="topicsGrid">
+            <div class="loading">
+                <div class="loader"></div>
+                <div>Đang tải chủ đề...</div>
             </div>
         </div>
     </div>
 
-    <div class="main-wrapper">
-        <div class="container">
-            <div class="header">
-                <div class="title">Luyện Tiếng Hàn</div>
-                <div class="subtitle">Master Korean Vocabulary</div>
-                <div class="mode-switch">
-                    <button onclick="toggleMode()" id="modeButton">Chuyển sang chế độ viết tiếng Hàn</button>
-                </div>
-                <div class="progress">
-                    <div class="progress-bar" id="progress"></div>
-                </div>
-            </div>
-
-            <div class="score hidden">
-                <div class="score-item" id="correctScore">
-                    <span>Điểm số</span>
-                    <span class="score-number" id="dung">0</span>
-                </div>
-                <div class="score-item" id="wrongScore">
-                    <span>Thời gian</span>
-                    <span class="score-number" id="timer">00:00</span>
-                </div>
-            </div>
-
-            <div class="word-container hidden" id="quizArea">
-                <div class="word" id="word"></div>
-            </div>
-
-            <div id="result" class="result hidden"></div>
-
-            <div class="input-group">
-                <button onclick="startGame()" class="check-btn" id="startButton">Bắt đầu</button>
-                <input type="text" id="answer" placeholder="Nhập nghĩa..." class="hidden" disabled>
-                <button onclick="checkAnswer()" class="check-btn hidden" id="checkButton" disabled>Kiểm tra</button>
-            </div>
-        </div>
-
-        <div class="leaderboard-panel">
-            <div class="leaderboard-title" id="leaderboardTitle">🏆 Bảng xếp hạng</div>
-            <div class="leaderboard-list" id="leaderboardList">
-                <div class="leaderboard-loading">Đang tải...</div>
-            </div>
-        </div>
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-        // Initialize Supabase
-        const SUPABASE_URL = 'https://fewcsvypxfipbophoakv.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZld2NzdnlweGZpcGJvcGhvYWt2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI2ODQ0NDEsImV4cCI6MjA3ODI2MDQ0MX0.bHGIyp5AmzLYvr0xjUqDiQViX3gCxNTwHl7e885a-V0';
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-        function removeAccents(str) {
-            return str.normalize('NFD')
-                     .replace(/[\u0300-\u036f]/g, '')
-                     .replace(/Ä'/g, 'd')
-                     .replace(/Ä/g, 'D');
-        }
-
-        const dictionary = {
-            tieng_han: [],
-            tieng_viet: [],
-            tieng_anh: []
+        // Topic icons mapping
+        const topicIcons = {
+            default: '📚',
+            math: '🔢',
+            science: '🔬',
+            history: '📜',
+            language: '🗣️',
+            art: '🎨',
+            music: '🎵',
+            technology: '💻',
+            geography: '🌍',
+            literature: '📖'
         };
 
-        async function loadDictionary() {
+        function getIconForTopic(topic) {
+            const lowerTopic = topic.toLowerCase();
+            if (lowerTopic.includes('toán') || lowerTopic.includes('math')) return '🔢';
+            if (lowerTopic.includes('khoa học') || lowerTopic.includes('science')) return '🔬';
+            if (lowerTopic.includes('lịch sử') || lowerTopic.includes('history')) return '📜';
+            if (lowerTopic.includes('ngôn ngữ') || lowerTopic.includes('language')) return '🗣️';
+            if (lowerTopic.includes('nghệ thuật') || lowerTopic.includes('art')) return '🎨';
+            if (lowerTopic.includes('âm nhạc') || lowerTopic.includes('music')) return '🎵';
+            if (lowerTopic.includes('công nghệ') || lowerTopic.includes('technology')) return '💻';
+            if (lowerTopic.includes('địa lý') || lowerTopic.includes('geography')) return '🌍';
+            if (lowerTopic.includes('văn học') || lowerTopic.includes('literature')) return '📖';
+            return '📚';
+        }
+
+        async function loadTopics() {
             try {
-                const response = await fetch('vocab.txt');
-                if (!response.ok) {
-                    throw new Error('Không thể tải file từ điển');
-                }
+                const response = await fetch('topic.txt');
                 const text = await response.text();
-                const lines = text.split('\n').map(line => line.trim()).filter(line => line);
+                const topics = text.trim().split('\n').filter(t => t.length > 0);
                 
-                for (let i = 0; i < lines.length; i++) {
-                    if (i % 3 === 0) {
-                        dictionary.tieng_han.push(lines[i]);
-                    } else if (i % 3 === 1) {
-                        dictionary.tieng_anh.push(lines[i]);
-                    } else if (i % 3 === 2) {
-                        dictionary.tieng_viet.push(lines[i]);
-                    }
-                }
-            } catch (error) {
-                alert('Lỗi khi tải từ điển: ' + error.message);
-                console.error('Error loading dictionary:', error);
-            }
-        }
-
-        let dung = 0;
-        let sai = 0;
-        let currentIndex;
-        let currentLanguage = 'viet';
-        let isKoreanMode = false;
-        let startTime;
-        let timerInterval;
-
-        const translations = {
-            viet: {
-                title: "Luyện Tiếng Hàn",
-                subtitle: "Master Korean Vocabulary",
-                correct: "Đúng",
-                wrong: "Sai",
-                placeholder: "Nhập nghĩa tiếng Việt...",
-                checkButton: "Kiểm tra",
-                correctAnswer: "Chính xác!",
-                wrongAnswer: "Sai! Đáp án chính xác:",
-                completed: "Hoàn thành!",
-                modeButton: "Chuyển sang chế độ viết tiếng Hàn",
-                modeButtonAlt: "Chuyển sang chế độ dịch nghĩa",
-                koreanPlaceholder: "Nhập tiếng Hàn...",
-                score: "Điểm số",
-                time: "Thời gian",
-                startButton: "Bắt đầu",
-                enterName: "Nhập tên của bạn để lưu điểm:",
-                leaderboardTitle: "🏆 Bảng xếp hạng",
-                loading: "Đang tải...",
-                points: "điểm"
-            },
-            eng: {
-                title: "Korean Practice",
-                subtitle: "Master Korean Vocabulary",
-                correct: "Correct",
-                wrong: "Wrong",
-                placeholder: "Enter English meaning...",
-                checkButton: "Check",
-                correctAnswer: "Correct!",
-                wrongAnswer: "Wrong! Correct answer:",
-                completed: "Completed!",
-                modeButton: "Switch to Korean writing mode",
-                modeButtonAlt: "Switch to translation mode",
-                koreanPlaceholder: "Enter Korean...",
-                score: "Score",
-                time: "Time",
-                startButton: "Start",
-                enterName: "Enter your name to save score:",
-                leaderboardTitle: "🏆 Leaderboard",
-                loading: "Loading...",
-                points: "pts"
-            }
-        };
-
-        function startTimer() {
-            startTime = new Date();
-            timerInterval = setInterval(updateTimer, 1000);
-        }
-
-        function updateTimer() {
-            const now = new Date();
-            const diff = Math.floor((now - startTime) / 1000);
-            const minutes = Math.floor(diff / 60).toString().padStart(2, '0');
-            const seconds = (diff % 60).toString().padStart(2, '0');
-            document.getElementById('timer').textContent = `${minutes}:${seconds}`;
-        }
-
-        function selectLanguage(lang) {
-            currentLanguage = lang;
-            document.getElementById('languageModal').style.display = 'none';
-            updateUILanguage(lang);
-            loadLeaderboard();
-        }
-
-        function startGame() {
-            startTimer();
-            document.getElementById('answer').disabled = false;
-            document.getElementById('checkButton').disabled = false;
-            document.getElementById('startButton').style.display = 'none';
-            document.getElementById('answer').classList.remove('hidden');
-            document.getElementById('checkButton').classList.remove('hidden');
-            document.getElementById('quizArea').classList.remove('hidden');
-            document.querySelector('.score').classList.remove('hidden'); // Add this line
-            document.getElementById('answer').focus();
-            getRandomWord();
-        }
-
-        function updateUILanguage(lang) {
-            const t = translations[lang];
-            document.querySelector('.title').textContent = t.title;
-            document.querySelector('.subtitle').textContent = t.subtitle;
-            document.querySelector('#correctScore span:first-child').textContent = t.score;
-            document.querySelector('#wrongScore span:first-child').textContent = t.time;
-            document.getElementById('answer').placeholder = isKoreanMode ? t.koreanPlaceholder : t.placeholder;
-            document.querySelector('.check-btn').textContent = t.checkButton;
-            document.getElementById('modeButton').textContent = isKoreanMode ? t.modeButtonAlt : t.modeButton;
-            document.getElementById('startButton').textContent = t.startButton;
-            document.getElementById('leaderboardTitle').textContent = t.leaderboardTitle;
-        }
-
-        function toggleMode() {
-            isKoreanMode = !isKoreanMode;
-            const t = translations[currentLanguage];
-            const modeButton = document.getElementById('modeButton');
-            const answer = document.getElementById('answer');
-            
-            if (isKoreanMode) {
-                modeButton.textContent = t.modeButtonAlt;
-                answer.placeholder = t.koreanPlaceholder;
-            } else {
-                modeButton.textContent = t.modeButton;
-                answer.placeholder = t.placeholder;
-            }
-            
-            getRandomWord();
-        }
-
-        function getRandomWord() {
-            currentIndex = Math.floor(Math.random() * dictionary.tieng_han.length);
-            const word = document.getElementById('word');
-            if (isKoreanMode) {
-                const meanings = currentLanguage === 'viet' 
-                    ? dictionary.tieng_viet[currentIndex]
-                    : dictionary.tieng_anh[currentIndex];
-                word.textContent = meanings.split('/').map(m => m.trim()).join(' / ');
-            } else {
-                word.textContent = dictionary.tieng_han[currentIndex].split('/').map(k => k.trim()).join(' / ');
-            }
-            document.getElementById('answer').value = '';
-            const result = document.getElementById('result');
-            result.textContent = '';
-            result.className = 'result hidden';
-            document.getElementById('answer').focus();
-        }
-
-        function updateScore(isCorrect) {
-            const scoreElement = document.getElementById('dung');
-            const scoreContainer = document.getElementById('correctScore');
-            
-            if (!isCorrect && dung <= 0) {
-                dung = 0;
-            } else {
-                dung = isCorrect ? dung + 1 : dung - 1;
-            }
-            
-            scoreElement.textContent = dung;
-            
-            scoreContainer.classList.add(isCorrect ? 'correct-highlight' : 'wrong-highlight');
-            setTimeout(() => {
-                scoreContainer.classList.remove('correct-highlight', 'wrong-highlight');
-            }, 400);
-        }
-
-        function checkAnswer() {
-            const userAnswer = removeAccents(document.getElementById('answer').value.trim().toLowerCase());
-            let correctAnswers;
-            let displayAnswers;
-            
-            if (isKoreanMode) {
-                correctAnswers = dictionary.tieng_han[currentIndex].split('/').map(k => 
-                    removeAccents(k.trim().toLowerCase())
-                );
-                displayAnswers = dictionary.tieng_han[currentIndex].split('/').map(k => k.trim());
-            } else {
-                const answers = currentLanguage === 'viet' 
-                    ? dictionary.tieng_viet[currentIndex].split('/')
-                    : dictionary.tieng_anh[currentIndex].split('/');
+                const grid = document.getElementById('topicsGrid');
+                grid.innerHTML = '';
                 
-                correctAnswers = answers.map(a => removeAccents(a.trim().toLowerCase()));
-                displayAnswers = answers.map(a => a.trim());
-            }
-
-            const result = document.getElementById('result');
-            const t = translations[currentLanguage];
-            result.className = 'result';
-
-            if (correctAnswers.includes(userAnswer)) {
-                result.textContent = t.correctAnswer;
-                result.classList.add('correct');
-                updateScore(true);
-                setTimeout(getRandomWord, 800);
-            } else {
-                const allAnswers = displayAnswers.join(' / ');
-                result.textContent = `${t.wrongAnswer} ${allAnswers}`;
-                result.classList.add('wrong');
-                updateScore(false);
-                setTimeout(getRandomWord, 1500);
-            }
-
-            const progress = ((dung + sai) / 100) * 100;
-            document.getElementById('progress').style.width = `${progress}%`;
-
-            if (dung + sai >= 100) {
-                clearInterval(timerInterval);
-                saveScore();
-            }
-        }
-
-        async function saveScore() {
-            const t = translations[currentLanguage];
-            const timerText = document.getElementById('timer').textContent;
-
-            const playerName = prompt(t.enterName) || 'Anonymous';
-
-            try {
-                const { data, error } = await supabase
-                    .from('scores')
-                    .insert([
-                        {
-                            username: playerName,
-                            score: dung,
-                            time: timerText
-                        }
-                    ]);
-
-                if (error) throw error;
-
-                alert(`${t.completed}\n${t.score}: ${dung}\n${t.time}: ${timerText}`);
-                await loadLeaderboard();
-                location.reload();
-            } catch (error) {
-                console.error('Error saving score:', error);
-                alert(`${t.completed}\n${t.score}: ${dung}\n${t.time}: ${timerText}`);
-                location.reload();
-            }
-        }
-
-        async function loadLeaderboard() {
-            const t = translations[currentLanguage];
-            const leaderboardList = document.getElementById('leaderboardList');
-            
-            try {
-                const { data, error } = await supabase
-                    .from('scores')
-                    .select('*')
-                    .limit(50);  // Get more records for proper sorting
-
-                if (error) throw error;
-
-                if (!data || data.length === 0) {
-                    leaderboardList.innerHTML = `<div class="leaderboard-loading">${t.loading}</div>`;
-                    return;
-                }
-
-                // Convert time strings to seconds for comparison
-                data.forEach(entry => {
-                    const [minutes, seconds] = entry.time.split(':').map(Number);
-                    entry.timeInSeconds = minutes * 60 + seconds;
-                });
-
-                // Sort by score (descending) and time (ascending) when scores are equal
-                data.sort((a, b) => {
-                    if (b.score !== a.score) {
-                        return b.score - a.score;
-                    }
-                    return a.timeInSeconds - b.timeInSeconds;
-                });
-
-                // Take top 10 after sorting
-                const top10 = data.slice(0, 10);
-                leaderboardList.innerHTML = '';
-                
-                top10.forEach((entry, index) => {
-                    const item = document.createElement('div');
-                    item.className = 'leaderboard-item';
+                topics.forEach(topic => {
+                    const card = document.createElement('button');
+                    card.className = 'topic-card';
                     
-                    const rankClass = index === 0 ? 'top1' : index === 1 ? 'top2' : index === 2 ? 'top3' : '';
+                    const icon = document.createElement('span');
+                    icon.className = 'topic-icon';
+                    icon.textContent = getIconForTopic(topic);
                     
-                    item.innerHTML = `
-                        <div class="leaderboard-rank ${rankClass}">${index + 1}</div>
-                        <div class="leaderboard-info">
-                            <div class="leaderboard-name">${entry.username}</div>
-                            <div class="leaderboard-stats">${entry.score} ${t.points} • ${entry.time}</div>
-                        </div>
-                    `;
+                    const name = document.createElement('div');
+                    name.className = 'topic-name';
+                    name.textContent = topic;
                     
-                    leaderboardList.appendChild(item);
+                    card.appendChild(icon);
+                    card.appendChild(name);
+                    
+                    card.onclick = () => {
+                        window.location.href = 'theochude.html?data=' + topic + '.txt';
+                    };
+                    
+                    grid.appendChild(card);
                 });
             } catch (error) {
-                console.error('Error loading leaderboard:', error);
-                leaderboardList.innerHTML = `<div class="leaderboard-loading">${t.loading}</div>`;
+                console.error('Error loading topics:', error);
+                document.getElementById('topicsGrid').innerHTML = 
+                    '<div class="loading" style="color: white;">❌ Không thể tải chủ đề. Vui lòng thử lại.</div>';
             }
         }
 
-        document.getElementById('answer').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                checkAnswer();
-            }
-        });
+        function navigateToRandom() {
+            window.location.href = "ngaunhien.html";
+        }
 
-        loadDictionary();
+        loadTopics();
     </script>
 </body>
 </html>
