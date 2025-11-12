@@ -1,0 +1,93 @@
+교통편 / 교통수단
+mean of transportation
+phương tiện giao thông
+버스
+bus
+xe buýt
+버스 1 번
+bus number 1
+xe buýt số 1
+지하철
+subway
+tàu điện ngầm
+자하철 1 호선
+subway line 1
+tàu điện ngầm tuyến số 1
+비행기
+plane
+máy bay
+기차
+train
+tàu hoả
+택시
+taxi
+taxi
+자통차
+car
+xe ô tô
+오토바이
+motorbike
+xe máy
+자전거
+bicycle
+xe đạp
+배
+ship
+tàu thuỷ
+운전하다
+drive
+lái xe
+타다
+drive / ride / get on
+lái / cưỡi / lên
+갈아타다
+change bus / change route
+đổi xe / đổi tuyến
+내리다
+down
+xuống
+버스 정류장
+bus station
+trạm xe buýt
+버스 터미널
+bus stop
+bến xe buýt
+역
+station
+ga
+공항
+airport
+sân bay
+교통
+traffic
+giao thông
+편리하다
+convenient
+tiện lợi
+불판하다
+inconvenient
+bất tiện
+길
+road / path
+đường / con đường
+복잡하다
+complicated
+phức tạp
+막히다
+stuck
+kẹt
+출발하다
+departure
+xuất phát
+도착하다
+arrive
+đến nơi
+버스를 잡다
+catch the bus
+bắt xe buýt
+택스를 잡다
+take a taxi
+bắt taxi
+사거리
+crossroads
+ngã tư
