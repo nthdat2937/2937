@@ -1,39 +1,39 @@
 은행
-bank
 ngân hàng
+bank
 현금인출기
-atm
 máy ATM
+atm
 돈
-money
 tiền
+money
 돈을 찾다
-withdraw money
 rút tiền
+withdraw money
 돈은 바꾸다
-exchange money
 đổi tiền
+exchange money
 송금하다
-deposit
 gửi tiền
-입금하다
 deposit
+입금하다
 nạp tiền
+deposit
 통장
-bank book
 sổ ngân hàng
+bank book
 계좌번호
-account number
 số tài khoản
+account number
 현금
-cash
 tiền mặt
+cash
 은행카드
-bank account
 thể ngân hàng
+bank account
 신용카드
-credit card
 thẻ tín dụng
+credit card
 환율
-exchange rate
 tỷ giá hối đoái
+exchange rate

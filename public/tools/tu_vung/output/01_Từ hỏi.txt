@@ -1,39 +1,33 @@
-무엇 / 뭐
-what
+무엇 / 뭐 / 무슨
 cái gì
-무슨
 what
-gì
 어느
-any
 nào
+any
 어떤
-how
 như thế nào
-누구
-who
-ai
+how
 누가
-who
 ai
+who
 어디
-where
 ở đâu
+where
 언제
-when
 khi nào
+when
 왜
-why
 tại sao
+why
 어떻게
-how
 như thế nào
+how
 몇
-some
 mấy
+some
 얼마
-how much
 bao nhiêu
+how much
 얼마나
-how long
 bao lâu
+how long

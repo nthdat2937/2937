@@ -1,45 +1,45 @@
 물건
-objects
 đồ vật
+objects
 책
-book
 sách
+book
 공책
-notebooks
 vở / tập
+notebooks
 사전
-dictionary
 từ điển
+dictionary
 사전을 첮다
-look up in the dictionary
 tra từ điển
+look up in the dictionary
 전자 사전
-electronic dictionary / electronic dictionary
 từ điển điện tử / kim từ điển
+electronic dictionary / electronic dictionary
 핀통
-pencil case
 hộp bút
+pencil case
 볼펜
-ballpoint pen
 bút bi
+ballpoint pen
 연필
-pencil
 bút chì
+pencil
 지우개
-eraser
 gôm / tẩy
+eraser
 자
-ruler
 thước
+ruler
 가방
-briefcase / handbag
 cặp / túi xách
+briefcase / handbag
 책상
-table
 bàn
+table
 의자
-chair
 ghế
+chair
 친판
-board
 bảng
+board

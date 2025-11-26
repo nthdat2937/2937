@@ -1,102 +1,102 @@
 취미
-interest
 sở thích
+interest
 여행하다
-traveling
 đi du lịch
+traveling
 해외 여행
-foreign travel
 du lịch nước ngoài
+foreign travel
 국내 여행
-domestic travel
 du lịch trong nước
+domestic travel
 세계 여행
-travel around the world
 du lịch vòng quanh thế giới
+travel around the world
 여행지 / 관광지
-tourist attractions
 địa điểm du lịch
+tourist attractions
 유럽
-europe
 châu Âu
+europe
 등산(을) 하다
-climbing
 leo núi
+climbing
 산책하다
-take a walk
 đi dạo
+take a walk
 조깅하다
-jogging
 chạy bộ
+jogging
 운동하다
-do exercise
 tập thể dục
+do exercise
 수영(을) 하다
-swimming / swimming
 bơi lội / bơi
+swimming / swimming
 축구(를) 하다
-play soccer
 chơi đá banh
+play soccer
 배구(를) 하다
-play volleyball
 chơi bóng chuyền
+play volleyball
 농구(를) 하다
-play basketball
 chơi bóng rổ
+play basketball
 배드민턴을 치다
-badminton
 đánh cầu lông
+badminton
 테니스를 치다
-play tennis
 đánh tennis
+play tennis
 낚시하다
-go fishing
 câu cá
+go fishing
 춤을 추다
-dance
 nhảy
+dance
 노래를 하다
-sing
 hát
+sing
 노래를 부르다
-sing
 hát
+sing
 그림
-picture
 bức tranh
+picture
 그림을 그리다
-draw a picture
 vẽ tranh
+draw a picture
 사진
-photo / image
 ảnh / hình ảnh
+photo / image
 사진을 찍다
-take pictures / take pictures
 chụp ảnh / chụp hình
+take pictures / take pictures
 게임(을) 하다
-play video games
 chơi game điện tử
+play video games
 영화
-movies / movies
 phim điện ảnh / phim
+movies / movies
 드라마
-drama
 phim truyền hình / drama
+drama
 인형
-bear / teddy bear
 gấu / gấu bông
+bear / teddy bear
 인형(을) 모으다
-teddy bear collection
 sưu tầm gấu bông
+teddy bear collection
 우표
-stamp
 tem
+stamp
 우표(를) 모으다
-stamp collecting
 sưu tầm tem
+stamp collecting
 동전
-coins
 tiền xu
+coins
 동전(을) 모으다
-coin collecting
 sưu tầm tiền xu
+coin collecting

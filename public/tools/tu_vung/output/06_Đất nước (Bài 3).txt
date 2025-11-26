@@ -1,69 +1,69 @@
 나라
-country
 đất nước
+country
 한국 - 한국 사람
-korea - korean people
 Hàn Quốc - người Hàn
+korea - korean people
 베트남 - 베트남 사람
-vietnam - vietnamese people
 Việt Nam - người Việt
+vietnam - vietnamese people
 일본 - 일본 사람
-japan - japanese
 Nhật Bản - người Nhật
+japan - japanese
 중국 - 중국 사람
-china - chinese people
 Trung Quốc - người Trung
+china - chinese people
 영국
-older brother
 Anh
+older brother
 미국
-america
 Mỹ
+america
 독일
-virtue
 Đức
+virtue
 프랑스
-france
 Pháp
+france
 호주
-australia
 Úc
+australia
 몽골
-mongolia
 Mông Cổ
+mongolia
 캐나다
-canada
 Canada
+canada
 태국
-thailand
 Thái Lan
+thailand
 싱가포르
-singapore
 Singapore
+singapore
 외국
-foreign countries
 nươc ngoài
+foreign countries
 베트남어
-vietnamese
-tiếng Việt
+ tiếng Việt
+ vietnamese
 한국어
-korean
 tiếng Hàn
+korean
 영국어
-english
 tiếng Anh
+english
 일본어
-japanese
 tiếng Nhật
+japanese
 프랑스어
-french
 tiếng Pháp
+french
 중국어
-chinese
 tiếng Trung
+chinese
 외국어
-foreign language / foreign language
 ngoại ngữ / tiếng nước ngoài
+foreign language / foreign language
 어느 나라 사람
-what nationality
 người nước nào
+what nationality

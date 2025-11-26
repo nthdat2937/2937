@@ -53,7 +53,7 @@ import os
 from collections import OrderedDict
 
 # === NHẬP LINK CSV Ở ĐÂY ===
-CSV_URL = "https://docs.google.com/spreadsheets/d/1vyeom_jNLjTY6_K0xA-oBH5Vc5ISGF-fe9_JM2iVYDw/gviz/tq?tqx=out:csv&sheet=Trang%20t%C3%ADnh1"
+CSV_URL = "https://docs.google.com/spreadsheets/d/1vyeom_jNLjTY6_K0xA-oBH5Vc5ISGF-fe9_JM2iVYDw/edit?gid=0#gid=0"
 
 # === TÊN THƯ MỤC XUẤT RA ===
 OUTPUT_FOLDER = "output"
