@@ -1,235 +1,198 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>2937 - Nền tảng Hiện đại</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="style/desktop.css" media="screen and (min-width: 769px)">
-    <link rel="stylesheet" href="style/mobile.css" media="screen and (max-width: 768px)">
-    <link rel="icon" href="image/logo.png">
-  </head>
+    <title>HOME</title>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
 <body>
-    <nav class="navbar">
-        <div class="navbar-container">
-            <div class="nav-left">
-                <div class="logo-container">
-                    <a href="javascript:void(0)" data-view="home">    
-                        <div class="logo">
-                            <img src="image/logo.png" alt="2937 Logo" class="logo-img">
-                        </div>
-                    </a>
-                </div>
-            </div>
-            
-            <div class="nav-middle">
-                <a href="javascript:void(0)" data-view="home" class="nav-link active">
-                    <i class="fas fa-home"></i>
-                    <span>Trang chủ</span>
-                </a>
-                <a href="javascript:void(0)" data-view="tools" class="nav-link">
-                    <i class="fas fa-tools"></i>
-                    <span>Công cụ</span>
-                </a>
-                <a href="javascript:void(0)" data-view="settings" class="nav-link">
-                    <i class="fas fa-cog"></i>
-                    <span>Cài đặt</span>
-                </a>
-            </div>
-            
-            <div class="nav-right">
-                <div id="authButtons" class="auth-buttons">
-                    <a href="login.html" class="nav-btn secondary">Đăng nhập</a>
-                    <a href="register.html" class="nav-btn primary">Đăng ký</a>
-                </div>
-                <div id="userInfo" class="user-info hidden">
-                    <img id="userAvatar" class="user-avatar" src="image/default-avatar.png" alt="Avatar">
-                    <span id="userName" class="user-name">Người dùng</span>
-                    <button id="logoutBtn" class="nav-btn secondary">Đăng xuất</button>
-                </div>
+    <div class="">
+        <form onsubmit="handleSubmit(event)" class="search">
+            <select class="tool-search" id="toolSearch">
+                <option value="google" data-icon="fa-google">Google</option>
+                <option value="yahoo" data-icon="fa-yahoo">Yahoo</option>
+                <option value="facebook" data-icon="fa-facebook">Facebook</option>
+                <option value="youtube" data-icon="fa-youtube">Youtube</option>
+                <option value="image" data-icon="fa-image">Hình ảnh</option>
+                <option value="video" data-icon="fa-video">Video</option>
+                <option value="translate" data-icon="fa-language">Dịch</option>
+                <option value="map" data-icon="fa-map-location-dot">Map</option>
+            </select>
+            <input type="text" placeholder="Search" class="search-box" id="search-box" value="">
+            <button class="search-button" type="submit" onclick="searchGoogle()">🔍</button>
+        </form>
+    </div>
+    <hr>
+
+    <!-- Mạng Xã Hội -->
+    <h3>Mạng Xã Hội</h3>
+    <ul style="list-style-type: none;" class="listMXH">
+        <li onclick="truyCapMXH(this)" class="youtube" id="youtubeMXH">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/e/ef/Youtube_logo.png" alt="youtube" height="75px" width="110px">
+            <div style="font-size: 25px; text-align: center;">Youtube</div>
+        </li>
+        <li onclick="truyCapMXH(this)" class="facebook" id="facebookMXH">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/Facebook_f_logo_%282019%29.svg/1200px-Facebook_f_logo_%282019%29.svg.png" alt="youtube" height="75px" width="75px">
+            <div style="font-size: 25px; text-align: center;">Facebook</div>
+        </li>
+        <li onclick=" openPopup()" class="add" id="addMXH">
+            <img src="https://cdn-icons-png.freepik.com/512/10613/10613702.png" alt="youtube" height="75px" width="75px">
+            <div style="font-size: 25px; text-align: center;">Add</div>
+        </li>
+    </ul>
+    <br>
+    <hr>
+
+    <!-- AI -->
+    <h3>AI</h3>
+    <ul style="list-style-type: none;" class="listMXH">
+        <li onclick="truyCapAI(this)" class="youtube" id="ChatGPT.com">
+            <img src="https://1millionbot.com/wp-content/uploads/2023/03/ChatGPT_logo.png" alt="ChatGPT" height="75px" width="75px">
+            <div style="font-size: 25px; text-align: center;">ChatGPT</div>
+        </li>
+        <li onclick="truyCapAI(this)" class="youtube" id="Claude.com">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b0/Claude_AI_symbol.svg/1200px-Claude_AI_symbol.svg.png" alt="Claude" height="75px" width="75px">
+            <div style="font-size: 25px; text-align: center;">Claude</div>
+        </li>
+        <li onclick="truyCapAI(this)" class="youtube" id="Grok.com">
+            <img src="https://registry.npmmirror.com/@lobehub/icons-static-png/latest/files/dark/grok.png" alt="Grok" height="75px" width="75px">
+            <div style="font-size: 25px; text-align: center;">Grok</div>
+        </li>
+        <li onclick="truyCapAI(this)" class="youtube" id="Gemini.Google.com">
+            <img src="https://storage.googleapis.com/gweb-uniblog-publish-prod/images/Gemini_SparkIcon_.width-500.format-webp.webp" alt="Gemini" height="75px" width="75px">
+            <div style="font-size: 25px; text-align: center;">Gemini</div>
+        </li>
+        <li onclick="chuQuyen(),truyCapAI(this)" class="youtube" id="Deepseek.com">
+            <img src="https://console.groq.com/deepseek_logo.png" alt="Deepseek" height="75px" width="75px">
+            <div style="font-size: 25px; text-align: center;">Deepseek</div>
+        </li>
+        <li onclick="chuQuyen(),truyCapAI(this)" class="youtube" id="Qwen.com">
+            <img src="https://opencv.org/wp-content/uploads/2025/01/MIhJKlK5yVR3axxgE7_gHL-rsKjliShJKd3asUqg5KDdEsdOGut-9mCW4Ti1x7i2y8zCkxeZHQFR00sQg6BfYA.png" alt="Qwen" height="75px" width="75px">
+            <div style="font-size: 25px; text-align: center;">Qwen</div>
+        </li>
+        <li onclick="truyCapAI(this)" class="youtube" id="NotebookLM.google.com">
+            <img src="https://cdn.worldvectorlogo.com/logos/google-notebooklm-logo-icon.svg" alt="NotebookLM" height="75px" width="75px">
+            <div style="font-size: 25px; text-align: center;">NotebookLM</div>
+        </li>
+        <li onclick="truyCapAI(this)" class="youtube" id="chat.Mistral.ai">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e6/Mistral_AI_logo_%282025%E2%80%93%29.svg/250px-Mistral_AI_logo_%282025%E2%80%93%29.svg.png" alt="Mistral" height="75px" width="75px">
+            <div style="font-size: 25px; text-align: center;">Mistral</div>
+        </li>
+        <li onclick="truyCapAI(this)" class="youtube" id="meta.ai/">
+            <img src="https://aimode.co/wp-content/uploads/2024/07/meta-ai-logo.webp" alt="Meta AI" height="75px" width="75px">
+            <div style="font-size: 25px; text-align: center;">Meta AI</div>
+        </li>
+        <li onclick="truyCapAI(this)" class="youtube" id="perplexity.ai/">
+            <img src="https://registry.npmmirror.com/@lobehub/icons-static-png/latest/files/dark/perplexity.png" alt="perplexity" height="75px" width="75px">
+            <div style="font-size: 25px; text-align: center;">perplexity</div>
+        </li>
+        <li onclick="chuQuyen(),truyCapAI(this)" class="youtube" id="chat.z.ai">
+            <img src="https://registry.npmmirror.com/@lobehub/icons-static-png/latest/files/dark/zai.png" alt="Z.ai" height="75px" width="75px">
+            <div style="font-size: 25px; text-align: center;">Z.ai</div>
+        </li>
+        <li onclick="chuQuyen(),truyCapAI(this)" class="youtube" id="ernie.baidu.com">
+            <img src="https://registry.npmmirror.com/@lobehub/icons-static-png/latest/files/dark/baidu-color.png" alt="ERNIE" height="75px" width="75px">
+            <div style="font-size: 25px; text-align: center;">ERNIE</div>
+        </li>
+        <li onclick="chuQuyen(),truyCapAI(this)" class="youtube" id="kimi.com">
+            <img src="https://ph-files.imgix.net/aceadab6-fe32-4341-97cb-688ec19c7136.png?auto=format" alt="Kimi AI" height="75px" width="75px">
+            <div style="font-size: 25px; text-align: center;">Kimi AI</div>
+        </li>
+        <li onclick="chuQuyen(),truyCapAI(this)" class="youtube" id="longcat.chat">
+            <img src="https://registry.npmmirror.com/@lobehub/icons-static-png/latest/files/light/longcat-color.png" alt="Long Cat AI" height="75px" width="75px">
+            <div style="font-size: 25px; text-align: center;">Long Cat AI</div>
+        </li>
+        <li onclick="chuQuyen(),truyCapAI(this)" class="youtube" id="aistudio.xiaomimimo.com/#/chat">
+            <img src="https://mimo-ai.com/logo.png" alt="Mimo" height="75px" width="75px">
+            <div style="font-size: 25px; text-align: center;">Mimo</div>
+        </li>
+    </ul>
+    <br>
+    <hr>
+
+    <!-- Tool & Extension -->
+    <h3>Công cụ và tiện ích</h3>
+    <ul>
+        <li onclick="openPopup2(this)">
+            <i class="fa-solid fa-cake-candles" style="font-size: 100px; background-color: transparent;" data-value="Happy Birthday"></i>
+            <p data-value="Trang web này được tạo ra để gửi những lời chúc sinh nhật đơn giản nhưng chân thành, giúp bạn chia sẻ niềm vui và sự quan tâm đến người mình quý mến chỉ với một cú nhấp chuột."></p>
+            <url data-value="/TOOLS/happybirthday"></url>
+        </li>
+        <li onclick="openPopup2(this)">
+            <i class="fa-solid fa-tree" style="font-size: 100px; background-color: transparent;" data-value="Merry Christmast"></i>
+            <p data-value="Trang web Merry Christmas được tạo ra để gửi những lời chúc Giáng Sinh ấm áp và ý nghĩa đến gia đình, bạn bè và những người thân yêu. Chỉ với một cú nhấp chuột, bạn có thể chia sẻ sự quan tâm, niềm vui và không khí lễ hội một cách đơn giản nhưng chân thành. Trang web có thiết kế gọn gàng, dễ sử dụng, phù hợp để lan tỏa tinh thần Giáng Sinh yêu thương và an lành."></p>
+            <url data-value="#"></url>
+        </li>
+    </ul>
+
+    <!-- Popup -->
+    <div class="overlay" id="overlay" onclick="closePopup()">
+        <div class="popup" onclick="event.stopPropagation()">
+            <button onclick="closePopup()">x</button><br><br>
+            <div class="search2">
+                <input type="text" placeholder="Search" class="search-box" id="urlMXH" value="">
+                <select class="tool-search" id="dotMXH">
+                    <option value=".com">.com</option>
+                    <option value=".org">.org</option>
+                    <option value=".vn">.vn</option>
+                    <option value=".com.vn">.com.vn</option>
+                    <option value=".vercel.app">.vercel.app</option>
+                </select>
+                <button class="search-button" onclick="urlTruyCap()">🔍</button>
             </div>
         </div>
+    </div>
+
+    <!-- Popup 2 -->
+    <div id="popup2" class="popup2">
+        <div class="popup-box2">
+            <div class="heading">
+                <p id="popupText2"></p>
+                <button type="button" onclick="closePopup2()" id="btn-closePopup2">x</button>
+            </div>
+            <p id="motaTool"></p>
+            <button type="button" onclick="openTool()" class="btn-openTool">Mở</button>
+        </div>
+    </div>
+
+    <!-- Logo + Menu -->
+    <div class="test2">2937</div>
+    <div class="test">nthdat</div>
+    <div class="menu" id="menuBtn">|||</div>
+    <nav id="menu">
+        <a href="http://2937.vercel.app" target="_blank">Home</a>
+        <a href="#">About</a>
+        <a href="https://mail.google.com/mail/?view=cm&fs=1&to=nthdat.2937@gmail.com" target="_blank">Contact</a>
     </nav>
+</body>
 
-    <main class="main-content">
-        <!-- Trang chủ -->
-        <section id="home" class="view active">
-          <div class="section-header">
-            <div class="section-title">
-              <i class="fas fa-home"></i>
-              <h2>Chào mừng đến với 2937</h2>
-            </div>
-            <p class="section-desc">Nền tảng hiện đại với công nghệ tiên tiến và giao diện tuyệt đẹp</p>
-          </div>
+<br><hr><br>
 
-          <div class="features-grid">
-              <div class="feature-card">
-                  <div class="feature-icon">
-                      <i class="fas fa-bolt"></i>
-                  </div>
-                  <h3 class="feature-title">Cực kỳ nhanh</h3>
-                  <p class="feature-description">Trải nghiệm tốc độ vượt trội với công nghệ tối ưu hóa hiện đại nhất</p>
-              </div>
+<!-- Câu hỏi -->
+<p>Câu hỏi nhỏ: Web có đẹp không?</p>
+<button class="abc">no</button>
+<button class="def" onclick="camon()">yes</button>
+<button onclick="camon()">yes</button>
 
-              <div class="feature-card">
-                  <div class="feature-icon">
-                      <i class="fas fa-shield-alt"></i>
-                  </div>
-                  <h3 class="feature-title">An toàn tuyệt đối</h3>
-                  <p class="feature-description">Bảo mật cao cấp với mã hóa đầu cuối, bảo vệ dữ liệu của bạn 24/7</p>
-              </div>
-
-              <div class="feature-card">
-                  <div class="feature-icon">
-                      <i class="fas fa-magic"></i>
-                  </div>
-                  <h3 class="feature-title">Dễ sử dụng</h3>
-                  <p class="feature-description">Giao diện trực quan, thân thiện giúp bạn làm việc hiệu quả hơn</p>
-              </div>
-
-              <div class="feature-card">
-                  <div class="feature-icon">
-                      <i class="fas fa-globe"></i>
-                  </div>
-                  <h3 class="feature-title">Kết nối toàn cầu</h3>
-                  <p class="feature-description">Làm việc mọi lúc mọi nơi với hệ thống đám mây mạnh mẽ</p>
-              </div>
-
-              <div class="feature-card">
-                  <div class="feature-icon">
-                      <i class="fas fa-chart-line"></i>
-                  </div>
-                  <h3 class="feature-title">Phân tích thông minh</h3>
-                  <p class="feature-description">Báo cáo chi tiết và thống kê theo thời gian thực</p>
-              </div>
-
-              <div class="feature-card">
-                  <div class="feature-icon">
-                      <i class="fas fa-users"></i>
-                  </div>
-                  <h3 class="feature-title">Cộng đồng sôi động</h3>
-                  <p class="feature-description">Kết nối với hàng ngàn người dùng trên toàn thế giới</p>
-              </div>
-          </div>
-        </section>
-
-        <!-- Công cụ -->
-        <section id="tools" class="view">
-          <div class="section-header">
-            <div class="section-title">
-              <i class="fas fa-tools"></i>
-              <h2>Công cụ</h2>
-            </div>
-            <p class="section-desc">Danh sách công cụ được tải tự động từ thư mục tools.</p>
-          </div>
-
-          <div id="toolsGrid" class="features-grid" aria-live="polite">
-            <!-- Cards sẽ được render bằng JS -->
-          </div>
-          <noscript>
-            <p class="section-note">Vui lòng bật JavaScript để hiển thị danh sách công cụ.</p>
-          </noscript>
-        </section>
-
-        <!-- Cài đặt -->
-        <section id="settings" class="view">
-          <div class="section-header">
-            <div class="section-title">
-              <i class="fas fa-cog"></i>
-              <h2>Cài đặt</h2>
-            </div>
-            <p class="section-desc">Tùy chỉnh trải nghiệm và cấu hình hệ thống (PC or laptop only).</p>
-          </div>
-
-          <div class="settings-grid">
-            <div class="setting-card">
-              <div class="setting-row">
-                <div>
-                  <div class="setting-title">Chế độ tối</div>
-                  <div class="setting-desc">Bật/tắt giao diện tối (Dark/Light)</div>
-                </div>
-                <label class="switch">
-                  <input type="checkbox" id="toggleTheme" onclick="canhbaoanhsang()">
-                  <span class="slider"></span>
-                </label>
-              </div>
-            </div>
-
-            <div class="setting-card">
-              <div class="setting-row">
-                <div>
-                  <div class="setting-title">Hiệu ứng động</div>
-                  <div class="setting-desc">Bật/tắt animation và transition</div>
-                </div>
-                <label class="switch">
-                  <input type="checkbox" id="toggleAnimations">
-                  <span class="slider"></span>
-                </label>
-              </div>
-            </div>
-
-            <div class="setting-card">
-              <div class="setting-row">
-                <div>
-                  <div class="setting-title">Hiệu ứng giao diện</div>
-                  <div class="setting-desc">Bật/tắt blur, shadow, hiệu ứng nền</div>
-                </div>
-                <label class="switch">
-                  <input type="checkbox" id="toggleEffects">
-                  <span class="slider"></span>
-                </label>
-              </div>
-            </div>
-
-            <div class="setting-card">
-              <div class="setting-row">
-                <div>
-                  <div class="setting-title">Chế độ cô đọng</div>
-                  <div class="setting-desc">Giảm padding, khoảng cách hiển thị nhiều hơn</div>
-                </div>
-                <label class="switch">
-                  <input type="checkbox" id="toggleCompact">
-                  <span class="slider"></span>
-                </label>
-              </div>
-            </div>
-          </div>
-        </section>
-    </main>
-
-    <footer class="site-footer">
-      <div class="footer-inner">
-        <div class="footer-brand">
-          <div class="footer-brand-top">
-            <div class="brand-text">
-              <div class="brand-name">2937</div>
-              <div class="brand-tagline">Nền tảng hiện đại, trải nghiệm tinh gọn</div>
-            </div>
-          </div>
-          <p class="footer-note">Thiết kế lấy người dùng làm trung tâm với hiệu năng và tính bảo mật cao.</p>
-        </div>
-
-        <div class="footer-col">
-          <h4 class="footer-title">Liên hệ</h4>
-          <ul class="footer-links">
-            <li><a>Số điện thoại: 0934537548</a></li>
-            <li><a>Địa chỉ: Quận Bình Thạnh, Thành phố Hồ Chí Minh</a></li>
-            <li><a></a></li>
-          </ul>
-        </div>
-
-        <div class="footer-col">
-          <h4 class="footer-title">Hỗ trợ</h4>
-          <ul class="footer-links">
-            <li><a href="login.html">Đăng nhập</a></li>
-            <li><a href="register.html">Đăng ký</a></li>
-            <li><a href="javascript:void(0)" onclick="contact_Admin()">Liên hệ quản trị</a></li>
-          </ul>
-        </div>
-
-        <div class="footer-col">
-          <h4 class="footer-title">Kết nối</h4>
-          <div class="social-icons">
+<!-- Phần chân -->
+<footer>
+    <div id="gioithieu">
+        <h1>2937</h1>
+        <p>Web mới tinh gọn hơn <br> 100% các chức năng hoạt động theo logic</p>
+    </div>
+    <div id="contact">
+        <h1>Liên hệ</h1>
+        <p>SĐT: 0934537548</p>
+        <p><a href="https://mail.google.com/mail/?view=cm&fs=1&to=nthdat.2937@gmail.com">Email: nthdat.2937@gmail.com</a></p>
+    </div>
+    <div id="conection">
+        <h1 class="footer-title">Kết nối</h4>
+        <div class="social-icons">
             <a href="#" class="social-icon">
                 <svg viewBox="0 0 24 24" fill="currentColor">
                     <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
@@ -251,119 +214,140 @@
                 </svg>
             </a>
         </div>
-        </div>
-      </div>
+    </div>
+</footer>
 
-      <div class="footer-bottom">
-        <span>© 2025 2937. All rights reserved.</span>
-        <span class="after-copyright"></span>
-        <div class="footer-mini-links">
-          <a href="javascript:void(0)" data-view="home">Trang chủ</a>
-          <a href="javascript:void(0)" data-view="settings">Cài đặt</a>
-        </div>
-      </div>
-    </footer>
+<!-- Nhắc nhở -->
+<note>Trang web chỉ dành cho máy tính <br>Hoặc điện thoại & ipad màn hình lớn</note><hr class="hr">
+<note><br>Muốn xem trên điện thoại thì xoay màn hình ngang (Không khuyến cáo)</note>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/auth.js"></script>
-    <script src="js/settings.js"></script>
-    <script src="js/tools.js"></script>
-    
-    <script>
-      // Router mới dùng data-view thay vì hash
-      (function() {
-        const order = ['home', 'tools', 'settings'];
-        let current = 'home';
+<script>
+    const banned = ["porn","xx","xxx","xnhau","phim heo","phim cap 3","phim 18+","18+","chịch","chich","sex"]
 
-        function highlight(target) {
-          document.querySelectorAll('.nav-middle .nav-link').forEach(a => {
-            const view = a.getAttribute('data-view') || '';
-            a.classList.toggle('active', view === target);
-          });
+    // Thuật toán tra cứu
+    function searchGoogle() {
+        const keyword = document.getElementById("search-box").value.trim()
+        const toolsearch = document.getElementById("toolSearch").value.trim()
+        if (banned.some(word => keyword.includes(word))) {
+            alert("Nội dung tìm kiếm chứa từ khoá bị cấm!")
+        } else if (keyword !== "" && toolsearch == "image") {
+            window.open("https://www.google.com/search?q="+encodeURIComponent(keyword)+"&udm=2")
+        } else if (keyword !== "" && toolsearch == "video") {
+            window.open("https://www.google.com/search?q="+encodeURIComponent(keyword)+"&udm=7")
+        } else if (keyword !== "" && toolsearch == "translate") {
+            window.open("https://translate.google.com/?sl=auto&tl=vi&text="+encodeURIComponent(keyword)+"&op=translate")
+        } else if (keyword !== "" && toolsearch == "map") {
+            window.open("https://www.google.com/maps/search/"+keyword);
+        } else if (keyword !== "") {
+            window.open("https://www."+toolsearch+".com/search?q=" + encodeURIComponent(keyword));
         }
+    }
 
-        function showView(target) {
-          if (!target || !document.getElementById(target)) target = 'home';
-          if (target === current) { highlight(target); return; }
-
-          const incoming = document.getElementById(target);
-          const outgoing = document.getElementById(current);
-
-          const oldIdx = order.indexOf(current);
-          const newIdx = order.indexOf(target);
-          const dirClass = (newIdx > oldIdx) ? 'from-right' : 'from-left';
-
-          incoming.classList.add(dirClass);
-          void incoming.offsetWidth;
-
-          incoming.classList.add('active');
-          if (outgoing) outgoing.classList.remove('active');
-
-          const cleanup = () => {
-            incoming.classList.remove(dirClass);
-            incoming.removeEventListener('transitionend', cleanup);
-          };
-          incoming.addEventListener('transitionend', cleanup);
-
-          highlight(target);
-          current = target;
+    // Thuật toán chuyển hướng URL
+    function urlTruyCap() {
+        const mainURL = document.getElementById("urlMXH").value.trim()
+        const dotMXH = document.getElementById("dotMXH").value.trim()
+        if (mainURL !== "") {
+            window.open("https://"+mainURL+dotMXH)
         }
+    }
 
-        // Click handler cho nav links
-        document.addEventListener('click', (e) => {
-          const link = e.target.closest('[data-view]');
-          if (link) {
-            e.preventDefault();
-            const view = link.getAttribute('data-view');
-            showView(view);
-          }
-        });
+    // Thuật toán chuyển hướng MXH
+    function truyCapMXH(el) {
+        const id = el.id;
+        const tenMXH = id.replace("MXH","");
+        
+        window.open("https://" + tenMXH + ".com")
+    }
 
-        // Initialize
-        document.addEventListener('DOMContentLoaded', () => {
-          showView('home');
-        });
-      })();
+    // Thuật toán chuyển hướng AI
+    function truyCapAI(el) {
+        const tenAI = el.id;
+        const qwen = "";
+        if (tenAI == "Qwen.com") {
+            window.open("https://" + "chat.qwenlm.ai");
+        } else if (tenAI == "Deepseek.com") {
+            window.open("https://" + "chat.deepseek.com")
+        } else {
+            window.open("https://" + tenAI)
+        }
+    }
 
-      // Menu toggle functionality
-(function() {
-  const menuToggle = document.createElement('button');
-  menuToggle.className = 'menu-toggle';
-  menuToggle.innerHTML = '<span></span><span></span><span></span>';
-  menuToggle.setAttribute('aria-label', 'Toggle menu');
-  
-  // Thêm nút menu vào navbar
-  const navContainer = document.querySelector('.navbar-container');
-  const logoContainer = document.querySelector('.logo-container');
-  logoContainer.after(menuToggle);
-  
-  // Tạo overlay
-  const overlay = document.createElement('div');
-  overlay.className = 'menu-overlay';
-  document.body.appendChild(overlay);
-  
-  const navMiddle = document.querySelector('.nav-middle');
-  
-  // Toggle menu
-  function toggleMenu() {
-    menuToggle.classList.toggle('active');
-    navMiddle.classList.toggle('active');
-    overlay.classList.toggle('active');
-    document.body.style.overflow = navMiddle.classList.contains('active') ? 'hidden' : '';
-  }
-  
-  menuToggle.addEventListener('click', toggleMenu);
-  overlay.addEventListener('click', toggleMenu);
-  
-  // Đóng menu khi click vào link
-  document.querySelectorAll('.nav-link').forEach(link => {
-    link.addEventListener('click', () => {
-      if (navMiddle.classList.contains('active')) {
-        toggleMenu();
-      }
+    // Mấy thằng lồn TQ
+    function chuQuyen() {
+        alert('"TRƯỜNG SA, HOÀNG SA LÀ CỦA VIỆT NAM"\n"The Spratly and Paracel Islands belong to Vietnam"\n"南沙群岛和西沙群岛属于越南。"');
+    }
+
+    // Mở popup
+    function openPopup() {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        document.getElementById("overlay").classList.add("show");
+        document.body.classList.add('lock-scroll');
+    }
+
+    // Đóng popup
+    function closePopup() {
+        document.getElementById("overlay").classList.remove("show");
+        document.body.classList.remove('lock-scroll');
+    }
+
+    // Xử lý yêu cầu Submit
+    function handleSubmit(e) {
+        e.preventDefault();
+    }
+
+    // Đổi chữ placeholder
+    const input = document.getElementById("search-box");
+    const oldText = input.placeholder;
+
+    input.addEventListener("mouseenter", () => {
+        input.placeholder = "Nhập vào đây!";
     });
-  });
-})();
-    </script>
-</body>
+
+    input.addEventListener("mouseleave", () => {
+        input.placeholder = oldText;
+    });
+
+    // Menu
+    const btn = document.getElementById("menuBtn");
+    const menu = document.getElementById("menu");
+
+    btn.onclick = () => {
+        menu.classList.toggle("show");
+    };
+
+    function camon() {
+        alert("Cảm ơn đánh giá rất công tâm của bạn! =))")
+    }
+
+    let urlTool = "";
+
+    // Popup 2
+    const popup2 = document.getElementById('popup2');
+    const popupText2 = document.getElementById('popupText2');
+
+    function openPopup2(li){
+        urlTool = li.querySelector('url').dataset.value;
+        const mota = li.querySelector('p').dataset.value;
+        const text = li.querySelector('i').dataset.value
+        
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        popupText2.innerText = text;
+        motaTool.innerText = mota;
+        popup2.classList.add('active2');
+        document.body.classList.add('lock-scroll');
+
+        return urlTool;
+    }
+
+    function closePopup2(){
+        popup2.classList.remove('active2');
+        document.body.classList.remove('lock-scroll');
+    }
+
+    function openTool() {
+        window.location.href = urlTool
+    }
+
+</script>
 </html>

@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#000000">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Happy Birthday</title>
+        
+    <style>
+        @import url("https://fonts.googleapis.com/css?family=Raleway:900&display=swap");
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background: #000;
+            height: 100%;
+            font-family: "Raleway", sans-serif;
+        }
+
+        .sign {
+            color: white;
+            font-size: 24px;
+        }
+
+        .copy {
+            color: white;
+            font-size: 24px;
+            border: white 2px solid;
+            padding: 2px;
+            border-radius: 5px;
+        }
+
+        .copy:hover {
+            cursor: pointer;
+            background-color: rgba(255, 255, 255, 0.1);
+            transition: background-color 0.3s ease;
+        }
+
+        #rainCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+            pointer-events: none;
+            display: none;
+        }
+
+        #fireworksCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 2;
+            pointer-events: none;
+            display: none;
+        }
+
+        .body--ready {
+            background: -webkit-linear-gradient(top, rgb(0, 0, 0) 0%, rgb(0,0,0) 120%);
+            background: -moz-linear-gradient(top, rgb(0, 0, 0) 0%, rgb(0,0,0) 120%);
+            background: -o-linear-gradient(top, rgb(0, 0, 0) 0%, rgb(0,0,0) 120%);
+            background: -ms-linear-gradient(top, rgb(0, 0, 0) 0%, rgb(0,0,0) 120%);
+            background: linear-gradient(top, rgb(0, 0, 0) 0%, rgb(0,0,0) 120%);
+            transition: all 0.5s ease;
+        }
+
+        img#logo {
+            width: 128px;
+            background-size: cover;
+            border-radius: 200px;
+            box-shadow: 0px 0px 40px rgba(63, 81, 181, 0.72);
+            border: 3px solid #00a0ff;
+            opacity: 1;
+            margin: 0 auto;
+            margin-top: 20px;
+            margin-bottom: 20px;
+            transition: all 1.0s;
+            z-index: 3;
+            position: relative;
+        }
+
+        #logo:hover {
+            box-shadow: 0 0 10px #fff;
+            -webkit-box-shadow: 0 0 19px #fff;
+            transform: rotate(360deg);
+            -ms-transform: rotate(360deg);
+            -moz-transform: rotate(360deg);
+            -webkit-transform: rotate(360deg);
+            -o-transform: rotate(360deg);
+            filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=3);
+        }
+
+        .canvas {
+            margin: 0 auto;
+            display: block;
+            z-index: 2;
+            position: relative;
+        }
+
+        .text {
+            position: fixed;
+            bottom: 20px;
+            text-align: center;
+            width: 100%;
+            font-weight: bold;
+            color: white;
+            z-index: 3;
+            font-size: 18px;
+            line-height: 2;
+            letter-spacing: 1.2px;
+        }
+
+        #startButton {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 24px;
+            font-family: "Raleway", sans-serif;
+            text-align: center;
+            background: linear-gradient(45deg, #ff0055, #ff0048);
+            padding: 20px 40px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 15px;
+            cursor: pointer;
+            z-index: 100;
+            animation: pulse 1.5s infinite;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(255, 107, 157, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        #startButton:hover {
+            transform: translate(-50%, -50%) scale(1.05);
+            box-shadow: 0 12px 40px rgba(255, 107, 157, 0.5);
+        }
+
+        @keyframes pulse {
+            0% { transform: translate(-50%, -50%) scale(1); }
+            50% { transform: translate(-50%, -50%) scale(1.05); }
+            100% { transform: translate(-50%, -50%) scale(1); }
+        }
+
+        #rotateAlert {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90vw;
+            max-width: 400px;
+            color: #ffffff;
+            font-family: 'Raleway', sans-serif;
+            z-index: 1000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+            text-align: center;
+            border-radius: 12px;
+            box-shadow: 0 0 10px rgba(255, 182, 193, 0.2);
+            font-size: 18px;
+            line-height: 1.4;
+            animation: fadeIn 0.5s ease-in-out;
+            background: rgba(0, 0, 0, 0.8);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+            to { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+
+        .main-content {
+            display: none;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .main-content.active {
+            display: block;
+            opacity: 1;
+        }
+
+        .loading {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 18px;
+            z-index: 50;
+            display: none;
+        }
+
+        .return-btn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            color: white;
+            font-size: 18px;
+            font-family: "Raleway", sans-serif;
+            background: linear-gradient(45deg, #ff0055, #ff0048);
+            padding: 10px 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            cursor: pointer;
+            z-index: 100;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+        }
+
+        .return-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 0, 85, 0.4);
+        }
+
+        @media (max-width: 965px) {
+            #startButton {
+                display: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="rainCanvas"></canvas>
+    <canvas id="fireworksCanvas"></canvas>
+    <div class="sign">#nthdat</div>
+    <div><span class="copy" onclick="copylink()">Copy link</span></div>
+    
+    <div id="startButton">🎁 Mở món quà bí mật 💝</div>
+    
+    <div id="loading" class="loading">Đợi chút nhá... ✨</div>
+    
+    <div id="rotateAlert">
+        <div class="rotateText">
+            📱 Vui lòng xoay ngang màn hình để<br>
+            trải nghiệm trọn vẹn hơn 📱
+        </div>
+    </div>
+
+    <div class="main-content" id="mainContent">
+        <canvas class="canvas" id="particleCanvas" width="1820" height="905"></canvas>
+    </div>
+
+    <audio id="backgroundAudio" loop>
+        <source src="#" type="audio/mpeg">
+    </audio>
+
+    <script>
+        let userName = "Linh Đan";
+        let userDOB = "16.08.2009";
+        let birthDate = new Date("16/08/2009");
+
+        function getDataFromURL() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const data = urlParams.get('data');
+            
+            if (data) {
+                try {
+                    const decodedStr = decodeURIComponent(atob(data));
+                    const [name, dob] = decodedStr.split(',');
+                    
+                    if (name && dob) {
+                        userName = name;
+                        // Format date from yyyy-mm-dd to dd.mm.yyyy
+                        const [year, month, day] = dob.split('-');
+                        userDOB = `${day}.${month}.${year}`;
+                        birthDate = new Date(dob);
+                    }
+                } catch (error) {
+                    console.error("Lỗi giải mã:", error);
+                }
+            }
+        }
+
+        getDataFromURL();
+
+        const rainCanvas = document.getElementById('rainCanvas');
+        const rainCtx = rainCanvas.getContext('2d');
+        const startButton = document.getElementById('startButton');
+        const mainContent = document.getElementById('mainContent');
+        const rotateAlert = document.getElementById('rotateAlert');
+        const audio = document.getElementById('backgroundAudio');
+        const loading = document.getElementById('loading');
+
+        let rainAnimation;
+        let isStarted = false;
+
+        function isPortrait() {
+            return window.innerHeight > window.innerWidth;
+        }
+
+        function checkOrientation() {
+            if (isPortrait() && !isStarted) {
+                rotateAlert.style.display = 'flex';
+                startButton.style.display = 'none';
+            } else {
+                rotateAlert.style.display = 'none';
+                startButton.style.display = 'block';
+            }
+        }
+
+        function startRainEffect() {
+            function resizeRainCanvas() {
+                rainCanvas.width = window.innerWidth;
+                rainCanvas.height = window.innerHeight;
+            }
+            
+            resizeRainCanvas();
+            rainCanvas.style.display = 'block';
+            
+            window.addEventListener('resize', resizeRainCanvas);
+
+            const matrix = "HAPPY BIRTHDAY".split('');
+            const fontSize = 10;
+            let drops = Math.floor(window.innerWidth / fontSize);
+            const dropArray = Array(drops).fill(1);
+            
+            const rainbowColors = [
+                'red', 'orange', 'yellow', 'green', 'blue', 'indigo', 'violet',
+                '#FF5733', '#33FF57', '#3357FF', '#FF33A1', '#A133FF', '#33FFA1', '#FF8C33', '#8CFF33', '#FF338C', '#338CFF', '#FF33FF',
+                '#FF5733', '#33FF57', '#3357FF', '#FF33A1', '#A133FF', '#33FFA1', '#FF8C33', '#8CFF33', '#FF338C', '#338CFF', '#FF33FF',
+            ];
+
+            function drawRain() {
+                rainCtx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+                rainCtx.fillRect(0, 0, rainCanvas.width, rainCanvas.height);
+                rainCtx.font = fontSize + 'px arial';
+
+                for (let i = 0; i < dropArray.length; i++) {
+                    const colorIndex = Math.floor(Math.random() * rainbowColors.length);
+                    rainCtx.fillStyle = rainbowColors[colorIndex];
+                    
+                    const text = matrix[Math.floor(Math.random() * matrix.length)];
+                    
+                    rainCtx.shadowColor = rainbowColors[colorIndex];
+                    rainCtx.shadowBlur = 10;
+                    
+                    rainCtx.fillText(text, i * fontSize, dropArray[i] * fontSize);
+                    
+                    rainCtx.shadowBlur = 0;
+
+                    if (dropArray[i] * fontSize > rainCanvas.height || Math.random() > 0.95) {
+                        dropArray[i] = 0;
+                    }
+                    dropArray[i]++;
+                }
+            }
+
+            rainAnimation = setInterval(drawRain, 50);
+        }
+
+        function show_date_time() {
+            try {
+                const today = new Date();
+                const timeold = (today.getTime() - birthDate.getTime());
+                const msPerDay = 24 * 60 * 60 * 1000;
+                const e_daysold = timeold / msPerDay;
+                const daysold = Math.floor(e_daysold);
+                const e_hrsold = (e_daysold - daysold) * 24;
+                const hrsold = Math.floor(e_hrsold);
+                const e_minsold = (e_hrsold - hrsold) * 60;
+                const minsold = Math.floor((e_hrsold - hrsold) * 60);
+                const seconds = Math.floor((e_minsold - minsold) * 60);
+            } catch (error) {
+            }
+            
+            setTimeout(show_date_time, 1000);
+        }
+
+        function handleStartClick() {
+            if (isStarted) return;
+            isStarted = true;
+
+            loading.style.display = 'block';
+            startButton.style.display = 'none';
+
+            audio.play().catch(e => {
+            });
+
+            if (document.documentElement.requestFullscreen) {
+                document.documentElement.requestFullscreen().catch(e => {
+                });
+            }
+
+            setTimeout(() => {
+                loading.style.display = 'none';
+                rotateAlert.style.display = 'none';
+                
+                document.body.classList.add('body--ready');
+                mainContent.classList.add('active');
+                
+                startRainEffect();
+                show_date_time();
+                
+                setTimeout(() => {
+                    try {
+                        S.init();
+                    } catch (error) {
+                    }
+                }, 500);
+            }, 1000);
+        }
+
+        checkOrientation();
+        window.addEventListener('resize', checkOrientation);
+        window.addEventListener('orientationchange', checkOrientation);
+
+        if (startButton) {
+            startButton.addEventListener('click', handleStartClick);
+        }
+
+        const fireworksCanvas = document.getElementById('fireworksCanvas');
+        const fireworksCtx = fireworksCanvas.getContext('2d');
+
+        function resizeFireworksCanvas() {
+            fireworksCanvas.width = window.innerWidth;
+            fireworksCanvas.height = window.innerHeight;
+        }
+        resizeFireworksCanvas();
+        window.addEventListener('resize', resizeFireworksCanvas);
+
+        const particles = [];
+
+        const colors = [
+            'rgb(255, 0, 0)', 
+            'rgb(255, 127, 0)', 
+            'rgb(255, 255, 0)',  
+            'rgb(0, 255, 0)',    
+            'rgb(0, 255, 255)',  
+            'rgb(0, 0, 255)',    
+            'rgb(127, 0, 255)' 
+        ];
+
+        class Particle {
+            constructor(x, y, color) {
+                this.x = x;
+                this.y = y;
+                this.color = color;
+                this.radius = Math.random() * 2 + 1;
+                this.velocity = {
+                    x: Math.random() * 6 - 3,
+                    y: Math.random() * -10 - 5
+                };
+                this.gravity = 0.1;
+                this.opacity = 1;
+            }
+
+            update() {
+                this.x += this.velocity.x;
+                this.y += this.velocity.y;
+                this.velocity.y += this.gravity;
+                this.opacity -= 0.005;
+            }
+
+            draw() {
+                fireworksCtx.beginPath();
+                fireworksCtx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                fireworksCtx.fillStyle = this.color;
+                fireworksCtx.globalAlpha = this.opacity;
+                fireworksCtx.fill();
+            }
+        }
+
+        function createFirework() {
+            const x = Math.random() * fireworksCanvas.width;
+            const y = fireworksCanvas.height;
+            const color = colors[Math.floor(Math.random() * colors.length)];
+            const particleCount = 50;
+
+            for (let i = 0; i < particleCount; i++) {
+                particles.push(new Particle(x, y, color));
+            }
+        }
+
+        let fireworkAnimation;
+        function animateFireworks() {
+            fireworksCtx.globalAlpha = 1;
+            fireworksCtx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+            fireworksCtx.fillRect(0, 0, fireworksCanvas.width, fireworksCanvas.height);
+
+            for (let i = particles.length - 1; i >= 0; i--) {
+                particles[i].update();
+                particles[i].draw();
+                if (particles[i].opacity <= 0) {
+                    particles.splice(i, 1);
+                }
+            }
+
+            if (Math.random() < 0.05) {
+                createFirework();
+            }
+
+            fireworkAnimation = requestAnimationFrame(animateFireworks);
+        }
+
+        function stopFireworks() {
+            if (fireworkAnimation) {
+                cancelAnimationFrame(fireworkAnimation);
+                fireworkAnimation = null;
+                particles.length = 0;
+                fireworksCtx.clearRect(0, 0, fireworksCanvas.width, fireworksCanvas.height);
+            }
+        }
+
+        var S = {
+            init: function () {
+                try {
+                    S.Drawing.init('#particleCanvas');
+                    S.UI.simulate(`❤️|#countdown|Happy|Birthday|To|${userName}|${userDOB}`);
+                    S.Drawing.loop(function () {
+                        S.Shape.render();
+                    });
+                } catch (error) {
+                }
+            }
+        };
+
+        S.Drawing = (function () {
+            var canvas, context, renderFn,
+                requestFrame = window.requestAnimationFrame ||
+                    window.webkitRequestAnimationFrame ||
+                    window.mozRequestAnimationFrame ||
+                    window.oRequestAnimationFrame ||
+                    window.msRequestAnimationFrame ||
+                    function (callback) {
+                        window.setTimeout(callback, 1000 / 60);
+                    };
+            return {
+                init: function (el) {
+                    canvas = document.querySelector(el);
+                    if (!canvas) {
+                        return;
+                    }
+                    context = canvas.getContext('2d');
+                    this.adjustCanvas();
+                    window.addEventListener('resize', () => {
+                        S.Drawing.adjustCanvas();
+                    });
+                },
+                loop: function (fn) {
+                    renderFn = !renderFn ? fn : renderFn;
+                    this.clearFrame();
+                    renderFn();
+                    requestFrame.call(window, this.loop.bind(this));
+                },
+                adjustCanvas: function () {
+                    if (canvas) {
+                        canvas.width = window.innerWidth - 100;
+                        canvas.height = window.innerHeight - 30;
+                    }
+                },
+                clearFrame: function () {
+                    if (context) {
+                        context.clearRect(0, 0, canvas.width, canvas.height);
+                    }
+                },
+                getArea: function () {
+                    return {w: canvas ? canvas.width : 800, h: canvas ? canvas.height : 600};
+                },
+                drawCircle: function (p, c) {
+                    if (context) {
+                        context.fillStyle = c.render();
+                        context.beginPath();
+                        context.arc(p.x, p.y, p.z, 0, 2 * Math.PI, true);
+                        context.closePath();
+                        context.fill();
+                    }
+                }
+            };
+        }());
+
+        S.UI = (function () {
+            var interval, currentAction, time, maxShapeSize = 30, sequence = [], cmd = '#';
+            
+            function formatTime(date) {
+                var h = date.getHours(), m = date.getMinutes();
+                m = m < 10 ? '0' + m : m;
+                return h + ':' + m;
+            }
+            
+            function getValue(value) {
+                return value && value.split(' ')[1];
+            }
+            
+            function getAction(value) {
+                value = value && value.split(' ')[0];
+                return value && value[0] === cmd && value.substring(1);
+            }
+            
+            function timedAction(fn, delay, max, reverse) {
+                clearInterval(interval);
+                currentAction = reverse ? max : 1;
+                fn(currentAction);
+                if (!max || (!reverse && currentAction < max) || (reverse && currentAction > 0)) {
+                    interval = setInterval(function () {
+                        currentAction = reverse ? currentAction - 1 : currentAction + 1;
+                        fn(currentAction);
+                        if ((!reverse && max && currentAction === max) || (reverse && currentAction === 0)) {
+                            clearInterval(interval);
+                        }
+                    }, delay);
+                }
+            }
+            
+            function performAction(value) {
+                var action, current;
+                sequence = typeof (value) === 'object' ? value : sequence.concat(value.split('|'));
+                timedAction(function (index) {
+                    current = sequence.shift();
+                    if (!current) return;
+
+                    action = getAction(current);
+                    var val = getValue(current);
+
+                    stopFireworks();
+
+                    switch (action) {
+                        case 'countdown':
+                            value = parseInt(value) || 3;
+                            value = value > 0 ? value : 3;
+                            timedAction(function (index) {
+                                if (index === 0) {
+                                    if (sequence.length === 0) {
+                                        S.Shape.switchShape(S.ShapeBuilder.letter(''));
+                                    } else {
+                                        performAction(sequence);
+                                    }
+                                } else {
+                                    S.Shape.switchShape(S.ShapeBuilder.letter(index), true);
+                                }
+                            }, 1000, value, true);
+                            break;
+                        case 'rectangle':
+                            value = value && value.split('x');
+                            value = (value && value.length === 2) ? value : [maxShapeSize, maxShapeSize / 2];
+                            S.Shape.switchShape(S.ShapeBuilder.rectangle(Math.min(maxShapeSize, parseInt(value[0])), Math.min(maxShapeSize, parseInt(value[1]))));
+                            break;
+                        case 'circle':
+                            value = parseInt(value) || maxShapeSize;
+                            value = Math.min(value, maxShapeSize);
+                            S.Shape.switchShape(S.ShapeBuilder.circle(value));
+                            break;
+                        case 'time':
+                            var t = formatTime(new Date());
+                            if (sequence.length > 0) {
+                                S.Shape.switchShape(S.ShapeBuilder.letter(t));
+                            } else {
+                                timedAction(function () {
+                                    t = formatTime(new Date());
+                                    if (t !== time) {
+                                        time = t;
+                                        S.Shape.switchShape(S.ShapeBuilder.letter(time));
+                                    }
+                                }, 1000);
+                            }
+                            break;
+                        default:
+                            if (current === userDOB) {
+                                S.Shape.switchShape(S.ShapeBuilder.multilineText([userName, userDOB]));
+                                fireworksCanvas.style.display = 'block';
+                                animateFireworks();
+                            } else {
+                                S.Shape.switchShape(S.ShapeBuilder.letter(current[0] === cmd ? 'nthdat' : current));
+                                fireworksCanvas.style.display = 'none';
+                            }
+                    }
+                }, 2000, sequence.length);
+            }
+            
+            return {
+                simulate: function (action) {
+                    performAction(action);
+                }
+            };
+        }());
+
+        S.Point = function (args) {
+            this.x = args.x;
+            this.y = args.y;
+            this.z = args.z;
+            this.a = args.a;
+            this.h = args.h;
+        };
+
+        S.Color = function (r, g, b, a) {
+            this.r = r;
+            this.g = g;
+            this.b = b;
+            this.a = a;
+        };
+
+        S.Color.prototype = {
+            render: function () {
+                return 'rgba(' + this.r + ',' + this.g + ',' + this.b + ',' + this.a + ')';
+            }
+        };
+
+        const rainbowColors = [
+            {r: 255, g: 0, b: 0},
+            {r: 255, g: 127, b: 0},
+            {r: 255, g: 255, b: 0},
+            {r: 0, g: 255, b: 0},
+            {r: 0, g: 0, b: 255},
+            {r: 75, g: 0, b: 130},
+            {r: 148, g: 0, b: 211}
+        ];
+
+        S.Dot = function (x, y) {
+            this.p = new S.Point({
+                x: x, y: y, z: 2, a: 1, h: 0
+            });
+            this.e = 0.07;
+            this.s = true;
+            
+            const randomColor = rainbowColors[Math.floor(Math.random() * rainbowColors.length)];
+            this.rainbowColor = new S.Color(randomColor.r, randomColor.g, randomColor.b, 1);
+            
+            this.c = new S.Color(255, 0, 85, this.p.a);
+            this.t = this.clone();
+            this.q = [];
+        };
+
+        S.Dot.prototype = {
+            clone: function () {
+                return new S.Point({
+                    x: this.p.x, y: this.p.y, z: this.p.z, a: this.p.a, h: this.p.h
+                });
+            },
+            _draw: function () {
+                if (this.s) {
+                    this.c.a = this.p.a;
+                    S.Drawing.drawCircle(this.p, this.c);
+                } else {
+                    this.rainbowColor.a = this.p.a;
+                    S.Drawing.drawCircle(this.p, this.rainbowColor);
+                }
+            },
+            _moveTowards: function (n) {
+                var details = this.distanceTo(n, true),
+                    dx = details[0], dy = details[1], d = details[2], e = this.e * d;
+                if (this.p.h === -1) {
+                    this.p.x = n.x;
+                    this.p.y = n.y;
+                    return true;
+                }
+                if (d > 1) {
+                    this.p.x -= ((dx / d) * e);
+                    this.p.y -= ((dy / d) * e);
+                } else {
+                    if (this.p.h > 0) {
+                        this.p.h--;
+                    } else {
+                        return true;
+                    }
+                }
+                return false;
+            },
+            _update: function () {
+                if (this._moveTowards(this.t)) {
+                    var p = this.q.shift();
+                    if (p) {
+                        this.t.x = p.x || this.p.x;
+                        this.t.y = p.y || this.p.y;
+                        this.t.z = p.z || this.p.z;
+                        this.t.a = p.a || this.p.a;
+                        this.p.h = p.h || 0;
+                    } else {
+                        if (this.s) {
+                            this.p.x -= Math.sin(Math.random() * 3.142);
+                            this.p.y -= Math.sin(Math.random() * 3.142);
+                        } else {
+                            const randomColor = rainbowColors[Math.floor(Math.random() * rainbowColors.length)];
+                            this.rainbowColor = new S.Color(randomColor.r, randomColor.g, randomColor.b, 1);
+                            
+                            this.move(new S.Point({
+                                x: this.p.x + (Math.random() * 50) - 25,
+                                y: this.p.y + (Math.random() * 50) - 25
+                            }));
+                        }
+                    }
+                }
+                var d = this.p.a - this.t.a;
+                this.p.a = Math.max(0.1, this.p.a - (d * 0.05));
+                d = this.p.z - this.t.z;
+                this.p.z = Math.max(2, this.p.z - (d * 0.05));
+            },
+            distanceTo: function (n, details) {
+                var dx = this.p.x - n.x, dy = this.p.y - n.y, d = Math.sqrt(dx * dx + dy * dy);
+                return details ? [dx, dy, d] : d;
+            },
+            move: function (p, avoidStatic) {
+                if (!avoidStatic || (avoidStatic && this.distanceTo(p) > 1)) {
+                    this.q.push(p);
+                }
+            },
+            render: function () {
+                this._update();
+                this._draw();
+            }
+        };
+
+        S.ShapeBuilder = (function () {
+            var gap = 6,
+                shapeCanvas = document.createElement('canvas'),
+                shapeContext = shapeCanvas.getContext('2d'),
+                fontSize = 500,
+                fontFamily = 'Avenir, Helvetica Neue, Helvetica, Arial, sans-serif';
+
+            function fit() {
+                shapeCanvas.width = Math.floor(window.innerWidth / gap) * gap;
+                shapeCanvas.height = Math.floor(window.innerHeight / gap) * gap;
+                shapeContext.fillStyle = 'red';
+                shapeContext.textBaseline = 'middle';
+                shapeContext.textAlign = 'center';
+            }
+
+            function processCanvas() {
+                var pixels = shapeContext.getImageData(0, 0, shapeCanvas.width, shapeCanvas.height).data;
+                var dots = [], x = 0, y = 0, fx = shapeCanvas.width, fy = shapeCanvas.height, w = 0, h = 0;
+                for (var p = 0; p < pixels.length; p += (4 * gap)) {
+                    if (pixels[p + 3] > 0) {
+                        dots.push(new S.Point({x: x, y: y}));
+                        w = x > w ? x : w;
+                        h = y > h ? y : h;
+                        fx = x < fx ? x : fx;
+                        fy = y < fy ? y : fy;
+                    }
+                    x += gap;
+                    if (x >= shapeCanvas.width) {
+                        x = 0;
+                        y += gap;
+                        p += gap * 4 * shapeCanvas.width;
+                    }
+                }
+                return {dots: dots, w: w + fx, h: h + fy};
+            }
+
+            function setFontSize(s) {
+                shapeContext.font = 'bold ' + s + 'px ' + fontFamily;
+            }
+
+            function isNumber(n) {
+                return !isNaN(parseFloat(n)) && isFinite(n);
+            }
+
+            function init() {
+                fit();
+                window.addEventListener('resize', fit);
+            }
+
+            init();
+
+            return {
+                letter: function (l) {
+                    var s = 0;
+                    setFontSize(fontSize);
+                    s = Math.min(fontSize,
+                        (shapeCanvas.width / shapeContext.measureText(l).width) * 0.8 * fontSize,
+                        (shapeCanvas.height / fontSize) * (isNumber(l) ? 1 : 0.45) * fontSize);
+                    setFontSize(s);
+                    shapeContext.clearRect(0, 0, shapeCanvas.width, shapeCanvas.height);
+                    shapeContext.fillText(l, shapeCanvas.width / 2, shapeCanvas.height / 2);
+                    return processCanvas();
+                },
+                multilineText: function (lines) {
+                    var s = 0;
+                    setFontSize(fontSize);
+                    var maxWidth = Math.max(...lines.map(line => shapeContext.measureText(line).width));
+                    s = Math.min(fontSize,
+                        (shapeCanvas.width / maxWidth) * 0.8 * fontSize,
+                        (shapeCanvas.height / (lines.length * 0.45)) * fontSize);
+                    setFontSize(s * 0.6); 
+                    shapeContext.clearRect(0, 0, shapeCanvas.width, shapeCanvas.height);
+                    lines.forEach((line, index) => {
+                        shapeContext.fillText(line, shapeCanvas.width / 2, shapeCanvas.height / 2 + (index - (lines.length - 1) / 2) * s * 0.5);
+                    });
+                    return processCanvas();
+                }
+            };
+        }());
+
+        S.Shape = (function () {
+            var dots = [], width = 0, height = 0, cx = 0, cy = 0;
+
+            function compensate() {
+                var a = S.Drawing.getArea();
+                cx = a.w / 2 - width / 2;
+                cy = a.h / 2 - height / 2;
+            }
+
+            return {
+                switchShape: function (n, fast) {
+                    if (!n || !n.dots) return;
+                    
+                    var size, a = S.Drawing.getArea();
+                    width = n.w;
+                    height = n.h;
+                    compensate();
+                    
+                    var targetParticles = Math.max(n.dots.length * 1.5, 800);
+                    if (targetParticles > dots.length) {
+                        size = targetParticles - dots.length;
+                        for (var d = 1; d <= size; d++) {
+                            dots.push(new S.Dot(a.w / 2, a.h / 2));
+                        }
+                    }
+                    
+                    var d = 0, i = 0;
+                    var nDotsCopy = n.dots.slice();
+                    
+                    while (nDotsCopy.length > 0 && d < dots.length) {
+                        i = Math.floor(Math.random() * nDotsCopy.length);
+                        dots[d].e = fast ? 0.25 : (dots[d].s ? 0.14 : 0.11);
+                        dots[d].s = true;
+                        dots[d].move(new S.Point({
+                            x: nDotsCopy[i].x + cx,
+                            y: nDotsCopy[i].y + cy,
+                            a: 1,
+                            z: 2,
+                            h: 0
+                        }));
+                        nDotsCopy.splice(i, 1);
+                        d++;
+                    }
+                    
+                    for (var j = d; j < dots.length; j++) {
+                        if (dots[j].s) {
+                            dots[j].s = false;
+                            dots[j].e = 0.04;
+                            
+                            const randomColor = rainbowColors[Math.floor(Math.random() * rainbowColors.length)];
+                            dots[j].rainbowColor = new S.Color(randomColor.r, randomColor.g, randomColor.b, 1);
+                            
+                            dots[j].move(new S.Point({
+                                x: Math.random() * a.w,
+                                y: Math.random() * a.h,
+                                a: 0.3,
+                                z: 2,
+                                h: 0
+                            }));
+                        }
+                    }
+                },
+                render: function () {
+                    for (var d = 0; d < dots.length; d++) {
+                        dots[d].render();
+                    }
+                }
+            };
+        }());
+
+        function copylink() {
+            const url = window.location.href;
+            navigator.clipboard.writeText(url).then(() => {
+                alert("Đã sao chép liên kết!");
+            }).catch(err => {
+                console.error('Không thể sao chép liên kết: ', err);
+            });
+        }
+    </script>
+</body>
+</html>

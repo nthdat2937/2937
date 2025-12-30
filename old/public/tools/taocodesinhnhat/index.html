@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tạo Thiệp Sinh Nhật - 2937</title>
+  <link rel="stylesheet" href="style/style.css">
+  <style>
+    /* Chỉ hiển thị form theo phong cách 2937 */
+    .tool-form .form-group { position: relative; margin-bottom: 1rem; }
+    .tool-form label { display:block; font-weight: 700; color: rgba(255,255,255,0.95); margin-bottom: 0.35rem; }
+    body.theme-light .tool-form label { color: #1f2937; }
+    .tool-form input[type="text"] {
+      width: 100%;
+      padding: 1rem 1.1rem;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 12px;
+      color: white;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+      outline: none;
+    }
+    body.theme-light .tool-form input[type="text"] {
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      color: #111827;
+    }
+    .tool-form input[type="text"]::placeholder { color: rgba(255,255,255,0.7); }
+    body.theme-light .tool-form input[type="text"]::placeholder { color: #6b7280; }
+    .tool-form input[type="text"]:focus {
+      background: rgba(255, 255, 255, 0.15);
+      border-color: rgba(255, 255, 255, 0.4);
+      box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+    }
+    body.theme-light .tool-form input[type="text"]:focus {
+      background: #ffffff;
+      border-color: #cbd5e1;
+      box-shadow: 0 10px 24px rgba(0,0,0,0.06);
+    }
+
+    .date-wrapper { position: relative; display: flex; gap: 0.6rem; }
+    .calendar-toggle { border-radius: 12px; }
+
+    .date-picker {
+      position: absolute;
+      top: calc(100% + 8px);
+      left: 0;
+      z-index: 1000;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 10px 28px rgba(0,0,0,0.18);
+      padding: 12px;
+      display: none;
+      width: 280px;
+    }
+    .date-picker.active { display: block; animation: fadeIn .2s ease-out; }
+    .date-picker table { border-collapse: collapse; width: 100%; font-size: 0.95rem; }
+    .date-picker th, .date-picker td { padding: 6px; text-align: center; }
+    .date-picker td { cursor: pointer; border-radius: 8px; transition: background .2s; }
+    .date-picker td:hover { background: rgba(26, 42, 108, 0.08); }
+    .date-picker td.selected { background: #667eea; color: #fff; }
+    .date-picker th button { padding: 4px 8px; margin: 0 5px; background: transparent; color: #374151; border: none; cursor: pointer; border-radius: 8px; }
+    .date-picker th button:hover { background: rgba(0,0,0,0.06); }
+
+    .year-selector { position: absolute; top: 100%; left: 50%; transform: translateX(-50%); background: white; border-radius: 12px; box-shadow: 0 10px 28px rgba(0,0,0,0.18); padding: 10px; display: none; max-height: 200px; overflow-y: auto; width: 120px; z-index: 1001; }
+    .year-selector.active { display: block; }
+    .year-selector div { padding: 6px 8px; cursor: pointer; text-align: center; border-radius: 8px; }
+    .year-selector div:hover { background: rgba(0,0,0,0.06); }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .tool-wrapper { width: 100%; max-width: 520px; }
+    .tool-actions { margin-top: 1rem; display: flex; gap: 0.8rem; }
+    .tool-actions .nav-btn { width: 100%; }
+  </style>
+</head>
+<body>
+  <div class="auth-overlay">
+    <div class="setting-card tool-wrapper">
+      <form class="tool-form" onsubmit="goToBirthday(event)">
+        <div class="form-group">
+          <label for="name">Tên người nhận</label>
+          <input type="text" id="name" placeholder="Nhập tên người bạn muốn gửi..." required />
+        </div>
+        <div class="form-group">
+          <label for="dob">Ngày sinh</label>
+          <div class="date-wrapper">
+            <input type="text" id="dob" required placeholder="DD/MM/YYYY" maxlength="10" onkeyup="formatDateInput(this)" onblur="validateDate(this)" />
+            <button type="button" class="nav-btn secondary calendar-toggle" onclick="toggleCalendar()">Chọn ngày</button>
+            <div class="date-picker" id="datePicker"></div>
+          </div>
+        </div>
+        <div class="tool-actions">
+          <button type="submit" class="nav-btn primary">Tạo thiệp ngay</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    function formatDateInput(input) {
+      let value = input.value.replace(/\D/g, '');
+      if (value.length > 0) {
+        if (value.length <= 2) {
+          input.value = value;
+        } else if (value.length <= 4) {
+          input.value = value.slice(0, 2) + '/' + value.slice(2);
+        } else {
+          input.value = value.slice(0, 2) + '/' + value.slice(2, 4) + '/' + value.slice(4, 8);
+        }
+      }
+    }
+
+    function validateDate(input) {
+      const parts = input.value.split('/');
+      if (parts.length === 3) {
+        const day = parseInt(parts[0]);
+        const month = parseInt(parts[1]);
+        const year = parseInt(parts[2]);
+        const date = new Date(year, month - 1, day);
+        if (date && date.getDate() === day && date.getMonth() === month - 1 && date.getFullYear() === year) {
+          return;
+        }
+      }
+      alert('Vui lòng nhập ngày hợp lệ theo định dạng DD/MM/YYYY');
+      input.value = '';
+    }
+
+    function goToBirthday(e) {
+      e.preventDefault();
+      try {
+        const name = document.getElementById('name').value.trim();
+        const dobInput = document.getElementById('dob');
+        const dobParts = dobInput.value.split('/');
+        if (!name || dobParts.length !== 3) {
+          alert('Vui lòng điền đầy đủ thông tin!');
+          return;
+        }
+        const formattedDate = `${dobParts[2]}-${dobParts[1]}-${dobParts[0]}`;
+        const str = `${name},${formattedDate}`;
+        const encoded = btoa(encodeURIComponent(str));
+        window.location.href = `birthday.html?data=${encoded}`;
+      } catch (error) {
+        console.error('Error:', error);
+        alert('Có lỗi xảy ra, vui lòng thử lại!');
+      }
+    }
+
+    function toggleCalendar() {
+      const picker = document.getElementById('datePicker');
+      if (!picker.classList.contains('active')) {
+        showCalendar();
+      } else {
+        picker.classList.remove('active');
+      }
+    }
+
+    function showCalendar() {
+      const picker = document.getElementById('datePicker');
+      const input = document.getElementById('dob');
+      const today = new Date();
+      let currentMonth = today.getMonth();
+      let currentYear = today.getFullYear();
+      if (input.value) {
+        const [day, month, year] = input.value.split('/');
+        if (day && month && year) {
+          currentMonth = parseInt(month) - 1;
+          currentYear = parseInt(year);
+        }
+      }
+      renderCalendar(currentMonth, currentYear);
+      picker.classList.add('active');
+      document.addEventListener('click', closeCalendarOnClickOutside);
+    }
+
+    function closeCalendarOnClickOutside(e) {
+      const picker = document.getElementById('datePicker');
+      const toggle = document.querySelector('.calendar-toggle');
+      if (!picker.contains(e.target) && !toggle.contains(e.target)) {
+        picker.classList.remove('active');
+        document.removeEventListener('click', closeCalendarOnClickOutside);
+      }
+    }
+
+    function renderCalendar(month, year) {
+      const picker = document.getElementById('datePicker');
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      const firstDay = new Date(year, month, 1).getDay();
+      let html = `
+        <table>
+          <tr>
+            <th colspan="7">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <button type="button" onclick="changeMonth(-1, ${month}, ${year}); event.stopPropagation();">←</button>
+                <div style="display: flex; gap: 6px; align-items: center;">
+                  <span>${getMonthName(month)}</span>
+                  <button type="button" onclick="toggleYearSelector(${year}); event.stopPropagation();">${year} ▼</button>
+                </div>
+                <button type="button" onclick="changeMonth(1, ${month}, ${year}); event.stopPropagation();">→</button>
+              </div>
+            </th>
+          </tr>
+          <tr>
+            <th>CN</th><th>T2</th><th>T3</th><th>T4</th>
+            <th>T5</th><th>T6</th><th>T7</th>
+          </tr>
+          <tr>
+      `;
+      let day = 1;
+      for (let i = 0; i < 42; i++) {
+        if (i % 7 === 0 && i !== 0) html += '</tr><tr>';
+        if (i < firstDay || day > daysInMonth) {
+          html += '<td></td>';
+        } else {
+          html += `<td onclick="selectDate(${day}, ${month + 1}, ${year}); event.stopPropagation();">${day}</td>`;
+          day++;
+        }
+      }
+      html += '</tr></table>';
+      html += '<div id="yearSelector" class="year-selector"></div>';
+      picker.innerHTML = html;
+    }
+
+    function getMonthName(month) {
+      const months = ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6','Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'];
+      return months[month];
+    }
+
+    function changeMonth(change, month, year) {
+      event.preventDefault();
+      month += change;
+      if (month < 0) { month = 11; year--; }
+      else if (month > 11) { month = 0; year++; }
+      renderCalendar(month, year);
+      const picker = document.getElementById('datePicker');
+      picker.classList.add('active');
+    }
+
+    function selectDate(day, month, year) {
+      const input = document.getElementById('dob');
+      input.value = `${String(day).padStart(2, '0')}/${String(month).padStart(2, '0')}/${year}`;
+      document.getElementById('datePicker').classList.remove('active');
+      validateDate(input);
+    }
+
+    function toggleYearSelector(currentYear) {
+      const yearSelector = document.getElementById('yearSelector');
+      if (yearSelector.classList.contains('active')) {
+        yearSelector.classList.remove('active');
+        return;
+      }
+      let html = '';
+      const startYear = currentYear - 50;
+      const endYear = currentYear + 50;
+      for (let year = startYear; year <= endYear; year++) {
+        html += `<div onclick=\"selectYear(${year})\">${year}</div>`;
+      }
+      yearSelector.innerHTML = html;
+      yearSelector.classList.add('active');
+      const currentYearElement = yearSelector.children[50];
+      if (currentYearElement) currentYearElement.scrollIntoView({ block: 'center' });
+    }
+
+    function selectYear(year) {
+      const currentMonth = new Date().getMonth();
+      renderCalendar(currentMonth, year);
+      document.getElementById('yearSelector').classList.remove('active');
+      event.stopPropagation();
+    }
+  </script>
+</body>
+</html>
