@@ -481,7 +481,7 @@ div>div>div.heading {
 
 /* Điện thoại */
 @media (max-width: 450px) {
-  div {
+  div, p, button {
     display: none;
   }
   footer {
