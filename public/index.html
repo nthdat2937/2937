@@ -128,6 +128,11 @@
             <p data-value="Trang web Merry Christmas được tạo ra để gửi những lời chúc Giáng Sinh ấm áp và ý nghĩa đến gia đình, bạn bè và những người thân yêu. Chỉ với một cú nhấp chuột, bạn có thể chia sẻ sự quan tâm, niềm vui và không khí lễ hội một cách đơn giản nhưng chân thành. Trang web có thiết kế gọn gàng, dễ sử dụng, phù hợp để lan tỏa tinh thần Giáng Sinh yêu thương và an lành."></p>
             <url data-value="#"></url>
         </li>
+        <li onclick="openPopup2(this)">
+            <i class="fa-solid fa-music" style="font-size: 100px; background-color: transparent;" data-value="Songs"></i>
+            <p data-value="Website nhạc của chúng tôi là nơi tổng hợp và chia sẻ những ca khúc hay, đa dạng thể loại từ nhạc trẻ, nhạc chill đến nhạc remix sôi động. Người dùng có thể dễ dàng tìm kiếm, nghe nhạc trực tuyến với chất lượng cao và giao diện thân thiện. Website luôn được cập nhật những bài hát mới nhất, phù hợp với nhiều sở thích khác nhau. Đây là không gian giải trí âm nhạc giúp bạn thư giãn mọi lúc, mọi nơi."></p>
+            <url data-value="/TOOLS/songs/index.html"></url>
+        </li>
     </ul>
 
     <!-- Popup -->
@@ -135,15 +140,17 @@
         <div class="popup" onclick="event.stopPropagation()">
             <button onclick="closePopup()">x</button><br><br>
             <div class="search2">
-                <input type="text" placeholder="Search" class="search-box" id="urlMXH" value="">
-                <select class="tool-search" id="dotMXH">
-                    <option value=".com">.com</option>
-                    <option value=".org">.org</option>
-                    <option value=".vn">.vn</option>
-                    <option value=".com.vn">.com.vn</option>
-                    <option value=".vercel.app">.vercel.app</option>
-                </select>
-                <button class="search-button" onclick="urlTruyCap()">🔍</button>
+                <form onsubmit="handleSubmit(event)" class="search">
+                    <input type="text" placeholder="Search" class="search-box" id="urlMXH" value="">
+                    <select class="tool-search" id="dotMXH">
+                        <option value=".com">.com</option>
+                        <option value=".org">.org</option>
+                        <option value=".vn">.vn</option>
+                        <option value=".com.vn">.com.vn</option>
+                        <option value=".vercel.app">.vercel.app</option>
+                    </select>
+                    <button class="search-button" onclick="urlTruyCap()">🔍</button>
+                </form>
             </div>
         </div>
     </div>

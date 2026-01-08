@@ -1,0 +1,1633 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Music Library</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <style>
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #0f0f0f;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, #22d3ee, #38bdf8);
+            border-radius: 10px;
+            border: 2px solid #0f0f0f;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(180deg, #38bdf8, #0ea5e9);
+        }
+        
+        * {
+            box-sizing: border-box;
+        }
+        
+        body {
+            margin: 0;
+            font-family: Inter, sans-serif;
+            background: #0f0f12;
+            color: #eee;
+            font-size: 24px;
+        }
+        
+        body::selection {
+            color: white;
+            background-color: violet;
+        }
+        
+        header {
+            padding: 24px 32px;
+            font-size: 36px;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(135deg, #1a1a20 0%, #161620 100%);
+            border-bottom: 1px solid #2a2a33;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+        
+        main {
+            padding: 32px;
+        }
+        
+        .search-container {
+            flex: 1;
+            max-width: 400px;
+            margin: 0 24px;
+        }
+        
+        .search-input {
+            width: 100%;
+            padding: 12px 18px;
+            border: 1px solid #2a2a33;
+            border-radius: 10px;
+            background: #1a1a20;
+            color: #fff;
+            font-family: Inter, sans-serif;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+        
+        .search-input::placeholder {
+            color: #6b7280;
+        }
+        
+        .search-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+            background: #161620;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #1a1a20;
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+            transition: box-shadow 0.3s ease;
+        }
+        
+        thead {
+            background: #202028;
+        }
+        
+        th,
+        td {
+            padding: 18px 20px;
+            text-align: left;
+            border-bottom: 1px solid #2a2a33;
+            font-size: 17px;
+        }
+        
+        th {
+            font-weight: 600;
+            opacity: 0.85;
+        }
+        
+        th:nth-child(1) {
+            width: 5%;
+        }
+        
+        th:nth-child(2) {
+            width: 15%;
+        }
+        
+        th:nth-child(3) {
+            width: 10%;
+        }
+        
+        th:nth-child(4) {
+            width: 10%;
+        }
+        
+        th:nth-child(5) {
+            width: 10%;
+        }
+        
+        th:nth-child(6) {
+            width: 40%;
+        }
+        
+        th:nth-child(7) {
+            width: 10%;
+        }
+        
+        tbody tr {
+            transition: background-color 0.2s ease;
+        }
+        
+        tbody tr:nth-child(odd) {
+            background: #1a1a20;
+        }
+        
+        tbody tr:nth-child(even) {
+            background: #16161b;
+        }
+        
+        tbody tr:hover {
+            background: #2a3a4f;
+            box-shadow: inset 0 0 15px rgba(59, 130, 246, 0.15);
+            cursor: pointer;
+        }
+        
+        .actions-cell {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            background: #3b82f6;
+            border: none;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 20px;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+        
+        .btn:hover {
+            background: #2563eb;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .btn-add {
+            padding: 10px 20px;
+            font-size: 15px;
+        }
+
+
+        
+        .btncl:nth-child(1) {
+            background-color: #3498db;
+        }
+        
+        .btncl:nth-child(2) {
+            background-color: #2ecc71;
+        }
+        
+        .btncl:nth-child(3) {
+            background-color: #9b59b6;
+        }
+        
+        .btn-delete {
+            background: #ef4444;
+            padding: 6px 12px;
+            font-size: 17px;
+        }
+        
+        .btn-delete:hover {
+            background: #dc2626;
+        }
+        
+        .btn-edit {
+            background: #f59e0b;
+            padding: 6px 12px;
+            font-size: 17px;
+        }
+        
+        .btn-edit:hover {
+            background: #d97706;
+        }
+        
+        .btn-lyric {
+            background: #3b82f6;
+            padding: 6px 12px;
+            font-size: 17px;
+        }
+        
+        .btn-lyric:hover {
+            background: #2563eb;
+        }
+        
+        dialog {
+            border: none;
+            border-radius: 16px;
+            width: min(1200px, 95%);
+            background: #141418;
+            color: #fff;
+            padding: 32px;
+            animation: slideIn 0.4s cubic-bezier(0.34, 0.1, 0.68, 1);
+        }
+        
+        dialog::backdrop {
+            background: rgba(0, 0, 0, 0.6);
+            animation: fadeIn 0.3s ease;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95) translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+        
+        .lyric-container {
+            display: flex;
+            gap: 20px;
+            margin-top: 16px;
+        }
+        
+        .lyric-avatar {
+            flex-shrink: 0;
+        }
+        
+        .lyric-avatar img {
+            width: 300px;
+            height: 300px;
+            object-fit: cover;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+            transition: transform 0.3s ease;
+        }
+        
+        .lyric-avatar img:hover {
+            transform: scale(1.05);
+        }
+        
+        .lyric-content {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .lyric-content h2 {
+            margin: 0 0 12px 0;
+            font-size: 72px;
+            font-style: italic;
+        }
+        
+        .lyric-content p {
+            margin: 0 0 20px 0;
+            font-size: 15px;
+            opacity: 0.8;
+        }
+        
+        .lyric-content pre {
+            margin: 0;
+            font-size: 18px;
+            white-space: pre-wrap;
+            line-height: 1.8;
+        }
+        
+        .form-group {
+            margin-bottom: 16px;
+            position: relative;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            font-size: 20px;
+        }
+        
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #2a2a33;
+            border-radius: 8px;
+            background: #1a1a20;
+            color: #fff;
+            font-family: Inter, sans-serif;
+            font-size: 18px;
+            transition: all 0.3s ease;
+        }
+        
+        .form-group textarea {
+            resize: vertical;
+            min-height: 240px;
+        }
+        
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+            background: #161620;
+            transform: translateY(-2px);
+        }
+        
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 24px;
+        }
+        
+        .btn-submit {
+            background: #10b981;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-submit:hover {
+            background: #059669;
+        }
+        
+        .btn-cancel {
+            background: #6b7280;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-cancel:hover {
+            background: #4b5563;
+        }
+        
+        .error {
+            color: #ef4444;
+            font-size: 12px;
+            margin-top: 4px;
+            animation: slideDown 0.3s ease;
+        }
+        
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-5px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .close {
+            font-weight: 900;
+            float: right;
+            background: #ef4444;
+            margin: 0;
+            transition: all 0.3s ease;
+            padding: 8px 12px;
+            border-radius: 25px;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: 5%;
+        }
+        
+        .close:hover {
+            background: #dc2626;
+            transform: scale(1.1);
+        }
+        
+        .goiy {
+            float: right;
+            color: #3b82f6;
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.3s ease;
+            margin-top: 4px;
+            margin-bottom: 4px;
+        }
+        
+        .goiy:hover {
+            color: #2563eb;
+            text-decoration: underline;
+        }
+        
+        .motLyric {
+            display: inline-block;
+            transition: transform 0.3s ease, text-shadow 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .motLyric:hover {
+            transform: scale(1.1);
+            text-shadow: 0 0 18px rgba(255, 255, 255, 0.8);
+        }
+        
+        .iconMXH {
+            width: 75px !important;
+            height: 75px !important;
+            margin: 0 15px;
+            margin-top: 25px !important;
+            background-color: transparent;
+            border-radius: 25pc !important;
+            cursor: pointer;
+            transition: all .3 ease !important;
+        }
+        
+        .iconMXH:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 10px white;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div>
+            <span><i class="fa-solid fa-music"></i></span> ntdMUSIC
+            <span style="font-size: medium; color: rgba(255,255,255,0.5);">version: Local_TD_1.36</span>
+        </div>
+        <div class="search-container">
+            <input type="text" id="searchInput" class="search-input" placeholder="🔍 Tìm kiếm bài hát..." />
+        </div>
+        <div id="authButtons">
+            <button class="btn btn-add" onclick="loginDialog.showModal()" id="btn-login" title="Đăng nhập">
+                <i class="fa-solid fa-right-to-bracket"></i>
+            </button>
+        </div>
+        <div id="userInfo" style="display: none; align-items: center; gap: 12px;">
+            <span id="userDisplayName" style="font-size: 26px;"></span>
+<!-- SỬA LẠI button này: -->
+<button class="btn btn-add" onclick="showViewProfile()" id="btn-info-sc" title="Thông tin tài khoản">
+    <i class="fa-solid fa-user"></i>
+</button>
+            <button class="btn btn-add" onclick="handleLogout()" title="Đăng xuất">
+                <i class="fa-solid fa-right-from-bracket"></i>
+            </button>
+        </div>
+        <div>
+            <button class="btn btn-add btncl" onclick="location.reload();" id="btn-reload-sc" title="Làm mới">
+                <i class="fa-solid fa-arrow-rotate-right"></i>
+            </button>
+            <button class="btn btn-add btncl" onclick="addSongDialog.showModal()" id="btn-add-sc" title="Thêm">
+                <i class="fa-solid fa-plus"></i>
+            </button>
+            <button class="btn btn-add btncl" onclick="hoiAI()" id="btn-hoiAI-sc" title="Hỏi AI">
+                <i class="fa-solid fa-robot"></i>
+            </button>
+        </div>
+    </header>
+    <main>
+        <table>
+            <thead>
+                <tr>
+                    <th>Avatar</th>
+                    <th>Tên bài hát</th>
+                    <th>Ca sĩ</th>
+                    <th>Sáng tác</th>
+                    <th>Ngày phát hành</th>
+                    <th>Hot</th>
+                    <th>Thao tác</th>
+                </tr>
+            </thead>
+            <tbody id="list"></tbody>
+        </table>
+    </main>
+    <dialog id="lyricDialog">
+        <button class="btn close" onclick="lyricDialog.close()">
+            <i class="fa-solid fa-x" style="font-weight: bold;"></i>
+        </button>
+        <div class="lyric-container">
+            <div class="lyric-avatar">
+                <img id="dAvatar" src="" alt="avatar" style="display: none" />
+                <hr width="100%" color="white" style="border: none; height: 1px; margin: 32px 0; background-color: white; opacity: 1;">
+                <div style="font-weight: 700; text-align: center; font-style: italic;">Nghe nhạc</div>
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/84/Spotify_icon.svg/250px-Spotify_icon.svg.png" class="iconMXH" onclick="spotifyThismusic()" />
+                <img src="https://dangcapdigital.vn/img/app/zingmp3-aszyd.png" class="iconMXH" onclick="zingmp3Thismusic()" />
+                <img src="https://upload.wikimedia.org/wikipedia/commons/2/2b/NhacCuaTui_2022logo.png" class="iconMXH" onclick="nctThismusic()" />
+                <hr width="100%" color="white" style="border: none; height: 1px; margin: 32px 0; background-color: white; opacity: 1;">
+                <div style="font-weight: 700; text-align: center; font-style: italic;">Xem MV / Video</div>
+                <img src="https://upload.wikimedia.org/wikipedia/commons/e/ef/Youtube_logo.png" class="iconMXH" onclick="youtubeThismusic()" />
+                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQiXN9xSEe8unzPBEQOeAKXd9Q55efGHGB9BA&s" class="iconMXH" onclick="facebookThismusic()" />
+                <img src="https://p16-tiktokcdn-com.akamaized.net/obj/tiktok-obj/32f2ab89bf0d9acee8ff3021890559a7.png" class="iconMXH" onclick="tiktokThismusic()" />
+            </div>
+            <div class="lyric-content">
+                <h2 id="dTitle"></h2>
+                <p id="dArtist" style="float: left;"></p>
+                <p id="dDate"></p>
+                <p id="dAddedBy" style="clear: both; opacity: 0.6; font-size: 14px; margin-top: 8px;"></p>
+                <pre id="dLyric"></pre>
+            </div>
+        </div>
+    </dialog>
+    <dialog id="addSongDialog">
+        <button class="btn close" onclick="addSongDialog.close()">
+            <i class="fa-solid fa-x"></i>
+        </button>
+        <h2>Thêm bài hát mới</h2>
+        <form id="songForm">
+            <div class="form-group">
+                <a href="https://www.google.com/search?q=b%C3%A0i+h%C3%A1t+hot+nh%E1%BA%A5t+tiktok+hi%E1%BB%87n+t%E1%BA%A1i" target="_blank" class="goiy">Gợi ý</a
+                    >
+                    <label for="songName">Tên bài hát *</label>
+                    <input
+                        type="text"
+                        id="songName"
+                        placeholder="Nhập tên bài hát"
+                        required
+                    />
+                    <div class="error" id="error-songName"></div>
+                </div>
+                <div class="form-group">
+                    <a href="#" class="goiy" onclick="timCasi()"
+                        >Không biết tên ca sĩ?</a
+                    >
+                    <label for="artist">Ca sĩ *</label>
+                    <input
+                        type="text"
+                        id="artist"
+                        placeholder="Nhập tên ca sĩ"
+                        required
+                    />
+                    <div class="error" id="error-artist"></div>
+                </div>
+                <div class="form-group">
+                    <a href="#" class="goiy" onclick="timSangtac()"
+                        >Không biết ai sáng tác?</a
+                    >
+                    <label for="composer">Sáng tác *</label>
+                    <input
+                        type="text"
+                        id="composer"
+                        placeholder="Nhập tên người sáng tác"
+                        required
+                    />
+                    <div class="error" id="error-composer"></div>
+                </div>
+                <div class="form-group">
+                  <a href="#" class="goiy" onclick="timLinkbaihat()"
+                        >Tìm link bài hát</a
+                    >
+                  <label>Link YouTube (chỉ cần khi thấy ngày phát hành bị sai)</label>
+                  <div style="display:flex; gap:8px">
+                    <input
+                      type="url"
+                      id="youtubeLinkAdd"
+                      placeholder="https://www.youtube.com/watch?v=..."
+                    />
+                    <button
+                      type="button"
+                      class="btn"
+                      onclick="fetchYoutubeDate('add')"
+                      style="padding: 0 14px"
+                    >
+                      📅
+                    </button>
+                  </div>
+                </div>
+                
+                <div class="form-group">
+                    <a href="#" class="goiy" onclick="timNgayphathanh()"
+                        >Không biết ngày phát hành?</a
+                    >
+                    <label for="releaseDate">Ngày phát hành *</label>
+<div style="display:flex; gap:8px">
+  <input type="date" id="releaseDate" required />
+  <button
+    type="button"
+    class="btn"
+    title="Tự tìm ngày phát hành theo tên bài hát"
+    onclick="autoFindReleaseDate()"
+    style="padding: 0 14px"
+  >
+    🔍
+  </button>
+</div>
+
+                    <div class="error" id="error-releaseDate"></div>
+                </div>
+                <div class="form-group">
+                    <a href="#" onclick="timAvatar1()" class="goiy"
+                        >Tìm avatar</a
+                    >
+                    <label for="avatar">URL Avatar</label>
+                    <input
+                        type="url"
+                        id="avatar"
+                        placeholder="Nhập link/url của ảnh"
+                    />
+                    <div class="error" id="error-avatar"></div>
+                </div>
+                <div class="form-group">
+                    <a href="#" class="goiy" onclick="timLoibaihat()"
+                        >Tìm lời bài hát</a
+                    >
+                    <label for="lyric">Lời bài hát</label>
+                    <textarea
+                        id="lyric"
+                        placeholder="Nhập lời bài hát đã sao chép"
+                    ></textarea>
+                    <div class="error" id="error-lyric"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="addedBy">Người thêm</label>
+                    <input 
+                        type="text" 
+                        id="addedBy" 
+                        readonly 
+                        style="background: #0f0f12; cursor: not-allowed; opacity: 0.7;"
+                    />
+                    <small style="color: #6b7280; font-size: 14px; margin-top: 4px; display: block;">
+                        💡 Tự động lấy từ tài khoản đang đăng nhập
+                    </small>
+                </div>
+
+                <div class="form-group">
+                    <label for="adminCode">Mã xác minh Admin (tùy chọn)</label>
+                    <input
+                        type="text"
+                        id="adminCode"
+                        placeholder="Nhập mã admin để tự động xác minh"
+                    />
+                    <div class="error" id="error-adminCode"></div>
+                    <small
+                        style="
+                            color: #6b7280;
+                            font-size: 14px;
+                            margin-top: 4px;
+                            display: block;
+                        "
+                        >💡 Nhập mã admin để bài hát được xác minh ngay lập
+                        tức</small
+                    >
+                </div>
+                <div class="form-actions">
+                    <button
+                        type="button"
+                        class="btn btn-cancel"
+                        onclick="addSongDialog.close()"
+                    >
+                        Hủy
+                    </button>
+                    <button type="submit" class="btn btn-submit">
+                        Thêm bài hát
+                    </button>
+                </div>
+            </form>
+        </dialog>
+
+        <dialog id="editSongDialog">
+            <button class="btn close" onclick="editSongDialog.close()">
+                <i class="fa-solid fa-x"></i>
+            </button>
+            <h2>Chỉnh sửa bài hát</h2>
+            <form id="editSongForm">
+                <div class="form-group">
+                    <label for="editSongName">Tên bài hát *</label>
+                    <input type="text" id="editSongName" required />
+                    <div class="error" id="error-editSongName"></div>
+                </div>
+                <div class="form-group">
+                    <label for="editArtist">Ca sĩ *</label>
+                    <input type="text" id="editArtist" required />
+                    <div class="error" id="error-editArtist"></div>
+                </div>
+                <div class="form-group">
+                    <label for="editComposer">Sáng tác *</label>
+                    <input type="text" id="editComposer" required />
+                    <div class="error" id="error-editComposer"></div>
+                </div>
+                <div class="form-group">
+                    <label for="editReleaseDate">Ngày phát hành *</label>
+                    <input type="date" id="editReleaseDate" required />
+                    <div class="error" id="error-editReleaseDate"></div>
+                </div>
+                <div class="form-group">
+                    <a href="#" onclick="timAvatar()" class="goiy"
+                        >Tìm avatar</a
+                    >
+                    <label for="editAvatar">URL Avatar</label>
+                    <input type="url" id="editAvatar" />
+                    <div class="error" id="error-editAvatar"></div>
+                </div>
+                <div class="form-group">
+                    <label for="editLyric">Lời bài hát</label>
+                    <textarea id="editLyric"></textarea>
+                    <div class="error" id="error-editLyric"></div>
+                </div>
+                <div class="form-actions">
+                    <button
+                        type="button"
+                        class="btn btn-cancel"
+                        onclick="editSongDialog.close()"
+                    >
+                        Hủy
+                    </button>
+                    <button type="submit" class="btn btn-submit">
+                        Cập nhật bài hát
+                    </button>
+                </div>
+            </form>
+        </dialog>
+
+        <!-- Dialog Đăng nhập -->
+<dialog id="loginDialog">
+    <button class="btn close" onclick="loginDialog.close()">
+        <i class="fa-solid fa-x"></i>
+    </button>
+    <h2>Đăng nhập</h2>
+    <form id="loginForm">
+        <div class="form-group">
+            <label for="loginEmail">Email *</label>
+            <input type="email" id="loginEmail" required placeholder="example@email.com" />
+        </div>
+        <div class="form-group">
+            <label for="loginPassword">Mật khẩu *</label>
+            <input type="password" id="loginPassword" required />
+        </div>
+        <div class="form-actions">
+            <button type="button" class="btn btn-cancel" onclick="loginDialog.close()">Hủy</button>
+            <button type="submit" class="btn btn-submit">Đăng nhập</button>
+        </div>
+        <div style="text-align: center; margin-top: 16px;">
+            <a href="#" class="goiy" onclick="event.preventDefault(); loginDialog.close(); registerDialog.showModal()">
+                Chưa có tài khoản? Đăng ký ngay
+            </a>
+        </div>
+    </form>
+</dialog>
+
+<!-- Dialog Đăng ký -->
+<dialog id="registerDialog">
+    <button class="btn close" onclick="registerDialog.close()">
+        <i class="fa-solid fa-x"></i>
+    </button>
+    <h2>Đăng ký tài khoản</h2>
+    <form id="registerForm">
+        <div class="form-group">
+            <label for="regDisplayName">Tên hiển thị *</label>
+            <input type="text" id="regDisplayName" required placeholder="Nguyễn Văn A" />
+            <div class="error" id="error-regDisplayName"></div>
+        </div>
+        <div class="form-group">
+            <label for="regEmail">Email *</label>
+            <input type="email" id="regEmail" required placeholder="example@email.com" />
+            <div class="error" id="error-regEmail"></div>
+        </div>
+        <div class="form-group">
+            <label for="regPhone">Số điện thoại *</label>
+            <input type="tel" id="regPhone" required placeholder="0912345678" />
+            <div class="error" id="error-regPhone"></div>
+        </div>
+        <div class="form-group">
+            <label for="regPassword">Mật khẩu *</label>
+            <input type="password" id="regPassword" required placeholder="Tối thiểu 6 ký tự" />
+            <div class="error" id="error-regPassword"></div>
+        </div>
+        <div class="form-group">
+            <label for="regConfirmPassword">Nhập lại mật khẩu *</label>
+            <input type="password" id="regConfirmPassword" required />
+            <div class="error" id="error-regConfirmPassword"></div>
+        </div>
+        <div class="form-actions">
+            <button type="button" class="btn btn-cancel" onclick="registerDialog.close()">Hủy</button>
+            <button type="submit" class="btn btn-submit">Đăng ký</button>
+        </div>
+        <div style="text-align: center; margin-top: 16px;">
+            <a href="#" class="goiy" onclick="event.preventDefault(); registerDialog.close(); loginDialog.showModal()">
+                Đã có tài khoản? Đăng nhập
+            </a>
+        </div>
+    </form>
+</dialog>
+<dialog id="viewProfileDialog">
+    <button class="btn close" onclick="viewProfileDialog.close()">
+        <i class="fa-solid fa-x"></i>
+    </button>
+    <h2>Thông tin tài khoản</h2>
+    <div style="padding: 20px;">
+        <div style="display: flex; padding: 12px; border-bottom: 1px solid #2a2a33;">
+            <label style="flex: 0 0 200px; font-weight: 600; opacity: 0.7;">Tên hiển thị:</label>
+            <span id="viewDisplayName"></span>
+        </div>
+        <div style="display: flex; padding: 12px; border-bottom: 1px solid #2a2a33;">
+            <label style="flex: 0 0 200px; font-weight: 600; opacity: 0.7;">Email:</label>
+            <span id="viewEmail"></span>
+        </div>
+        <div style="display: flex; padding: 12px; border-bottom: 1px solid #2a2a33;">
+            <label style="flex: 0 0 200px; font-weight: 600; opacity: 0.7;">Số điện thoại:</label>
+            <span id="viewPhone"></span>
+        </div>
+        <div style="display: flex; padding: 12px; border-bottom: 1px solid #2a2a33;">
+            <label style="flex: 0 0 200px; font-weight: 600; opacity: 0.7;">Vai trò:</label>
+            <span id="viewRole"></span>
+        </div>
+        <br>
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=https://www.facebook.com/nthdat.7" alt="QR Facebook" style="text-align: center;padding: 20px; background-color: white;"/>
+        <div style="margin-top: 24px; text-align: center;">
+            <button class="btn btn-edit" onclick="openEditProfileDialog()">
+                <i class="fa-solid fa-pen-to-square"></i> Chỉnh sửa thông tin
+            </button>
+        </div>
+    </div>
+</dialog>
+
+<!-- THÊM DIALOG CHỈNH SỬA THÔNG TIN -->
+<dialog id="editProfileDialog">
+    <button class="btn close" onclick="editProfileDialog.close()">
+        <i class="fa-solid fa-x"></i>
+    </button>
+    <h2>Chỉnh sửa thông tin</h2>
+    <form id="editProfileForm">
+        <div class="form-group">
+            <label for="editDisplayName">Tên hiển thị *</label>
+            <input type="text" id="editDisplayName" required>
+            <div class="error" id="error-editDisplayName"></div>
+        </div>
+        
+        <div class="form-group">
+            <label for="editPhone">Số điện thoại *</label>
+            <input type="tel" id="editPhone" required placeholder="0912345678">
+            <div class="error" id="error-editPhone"></div>
+        </div>
+        
+        <hr style="border: none; height: 1px; background-color: #2a2a33; margin: 24px 0;">
+        <h3 style="margin-bottom: 16px;">Đổi mật khẩu (tùy chọn)</h3>
+        <small style="color: #6b7280; display: block; margin-bottom: 16px;">
+            💡 Chỉ điền nếu bạn muốn đổi mật khẩu
+        </small>
+        
+        <div class="form-group">
+            <label for="oldPassword">Mật khẩu cũ</label>
+            <input type="password" id="oldPassword">
+            <div class="error" id="error-oldPassword"></div>
+        </div>
+        
+        <div class="form-group">
+            <label for="newPassword">Mật khẩu mới</label>
+            <input type="password" id="newPassword" placeholder="Tối thiểu 6 ký tự">
+            <div class="error" id="error-newPassword"></div>
+        </div>
+        
+        <div class="form-group">
+            <label for="confirmNewPassword">Xác nhận mật khẩu mới</label>
+            <input type="password" id="confirmNewPassword">
+            <div class="error" id="error-confirmNewPassword"></div>
+        </div>
+        
+        <div class="form-actions">
+            <button type="button" class="btn btn-cancel" onclick="editProfileDialog.close()">
+                Hủy
+            </button>
+            <button type="submit" class="btn btn-submit">
+                Lưu thay đổi
+            </button>
+        </div>
+    </form>
+</dialog>
+        <script>
+            function timCasi(){
+              let t=document.getElementById("songName").value;
+              t.trim()?window.open(`https://www.google.com/search?q=ca+sĩ+thể+hiện+bài+${encodeURIComponent(t)}`,'_blank'):alert('Vui lòng nhập tên bài hát trước')
+            }
+            function timSangtac(){
+              let t=document.getElementById("songName").value;
+              t.trim()?window.open(`https://www.google.com/search?q=ai+đã+sáng+tác bài+${encodeURIComponent(t)}`,'_blank'):alert('Vui lòng nhập tên bài hát trước')
+            }
+            function timNgayphathanh(){
+              let t=document.getElementById("songName").value;
+              t.trim()?window.open(`https://www.google.com/search?q=${encodeURIComponent(t)}&udm=7`,'_blank'):alert('Vui lòng nhập tên bài hát trước')
+            }
+            function timLoibaihat(){
+              let t=document.getElementById("songName").value;
+              t.trim()?window.open(`https://www.google.com/search?q=${encodeURIComponent(t)}+lyric`,'_blank'):alert('Vui lòng nhập tên bài hát trước')
+            }
+            function timAvatar1(){
+              let t=document.getElementById("songName").value;
+              t.trim()?window.open(`https://www.google.com/search?q=${encodeURIComponent(t)}&udm=2`,'_blank'):alert('Vui lòng nhập tên bài hát trước')
+            }
+            function timAvatar(){
+              let t=document.getElementById("editSongName").value;
+              t.trim()?window.open(`https://www.google.com/search?q=${encodeURIComponent(t)}&udm=2`,'_blank'):alert('Vui lòng nhập tên bài hát trước')
+            }
+            function timLinkbaihat(){
+              let t=document.getElementById("songName").value;
+              t.trim()?window.open(`https://www.google.com/search?q=${encodeURIComponent(t)}+official+site:youtube.com+&btnI=1`,'_blank'):alert('Vui lòng nhập tên bài hát trước')
+            }
+            function spotifyThismusic(){
+              window.open(`https://www.google.com/search?q=${encodeURIComponent(document.getElementById("dTitle").textContent)}+site:spotify.com+&btnI=1`)
+            }
+            function zingmp3Thismusic(){
+              window.open(`https://www.google.com/search?q=${encodeURIComponent(document.getElementById("dTitle").textContent)}+site:zingmp3.vn+&btnI=1`)
+            }
+            function nctThismusic(){
+              window.open(`https://www.google.com/search?q=${encodeURIComponent(document.getElementById("dTitle").textContent)}+site:nhaccuatui.com+&btnI=1`)
+            }
+            function youtubeThismusic(){
+              window.open(`https://www.google.com/search?q=${encodeURIComponent(document.getElementById("dTitle").textContent)}+site:youtube.com+&btnI=1`)
+            }
+            function facebookThismusic(){
+              window.open(`https://www.facebook.com/search?q=${encodeURIComponent(document.getElementById("dTitle").textContent)}+${encodeURIComponent(document.getElementById("dArtist").textContent)}`)
+            }
+            function tiktokThismusic(){
+              window.open(`https://www.tiktok.com/search?q=${encodeURIComponent(document.getElementById("dTitle").textContent)}`)
+            }
+            function hoiAI(){
+              const cauHoi = prompt("Nhập câu cần hỏi:")
+              console.log(cauHoi)
+
+              if (cauHoi !== null && cauHoi !== ""){
+                window.open(`https://www.google.com/search?q=${encodeURIComponent(cauHoi)}+&udm=50`);
+              } else {
+                alert("Không có câu hỏi! Huỷ thao tác!")
+              }
+            }
+            
+document.addEventListener("keydown", function (e) {
+  if (
+    e.target.tagName === "INPUT" ||
+    e.target.tagName === "TEXTAREA" ||
+    e.target.isContentEditable
+  ) {
+    return;
+  };
+  
+  if (e.shiftKey && e.key === "R") {
+    e.preventDefault(); 
+    document.getElementById("btn-reload-sc").click();
+  };
+
+  if (e.shiftKey && e.key === "A") {
+    e.preventDefault(); 
+    document.getElementById("btn-add-sc").click();
+  };
+  
+  if (e.shiftKey && e.key === "C") {
+      e.preventDefault(); 
+      document.getElementById("btn-hoiAI-sc").click();
+    };
+    if (e.shiftKey && e.key === "I") {
+      e.preventDefault(); 
+      document.getElementById("btn-info-sc").click();
+    };
+    if (e.key === "/") {
+        e.preventDefault(); 
+        document.getElementById("searchInput").focus();
+    };
+    
+  if (!e.ctrlKey) return;
+  const allowKeys = ["c", "v", "x"];
+  if (allowKeys.includes(e.key.toLowerCase())) {
+    return;
+  }
+  e.preventDefault();
+});
+
+// Check role
+function roleCheck() {
+    const role = document.getElementById("role").textContent
+
+    if (role === "Admin") {
+        alert("Bạn là Admin!")
+    } else if (role === "Member" || role === "Moderator") {
+        alert(`Bạn là ${role}!\nLiên hệ Admin qua email để được thăng chức!`)
+        const ok = confirm("Liên hệ qua email: nthdat.2937@gmail.com\nNhấn Enter / OK để truy cập Gmail")
+
+        if (ok === true) {
+            window.open("https://mail.google.com/mail/?view=cm&fs=1&to=nthdat.2937@gmail.com")
+        }
+    } else if (role === "Ủa" || role === "Phép thuật winx enchantix biến hình" || role === "WTF") {
+        alert("Chịu")
+    } else {
+        alert("Mày bị ngu à! Cho mày cái role này thì tự hiểu đi ha")
+    }
+}
+
+        </script>
+        <script type="module">
+            import{createClient}from"https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+
+            const supabase=createClient("https://ktqdzlhvdkerjajffgfi.supabase.co","sb_publishable_1wm-eXETyu07vl61sY4mBQ_xwYZVOCj");
+
+            const list=document.getElementById('list'),
+            lyricDialog=document.getElementById('lyricDialog'),
+            addSongDialog=document.getElementById('addSongDialog'),
+            editSongDialog=document.getElementById('editSongDialog'),
+            songForm=document.getElementById('songForm'),
+            editSongForm=document.getElementById('editSongForm'),
+            dTitle=document.getElementById('dTitle'),
+            dArtist=document.getElementById('dArtist'),
+            dLyric=document.getElementById('dLyric'),
+            dAvatar=document.getElementById('dAvatar'),
+            searchInput=document.getElementById('searchInput');
+
+            let currentEditId=null;
+
+            async function loadSongs(){
+              const{data,error}=await supabase.from('songs').select('*').eq('Xác minh',true);
+              if(error){console.error(error);
+                return}data.sort((a,b)=>a['Tên'].localeCompare(b['Tên'],'vi'));
+              window._songs=data;
+              renderSongs(data)}
+            function renderSongs(songs){list.innerHTML=songs.map(song=>{const hotLines=(song['Lyric']||'').split('\n').filter(line=>line.includes('--hot')).map(line=>line.replace('--hot','').trim());
+            const hotText=hotLines.length>0?hotLines.join(' | '):'Không có';
+            return`<tr><td onclick="showLyric(${song.Id})">${song.avatar?`<img src="${song.avatar}" alt="avatar" style="width:60px;
+              height:60px;
+              object-fit:cover;
+              border-radius:8px">`:''}</td><td style="font-weight: bold; font-size: 20px;" onclick="showLyric(${song.Id})" title="${song['Tên']}">${song['Tên']}</td><td onclick="showLyric(${song.Id})" title="${song['Ca sĩ']}">${song['Ca sĩ']}</td><td onclick="showLyric(${song.Id})" title="${song['Sáng tác']||''}">${song['Sáng tác']||''}</td><td onclick="showLyric(${song.Id})" title="${song['Ngày phát hành']||''}">${song['Ngày phát hành']||''}</td><td style="overflow:hidden;
+              text-overflow:ellipsis;
+              white-space:normal;
+              word-break:break-word" title="${hotText}" onclick="showLyric(${song.Id})"><span style="color:#fbbf24;
+              font-weight:500;
+              font-size:17px">🔥 ${hotText}</span></td><td><div class="actions-cell"><button class="btn btn-edit" onclick="openEditDialog(${song.Id})" title="Chỉnh sửa"><i class="fa-solid fa-pen-to-square"></i></button><button class="btn btn-delete" onclick="deleteSong(${song.Id})" title="Xoá"><i class="fa-solid fa-delete-left"></i></button><button class="btn btn-lyric" onclick="showLyric(${song.Id})" title="Chi tiết"><i class="fa-solid fa-music"></i></button></div></td></tr>`}).join('')}
+            searchInput.addEventListener('input',(e)=>{const query=e.target.value.toLowerCase().trim();
+              if(!query){renderSongs(window._songs);
+              return}const filtered=window._songs.filter(song=>removeDiacritics(song['Tên']).includes(removeDiacritics(query))||removeDiacritics(song['Ca sĩ']).includes(removeDiacritics(query))||removeDiacritics(song['Sáng tác']).includes(removeDiacritics(query)));
+            renderSongs(filtered)});
+
+            window.showLyric=id=>{const s=window._songs.find(x=>x.Id===id);
+              dTitle.textContent=s['Tên'];
+            dArtist.textContent=`${s['Ca sĩ']}ㅤ`;
+            dDate.textContent=`•ㅤ${s['Ngày phát hành']||''}`
+            dAddedBy.textContent = s['add_by'] ? `👤 Người thêm: ${s['add_by']}` : '';
+            const lyricLines=(s['Lyric']||'').split('\n').map(line=>{const cleanLine=line.replace('--hot','').trim();
+            const hasHot=line.includes('--hot');
+            return`<span class="motLyric">${cleanLine}${hasHot?' 🔥':''}</span>`}).join('\n');
+            dLyric.innerHTML=lyricLines||'<span>Chưa có lyric</span>';
+            if(s.avatar){dAvatar.src=s.avatar;
+              dAvatar.style.display='block'}else{dAvatar.style.display='none'}lyricDialog.showModal();
+            }
+            window.openEditDialog=id=>{const pwd=prompt('Nhập mật khẩu để chỉnh sửa bài hát:');
+            if(pwd===null)return;
+            const bmcp='Dat!@#123';
+            if(pwd!==bmcp){alert('Mật khẩu không đúng. Huỷ thao tác chỉnh sửa.');
+            return}const s=window._songs.find(x=>x.Id===id);
+            if(!s)return;
+            currentEditId=id;
+            document.getElementById('editSongName').value=s['Tên'];
+            document.getElementById('editArtist').value=s['Ca sĩ'];
+            document.getElementById('editComposer').value=s['Sáng tác']||'';
+            document.getElementById('editReleaseDate').value=s['Ngày phát hành']||'';
+            document.getElementById('editAvatar').value=s.avatar||'';
+            document.getElementById('editLyric').value=s['Lyric']||'';
+            clearEditErrors();
+            editSongDialog.showModal()}
+            // THÊM FUNCTION NÀY
+addSongDialog.addEventListener('click', async (e) => {
+    if (e.target !== addSongDialog) return;
+    addSongDialog.close();
+});
+
+// Load tên user khi mở dialog thêm bài hát
+window.addEventListener('DOMContentLoaded', () => {
+    const addBtn = document.getElementById('btn-add-sc');
+    if (addBtn) {
+        addBtn.addEventListener('click', async () => {
+            if (currentUser) {
+                const { data } = await supabase
+                    .from('profiles')
+                    .select('display_name')
+                    .eq('id', currentUser.id)
+                    .single();
+                
+                if (data) {
+                    document.getElementById('addedBy').value = data.display_name;
+                }
+            } else {
+                document.getElementById('addedBy').value = 'Khách';
+            }
+        });
+    }
+});
+            window.deleteSong=async id=>{const pwd=prompt('Nhập mật khẩu để xoá bài hát:');
+            if(pwd===null)return;
+            const bmcp='Dat!@#123';
+            if(pwd!==bmcp){alert('Mật khẩu không đúng. Huỷ thao tác xoá.');
+            return}if(!confirm('Bạn chắc chắn muốn xoá bài hát này?'))return;
+            const{error}=await supabase.from('songs').delete().eq('Id',id);
+            if(error){console.error(error);
+              alert('Lỗi khi xoá bài hát: '+error.message);
+            return}loadSongs()}
+            lyricDialog.addEventListener('click',(e)=>{if(e.target===lyricDialog){lyricDialog.close()}});
+
+            editSongDialog.addEventListener('click',(e)=>{if(e.target===editSongDialog){editSongDialog.close()}});
+
+            songForm.addEventListener('submit',async(e)=>{e.preventDefault();
+              clearErrors();
+              const songName=document.getElementById('songName').value.trim();
+            const artist=document.getElementById('artist').value.trim();
+            const composer=document.getElementById('composer').value.trim();
+            const releaseDate=document.getElementById('releaseDate').value;
+            const avatar=document.getElementById('avatar').value.trim();
+            const lyric=document.getElementById('lyric').value.trim();
+            const adminCode=document.getElementById('adminCode').value.trim();
+            const addedBy=document.getElementById('addedBy').value.trim();
+            let isValid=true;
+            if(!songName){showError('songName','Vui lòng nhập tên bài hát');
+            isValid=false}if(!artist){showError('artist','Vui lòng nhập tên ca sĩ');
+            isValid=false}if(!composer){showError('composer','Vui lòng nhập tên sáng tác');
+            isValid=false}if(!releaseDate){showError('releaseDate','Vui lòng chọn ngày phát hành');
+            isValid=false}if(!isValid)return;
+            const correctAdminCode='xm1689';
+            const isVerified=adminCode===correctAdminCode;
+            const{error}=await supabase.from('songs').insert([{'Tên':songName,'Ca sĩ':artist,'Sáng tác':composer,'Ngày phát hành':releaseDate,'avatar':avatar||null,'Lyric':lyric,'Xác minh':isVerified,'add_by':addedBy}]);
+            if(error){console.error(error);
+              alert('Lỗi khi thêm bài hát: '+error.message);
+            return}songForm.reset();
+            addSongDialog.close();
+            if(isVerified){alert('Bài hát đã được thêm và xác minh thành công! ✅')}else{alert('Bài hát đã được thêm!\nVui lòng đợi duyệt trong giây lát!')}loadSongs()});
+
+            editSongForm.addEventListener('submit',async(e)=>{e.preventDefault();
+              clearEditErrors();
+              const songName=document.getElementById('editSongName').value.trim();
+            const artist=document.getElementById('editArtist').value.trim();
+            const composer=document.getElementById('editComposer').value.trim();
+            const releaseDate=document.getElementById('editReleaseDate').value;
+            const avatar=document.getElementById('editAvatar').value.trim();
+            const lyric=document.getElementById('editLyric').value.trim();
+            let isValid=true;
+            if(!songName){showEditError('editSongName','Vui lòng nhập tên bài hát');
+            isValid=false}if(!artist){showEditError('editArtist','Vui lòng nhập tên ca sĩ');
+            isValid=false}if(!composer){showEditError('editComposer','Vui lòng nhập tên sáng tác');
+            isValid=false}if(!releaseDate){showEditError('editReleaseDate','Vui lòng chọn ngày phát hành');
+            isValid=false}if(!isValid)return;
+            const{error}=await supabase.from('songs').update({'Tên':songName,'Ca sĩ':artist,'Sáng tác':composer,'Ngày phát hành':releaseDate,'avatar':avatar||null,'Lyric':lyric}).eq('Id',currentEditId);
+            if(error){console.error(error);
+              alert('Lỗi khi cập nhật bài hát: '+error.message);
+            return}editSongDialog.close();
+            loadSongs()});
+
+            function showError(fieldId,message){document.getElementById(`error-${fieldId}`).textContent=message}
+            function showEditError(fieldId,message){document.getElementById(`error-${fieldId}`).textContent=message}
+            function clearErrors(){
+              document.querySelectorAll('#songForm .error').forEach(el=>el.textContent='')}
+            function clearEditErrors(){
+              document.querySelectorAll('#editSongForm .error').forEach(el=>el.textContent='')}
+            function removeDiacritics(str){return str.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase()}
+            loadSongs();
+
+            const YOUTUBE_API_KEY = "AIzaSyAS6c7bto_vvZ60g_FsdA60od3Fgw0y67g";
+
+            window.extractVideoId = function (url) {
+  const match = url.match(/(?:v=|\/)([0-9A-Za-z_-]{11})/);
+  return match ? match[1] : null;
+};
+
+
+window.fetchYoutubeDate = async function (type) {
+  const linkInput =
+    type === 'add'
+      ? document.getElementById('youtubeLinkAdd')
+      : document.getElementById('youtubeLinkEdit');
+
+  const dateInput =
+    type === 'add'
+      ? document.getElementById('releaseDate')
+      : document.getElementById('editReleaseDate');
+
+  const videoId = extractVideoId(linkInput.value.trim());
+  if (!videoId) return alert('Link YouTube không hợp lệ');
+
+  const res = await fetch(
+    `https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${videoId}&key=${YOUTUBE_API_KEY}`
+  );
+  const data = await res.json();
+
+  if (!data.items?.length) {
+    alert('Không lấy được dữ liệu video');
+    return;
+  }
+
+  const publishedAt = data.items[0].snippet.publishedAt;
+  dateInput.value = publishedAt.substring(0, 10);
+};
+
+window.autoFindReleaseDate = async function () {
+  const title = document.getElementById('songName').value.trim();
+  const artist = document.getElementById('artist').value.trim();
+  const dateInput = document.getElementById('releaseDate');
+
+  if (!title) {
+    alert('Vui lòng nhập tên bài hát trước');
+    return;
+  }
+
+  const keyword = `${title} ${artist}`.trim();
+
+  try {
+    // 1️⃣ Search video giống "I'm Feeling Lucky"
+    const searchRes = await fetch(
+      `https://www.googleapis.com/youtube/v3/search` +
+      `?part=snippet&type=video&maxResults=1` +
+      `&q=${encodeURIComponent(keyword)}` +
+      `&key=${YOUTUBE_API_KEY}`
+    );
+    const searchData = await searchRes.json();
+
+    if (!searchData.items?.length) {
+      alert('Không tìm thấy video phù hợp');
+      return;
+    }
+
+    const videoId = searchData.items[0].id.videoId;
+
+    // 2️⃣ Lấy ngày xuất bản
+    const videoRes = await fetch(
+      `https://www.googleapis.com/youtube/v3/videos` +
+      `?part=snippet&id=${videoId}` +
+      `&key=${YOUTUBE_API_KEY}`
+    );
+    const videoData = await videoRes.json();
+
+    if (!videoData.items?.length) {
+      alert('Không lấy được ngày phát hành');
+      return;
+    }
+
+    // ⭐ FIX CHUẨN: KHÔNG LỆCH NGÀY
+    const publishedAt = videoData.items[0].snippet.publishedAt;
+    dateInput.value = publishedAt.substring(0, 10);
+
+  } catch (e) {
+    console.error(e);
+    alert('Lỗi khi tự tìm ngày phát hành');
+  }
+};
+
+// Authentication state
+let currentUser = null;
+
+// Check user session khi load
+async function checkAuth() {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session) {
+        currentUser = session.user;
+        await loadUserProfile();
+        updateAuthUI(true);
+    } else {
+        updateAuthUI(false);
+    }
+}
+
+// Load thông tin profile
+async function loadUserProfile() {
+    if (!currentUser) return;
+    
+    const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', currentUser.id)
+        .single();
+    
+    if (data) {
+        // Hiển thị tên + role với style đẹp
+        const roleColors = {
+            'Admin': '#ef4444',  
+            'Moderator': '#f59e0b',
+            'Member': '#3b82f6',
+            'Ủa': 'purple',
+            'Jack': 'purple',
+            'Bỏ con': 'purple',
+            'Skibidi': 'purple',
+            'Bồn cầu': 'purple',
+            'WTF': 'purple',
+            'Admin fake': 'purple',
+            'Phép thuật winx enchantix biến hình': 'purple',
+        };
+        
+        const roleColor = roleColors[data.role] || '#6b7280';
+        
+        document.getElementById('userDisplayName').innerHTML = `
+            ${data.display_name} 
+            <span style="
+                background: ${roleColor}; 
+                padding: 4px 10px; 
+                border-radius: 6px; 
+                font-size: 18px; 
+                font-weight: 600;
+                margin-left: 8px;
+            " id="role" onclick="roleCheck()">${data.role}</span>
+        `;
+        
+        // Lưu role để dùng sau này
+        window.currentUserRole = data.role;
+    }
+}
+
+// Update UI dựa trên trạng thái đăng nhập
+function updateAuthUI(isLoggedIn) {
+    const authButtons = document.getElementById('authButtons');
+    const userInfo = document.getElementById('userInfo');
+    
+    if (authButtons && userInfo) {
+        authButtons.style.display = isLoggedIn ? 'none' : 'flex';
+        userInfo.style.display = isLoggedIn ? 'flex' : 'none';
+    }
+}
+
+// Xử lý đăng ký
+document.getElementById('registerForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    // Clear errors
+    document.querySelectorAll('#registerForm .error').forEach(el => el.textContent = '');
+    
+    const displayName = document.getElementById('regDisplayName').value.trim();
+    const email = document.getElementById('regEmail').value.trim();
+    const phone = document.getElementById('regPhone').value.trim();
+    const password = document.getElementById('regPassword').value;
+    const confirmPassword = document.getElementById('regConfirmPassword').value;
+    
+    // Validation
+    let isValid = true;
+    
+    if (displayName.length < 2) {
+        document.getElementById('error-regDisplayName').textContent = 'Tên hiển thị quá ngắn';
+        isValid = false;
+    }
+    
+    // Validate số điện thoại (10 số, bắt đầu bằng 0)
+    const phoneRegex = /^0\d{9}$/;
+    if (!phoneRegex.test(phone)) {
+        document.getElementById('error-regPhone').textContent = 'Số điện thoại không hợp lệ (VD: 0912345678)';
+        isValid = false;
+    }
+    
+    if (password.length < 6) {
+        document.getElementById('error-regPassword').textContent = 'Mật khẩu phải có ít nhất 6 ký tự';
+        isValid = false;
+    }
+    
+    if (password !== confirmPassword) {
+        document.getElementById('error-regConfirmPassword').textContent = 'Mật khẩu không khớp';
+        isValid = false;
+    }
+    
+    if (!isValid) return;
+    
+    // Đăng ký với Supabase (emailRedirectTo để tắt verify)
+    const { data, error } = await supabase.auth.signUp({
+        email: email,
+        password: password,
+        options: {
+            data: {
+                display_name: displayName,
+                phone: phone
+            },
+            emailRedirectTo: window.location.origin
+        }
+    });
+    
+    if (error) {
+        if (error.message.includes('already registered')) {
+            alert('Email này đã được đăng ký!');
+        } else {
+            alert('Lỗi đăng ký: ' + error.message);
+        }
+        return;
+    }
+    
+    // Đăng nhập luôn sau khi đăng ký (vì đã tắt verify email)
+    currentUser = data.user;
+    await loadUserProfile();
+    updateAuthUI(true);
+    
+    alert('Đăng ký thành công! Chào mừng bạn đến với ntdMUSIC! 🎵');
+    document.getElementById('registerForm').reset();
+    registerDialog.close();
+});
+
+// Xử lý đăng nhập
+document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    
+    const { data, error } = await supabase.auth.signInWithPassword({
+        email: email,
+        password: password
+    });
+    
+    if (error) {
+        alert('Lỗi đăng nhập: ' + error.message);
+        return;
+    }
+    
+    currentUser = data.user;
+    await loadUserProfile();
+    updateAuthUI(true);
+    
+    document.getElementById('loginForm').reset();
+    loginDialog.close();
+    
+    alert('Đăng nhập thành công!');
+});
+
+// Xử lý đăng xuất
+window.handleLogout = async function() {
+    if (!confirm('Bạn có chắc muốn đăng xuất?')) return;
+    
+    await supabase.auth.signOut();
+    currentUser = null;
+    updateAuthUI(false);
+    alert('Đã đăng xuất!');
+};
+
+// Listen auth state changes
+supabase.auth.onAuthStateChange((event, session) => {
+    if (event === 'SIGNED_IN') {
+        currentUser = session.user;
+        loadUserProfile();
+        updateAuthUI(true);
+    } else if (event === 'SIGNED_OUT') {
+        currentUser = null;
+        updateAuthUI(false);
+    }
+});
+
+// Gọi checkAuth khi load trang
+checkAuth();
+
+// THÊM CÁC FUNCTION NÀY VÀO ĐÂY
+
+// Mở dialog xem thông tin
+window.viewProfileDialog.addEventListener('click', async (e) => {
+    if (e.target !== viewProfileDialog) return; // Chỉ load khi click backdrop
+    viewProfileDialog.close();
+});
+
+// Tạo function riêng để load và show
+window.showViewProfile = async function() {
+    if (!currentUser) return;
+    
+    const { data } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', currentUser.id)
+        .single();
+    
+    if (data) {
+        document.getElementById('viewDisplayName').textContent = data.display_name;
+        document.getElementById('viewEmail').textContent = currentUser.email;
+        document.getElementById('viewPhone').textContent = data.phone || 'Chưa cập nhật';
+        document.getElementById('viewRole').textContent = data.role;
+    }
+    
+    viewProfileDialog.showModal();
+}
+
+// Mở dialog chỉnh sửa
+window.openEditProfileDialog = async function() {
+    viewProfileDialog.close();
+    
+    const { data } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', currentUser.id)
+        .single();
+    
+    if (data) {
+        document.getElementById('editDisplayName').value = data.display_name;
+        document.getElementById('editPhone').value = data.phone || '';
+    }
+    
+    // Clear password fields
+    document.getElementById('oldPassword').value = '';
+    document.getElementById('newPassword').value = '';
+    document.getElementById('confirmNewPassword').value = '';
+    
+    // Clear errors
+    document.querySelectorAll('#editProfileForm .error').forEach(el => el.textContent = '');
+    
+    editProfileDialog.showModal();
+}
+
+// Xử lý submit form chỉnh sửa
+document.getElementById('editProfileForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    // Clear errors
+    document.querySelectorAll('#editProfileForm .error').forEach(el => el.textContent = '');
+    
+    const displayName = document.getElementById('editDisplayName').value.trim();
+    const phone = document.getElementById('editPhone').value.trim();
+    const oldPassword = document.getElementById('oldPassword').value;
+    const newPassword = document.getElementById('newPassword').value;
+    const confirmNewPassword = document.getElementById('confirmNewPassword').value;
+    
+    let isValid = true;
+    
+    // Validate tên hiển thị
+    if (displayName.length < 2) {
+        document.getElementById('error-editDisplayName').textContent = 'Tên hiển thị quá ngắn';
+        isValid = false;
+    }
+    
+    // Validate số điện thoại
+    const phoneRegex = /^0\d{9}$/;
+    if (!phoneRegex.test(phone)) {
+        document.getElementById('error-editPhone').textContent = 'Số điện thoại không hợp lệ (VD: 0912345678)';
+        isValid = false;
+    }
+    
+    // Validate đổi mật khẩu (nếu có nhập)
+    if (oldPassword || newPassword || confirmNewPassword) {
+        if (!oldPassword) {
+            document.getElementById('error-oldPassword').textContent = 'Vui lòng nhập mật khẩu cũ';
+            isValid = false;
+        }
+        if (!newPassword) {
+            document.getElementById('error-newPassword').textContent = 'Vui lòng nhập mật khẩu mới';
+            isValid = false;
+        } else if (newPassword.length < 6) {
+            document.getElementById('error-newPassword').textContent = 'Mật khẩu phải có ít nhất 6 ký tự';
+            isValid = false;
+        }
+        if (newPassword !== confirmNewPassword) {
+            document.getElementById('error-confirmNewPassword').textContent = 'Mật khẩu không khớp';
+            isValid = false;
+        }
+    }
+    
+    if (!isValid) return;
+    
+    try {
+        // 1. Cập nhật thông tin cơ bản
+        const { error: updateError } = await supabase
+            .from('profiles')
+            .update({
+                display_name: displayName,
+                phone: phone
+            })
+            .eq('id', currentUser.id);
+        
+        if (updateError) throw updateError;
+        
+        // 2. Đổi mật khẩu (nếu có)
+        if (oldPassword && newPassword) {
+            // Verify mật khẩu cũ
+            const { error: signInError } = await supabase.auth.signInWithPassword({
+                email: currentUser.email,
+                password: oldPassword
+            });
+            
+            if (signInError) {
+                document.getElementById('error-oldPassword').textContent = 'Mật khẩu cũ không đúng';
+                return;
+            }
+            
+            // Cập nhật mật khẩu mới
+            const { error: passwordError } = await supabase.auth.updateUser({
+                password: newPassword
+            });
+            
+            if (passwordError) throw passwordError;
+            
+            alert('Cập nhật thông tin và mật khẩu thành công! 🎉');
+        } else {
+            alert('Cập nhật thông tin thành công! ✅');
+        }
+        
+        // Reload profile và đóng dialog
+        await loadUserProfile();
+        editProfileDialog.close();
+        
+    } catch (error) {
+        console.error(error);
+        alert('Lỗi khi cập nhật: ' + error.message);
+    }
+});
+
+// KẾT THÚC PHẦN THÊM
+
+
+        </script>
+    </body>
+</html>
