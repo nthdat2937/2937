@@ -1,124 +1,21 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Lucky → YouTube Link</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #0f0f12;
-      color: #fff;
-      max-width: 700px;
-      margin: 40px auto;
-    }
-    input, button {
-      width: 100%;
-      padding: 12px;
-      margin-top: 10px;
-      font-size: 16px;
-      border-radius: 8px;
-      border: none;
-    }
-    input {
-      background: #1a1a20;
-      color: #fff;
-      border: 1px solid #2a2a33;
-    }
-    button {
-      background: #ef4444;
-      color: white;
-      cursor: pointer;
-    }
-    button:hover {
-      background: #dc2626;
-    }
-    .result {
-      margin-top: 20px;
-      background: #1a1a20;
-      padding: 15px;
-      border-radius: 10px;
-      word-break: break-all;
-    }
-    a {
-      color: #38bdf8;
-    }
-  </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
 </head>
 <body>
-
-<h2>🔁 Chuyển “I’m Feeling Lucky” → Link YouTube chuẩn</h2>
-
-<input
-  id="luckyLink"
-  placeholder="Dán link I'm Feeling Lucky vào đây"
-/>
-
-<button onclick="convertLucky()">Chuyển link</button>
-
-<div class="result" id="result"></div>
-
-<script>
-const YOUTUBE_API_KEY = "AIzaSyAS6c7bto_vvZ60g_FsdA60od3Fgw0y67g";
-
-// Lấy query search từ lucky link
-function extractQueryFromLucky(url) {
-  const u = new URL(url);
-  let q = u.searchParams.get("q") || "";
-  q = q.replace("site:youtube.com", "").trim();
-  return q;
-}
-
-async function convertLucky() {
-  const lucky = document.getElementById("luckyLink").value.trim();
-  const result = document.getElementById("result");
-
-  if (!lucky) {
-    result.textContent = "❌ Vui lòng nhập link";
-    return;
-  }
-
-  let keyword;
-  try {
-    keyword = extractQueryFromLucky(lucky);
-  } catch {
-    result.textContent = "❌ Link không hợp lệ";
-    return;
-  }
-
-  if (!keyword) {
-    result.textContent = "❌ Không lấy được từ khóa tìm kiếm";
-    return;
-  }
-
-  try {
-    const apiUrl =
-      `https://www.googleapis.com/youtube/v3/search` +
-      `?part=snippet&type=video&maxResults=1` +
-      `&q=${encodeURIComponent(keyword)}` +
-      `&key=${YOUTUBE_API_KEY}`;
-
-    const res = await fetch(apiUrl);
-    const data = await res.json();
-
-    if (!data.items || !data.items.length) {
-      result.textContent = "❌ Không tìm thấy video";
-      return;
-    }
-
-    const videoId = data.items[0].id.videoId;
-    const youtubeUrl = `https://www.youtube.com/watch?v=${videoId}`;
-
-    result.innerHTML = `
-      ✅ Link YouTube chuẩn:<br>
-      <a href="${youtubeUrl}" target="_blank">${youtubeUrl}</a>
-    `;
-  } catch (e) {
-    console.error(e);
-    result.textContent = "❌ Lỗi khi gọi YouTube API";
-  }
-}
-</script>
-
+  <button onclick="btn_click(this)" class="MXH">Youtube</button>
+  <button onclick="btn_click(this)" class="MXH">Facebook</button>
+    
+    <iframe id="myIframe" style="width: 100%; height: 90vh;" src="" title="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>    
 </body>
+    <script>
+      function btn_click(el) {
+        const link = el.textContent
+        console.log(link)
+        document.getElementById("myIframe").src = `https://www.${link}.com`
+      }
+    </script>
 </html>
