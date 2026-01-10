@@ -296,14 +296,18 @@
         }
 
         function checkOrientation() {
-            if (isPortrait() && !isStarted) {
-                rotateAlert.style.display = 'flex';
-                startButton.style.display = 'none';
-            } else {
-                rotateAlert.style.display = 'none';
-                startButton.style.display = 'block';
-            }
+    if (isPortrait() && !isStarted) {
+        rotateAlert.style.display = 'flex';
+        if (startButton && startButton.parentElement) {
+            startButton.style.display = 'none';
         }
+    } else if (!isStarted) {
+        rotateAlert.style.display = 'none';
+        if (startButton && startButton.parentElement) {
+            startButton.style.display = 'block';
+        }
+    }
+}
 
         function startRainEffect() {
             function resizeRainCanvas() {
@@ -376,6 +380,10 @@
         function handleStartClick() {
             if (isStarted) return;
             isStarted = true;
+
+                // Ẩn nút ngay lập tức và không cho hiện lại
+    startButton.style.display = 'none';
+    startButton.remove(); // Xóa hoàn toàn khỏi DOM
 
             loading.style.display = 'block';
             startButton.style.display = 'none';
