@@ -13,15 +13,15 @@
 <body>
   <header>
     <div>
-      <span><i class="fa-solid fa-music"></i></span> ntdMUSIC
-      <span style="font-size: medium; color: rgba(255,255,255,0.5);">version: Local_TD_1.<span class="rauMa" onclick="alert('Bấm vô đây làm cái chó gì??? Var hả???')">36</span></span>
+      <span><i class="fa-solid fa-music"></i></span> <span class="logoweb">ntdMUSIC</span>
+      <span style="font-size: medium; color: rgba(255,255,255,0.5);">version: Local_TD_2.<span class="rauMa" onclick="alert('Bấm vô đây làm cái chó gì??? Var hả???')">36</span></span>
     </div>
     <div class="search-container">
       <input type="text" id="searchInput" class="search-input" placeholder="🔍 Tìm theo tên, ca sĩ, sáng tác hoặc lời bài hát..." />
     </div>
     <div id="authButtons">
       <button class="btn btn-add" onclick="loginDialog.showModal()" id="btn-login" title="Đăng nhập">
-        <i class="fa-solid fa-right-to-bracket"></i>
+        <i class="fa-solid fa-user"></i>
       </button>
     </div>
     <div id="userInfo" style="display: none; align-items: center; gap: 12px;">
@@ -67,7 +67,7 @@
   </main>
   <dialog id="lyricDialog">
     <button class="btn close" onclick="lyricDialog.close()">
-      <i class="fa-solid fa-x" style="font-weight: bold;"></i>
+      <span style="font-size: 30px;" id="closeNew">+</span>
     </button>
     <h2 id="dTitle"></h2>
     <div class="lyric-container">
@@ -94,7 +94,7 @@
   </dialog>
   <dialog id="addSongDialog">
     <button class="btn close" onclick="addSongDialog.close()">
-      <i class="fa-solid fa-x"></i>
+      <span style="font-size: 30px;" id="closeNew">+</span>
     </button>
     <h2>Thêm bài hát mới</h2>
     <form id="songForm">
@@ -185,7 +185,7 @@
 
   <dialog id="editSongDialog">
     <button class="btn close" onclick="editSongDialog.close()">
-      <i class="fa-solid fa-x"></i>
+      <span style="font-size: 30px;" id="closeNew">+</span>
     </button>
     <h2>Chỉnh sửa bài hát</h2>
     <form id="editSongForm">
@@ -233,7 +233,7 @@
 
   <dialog id="loginDialog">
     <button class="btn close" onclick="loginDialog.close()">
-      <i class="fa-solid fa-x"></i>
+      <span style="font-size: 30px;" id="closeNew">+</span>
     </button>
     <h2>Đăng nhập</h2>
     <form id="loginForm">
@@ -259,7 +259,7 @@
 
   <dialog id="registerDialog">
     <button class="btn close" onclick="registerDialog.close()">
-      <i class="fa-solid fa-x"></i>
+      <span style="font-size: 30px;" id="closeNew">+</span>
     </button>
     <h2>Đăng ký tài khoản</h2>
     <form id="registerForm">
@@ -301,7 +301,7 @@
   </dialog>
   <dialog id="viewProfileDialog">
     <button class="btn close" onclick="viewProfileDialog.close()">
-      <i class="fa-solid fa-x"></i>
+      <span style="font-size: 30px;" id="closeNew">+</span>
     </button>
     <h2>Thông tin tài khoản</h2>
     <div style="padding: 20px;">
@@ -321,6 +321,10 @@
         <label style="flex: 0 0 200px; font-weight: 600; opacity: 0.7;">Vai trò:</label>
         <span id="viewRole"></span>
       </div>
+      <div style="display: flex; padding: 12px; border-bottom: 1px solid #2a2a33;">
+        <label style="flex: 0 0 200px; font-weight: 600; opacity: 0.7;">Lời nhắn: </label>
+        <span>Qr đưới đây là thông tin liên hệ! Không phải Qr chuyển tiền hay thanh toán nên đừng lo.</span>
+      </div>
       <br>
       <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=https://www.facebook.com/nthdat.7" alt="QR Facebook" style="text-align: center;padding: 20px; background-color: white;" />
       <div style="margin-top: 24px; text-align: center;">
@@ -333,7 +337,7 @@
 
   <dialog id="editProfileDialog">
     <button class="btn close" onclick="editProfileDialog.close()">
-      <i class="fa-solid fa-x"></i>
+      <span style="font-size: 30px;" id="closeNew">+</span>
     </button>
     <h2>Chỉnh sửa thông tin</h2>
     <form id="editProfileForm">

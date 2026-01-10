@@ -44,6 +44,7 @@ async function loadSongs() {
 }
 
 function renderSongs(songs) {
+  const isAdmin = window.currentUserRole === 'Admin';
   list.innerHTML = songs.map(song => {
     const hotLines = (song['Lyric'] || '').split('\n').filter(line => line.includes('--hot')).map(line => line.replace('--hot', '').trim());
     const hotText = hotLines.length > 0 ? hotLines.join(' | ') : 'Không có';
@@ -55,7 +56,19 @@ function renderSongs(songs) {
                 white-space:normal;
                 word-break:break-word" title="${hotText}" onclick="showLyric(${song.Id})"><span style="color:#fbbf24;
                 font-weight:500;
-                font-size:17px">🔥 ${hotText}</span></td><td><div class="actions-cell"><button class="btn btn-edit" onclick="openEditDialog(${song.Id})" title="Chỉnh sửa"><i class="fa-solid fa-pen-to-square"></i></button><button class="btn btn-delete" onclick="deleteSong(${song.Id})" title="Xoá"><i class="fa-solid fa-delete-left"></i></button><button class="btn btn-lyric" onclick="showLyric(${song.Id})" title="Chi tiết"><i class="fa-solid fa-music"></i></button></div></td></tr>`
+                font-size:17px">🔥 ${hotText}</span></td><td><div class="actions-cell">
+  ${isAdmin ? `
+    <button class="btn btn-edit" onclick="openEditDialog(${song.Id})" title="Chỉnh sửa">
+      <i class="fa-solid fa-pen-to-square"></i>
+    </button>
+    <button class="btn btn-delete" onclick="deleteSong(${song.Id})" title="Xoá">
+      <i class="fa-solid fa-delete-left"></i>
+    </button>
+  ` : ''}
+  <button class="btn btn-lyric" onclick="showLyric(${song.Id})" title="Chi tiết">
+    <i class="fa-solid fa-music"></i>
+  </button>
+</div></td>`
   }).join('')
 }
 searchInput.addEventListener('input', (e) => {
@@ -95,12 +108,16 @@ window.showLyric = id => {
   lyricDialog.showModal();
 }
 window.openEditDialog = id => {
-  const pwd = prompt('Nhập mật khẩu để chỉnh sửa bài hát:');
-  if (pwd === null) return;
-  const bmcp = 'Dat!@#123';
-  if (pwd !== bmcp) {
-    alert('Mật khẩu không đúng. Huỷ thao tác chỉnh sửa.');
-    return
+  // Kiểm tra đăng nhập
+  if (!currentUser) {
+    alert('Vui lòng đăng nhập để chỉnh sửa!');
+    return;
+  }
+
+  // Kiểm tra role
+  if (window.currentUserRole !== 'Admin') {
+    alert('Chỉ Admin mới có quyền chỉnh sửa bài hát!');
+    return;
   }
   const s = window._songs.find(x => x.Id === id);
   if (!s) return;
@@ -142,12 +159,16 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 });
 window.deleteSong = async id => {
-  const pwd = prompt('Nhập mật khẩu để xoá bài hát:');
-  if (pwd === null) return;
-  const bmcp = 'Dat!@#123';
-  if (pwd !== bmcp) {
-    alert('Mật khẩu không đúng. Huỷ thao tác xoá.');
-    return
+  // Kiểm tra đăng nhập
+  if (!currentUser) {
+    alert('Vui lòng đăng nhập để xóa!');
+    return;
+  }
+
+  // Kiểm tra role
+  if (window.currentUserRole !== 'Admin') {
+    alert('Chỉ Admin mới có quyền xóa bài hát!');
+    return;
   }
   if (!confirm('Bạn chắc chắn muốn xoá bài hát này?')) return;
   const {
@@ -437,10 +458,12 @@ async function loadUserProfile() {
                   font-size: 18px; 
                   font-weight: 600;
                   margin-left: 8px;
+                  color: white;
               " id="role" onclick="roleCheck()">${data.role}</span>
           `;
 
     window.currentUserRole = data.role;
+    renderSongs(window._songs); 
   }
 }
 
@@ -550,6 +573,7 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
   loginDialog.close();
 
   alert('Đăng nhập thành công!');
+  loadSongs(); 
 });
 
 window.handleLogout = async function() {
@@ -559,6 +583,8 @@ window.handleLogout = async function() {
   currentUser = null;
   updateAuthUI(false);
   alert('Đã đăng xuất!');
+  loadSongs();
+  location.reload()
 };
 
 supabase.auth.onAuthStateChange((event, session) => {
