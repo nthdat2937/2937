@@ -113,7 +113,14 @@ document.addEventListener("keydown", function(e) {
   if (e.shiftKey && e.key === "H") {
     e.preventDefault();
     document.getElementById("btn-home-sc").click();
-  }
+  };
+  if (e.shiftKey && e.key === "U") {
+    e.preventDefault();
+    const btn = document.getElementById("btn-users-sc");
+    if (btn && btn.style.display !== 'none') {
+      btn.click();
+    }
+  };
   if (e.key === "/") {
     e.preventDefault();
     document.getElementById("searchInput").focus();

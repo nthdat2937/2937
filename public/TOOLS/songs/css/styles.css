@@ -655,8 +655,11 @@ dialog > div::-webkit-scrollbar-thumb,
 .motLyric:hover {
   background: linear-gradient(135deg, var(--accent-primary), var(--accent-pink));
   -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  -webkit-text-fill-color: text;
   background-clip: text;
+  text-shadow: 0 0 10px white;
+  transform: scale(1.2);
+  font-weight: 700;
 }
 
 /* ===== FORMS ===== */
@@ -1089,3 +1092,182 @@ html {
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 
+/* ===== STATS CONTAINER ===== */
+.stats-container {
+  display: grid;
+  grid-template-columns: 300px 1fr; /* Thay vì auto-fit */
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+.stat-card {
+  background: var(--bg-card);
+  backdrop-filter: blur(20px);
+  border-radius: 20px;
+  padding: 28px 32px;
+  border: 1px solid var(--glass-border);
+  box-shadow: 
+    0 0 0 1px var(--glass-border),
+    0 10px 40px rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 
+    0 0 0 1px var(--accent-primary),
+    0 20px 50px rgba(99, 102, 241, 0.2);
+  border-color: var(--accent-primary);
+}
+
+.stat-icon {
+  font-size: 48px;
+  filter: drop-shadow(0 4px 12px rgba(99, 102, 241, 0.4));
+  animation: iconFloat 3s ease-in-out infinite;
+}
+
+.stat-content {
+  flex: 1;
+}
+
+.stat-label {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--text-secondary);
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.stat-value {
+  font-size: 32px;
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--accent-primary), var(--accent-pink));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1.2;
+}
+
+.motd-card .stat-value {
+  font-size: 24px;
+  background: linear-gradient(135deg, var(--accent-secondary), var(--accent-cyan));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Mobile responsive cho stats */
+@media screen and (max-width: 1300px) {
+  .stats-container {
+    grid-template-columns: 1fr; /* Mobile thì 1 cột */
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  
+  .motd-lyric {
+    font-size: 13px;
+    max-height: 100px;
+    -webkit-line-clamp: 3;
+  }
+  
+  .btn-motd {
+    padding: 8px 16px;
+    font-size: 13px;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .stat-card {
+    padding: 16px 20px;
+  }
+  
+  .stat-icon {
+    font-size: 36px;
+  }
+  
+  .stat-value {
+    font-size: 24px;
+  }
+  
+  .motd-card .stat-value {
+    font-size: 18px;
+  }
+}
+
+.motd-lyric {
+  margin-top: 12px;
+  font-size: 14px;
+  color: var(--text-muted);
+  line-height: 1.8;
+  max-height: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  font-style: italic;
+}
+
+.motd-card .stat-icon img {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.motd-card:hover .stat-icon img {
+  transform: scale(1.1) rotate(-5deg);
+  box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4) !important;
+}
+/* Mobile responsive */
+@media screen and (max-width: 1300px) {
+  .motd-lyric {
+    font-size: 13px;
+    max-height: 100px;
+    -webkit-line-clamp: 3;
+  }
+  
+  .btn-motd {
+    padding: 8px 16px;
+    font-size: 13px;
+  }
+}
+
+select:focus {
+  outline: none;
+  border-color: var(--accent-primary);
+  background: rgba(99, 102, 241, 0.05);
+  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
+}
+
+/* ===== SELECT DROPDOWN ===== */
+select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23f1f5f9' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  padding-right: 40px !important;
+  cursor: pointer;
+}
+
+select option {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  padding: 12px;
+  border-radius: 8px;
+}
+
+select option:hover,
+select option:focus,
+select option:checked {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(139, 92, 246, 0.15));
+  color: var(--text-primary);
+}
+
+select:focus {
+  outline: none;
+  border-color: var(--accent-primary);
+  background-color: rgba(99, 102, 241, 0.05);
+  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
+}

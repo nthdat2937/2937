@@ -40,7 +40,8 @@ async function loadSongs() {
   }
   data.sort((a, b) => a['Tên'].localeCompare(b['Tên'], 'vi'));
   window._songs = data;
-  renderSongs(data)
+  renderSongs(data);
+  updateStats(data);
 }
 
 function renderSongs(songs) {
@@ -70,6 +71,8 @@ function renderSongs(songs) {
   </button>
 </div></td>`
   }).join('')
+
+  updateStats(songs);
 }
 searchInput.addEventListener('input', (e) => {
   const query = e.target.value.toLowerCase().trim();
@@ -314,7 +317,12 @@ function clearEditErrors() {
 }
 
 function removeDiacritics(str) {
-  return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+  return str
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/đ/g, 'd')
+    .replace(/Đ/g, 'D')
+    .toLowerCase();
 }
 loadSongs();
 
@@ -439,7 +447,7 @@ async function loadUserProfile() {
       'Member': '#3b82f6',
       'Ủa': 'purple',
       'Jack': 'purple',
-      'Bỏ con': 'purple',
+      'Bố con': 'purple',
       'Skibidi': 'purple',
       'Bồn cầu': 'purple',
       'WTF': 'purple',
@@ -463,7 +471,11 @@ async function loadUserProfile() {
           `;
 
     window.currentUserRole = data.role;
-    renderSongs(window._songs); 
+    
+    // SỬA: Chỉ render nếu đã có dữ liệu
+    if (window._songs && window._songs.length > 0) {
+      renderSongs(window._songs);
+    }
   }
 }
 
@@ -513,37 +525,78 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
 
   if (!isValid) return;
 
-  const {
-    data,
-    error
-  } = await supabase.auth.signUp({
-    email: email,
-    password: password,
-    options: {
-      data: {
-        display_name: displayName,
-        phone: phone
-      },
-      emailRedirectTo: window.location.origin
-    }
-  });
+  try {
+    // Bước 1: Đăng ký tài khoản
+    const { data: authData, error: authError } = await supabase.auth.signUp({
+      email: email,
+      password: password,
+      options: {
+        data: {
+          display_name: displayName,
+          phone: phone
+        },
+        emailRedirectTo: window.location.origin
+      }
+    });
 
-  if (error) {
-    if (error.message.includes('already registered')) {
-      alert('Email này đã được đăng ký!');
-    } else {
-      alert('Lỗi đăng ký: ' + error.message);
+    if (authError) {
+      if (authError.message.includes('already registered')) {
+        alert('Email này đã được đăng ký!');
+      } else {
+        alert('Lỗi đăng ký: ' + authError.message);
+      }
+      return;
     }
-    return;
+
+    if (!authData.user) {
+      alert('Lỗi: Không tạo được tài khoản');
+      return;
+    }
+
+    // Bước 2: Đợi trigger tạo profile (nếu có)
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    // Bước 3: Kiểm tra xem profile đã được tạo chưa
+    const { data: existingProfile } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('id', authData.user.id)
+      .single();
+
+    // Bước 4: Nếu chưa có profile thì tạo thủ công
+    if (!existingProfile) {
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .insert([{
+          id: authData.user.id,
+          display_name: displayName,
+          email: email,
+          phone: phone,
+          role: 'Member'
+        }]);
+
+      if (profileError) {
+        console.error('Lỗi tạo profile:', profileError);
+        alert('Tài khoản đã tạo nhưng có lỗi với profile. Vui lòng đăng nhập và cập nhật thông tin.');
+        document.getElementById('registerForm').reset();
+        registerDialog.close();
+        return;
+      }
+    }
+
+    // Bước 5: Load profile và cập nhật UI
+    currentUser = authData.user;
+    await loadUserProfile();
+    updateAuthUI(true);
+
+    alert('Đăng ký thành công! Chào mừng bạn đến với ntdMUSIC! 🎵');
+    document.getElementById('registerForm').reset();
+    registerDialog.close();
+    
+  } catch (error) {
+    console.error('Lỗi:', error);
+    alert('Có lỗi xảy ra: ' + error.message);
   }
-
-  currentUser = data.user;
-  await loadUserProfile();
-  updateAuthUI(true);
-
-  alert('Đăng ký thành công! Chào mừng bạn đến với ntdMUSIC! 🎵');
-  document.getElementById('registerForm').reset();
-  registerDialog.close();
 });
 
 document.getElementById('loginForm').addEventListener('submit', async (e) => {
@@ -595,6 +648,144 @@ supabase.auth.onAuthStateChange((event, session) => {
   } else if (event === 'SIGNED_OUT') {
     currentUser = null;
     updateAuthUI(false);
+  }
+});
+
+let currentMotdSong = null; // Biến lưu bài hát MOTD hiện tại
+
+function updateStats(songs) {
+  // Cập nhật tổng số bài hát
+  document.getElementById('totalSongs').textContent = songs.length;
+  
+  // Cập nhật Music of the Day
+  const now = new Date();
+  const dayOfYear = Math.floor((now - new Date(now.getFullYear(), 0, 0)) / 86400000);
+  const motdIndex = dayOfYear % songs.length;
+  const motdSong = songs[motdIndex];
+  
+  if (motdSong) {
+    currentMotdSong = motdSong; // Lưu lại bài hát MOTD
+    document.getElementById('motdSong').textContent = motdSong['Tên'];
+    
+    // Cập nhật icon/avatar
+    const iconEl = document.querySelector('.motd-card .stat-icon');
+    if (motdSong.avatar) {
+      iconEl.innerHTML = `<img src="${motdSong.avatar}" alt="avatar" style="width: 64px; height: 64px; border-radius: 12px; object-fit: cover; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">`;
+    } else {
+      iconEl.textContent = '⭐';
+    }
+    
+    // Hiển thị HOT LYRIC
+    const lyricEl = document.getElementById('motdLyric');
+    
+    if (motdSong['Lyric']) {
+      // Lấy các dòng có --hot
+      const hotLines = motdSong['Lyric'].split('\n')
+        .filter(line => line.includes('--hot'))
+        .map(line => line.replace('--hot', '').trim());
+      
+      if (hotLines.length > 0) {
+        // Nếu có hot lyric thì hiển thị
+        lyricEl.innerHTML = '🔥 ' + hotLines.slice(0, 4).join('<br>🔥 ');
+      } else {
+        // Nếu không có --hot thì lấy 4 dòng đầu
+        const lines = motdSong['Lyric'].split('\n')
+          .map(line => line.trim())
+          .filter(line => line.length > 0)
+          .slice(0, 4);
+        lyricEl.textContent = lines.join('\n');
+      }
+    } else {
+      lyricEl.textContent = 'Chưa có lời bài hát';
+    }
+  } else {
+    currentMotdSong = null;
+    document.getElementById('motdSong').textContent = '---';
+    document.getElementById('motdLyric').textContent = '';
+    document.querySelector('.motd-card .stat-icon').textContent = '⭐';
+  }
+}
+
+window.showMotdDetail = function() {
+  if (currentMotdSong) {
+    showLyric(currentMotdSong.Id);
+  }
+};
+
+window.openGopyDialog = async function() {
+  if (!currentUser) {
+    alert('Vui lòng đăng nhập để góp ý!');
+    return;
+  }
+  
+  // Lấy display name từ profile
+  const { data } = await supabase
+    .from('profiles')
+    .select('display_name')
+    .eq('id', currentUser.id)
+    .single();
+  
+  if (data) {
+    document.getElementById('gopyDisplayName').value = data.display_name;
+  }
+  
+  // Reset form
+  document.getElementById('gopyTieude').value = '';
+  document.getElementById('gopyNoidung').value = '';
+  document.querySelectorAll('#gopyForm .error').forEach(el => el.textContent = '');
+  
+  viewProfileDialog.close();
+  gopyDialog.showModal();
+};
+
+document.getElementById('gopyForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  
+  // Clear errors
+  document.querySelectorAll('#gopyForm .error').forEach(el => el.textContent = '');
+  
+  const tieude = document.getElementById('gopyTieude').value.trim();
+  const noidung = document.getElementById('gopyNoidung').value.trim();
+  const displayName = document.getElementById('gopyDisplayName').value;
+  
+  let isValid = true;
+  
+  if (!tieude) {
+    document.getElementById('error-gopyTieude').textContent = 'Vui lòng nhập tiêu đề';
+    isValid = false;
+  }
+  
+  if (!noidung) {
+    document.getElementById('error-gopyNoidung').textContent = 'Vui lòng nhập nội dung';
+    isValid = false;
+  }
+  
+  if (!isValid) return;
+  
+  try {
+    const { error } = await supabase
+      .from('gopy')
+      .insert([{
+        display_name: displayName,
+        tieude: tieude,
+        noidung: noidung
+      }]);
+    
+    if (error) throw error;
+    
+    alert('Cảm ơn bạn đã góp ý! 💬\nChúng tôi sẽ xem xét và phản hồi sớm nhất.');
+    gopyDialog.close();
+    
+  } catch (error) {
+    console.error('Lỗi khi gửi góp ý:', error);
+    alert('Có lỗi xảy ra: ' + error.message);
+  }
+});
+
+// Đóng dialog khi click backdrop
+gopyDialog.addEventListener('click', (e) => {
+  if (e.target === gopyDialog) {
+    gopyDialog.close();
   }
 });
 

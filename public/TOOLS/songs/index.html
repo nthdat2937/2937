@@ -50,6 +50,24 @@
     </div>
   </header>
   <main>
+    <div class="stats-container">
+      <div class="stat-card">
+        <div class="stat-icon">🎵</div>
+        <div class="stat-content">
+          <div class="stat-label">Tổng số bài hát</div>
+          <div class="stat-value" id="totalSongs">0</div>
+        </div>
+      </div>
+      
+      <div class="stat-card motd-card" id="motdCard" onclick="showMotdDetail()" style="cursor: pointer;">
+        <div class="stat-icon">⭐</div>
+        <div class="stat-content">
+          <div class="stat-label">Music of the Day</div>
+          <div class="stat-value" id="motdSong">---</div>
+          <div class="motd-lyric" id="motdLyric"></div>
+        </div>
+      </div>
+    </div>
     <table>
       <thead>
         <tr>
@@ -264,8 +282,8 @@
     <h2>Đăng ký tài khoản</h2>
     <form id="registerForm">
       <div class="form-group">
-        <label for="regDisplayName">Tên hiển thị *</label>
-        <input type="text" id="regDisplayName" required placeholder="Nguyễn Văn A" />
+        <label for="regDisplayName">Tên hiển thị * (3~20 kí tự)</label>
+        <input type="text" id="regDisplayName" required placeholder="Nguyễn Văn A" minlength="3" maxlength="20"/>
         <div class="error" id="error-regDisplayName"></div>
       </div>
       <div class="form-group">
@@ -328,6 +346,9 @@
       <br>
       <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=https://www.facebook.com/nthdat.7" alt="QR Facebook" style="text-align: center;padding: 20px; background-color: white;" />
       <div style="margin-top: 24px; text-align: center;">
+        <button class="btn btn-submit" onclick="openGopyDialog()" style="margin-right: 8px;">
+          <i class="fa-solid fa-comment"></i> Góp ý
+        </button>
         <button class="btn btn-edit" onclick="openEditProfileDialog()">
           <i class="fa-solid fa-pen-to-square"></i> Chỉnh sửa thông tin
         </button>
@@ -342,8 +363,8 @@
     <h2>Chỉnh sửa thông tin</h2>
     <form id="editProfileForm">
       <div class="form-group">
-        <label for="editDisplayName">Tên hiển thị *</label>
-        <input type="text" id="editDisplayName" required>
+        <label for="editDisplayName">Tên hiển thị * (3~20 kí tự)</label>
+        <input type="text" id="editDisplayName" required minlength="3" maxlength="20">
         <div class="error" id="error-editDisplayName"></div>
       </div>
 
@@ -383,6 +404,45 @@
         </button>
         <button type="submit" class="btn btn-submit">
           Lưu thay đổi
+        </button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="gopyDialog">
+    <button class="btn close" onclick="gopyDialog.close()">
+      <span style="font-size: 30px;">+</span>
+    </button>
+    <h2>Góp ý / Phản hồi</h2>
+    <form id="gopyForm">
+      <div class="form-group">
+        <label for="gopyDisplayName">Tên của bạn</label>
+        <input type="text" id="gopyDisplayName" readonly style="background: #0f0f12; cursor: not-allowed; opacity: 0.7;" />
+      </div>
+      
+      <div class="form-group">
+        <label for="gopyTieude">Loại góp ý *</label>
+        <select id="gopyTieude" required style="width: 100%; padding: 14px 18px; border: 2px solid var(--border-color); border-radius: 14px; background: rgba(255, 255, 255, 0.03); color: var(--text-primary); font-family: inherit; font-size: 16px;">
+          <option value="" disabled selected>-- Chọn loại góp ý --</option>
+          <option value="error">🐛 Error - Báo lỗi</option>
+          <option value="lag">⏱️ Lag - Hiệu suất chậm</option>
+          <option value="more">✨ More - Yêu cầu thêm tính năng</option>
+        </select>
+        <div class="error" id="error-gopyTieude"></div>
+      </div>
+      
+      <div class="form-group">
+        <label for="gopyNoidung">Nội dung *</label>
+        <textarea id="gopyNoidung" required placeholder="Nhập nội dung góp ý của bạn..." style="min-height: 200px;"></textarea>
+        <div class="error" id="error-gopyNoidung"></div>
+      </div>
+      
+      <div class="form-actions">
+        <button type="button" class="btn btn-cancel" onclick="gopyDialog.close()">
+          Hủy
+        </button>
+        <button type="submit" class="btn btn-submit">
+          Gửi góp ý
         </button>
       </div>
     </form>
