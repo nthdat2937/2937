@@ -59,12 +59,12 @@
         </div>
       </div>
       
-      <div class="stat-card motd-card" id="motdCard" onclick="showMotdDetail()" style="cursor: pointer;">
+      <div class="stat-card mfy-card" id="mfyCard" onclick="showmfyDetail()" style="cursor: pointer;">
         <div class="stat-icon">⭐</div>
         <div class="stat-content">
-          <div class="stat-label">Music of the Day</div>
-          <div class="stat-value" id="motdSong">---</div>
-          <div class="motd-lyric" id="motdLyric"></div>
+          <div class="stat-label">Music for YOU</div>
+          <div class="stat-value" id="mfySong">---</div>
+          <div class="mfy-lyric" id="mfyLyric"></div>
         </div>
       </div>
     </div>
@@ -429,6 +429,19 @@
           <option value="more">✨ More - Yêu cầu thêm tính năng</option>
         </select>
         <div class="error" id="error-gopyTieude"></div>
+      </div>
+
+      <div class="form-group">
+        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; text-transform: none; font-size: 15px;">
+          <input type="checkbox" id="gopyWantReply" style="width: auto; cursor: pointer; accent-color: var(--accent-primary);">
+          <span>Đăng ký nhận phản hồi qua Email</span>
+        </label>
+      </div>
+      
+      <div class="form-group" id="gopyEmailGroup" style="display: none;">
+        <label for="gopyEmail">Email nhận phản hồi *</label>
+        <input type="email" id="gopyEmail" placeholder="example@email.com" />
+        <div class="error" id="error-gopyEmail"></div>
       </div>
       
       <div class="form-group">

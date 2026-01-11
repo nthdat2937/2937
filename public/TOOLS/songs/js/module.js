@@ -111,13 +111,13 @@ window.showLyric = id => {
   lyricDialog.showModal();
 }
 window.openEditDialog = id => {
-  // Kiểm tra đăng nhập
+  
   if (!currentUser) {
     alert('Vui lòng đăng nhập để chỉnh sửa!');
     return;
   }
 
-  // Kiểm tra role
+  
   if (window.currentUserRole !== 'Admin') {
     alert('Chỉ Admin mới có quyền chỉnh sửa bài hát!');
     return;
@@ -162,13 +162,13 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 });
 window.deleteSong = async id => {
-  // Kiểm tra đăng nhập
+  
   if (!currentUser) {
     alert('Vui lòng đăng nhập để xóa!');
     return;
   }
 
-  // Kiểm tra role
+  
   if (window.currentUserRole !== 'Admin') {
     alert('Chỉ Admin mới có quyền xóa bài hát!');
     return;
@@ -472,7 +472,7 @@ async function loadUserProfile() {
 
     window.currentUserRole = data.role;
     
-    // SỬA: Chỉ render nếu đã có dữ liệu
+    
     if (window._songs && window._songs.length > 0) {
       renderSongs(window._songs);
     }
@@ -526,7 +526,7 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
   if (!isValid) return;
 
   try {
-    // Bước 1: Đăng ký tài khoản
+    
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email: email,
       password: password,
@@ -553,17 +553,17 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
       return;
     }
 
-    // Bước 2: Đợi trigger tạo profile (nếu có)
+    
     await new Promise(resolve => setTimeout(resolve, 500));
 
-    // Bước 3: Kiểm tra xem profile đã được tạo chưa
+    
     const { data: existingProfile } = await supabase
       .from('profiles')
       .select('id')
       .eq('id', authData.user.id)
       .single();
 
-    // Bước 4: Nếu chưa có profile thì tạo thủ công
+    
     if (!existingProfile) {
       const { error: profileError } = await supabase
         .from('profiles')
@@ -584,7 +584,7 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
       }
     }
 
-    // Bước 5: Load profile và cập nhật UI
+    
     currentUser = authData.user;
     await loadUserProfile();
     updateAuthUI(true);
@@ -651,45 +651,45 @@ supabase.auth.onAuthStateChange((event, session) => {
   }
 });
 
-let currentMotdSong = null; // Biến lưu bài hát MOTD hiện tại
+let currentmfySong = null; 
 
 function updateStats(songs) {
-  // Cập nhật tổng số bài hát
+  
   document.getElementById('totalSongs').textContent = songs.length;
   
-  // Cập nhật Music of the Day
+  
   const now = new Date();
   const dayOfYear = Math.floor((now - new Date(now.getFullYear(), 0, 0)) / 86400000);
-  const motdIndex = dayOfYear % songs.length;
-  const motdSong = songs[motdIndex];
+  const mfyIndex = dayOfYear % songs.length;
+  const mfySong = songs[mfyIndex];
   
-  if (motdSong) {
-    currentMotdSong = motdSong; // Lưu lại bài hát MOTD
-    document.getElementById('motdSong').textContent = motdSong['Tên'];
+  if (mfySong) {
+    currentmfySong = mfySong; 
+    document.getElementById('mfySong').textContent = mfySong['Tên'];
     
-    // Cập nhật icon/avatar
-    const iconEl = document.querySelector('.motd-card .stat-icon');
-    if (motdSong.avatar) {
-      iconEl.innerHTML = `<img src="${motdSong.avatar}" alt="avatar" style="width: 64px; height: 64px; border-radius: 12px; object-fit: cover; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">`;
+    
+    const iconEl = document.querySelector('.mfy-card .stat-icon');
+    if (mfySong.avatar) {
+      iconEl.innerHTML = `<img src="${mfySong.avatar}" alt="avatar" style="width: 64px; height: 64px; border-radius: 12px; object-fit: cover; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">`;
     } else {
       iconEl.textContent = '⭐';
     }
     
-    // Hiển thị HOT LYRIC
-    const lyricEl = document.getElementById('motdLyric');
     
-    if (motdSong['Lyric']) {
-      // Lấy các dòng có --hot
-      const hotLines = motdSong['Lyric'].split('\n')
+    const lyricEl = document.getElementById('mfyLyric');
+    
+    if (mfySong['Lyric']) {
+      
+      const hotLines = mfySong['Lyric'].split('\n')
         .filter(line => line.includes('--hot'))
         .map(line => line.replace('--hot', '').trim());
       
       if (hotLines.length > 0) {
-        // Nếu có hot lyric thì hiển thị
+        
         lyricEl.innerHTML = '🔥 ' + hotLines.slice(0, 4).join('<br>🔥 ');
       } else {
-        // Nếu không có --hot thì lấy 4 dòng đầu
-        const lines = motdSong['Lyric'].split('\n')
+        
+        const lines = mfySong['Lyric'].split('\n')
           .map(line => line.trim())
           .filter(line => line.length > 0)
           .slice(0, 4);
@@ -699,16 +699,16 @@ function updateStats(songs) {
       lyricEl.textContent = 'Chưa có lời bài hát';
     }
   } else {
-    currentMotdSong = null;
-    document.getElementById('motdSong').textContent = '---';
-    document.getElementById('motdLyric').textContent = '';
-    document.querySelector('.motd-card .stat-icon').textContent = '⭐';
+    currentmfySong = null;
+    document.getElementById('mfySong').textContent = '---';
+    document.getElementById('mfyLyric').textContent = '';
+    document.querySelector('.mfy-card .stat-icon').textContent = '⭐';
   }
 }
 
-window.showMotdDetail = function() {
-  if (currentMotdSong) {
-    showLyric(currentMotdSong.Id);
+window.showmfyDetail = function() {
+  if (currentmfySong) {
+    showLyric(currentmfySong.Id);
   }
 };
 
@@ -718,7 +718,7 @@ window.openGopyDialog = async function() {
     return;
   }
   
-  // Lấy display name từ profile
+  
   const { data } = await supabase
     .from('profiles')
     .select('display_name')
@@ -729,24 +729,49 @@ window.openGopyDialog = async function() {
     document.getElementById('gopyDisplayName').value = data.display_name;
   }
   
-  // Reset form
+  
   document.getElementById('gopyTieude').value = '';
   document.getElementById('gopyNoidung').value = '';
   document.querySelectorAll('#gopyForm .error').forEach(el => el.textContent = '');
   
   viewProfileDialog.close();
+  
+document.getElementById('gopyWantReply').checked = false;
+document.getElementById('gopyEmailGroup').style.display = 'none';
+document.getElementById('gopyEmail').value = '';
   gopyDialog.showModal();
 };
+
+
+document.getElementById('gopyWantReply').addEventListener('change', async function() {
+  const emailGroup = document.getElementById('gopyEmailGroup');
+  const emailInput = document.getElementById('gopyEmail');
+  
+  emailGroup.style.display = this.checked ? 'block' : 'none';
+  
+  if (this.checked) {
+    
+    if (currentUser && currentUser.email) {
+      emailInput.value = currentUser.email;
+    }
+  } else {
+    
+    emailInput.value = '';
+    document.getElementById('error-gopyEmail').textContent = '';
+  }
+});
 
 document.getElementById('gopyForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   
-  // Clear errors
+  
   document.querySelectorAll('#gopyForm .error').forEach(el => el.textContent = '');
   
   const tieude = document.getElementById('gopyTieude').value.trim();
   const noidung = document.getElementById('gopyNoidung').value.trim();
   const displayName = document.getElementById('gopyDisplayName').value;
+  const wantReply = document.getElementById('gopyWantReply').checked;
+const email = document.getElementById('gopyEmail').value.trim();
   
   let isValid = true;
   
@@ -759,17 +784,24 @@ document.getElementById('gopyForm').addEventListener('submit', async (e) => {
     document.getElementById('error-gopyNoidung').textContent = 'Vui lòng nhập nội dung';
     isValid = false;
   }
+
+  if (wantReply && !email) {
+    document.getElementById('error-gopyEmail').textContent = 'Vui lòng nhập email để nhận phản hồi';
+    isValid = false;
+  }
   
   if (!isValid) return;
   
   try {
     const { error } = await supabase
-      .from('gopy')
-      .insert([{
-        display_name: displayName,
-        tieude: tieude,
-        noidung: noidung
-      }]);
+  .from('gopy')
+  .insert([{
+    display_name: displayName,
+    tieude: tieude,
+    noidung: noidung,
+    want_reply: wantReply,
+    reply_email: wantReply ? email : null
+  }]);
     
     if (error) throw error;
     
@@ -782,7 +814,7 @@ document.getElementById('gopyForm').addEventListener('submit', async (e) => {
   }
 });
 
-// Đóng dialog khi click backdrop
+
 gopyDialog.addEventListener('click', (e) => {
   if (e.target === gopyDialog) {
     gopyDialog.close();

@@ -46,7 +46,7 @@ function nctThismusic() {
 }
 
 function youtubeThismusic() {
-  window.open(`https://www.google.com/search?q=${encodeURIComponent(document.getElementById("dTitle").textContent)}+site:youtube.com+&btnI=1`)
+  window.open(`https://www.google.com/search?q=${encodeURIComponent(document.getElementById("dTitle").textContent)}+official+site:youtube.com+&btnI=1`)
 }
 
 function facebookThismusic() {
@@ -149,7 +149,7 @@ function roleCheck() {
   } else if (role === "Ủa" || role === "Phép thuật winx enchantix biến hình" || role === "WTF") {
     alert("Chịu")
   } else {
-    alert("Mày bị ngu à! Cho mày cái role này thì tự hiểu đi ha")
+    alert(`Còn cái nịt!`)
   }
 }
 
