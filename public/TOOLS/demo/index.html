@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Tìm bài hát trên Spotify</title>
+</head>
+<body>
+  <h2>Nhập tên bài hát để mở Spotify</h2>
+  <input type="text" id="songInput" placeholder="Nhập tên bài hát...">
+  <button onclick="goToSpotify()">Tìm</button>
+
+  <script>
+    function goToSpotify() {
+      const query = document.getElementById("songInput").value.trim();
+      if (query) {
+        // Tạo link tìm kiếm trên Spotify
+        const url = "https://open.spotify.com/search/" + encodeURIComponent(query);
+        window.location.href = url; // Redirect thẳng
+      } else {
+        alert("Vui lòng nhập tên bài hát!");
+      }
+    }
+  </script>
+</body>
+</html>

@@ -34,7 +34,7 @@ function timLinkbaihat() {
 }
 
 function spotifyThismusic() {
-  window.open(`https://www.google.com/search?q=${encodeURIComponent(document.getElementById("dTitle").textContent)}+site:spotify.com+&btnI=1`)
+  window.open(`https://www.duckduckgo.com/search?q=!spy+${encodeURIComponent(document.getElementById("dTitle").textContent)}+${encodeURIComponent(document.getElementById("dArtist").textContent)}`)
 }
 
 function zingmp3Thismusic() {

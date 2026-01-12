@@ -6,7 +6,13 @@ window.addEventListener('DOMContentLoaded', () => {
 
   if (savedTheme === 'light') {
     icon.className = 'fa-solid fa-sun';
-  }
+  };
+
+  const rankBtn = document.getElementById("btn-ranking");
+if (rankBtn) {
+  rankBtn.addEventListener("click", openRankingDialog);
+}
+
 });
 
 import {
@@ -324,6 +330,88 @@ function removeDiacritics(str) {
     .replace(/Đ/g, 'D')
     .toLowerCase();
 }
+
+// Sửa hàm buildRanking để đếm đúng
+function buildRanking(songs) {
+  const map = {};
+
+  songs.forEach(song => {
+    // Bỏ qua nếu không có người thêm hoặc bài chưa xác minh
+    if (!song.add_by) return;
+    
+    const name = song.add_by.trim();
+    map[name] = (map[name] || 0) + 1;
+  });
+
+  return Object.entries(map)
+    .map(([name, count]) => ({ name, count }))
+    .sort((a, b) => b.count - a.count);
+}
+
+// Sửa hàm openRankingDialog
+window.openRankingDialog = async function () {
+  const rankingList = document.getElementById("rankingList");
+  const currentUserRank = document.getElementById("currentUserRank");
+  const dialog = document.getElementById("rankingDialog");
+
+  if (!rankingList || !currentUserRank || !dialog) {
+    console.error('Không tìm thấy elements');
+    return;
+  }
+
+  rankingList.innerHTML = "<li>Đang tải...</li>";
+  
+  try {
+    // Lấy lại tất cả bài hát đã xác minh từ database
+    const { data: allSongs, error } = await supabase
+      .from('songs')
+      .select('*')
+      .eq('Xác minh', true);
+
+    if (error) throw error;
+
+    const ranking = buildRanking(allSongs);
+    
+    // Lấy tên người dùng từ profile
+    let myName = "Khách";
+    if (currentUser) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('display_name')
+        .eq('id', currentUser.id)
+        .single();
+      
+      if (profile) {
+        myName = profile.display_name;
+      }
+    }
+
+    rankingList.innerHTML = "";
+    
+    ranking.forEach((u, i) => {
+      const li = document.createElement("li");
+      li.textContent = `${i + 1}. ${u.name} — ${u.count} bài`;
+      if (u.name === myName) {
+        li.style.fontWeight = "bold";
+        li.style.color = "var(--accent-primary)";
+      }
+      rankingList.appendChild(li);
+    });
+
+    const me = ranking.find(u => u.name === myName);
+    currentUserRank.textContent = me
+      ? `👤 Bạn (${myName}): đã thêm ${me.count} bài`
+      : `👤 Bạn (${myName}): chưa thêm bài nào`;
+
+    dialog.showModal();
+    
+  } catch (error) {
+    console.error('Lỗi khi tải ranking:', error);
+    rankingList.innerHTML = "<li style='color: #ef4444'>Lỗi khi tải dữ liệu</li>";
+    dialog.showModal();
+  }
+};
+
 loadSongs();
 
 const YOUTUBE_API_KEY = "AIzaSyAS6c7bto_vvZ60g_FsdA60od3Fgw0y67g";
@@ -502,8 +590,21 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
 
   let isValid = true;
 
-  if (displayName.length < 2) {
-    document.getElementById('error-regDisplayName').textContent = 'Tên hiển thị quá ngắn';
+  if (displayName.length < 3) {
+    document.getElementById('error-regDisplayName').textContent = 'Tên hiển thị quá ngắn (tối thiểu 3 ký tự)';
+    isValid = false;
+  }
+
+  // Kiểm tra tên đã tồn tại chưa
+  const { data: existingUsers, error: checkError } = await supabase
+    .from('profiles')
+    .select('display_name')
+    .eq('display_name', displayName);
+
+  if (checkError) {
+    console.error('Lỗi kiểm tra tên:', checkError);
+  } else if (existingUsers && existingUsers.length > 0) {
+    document.getElementById('error-regDisplayName').textContent = 'Tên này đã được sử dụng! Vui lòng chọn tên khác.';
     isValid = false;
   }
 
@@ -526,7 +627,6 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
   if (!isValid) return;
 
   try {
-    
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email: email,
       password: password,
@@ -553,17 +653,14 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
       return;
     }
 
-    
     await new Promise(resolve => setTimeout(resolve, 500));
 
-    
     const { data: existingProfile } = await supabase
       .from('profiles')
       .select('id')
       .eq('id', authData.user.id)
       .single();
 
-    
     if (!existingProfile) {
       const { error: profileError } = await supabase
         .from('profiles')
@@ -584,7 +681,6 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
       }
     }
 
-    
     currentUser = authData.user;
     await loadUserProfile();
     updateAuthUI(true);
@@ -614,7 +710,11 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
   });
 
   if (error) {
-    alert('Lỗi đăng nhập: ' + error.message);
+    if (error.message === "Invalid login credentials") {
+      alert('Lỗi đăng nhập: Thông tin đăng nhập sai!');
+    } else (
+      alert('Lỗi đăng nhập: '+error.messages)
+    ) 
     return;
   }
 
@@ -888,9 +988,26 @@ document.getElementById('editProfileForm').addEventListener('submit', async (e) 
 
   let isValid = true;
 
-  if (displayName.length < 2) {
-    document.getElementById('error-editDisplayName').textContent = 'Tên hiển thị quá ngắn';
+  if (displayName.length < 3) {
+    document.getElementById('error-editDisplayName').textContent = 'Tên hiển thị quá ngắn (tối thiểu 3 ký tự)';
     isValid = false;
+  }
+
+  // Kiểm tra tên đã tồn tại chưa (trừ tên hiện tại của mình)
+  const { data: existingUsers, error: checkError } = await supabase
+    .from('profiles')
+    .select('id, display_name')
+    .eq('display_name', displayName);
+
+  if (checkError) {
+    console.error('Lỗi kiểm tra tên:', checkError);
+  } else if (existingUsers && existingUsers.length > 0) {
+    // Nếu tên đã tồn tại và không phải của mình
+    const isDuplicate = existingUsers.some(user => user.id !== currentUser.id);
+    if (isDuplicate) {
+      document.getElementById('error-editDisplayName').textContent = 'Tên này đã được sử dụng bởi người khác!';
+      isValid = false;
+    }
   }
 
   const phoneRegex = /^0\d{9}$/;

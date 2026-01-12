@@ -47,6 +47,9 @@
       <button class="btn btn-add btncl" onclick="toggleTheme()" id="btn-theme-sc" title="Đổi theme">
         <i class="fa-solid fa-moon" id="themeIcon"></i>
       </button>
+      <button class="btn btn-add btncl" id="btn-ranking" title="Bảng xếp hạng">
+        <i class="fa-solid fa-ranking-star"></i>
+      </button>      
     </div>
   </header>
   <main>
@@ -460,6 +463,21 @@
       </div>
     </form>
   </dialog>
+
+  <dialog id="rankingDialog">
+    <button class="btn close" onclick="rankingDialog.close()">
+      <span style="font-size:30px">+</span>
+    </button>
+  
+    <h2>🏆 Bảng xếp hạng đóng góp</h2>
+  
+    <div style="padding: 24px">
+      <ul id="rankingList"></ul>
+      <hr>
+      <div id="currentUserRank" style="margin-top:12px;font-weight:600"></div>
+    </div>
+  </dialog>
+  
   <script src="js/main.js"></script>
   <script type="module" src="js/module.js"></script>
 </body>
