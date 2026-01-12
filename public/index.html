@@ -893,6 +893,173 @@
         ::-webkit-scrollbar-thumb:hover {
             background: var(--accent-secondary);
         }
+
+        /* ========== RESPONSIVE ========== */
+        @media (max-width: 1225px) {
+            .test, .test2, .menu, #menu {
+                display: none !important;
+            }
+            
+            .search {
+                padding-top: 60px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .search {
+                padding: 80px 15px 40px;
+            }
+
+            .search-box {
+                width: 100%;
+                margin-bottom: 12px;
+                font-size: 14px;
+                padding: 14px 20px;
+            }
+
+            .tool-search {
+                width: 100%;
+                margin-bottom: 12px;
+                margin-right: 0;
+                padding: 14px 20px;
+                font-size: 14px;
+            }
+
+            .search-button {
+                width: 100%;
+                padding: 14px 24px;
+                font-size: 16px;
+            }
+            
+            hr {
+                margin: 30px 20px;
+            }
+
+            body > h3 {
+                font-size: 24px;
+                padding: 20px 20px 10px;
+                margin-left: 0;
+            }
+            
+            body > h3::after {
+                left: 20px;
+                width: 50px;
+            }
+            
+            .listMXH, body > ul:not(.listMXH) {
+                padding: 20px 15px;
+                justify-content: center;
+                gap: 15px;
+            }
+            
+            .listMXH li {
+                width: calc(33.333% - 10px);
+                min-width: 100px;
+                padding: 16px 12px;
+            }
+
+            .listMXH li img {
+                width: 48px;
+                height: 48px;
+            }
+
+            .listMXH li > div {
+                font-size: 12px;
+            }
+            
+            body > ul:not(.listMXH) li {
+                width: calc(50% - 12px);
+                padding: 24px 16px;
+            }
+
+            body > ul:not(.listMXH) li i {
+                font-size: 60px !important;
+            }
+
+            body > p {
+                font-size: 16px;
+                padding: 15px 20px;
+            }
+
+            body > button {
+                margin: 8px;
+                margin-left: 20px;
+                padding: 10px 24px;
+                font-size: 14px;
+            }
+            
+            footer {
+                padding: 40px 20px;
+                gap: 30px;
+            }
+
+            footer > div {
+                min-width: 200px;
+            }
+
+            footer > div > h1 {
+                font-size: 24px;
+            }
+
+            footer > div > p {
+                font-size: 13px;
+            }
+
+            .popup {
+                width: 95%;
+                padding: 24px;
+            }
+
+            .popup-box2 {
+                width: 95%;
+                padding: 30px 20px;
+            }
+
+            #popupText2 {
+                font-size: 28px;
+                padding: 12px 24px;
+            }
+
+            #motaTool {
+                font-size: 14px;
+                padding: 15px;
+            }
+
+            .social-icons {
+                gap: 12px;
+            }
+
+            .social-icon {
+                width: 40px;
+                height: 40px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .listMXH li {
+                width: calc(50% - 8px);
+            }
+
+            body > ul:not(.listMXH) li {
+                width: 100%;
+                max-width: 320px;
+            }
+        }
+
+        @media (max-width: 350px) {
+            body > h3 {
+                font-size: 20px;
+            }
+
+            .listMXH li {
+                width: 100%;
+                max-width: 200px;
+            }
+
+            .listMXH li > div {
+                font-size: 14px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -1242,7 +1409,7 @@
     }
 
     function openTool() {
-        window.location.href = urlTool
+        window.open(urlTool)
     }
 
 </script>
