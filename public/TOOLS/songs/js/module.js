@@ -388,15 +388,21 @@ window.openRankingDialog = async function () {
 
     rankingList.innerHTML = "";
     
-    ranking.forEach((u, i) => {
-      const li = document.createElement("li");
-      li.textContent = `${i + 1}. ${u.name} — ${u.count} bài`;
-      if (u.name === myName) {
-        li.style.fontWeight = "bold";
-        li.style.color = "var(--accent-primary)";
-      }
-      rankingList.appendChild(li);
-    });
+    // Trong hàm openRankingDialog, thay thế phần này:
+ranking.forEach((u, i) => {
+  const li = document.createElement("li");
+  li.textContent = `${i + 1}. ${u.name} — ${u.count} bài`;
+  
+  // Thêm cursor pointer và onclick
+  li.style.cursor = "pointer";
+  li.onclick = () => showUserSongs(u.name);
+  
+  if (u.name === myName) {
+    li.style.fontWeight = "bold";
+    li.style.color = "var(--accent-primary)";
+  }
+  rankingList.appendChild(li);
+});
 
     const me = ranking.find(u => u.name === myName);
     currentUserRank.textContent = me
@@ -920,6 +926,72 @@ gopyDialog.addEventListener('click', (e) => {
     gopyDialog.close();
   }
 });
+
+// Thêm hàm mới để hiển thị bài hát của user
+window.showUserSongs = async function(userName) {
+  const dialog = document.getElementById("userSongsDialog");
+  const nameEl = document.getElementById("userSongsName");
+  const statsEl = document.getElementById("userSongsStats");
+  const listEl = document.getElementById("userSongsList");
+  
+  if (!dialog || !nameEl || !statsEl || !listEl) {
+    console.error('Không tìm thấy elements');
+    return;
+  }
+  
+  nameEl.textContent = userName;
+  listEl.innerHTML = "<div style='text-align: center; padding: 20px; color: var(--text-muted);'>Đang tải...</div>";
+  
+  try {
+    // Lấy tất cả bài hát của user này
+    const { data: userSongs, error } = await supabase
+      .from('songs')
+      .select('*')
+      .eq('add_by', userName)
+      .eq('Xác minh', true)
+      .order('Ngày phát hành', { ascending: false });
+    
+    if (error) throw error;
+    
+    // Hiển thị thống kê
+    statsEl.innerHTML = `📊 Tổng số bài đã thêm: <span style="color: var(--accent-primary); font-size: 20px;">${userSongs.length}</span> bài`;
+    
+    // Hiển thị danh sách
+    if (userSongs.length === 0) {
+      listEl.innerHTML = "<div style='text-align: center; padding: 40px; color: var(--text-muted);'>Chưa có bài hát nào được xác minh</div>";
+    } else {
+      // Thay thế phần hiển thị danh sách:
+listEl.innerHTML = userSongs.map(song => {
+  // Format ngày thêm
+  const addedDate = song['Ngày thêm'] 
+    ? new Date(song['Ngày thêm']).toLocaleDateString('vi-VN', { 
+        year: 'numeric', 
+        month: '2-digit', 
+        day: '2-digit' 
+      })
+    : 'N/A';
+  
+  return `
+    <div class="user-song-item" onclick="showLyric(${song.Id})">
+      ${song.avatar ? `<img src="${song.avatar}" alt="avatar">` : '<div style="width: 50px; height: 50px; background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary)); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 24px;">🎵</div>'}
+      <div class="user-song-info">
+        <div class="user-song-title">${song['Tên']}</div>
+        <div class="user-song-artist">${song['Ca sĩ']}</div>
+      </div>
+      <div class="user-song-date">📅 ${addedDate}</div>
+    </div>
+  `;
+}).join('');
+    }
+    
+    dialog.showModal();
+    
+  } catch (error) {
+    console.error('Lỗi khi tải bài hát:', error);
+    listEl.innerHTML = "<div style='text-align: center; padding: 20px; color: #ef4444;'>❌ Lỗi khi tải dữ liệu</div>";
+    dialog.showModal();
+  }
+};
 
 checkAuth();
 

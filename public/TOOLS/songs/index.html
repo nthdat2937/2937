@@ -477,6 +477,30 @@
       <div id="currentUserRank" style="margin-top:12px;font-weight:600"></div>
     </div>
   </dialog>
+
+  <dialog id="userSongsDialog">
+    <button class="btn close" onclick="userSongsDialog.close()">
+      <span style="font-size: 30px;">+</span>
+    </button>
+    <h2 id="userSongsTitle">🎵 Bài hát của <span id="userSongsName"></span></h2>
+    
+    <div style="padding: 24px;">
+      <div id="userSongsStats" style="
+        padding: 16px 20px;
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(139, 92, 246, 0.1));
+        border: 1px solid var(--accent-primary);
+        border-radius: 12px;
+        margin-bottom: 20px;
+        text-align: center;
+        font-weight: 600;
+      "></div>
+      
+      <div id="userSongsList" style="
+        max-height: 500px;
+        overflow-y: auto;
+      "></div>
+    </div>
+  </dialog>
   
   <script src="js/main.js"></script>
   <script type="module" src="js/module.js"></script>

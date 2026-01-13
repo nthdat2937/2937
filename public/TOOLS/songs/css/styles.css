@@ -1281,6 +1281,7 @@ select:focus {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
+  cursor: pointer;
 }
 
 #rankingList li::before {
@@ -1299,6 +1300,7 @@ select:focus {
   background: linear-gradient(135deg, rgba(99, 102, 241, 0.08), rgba(139, 92, 246, 0.05));
   border-color: var(--accent-primary);
   transform: translateX(8px);
+  cursor: pointer;
 }
 
 #rankingList li:hover::before {
@@ -1514,5 +1516,115 @@ select:focus {
   #rankingList li[style*="bold"]::after {
     font-size: 16px;
     right: 16px;
+  }
+}
+
+/* User Songs Dialog */
+#userSongsDialog {
+  width: min(800px, 92vw);
+  max-height: 85vh;
+}
+
+#userSongsDialog h2 {
+  font-size: 28px !important;
+}
+
+#userSongsName {
+  color: var(--accent-primary);
+  text-shadow: 0 0 20px var(--glow-primary);
+}
+
+.user-song-item {
+  padding: 16px 20px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  margin-bottom: 12px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.user-song-item:hover {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.08), rgba(139, 92, 246, 0.05));
+  border-color: var(--accent-primary);
+  transform: translateX(8px);
+}
+
+.user-song-item img {
+  width: 50px;
+  height: 50px;
+  border-radius: 10px;
+  object-fit: cover;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  flex-shrink: 0;
+}
+
+.user-song-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.user-song-title {
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.user-song-artist {
+  font-size: 13px;
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.user-song-date {
+  font-size: 12px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+  padding: 4px 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+}
+
+@media screen and (max-width: 1300px) {
+  #userSongsDialog {
+    width: 96vw;
+  }
+  
+  .user-song-item {
+    padding: 12px 16px;
+    gap: 12px;
+  }
+  
+  .user-song-item img {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .user-song-title {
+    font-size: 14px;
+  }
+  
+  .user-song-artist {
+    font-size: 12px;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .user-song-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .user-song-date {
+    align-self: flex-end;
   }
 }
