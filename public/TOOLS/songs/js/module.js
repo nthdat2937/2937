@@ -1,3 +1,6 @@
+
+
+
 window.addEventListener('DOMContentLoaded', () => {
   const savedTheme = localStorage.getItem('theme') || 'dark';
   const icon = document.getElementById('themeIcon');
@@ -6,6 +9,8 @@ window.addEventListener('DOMContentLoaded', () => {
 
   if (savedTheme === 'light') {
     icon.className = 'fa-solid fa-sun';
+    const sidebarIcon = document.getElementById('themeIconSidebar');
+    if (sidebarIcon) sidebarIcon.className = 'fa-solid fa-sun'; // THÊM DÒNG NÀY
   };
 
   const rankBtn = document.getElementById("btn-ranking");
@@ -55,67 +60,101 @@ function renderSongs(songs) {
   list.innerHTML = songs.map(song => {
     const hotLines = (song['Lyric'] || '').split('\n').filter(line => line.includes('--hot')).map(line => line.replace('--hot', '').trim());
     const hotText = hotLines.length > 0 ? hotLines.join(' | ') : 'Không có';
-    return `<tr><td onclick="showLyric(${song.Id})">${song.avatar?`<img src="${song.avatar}" alt="avatar" style="width:60px;
+    return `<tr data-song-id="${song.Id}"><td class="song-clickable">${song.avatar?`<img src="${song.avatar}" loading="lazy" alt="avatar" style="width:60px;
                 height:60px;
                 object-fit:cover;
-                border-radius:8px">`:''}</td><td style="font-weight: bold; font-size: 20px;" onclick="showLyric(${song.Id})" title="${song['Tên']}">${song['Tên']}</td><td onclick="showLyric(${song.Id})" title="${song['Ca sĩ']}">${song['Ca sĩ']}</td><td onclick="showLyric(${song.Id})" title="${song['Sáng tác']||''}">${song['Sáng tác']||''}</td><td onclick="showLyric(${song.Id})" title="${song['Ngày phát hành']||''}">${song['Ngày phát hành']||''}</td><td style="overflow:hidden;
+                border-radius:8px">`:''}</td><td class="song-clickable" style="font-weight: bold; font-size: 20px;" title="${song['Tên']}">${song['Tên']}</td><td class="song-clickable" title="${song['Ca sĩ']}">${song['Ca sĩ']}</td><td class="song-clickable" title="${song['Sáng tác']||''}">${song['Sáng tác']||''}</td><td class="song-clickable" title="${song['Ngày phát hành']||''}">${song['Ngày phát hành']||''}</td><td class="song-clickable" style="overflow:hidden;
                 text-overflow:ellipsis;
                 white-space:normal;
-                word-break:break-word" title="${hotText}" onclick="showLyric(${song.Id})"><span style="color:#fbbf24;
+                word-break:break-word" title="${hotText}"><span style="color:#fbbf24;
                 font-weight:500;
                 font-size:17px">🔥 ${hotText}</span></td><td><div class="actions-cell">
   ${isAdmin ? `
-    <button class="btn btn-edit" onclick="openEditDialog(${song.Id})" title="Chỉnh sửa">
+    <button class="btn btn-edit" data-action="edit" title="Chỉnh sửa">
       <i class="fa-solid fa-pen-to-square"></i>
     </button>
-    <button class="btn btn-delete" onclick="deleteSong(${song.Id})" title="Xoá">
+    <button class="btn btn-delete" data-action="delete" title="Xoá">
       <i class="fa-solid fa-delete-left"></i>
     </button>
   ` : ''}
-  <button class="btn btn-lyric" onclick="showLyric(${song.Id})" title="Chi tiết">
+  <button class="btn btn-lyric" data-action="lyric" title="Chi tiết">
     <i class="fa-solid fa-music"></i>
   </button>
-</div></td>`
-  }).join('')
+</div></td></tr>`
+  }).join('');
 
   updateStats(songs);
 }
-searchInput.addEventListener('input', (e) => {
-  const query = e.target.value.toLowerCase().trim();
-  if (!query) {
-    renderSongs(window._songs);
-    return;
-  }
 
-  const filtered = window._songs.filter(song =>
-    removeDiacritics(song['Tên']).includes(removeDiacritics(query)) ||
-    removeDiacritics(song['Ca sĩ']).includes(removeDiacritics(query)) ||
-    removeDiacritics(song['Sáng tác']).includes(removeDiacritics(query)) ||
-    removeDiacritics(song['Lyric'] || '').includes(removeDiacritics(query))
-  );
-  renderSongs(filtered);
+// Thêm event delegation cho table - đặt sau hàm renderSongs
+list.addEventListener('click', (e) => {
+  const row = e.target.closest('tr');
+  if (!row) return;
+  
+  const songId = parseInt(row.dataset.songId);
+  const button = e.target.closest('button');
+  
+  if (button) {
+    const action = button.dataset.action;
+    if (action === 'edit') openEditDialog(songId);
+    else if (action === 'delete') deleteSong(songId);
+    else if (action === 'lyric') showLyric(songId);
+  } else if (e.target.closest('.song-clickable')) {
+    showLyric(songId);
+  }
+});
+
+let searchTimeout;
+searchInput.addEventListener('input', (e) => {
+  clearTimeout(searchTimeout);
+  searchTimeout = setTimeout(() => {
+    const query = e.target.value.toLowerCase().trim();
+    if (!query) {
+      renderSongs(window._songs);
+      return;
+    }
+
+    const filtered = window._songs.filter(song =>
+      removeDiacritics(song['Tên']).includes(removeDiacritics(query)) ||
+      removeDiacritics(song['Ca sĩ']).includes(removeDiacritics(query)) ||
+      removeDiacritics(song['Sáng tác']).includes(removeDiacritics(query)) ||
+      removeDiacritics(song['Lyric'] || '').includes(removeDiacritics(query))
+    );
+    renderSongs(filtered);
+  }, 300);
 });
 
 window.showLyric = id => {
   const s = window._songs.find(x => x.Id === id);
-  dTitle.textContent = s['Tên'];
-  dArtist.textContent = `${s['Ca sĩ']}ㅤ`;
-  dDate.textContent = `•ㅤ${s['Ngày phát hành']||''}`
-  dAddedBy.textContent = s['add_by'] ? `👤 Người thêm: ${s['add_by']}` : '';
-  const lyricLines = (s['Lyric'] || '').split('\n').map(line => {
-    const cleanLine = line.replace('--hot', '').trim();
-    const hasHot = line.includes('--hot');
-    return `<span class="motLyric">${cleanLine}${hasHot?' 🔥':''}</span>`
-  }).join('\n');
-  dLyric.innerHTML = lyricLines || '<span>Chưa có lyric</span>';
-  if (s.avatar) {
-    dAvatar.src = s.avatar;
-    dAvatar.style.display = 'block'
-  } else {
-    dAvatar.style.display = 'none'
-  }
-  lyricDialog.showModal();
+  
+  // Batch all updates
+  const updates = {
+    title: s['Tên'],
+    artist: `${s['Ca sĩ']}ㅤ`,
+    date: `•ㅤ${s['Ngày phát hành']||''}`,
+    addedBy: s['add_by'] ? `👤 Người thêm: ${s['add_by']}` : '',
+    lyric: (s['Lyric'] || '').split('\n').map(line => {
+      const cleanLine = line.replace('--hot', '').trim();
+      const hasHot = line.includes('--hot');
+      return `<span class="motLyric">${cleanLine}${hasHot?' 🔥':''}</span>`
+    }).join('\n') || '<span>Chưa có lyric</span>',
+    avatarSrc: s.avatar,
+    avatarDisplay: s.avatar ? 'block' : 'none'
+  };
+  
+  // Apply all at once
+  requestAnimationFrame(() => {
+    dTitle.textContent = updates.title;
+    dArtist.textContent = updates.artist;
+    dDate.textContent = updates.date;
+    dAddedBy.textContent = updates.addedBy;
+    dLyric.innerHTML = updates.lyric;
+    dAvatar.src = updates.avatarSrc || '';
+    dAvatar.style.display = updates.avatarDisplay;
+    lyricDialog.showModal();
+  });
 }
+
 window.openEditDialog = id => {
   
   if (!currentUser) {
@@ -322,14 +361,24 @@ function clearEditErrors() {
   document.querySelectorAll('#editSongForm .error').forEach(el => el.textContent = '')
 }
 
+const diacriticsCache = new Map();
+
 function removeDiacritics(str) {
-  return str
+  if (diacriticsCache.has(str)) {
+    return diacriticsCache.get(str);
+  }
+  
+  const result = str
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .replace(/đ/g, 'd')
     .replace(/Đ/g, 'D')
     .toLowerCase();
+  
+  diacriticsCache.set(str, result);
+  return result;
 }
+
 
 // Sửa hàm buildRanking để đếm đúng
 function buildRanking(songs) {
@@ -427,8 +476,12 @@ window.extractVideoId = function(url) {
   return match ? match[1] : null;
 };
 
+let isFetchingYoutube = false;
 
 window.fetchYoutubeDate = async function(type) {
+  if (isFetchingYoutube) return;
+  isFetchingYoutube = true;
+  
   const linkInput =
     type === 'add' ?
     document.getElementById('youtubeLinkAdd') :
@@ -440,7 +493,10 @@ window.fetchYoutubeDate = async function(type) {
     document.getElementById('editReleaseDate');
 
   const videoId = extractVideoId(linkInput.value.trim());
-  if (!videoId) return alert('Link YouTube không hợp lệ');
+  if (!videoId) {
+    isFetchingYoutube = false;
+    return alert('Link YouTube không hợp lệ');
+  }
 
   const res = await fetch(
     `https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${videoId}&key=${YOUTUBE_API_KEY}`
@@ -449,11 +505,13 @@ window.fetchYoutubeDate = async function(type) {
 
   if (!data.items?.length) {
     alert('Không lấy được dữ liệu video');
+    isFetchingYoutube = false;
     return;
   }
 
   const publishedAt = data.items[0].snippet.publishedAt;
   dateInput.value = publishedAt.substring(0, 10);
+  isFetchingYoutube = false;
 };
 
 window.autoFindReleaseDate = async function() {
@@ -571,6 +629,8 @@ async function loadUserProfile() {
       renderSongs(window._songs);
     }
   }
+
+ await loadStreakCard();
 }
 
 function updateAuthUI(isLoggedIn) {
@@ -743,6 +803,7 @@ window.handleLogout = async function() {
   updateAuthUI(false);
   alert('Đã đăng xuất!');
   loadSongs();
+  updateStreakCard(0);
   location.reload()
 };
 
@@ -992,6 +1053,171 @@ listEl.innerHTML = userSongs.map(song => {
     dialog.showModal();
   }
 };
+
+// ==================== STREAK FUNCTIONS ====================
+
+// Hàm lấy ngày hiện tại theo GMT+7 (giờ VN)
+function getVietnamDate() {
+  const now = new Date();
+  const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+  const vnTime = new Date(utc + (3600000 * 7));
+  return vnTime.toISOString().split('T')[0]; // Format: YYYY-MM-DD
+}
+
+// Hàm tính số ngày chênh lệch
+function daysDifference(date1, date2) {
+  const d1 = new Date(date1);
+  const d2 = new Date(date2);
+  const diffTime = Math.abs(d2 - d1);
+  return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+}
+
+// Hàm kiểm tra và cập nhật streak
+window.checkStreak = async function() {
+  if (!currentUser) {
+    alert('Vui lòng đăng nhập để sử dụng tính năng này!');
+    return;
+  }
+
+  try {
+    // Lấy thông tin streak hiện tại
+    const { data: profile, error: fetchError } = await supabase
+      .from('profiles')
+      .select('Streak, "Ngày cuối"')
+      .eq('id', currentUser.id)
+      .single();
+
+    if (fetchError) throw fetchError;
+
+    const today = getVietnamDate();
+    const lastDate = profile['Ngày cuối'];
+    let currentStreak = profile.Streak || 0;
+
+    // Nếu chưa có ngày cuối (lần đầu điểm danh)
+    if (!lastDate) {
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({
+          Streak: 1,
+          'Ngày cuối': today
+        })
+        .eq('id', currentUser.id);
+
+      if (updateError) throw updateError;
+
+      alert('🎉 Chúc mừng!\nBạn đã bắt đầu streak!\n\n🔥 Streak hiện tại: 1 ngày');
+      updateStreakCard(1);
+      return;
+    }
+
+    // Kiểm tra nếu đã điểm danh hôm nay
+    if (lastDate === today) {
+      alert(`✅ Bạn đã điểm danh hôm nay rồi!\n\n🔥 Streak hiện tại: ${currentStreak} ngày\n💪 Hãy quay lại vào ngày mai!`);
+      return;
+    }
+
+    // Tính số ngày chênh lệch
+    const daysDiff = daysDifference(lastDate, today);
+
+    // Nếu chênh đúng 1 ngày -> tăng streak
+    if (daysDiff === 1) {
+      const newStreak = currentStreak + 1;
+      
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({
+          Streak: newStreak,
+          'Ngày cuối': today
+        })
+        .eq('id', currentUser.id);
+
+      if (updateError) throw updateError;
+
+      alert(`🎉 Điểm danh thành công!\n\n🔥 Streak mới: ${newStreak} ngày\n⭐ Tiếp tục phát huy!`);
+      updateStreakCard(newStreak);
+      
+    } else {
+      // Nếu chênh > 1 ngày -> reset streak về 1
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({
+          Streak: 1,
+          'Ngày cuối': today
+        })
+        .eq('id', currentUser.id);
+
+      if (updateError) throw updateError;
+
+      alert(`😢 Rất tiếc!\nBạn đã bỏ lỡ ${daysDiff - 1} ngày.\n\nStreak đã được reset về 1.\n💪 Hãy cố gắng duy trì streak mới!`);
+      updateStreakCard(1);;
+    }
+
+  } catch (error) {
+    console.error('Lỗi khi cập nhật streak:', error);
+    alert('Có lỗi xảy ra: ' + error.message);
+  }
+};
+
+// Hàm cập nhật hiển thị streak trên UI
+function updateStreakDisplay(streakCount) {
+  const streakText = document.getElementById('streakText');
+  if (streakText) {
+    streakText.innerHTML = `Điểm danh <span style="color: var(--accent-primary); font-weight: 700;">(${streakCount} 🔥)</span>`;
+  }
+}
+
+// Tải streak khi đăng nhập
+// Tải streak khi đăng nhập
+async function loadStreakCard() {
+  if (!currentUser) {
+    updateStreakCard(0);
+    return;
+  }
+
+  try {
+    const { data } = await supabase
+      .from('profiles')
+      .select('Streak')
+      .eq('id', currentUser.id)
+      .single();
+
+    if (data) {
+      const streak = data.Streak || 0;
+      updateStreakCard(streak);
+      updateStreakDisplay(streak); // Vẫn giữ cho nút sidebar
+    } else {
+      updateStreakCard(0);
+    }
+  } catch (error) {
+    console.error('Lỗi khi tải streak:', error);
+    updateStreakCard(0);
+  }
+}
+
+// Hàm lấy danh hiệu theo streak
+function getStreakTitle(streak) {
+  if (streak < 0) return 'Hack';
+  if (streak === 0) return 'Con gà';
+  if (streak < 7) return 'Noob';
+  if (streak < 30) return 'Beginner';
+  if (streak < 50) return 'Amateur';
+  if (streak < 100) return 'Pro';
+  if (streak < 150) return 'Master';
+  if (streak < 200) return 'Legend';
+  if (streak < 365) return 'Mythical';
+  return 'GOD';
+}
+
+// Cập nhật hiển thị streak trên card
+function updateStreakCard(streakCount) {
+  const streakLabel = document.getElementById('streakLabel');
+  const streakValue = document.getElementById('streakValue');
+  
+  if (streakLabel && streakValue) {
+    streakLabel.textContent = getStreakTitle(streakCount);
+    streakValue.textContent = `${streakCount}`;
+  }
+}
 
 checkAuth();
 

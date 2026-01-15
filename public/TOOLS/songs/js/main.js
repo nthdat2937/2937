@@ -68,9 +68,16 @@ function hoiAI() {
   }
 }
 
+const searchInput = document.getElementById("searchInput");
+
 document.addEventListener("keydown", function(e) {
   const openDialogs = document.querySelectorAll('dialog[open]');
   const hasOpenDialog = openDialogs.length > 0;
+
+  if (e.key === "Escape") {
+    searchInput.blur();
+    return;
+  }
 
   if (
     e.target.tagName === "INPUT" ||
@@ -92,12 +99,10 @@ document.addEventListener("keydown", function(e) {
     e.preventDefault();
     document.getElementById("btn-reload-sc").click();
   };
-
   if (e.shiftKey && e.key === "A") {
     e.preventDefault();
     document.getElementById("btn-add-sc").click();
   };
-
   if (e.shiftKey && e.key === "C") {
     e.preventDefault();
     document.getElementById("btn-hoiAI-sc").click();
@@ -114,14 +119,35 @@ document.addEventListener("keydown", function(e) {
     e.preventDefault();
     document.getElementById("btn-home-sc").click();
   };
+  if (e.shiftKey && e.key === "B") {
+    e.preventDefault();
+    document.getElementById("btn-rank-sc").click();
+  };
+  if (e.shiftKey && e.key === "M") {
+    e.preventDefault();
+    document.getElementById("btn-menu").click();
+  };
+  if (e.shiftKey && e.key === "S") {
+    e.preventDefault();
+    document.getElementById("btn-streak-sc").click();
+  };
+  if (e.shiftKey && e.key === "G") {
+    e.preventDefault();
+    document.getElementById("btn-guide-sc").click();
+  };
   if (e.shiftKey && e.key === "U") {
     e.preventDefault();
-    const btn = document.getElementById("btn-users-sc");
-    if (btn && btn.style.display !== 'none') {
-      btn.click();
-    }
+    document.getElementById("btn-updates-sc").click();
+  };
+  if (e.key === " ") {
+    e.preventDefault();
+    document.getElementById("btn-menu").click();
   };
   if (e.key === "/") {
+    e.preventDefault();
+    document.getElementById("searchInput").focus();
+  };
+  if ("qwertyuiopasdfghjklzxcvbnm".includes(e.key)) {
     e.preventDefault();
     document.getElementById("searchInput").focus();
   };
@@ -158,13 +184,36 @@ function toggleTheme() {
   const currentTheme = html.getAttribute('data-theme');
   const newTheme = currentTheme === 'light' ? 'dark' : 'light';
   const icon = document.getElementById('themeIcon');
+  const sidebarIcon = document.getElementById('themeIconSidebar'); // THÊM DÒNG NÀY
 
   html.setAttribute('data-theme', newTheme);
   localStorage.setItem('theme', newTheme);
 
   if (newTheme === 'light') {
     icon.className = 'fa-solid fa-sun';
+    if (sidebarIcon) sidebarIcon.className = 'fa-solid fa-sun'; // THÊM DÒNG NÀY
   } else {
     icon.className = 'fa-solid fa-moon';
+    if (sidebarIcon) sidebarIcon.className = 'fa-solid fa-moon'; // THÊM DÒNG NÀY
   }
 }
+
+function toggleSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('sidebar-overlay');
+  const body = document.body;
+  
+  sidebar.classList.toggle('active');
+  overlay.classList.toggle('active');
+  body.classList.toggle('sidebar-open');
+}
+
+// Đóng sidebar khi nhấn ESC
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    const sidebar = document.getElementById('sidebar');
+    if (sidebar.classList.contains('active')) {
+      toggleSidebar();
+    }
+  }
+});

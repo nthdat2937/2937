@@ -14,7 +14,7 @@
   <header>
     <div>
       <span><i class="fa-solid fa-music"></i></span> <span class="logoweb">ntdMUSIC</span>
-      <span style="font-size: medium; color: rgba(255,255,255,0.5);">version: Local_TD_2.<span class="rauMa" onclick="alert('Bấm vô đây làm cái chó gì??? Var hả???')">36</span></span>
+      <span style="font-size: medium; color: rgba(255,255,255,0.5);"><span class="rauMa" onclick="alert('Bấm vô đây làm cái chó gì??? Var hả???')">36</span></span>
     </div>
     <div class="search-container">
       <input type="text" id="searchInput" class="search-input" placeholder="🔍 Tìm theo tên, ca sĩ, sáng tác hoặc lời bài hát..." />
@@ -32,26 +32,67 @@
       <button class="btn btn-add" onclick="handleLogout()" title="Đăng xuất">
         <i class="fa-solid fa-right-from-bracket"></i>
       </button>
-    </div>
-    <div>
-      <button class="btn btn-add btncl" onclick="location.reload();" id="btn-reload-sc" title="Làm mới">
-        <i class="fa-solid fa-arrow-rotate-right"></i>
+      <button class="btn btn-add" onclick="toggleSidebar()" id="btn-menu" title="Menu">
+        <i class="fa-solid fa-bars"></i>
       </button>
-      <button class="btn btn-add btncl" onclick="addSongDialog.showModal()" id="btn-add-sc" title="Thêm">
-        <i class="fa-solid fa-plus"></i>
-      </button>
-      <button class="btn btn-add btncl" onclick="hoiAI()" id="btn-hoiAI-sc" title="Hỏi AI">
-        <i class="fa-solid fa-robot"></i>
-      </button>
-      <button class="btn btn-add btncl" onclick="window.open(`https://2937.vercel.app`)" title="Home" id="btn-home-sc"><i class="fa-solid fa-house"></i></button>
-      <button class="btn btn-add btncl" onclick="toggleTheme()" id="btn-theme-sc" title="Đổi theme">
-        <i class="fa-solid fa-moon" id="themeIcon"></i>
-      </button>
-      <button class="btn btn-add btncl" id="btn-ranking" title="Bảng xếp hạng">
-        <i class="fa-solid fa-ranking-star"></i>
-      </button>      
     </div>
   </header>
+
+<!-- Sidebar Menu -->
+<div id="sidebar" class="sidebar">
+  <div class="sidebar-header">
+    <h3>Menu</h3>
+    <button class="btn-close-sidebar" onclick="toggleSidebar()">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+  </div>
+  <div class="sidebar-content">
+    Song
+    <button class="sidebar-item" id="btn-reload-sc" onclick="location.reload(); toggleSidebar();">
+      <i class="fa-solid fa-arrow-rotate-right"></i>
+      <span>Làm mới</span>
+    </button>
+    <button class="sidebar-item" id="btn-add-sc" onclick="addSongDialog.showModal(); toggleSidebar();">
+      <i class="fa-solid fa-plus"></i>
+      <span>Thêm bài hát</span>
+    </button>
+    Feature other
+    <button class="sidebar-item" id="btn-hoiAI-sc" onclick="hoiAI(); toggleSidebar();">
+      <i class="fa-solid fa-robot"></i>
+      <span>Hỏi AI</span>
+    </button>
+    <button class="sidebar-item" id="btn-home-sc" onclick="window.open('https://2937.vercel.app'); toggleSidebar();">
+      <i class="fa-solid fa-house"></i>
+      <span>Trang chủ</span>
+    </button>
+    <button class="sidebar-item" id="btn-theme-sc" onclick="toggleTheme(); toggleSidebar();">
+      <i class="fa-solid fa-moon" id="themeIconSidebar"></i>
+      <span>Đổi theme</span>
+    </button>
+    Social
+    <button class="sidebar-item" id="btn-rank-sc" onclick="openRankingDialog(); toggleSidebar();">
+      <i class="fa-solid fa-ranking-star"></i>
+      <span>Bảng xếp hạng</span>
+    </button>
+    <button class="sidebar-item" id="btn-streak-sc" onclick="checkStreak(); toggleSidebar();">
+      <i class="fa-solid fa-fire"></i>
+      <span id="streakText">Điểm danh hàng ngày</span>
+    </button>
+    About
+    <button class="sidebar-item" id="btn-guide-sc" onclick="openGuideDialog(); toggleSidebar();">
+      <i class="fa-solid fa-circle-info"></i>
+      <span>Hướng dẫn sử dụng</span>
+    </button>
+    <button class="sidebar-item" id="btn-updates-sc" onclick="openUpdatesDialog(); toggleSidebar();">
+      <i class="fa-solid fa-bullhorn"></i>
+      <span>Thông tin cập nhật</span>
+    </button>
+  </div>
+</div>
+
+<!-- Overlay -->
+<div id="sidebar-overlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
   <main>
     <div class="stats-container">
       <div class="stat-card">
@@ -59,6 +100,15 @@
         <div class="stat-content">
           <div class="stat-label">Tổng số bài hát</div>
           <div class="stat-value" id="totalSongs">0</div>
+        </div>
+      </div>
+    
+      <!-- THÊM CARD STREAK MỚI -->
+      <div class="stat-card streak-card" onclick="checkStreak()" style="cursor: pointer;">
+        <div class="stat-icon">🔥</div>
+        <div class="stat-content">
+          <div class="stat-label" id="streakLabel">Chưa có streak</div>
+          <div class="stat-value" id="streakValue">0 ngày</div>
         </div>
       </div>
       
@@ -501,9 +551,22 @@
       "></div>
     </div>
   </dialog>
+
+  <dialog id="guideDialog">
+    <button class="btn close" onclick="guideDialog.close()">
+      <span style="font-size: 30px;">+</span>
+    </button>
+    <h2>📖 Hướng dẫn sử dụng</h2>
+    
+    <div style="padding: 24px 32px 32px 32px; max-height: 70vh; overflow-y: auto;">
+      <div id="guideContent"></div>
+    </div>
+  </dialog>
   
   <script src="js/main.js"></script>
+  <script src="js/guide.js"></script>
   <script type="module" src="js/module.js"></script>
+  <script type="module" src="js/update.js"></script>
 </body>
 
 </html>
