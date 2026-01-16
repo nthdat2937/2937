@@ -71,6 +71,8 @@ function hoiAI() {
 const searchInput = document.getElementById("searchInput");
 
 document.addEventListener("keydown", function(e) {
+  if (e.key === "Tab") return;
+  if (e.key === "Enter") return;
   const openDialogs = document.querySelectorAll('dialog[open]');
   const hasOpenDialog = openDialogs.length > 0;
 
@@ -217,3 +219,266 @@ document.addEventListener('keydown', (e) => {
     }
   }
 });
+
+// ==================== THÊM VÀO CUỐI FILE main.js ====================
+
+// Hàm mở dialog xem video YouTube
+async function openYoutubeVideoDialog() {
+  const songName = document.getElementById("dTitle").textContent;
+  const artist = document.getElementById("dArtist").textContent.replace('ㅤ', '').trim();
+  
+  const searchQuery = `${songName} ${artist} official`;
+  
+  // Hiển thị loading
+  document.getElementById('youtubeVideoIframe').innerHTML = `
+    <div style="text-align: center; padding: 100px 20px; color: var(--text-muted);">
+      <i class="fa-solid fa-spinner fa-spin" style="font-size: 48px; margin-bottom: 20px;"></i>
+      <p>Đang tìm video...</p>
+    </div>
+  `;
+  document.getElementById('youtubeVideoSongName').textContent = `${songName} - ${artist}`;
+  youtubeVideoDialog.showModal();
+  
+  try {
+    // Tìm video đầu tiên từ YouTube API
+    const searchRes = await fetch(
+      `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=1&q=${encodeURIComponent(searchQuery)}&key=AIzaSyAS6c7bto_vvZ60g_FsdA60od3Fgw0y67g`
+    );
+    const searchData = await searchRes.json();
+    
+    if (!searchData.items?.length) {
+      document.getElementById('youtubeVideoIframe').innerHTML = `
+        <div style="text-align: center; padding: 100px 20px; color: var(--text-muted);">
+          <i class="fa-solid fa-circle-exclamation" style="font-size: 48px; margin-bottom: 20px; color: #ef4444;"></i>
+          <p>Không tìm thấy video phù hợp</p>
+        </div>
+      `;
+      return;
+    }
+    
+    const videoId = searchData.items[0].id.videoId;
+    
+    // Tạo iframe với video tìm được
+    const iframeHtml = `
+      <iframe 
+        width="100%" 
+        height="650" 
+        src="https://www.youtube.com/embed/${videoId}?autoplay=1&vq=large" 
+        frameborder="0" 
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+        allowfullscreen
+        style="border-radius: 16px;"
+      ></iframe>
+    `;
+    
+    document.getElementById('youtubeVideoIframe').innerHTML = iframeHtml;
+    
+  } catch (error) {
+    console.error('Lỗi khi tìm video:', error);
+    document.getElementById('youtubeVideoIframe').innerHTML = `
+      <div style="text-align: center; padding: 100px 20px; color: var(--text-muted);">
+        <i class="fa-solid fa-triangle-exclamation" style="font-size: 48px; margin-bottom: 20px; color: #f59e0b;"></i>
+        <p>Có lỗi xảy ra khi tìm video</p>
+      </div>
+    `;
+  }
+}
+
+// Event listener đóng dialog khi click overlay
+youtubeVideoDialog.addEventListener('click', (e) => {
+  if (e.target === youtubeVideoDialog) {
+    youtubeVideoDialog.close();
+    // KHÔNG xóa iframe để video tiếp tục phát
+  }
+});
+
+// Hiển thị mini player khi đóng YouTube dialog
+youtubeVideoDialog.addEventListener('close', () => {
+  const iframe = document.getElementById('youtubeVideoIframe');
+  if (iframe.innerHTML.trim() !== '') {
+    showYoutubeMiniPlayer();
+  }
+});
+
+function showYoutubeMiniPlayer() {
+  let miniPlayer = document.getElementById('youtubeMiniPlayer');
+  if (!miniPlayer) {
+    miniPlayer = document.createElement('div');
+    miniPlayer.id = 'youtubeMiniPlayer';
+    miniPlayer.onclick = reopenYoutubeDialog;
+    miniPlayer.style = 'cursor: pointer;';
+    miniPlayer.innerHTML = `
+      <div style="display: flex; align-items: center; gap: 12px; flex: 1;">
+        <i class="fa-brands fa-youtube" style="font-size: 20px; color: white;"></i>
+        <span id="miniPlayerYoutubeName" style="font-weight: 600; font-size: 14px;">Đang phát video...</span>
+      </div>
+      <button onclick="reopenYoutubeDialog()" style="
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid var(--glass-border);
+        padding: 8px 12px;
+        border-radius: 8px;
+        color: white;
+        cursor: pointer;
+        font-size: 13px;
+        transition: all 0.3s;
+      " onmouseover="this.style.background='rgba(255, 255, 255, 0.2)'" 
+         onmouseout="this.style.background='rgba(255, 255, 255, 0.1)'">
+        <i class="fa-solid fa-expand"></i> Mở lại
+      </button>
+      <button onclick="stopYoutube()" style="
+        background: linear-gradient(135deg, #ef4444, #dc2626);
+        border: none;
+        padding: 8px 12px;
+        border-radius: 8px;
+        color: white;
+        cursor: pointer;
+        font-size: 13px;
+        transition: all 0.3s;
+      " onmouseover="this.style.transform='scale(1.05)'" 
+         onmouseout="this.style.transform='scale(1)'">
+        <i class="fa-solid fa-stop"></i> Dừng
+      </button>
+    `;
+    document.body.appendChild(miniPlayer);
+  }
+  
+  const songName = document.getElementById('youtubeVideoSongName').textContent;
+  document.getElementById('miniPlayerYoutubeName').textContent = songName;
+  
+  miniPlayer.classList.add('show');
+}
+
+function reopenYoutubeDialog() {
+  youtubeVideoDialog.showModal();
+  const miniPlayer = document.getElementById('youtubeMiniPlayer');
+  if (miniPlayer) miniPlayer.classList.remove('show');
+}
+
+function stopYoutube() {
+  document.getElementById('youtubeVideoIframe').innerHTML = '';
+  const miniPlayer = document.getElementById('youtubeMiniPlayer');
+  if (miniPlayer) miniPlayer.remove();
+}
+
+
+// Spotify
+async function openSpotifyDialog() {
+  const songName = document.getElementById("dTitle").textContent;
+  const artist = document.getElementById("dArtist").textContent.replace('ㅤ', '').trim();
+  
+  const searchQuery = `${songName} ${artist} official`;
+  
+  // Hiển thị loading
+  document.getElementById('spotifyIframe').innerHTML = `
+    <div style="text-align: center; padding: 100px 20px; color: var(--text-muted);">
+      <i class="fa-solid fa-spinner fa-spin" style="font-size: 48px; margin-bottom: 20px;"></i>
+      <p>Đang tìm video...</p>
+    </div>
+  `;
+  document.getElementById('spotifySongName').textContent = `${songName} - ${artist}`;
+  spotifyDialog.showModal();
+  
+  try {
+    // Tạo iframe với video tìm được
+    const iframeHtml = `
+      <iframe 
+        width="100%" 
+        height="650" 
+        src="https://open.spotify.com/search/${songName}${artist}" 
+        frameborder="0" 
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+        allowfullscreen
+        style="border-radius: 16px;"
+      ></iframe>
+    `;
+    
+    document.getElementById('spotifyIframe').innerHTML = iframeHtml;
+    
+  } catch (error) {
+    console.error('Lỗi khi tìm video:', error);
+    document.getElementById('spotifyIframe').innerHTML = `
+      <div style="text-align: center; padding: 100px 20px; color: var(--text-muted);">
+        <i class="fa-solid fa-triangle-exclamation" style="font-size: 48px; margin-bottom: 20px; color: #f59e0b;"></i>
+        <p>Có lỗi xảy ra khi tìm video</p>
+      </div>
+    `;
+  }
+}
+
+// Event listener Ä'Ã³ng dialog khi click overlay
+spotifyDialog.addEventListener('click', (e) => {
+  if (e.target === spotifyDialog) {
+    spotifyDialog.close();
+    // KHÔNG xóa iframe để nhạc tiếp tục phát
+  }
+});
+
+// Hiển thị mini player khi đóng Spotify dialog
+spotifyDialog.addEventListener('close', () => {
+  const iframe = document.getElementById('spotifyIframe');
+  if (iframe.innerHTML.trim() !== '') {
+    showSpotifyMiniPlayer();
+  }
+});
+
+function showSpotifyMiniPlayer() {
+  // Tạo mini player nếu chưa có
+  let miniPlayer = document.getElementById('spotifyMiniPlayer');
+  if (!miniPlayer) {
+    miniPlayer = document.createElement('div');
+    miniPlayer.id = 'spotifyMiniPlayer';
+    miniPlayer.onclick = reopenSpotifyDialog;
+    miniPlayer.style = 'cursor: pointer;';
+    miniPlayer.innerHTML = `
+      <div onclick="reopenSpotifyDialog()" style="display: flex; align-items: center; gap: 12px; flex: 1;">
+        <i class="fa-brands fa-spotify" style="font-size: 20px; color: white;"></i>
+        <span id="miniPlayerSongName" style="font-weight: 600; font-size: 14px;">Đang phát nhạc...</span>
+      </div>
+      <button onclick="reopenSpotifyDialog()" style="
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid var(--glass-border);
+        padding: 8px 12px;
+        border-radius: 8px;
+        color: white;
+        cursor: pointer;
+        font-size: 13px;
+        transition: all 0.3s;
+      " onmouseover="this.style.background='rgba(255, 255, 255, 0.2)'" 
+         onmouseout="this.style.background='rgba(255, 255, 255, 0.1)'">
+        <i class="fa-solid fa-expand"></i> Mở lại
+      </button>
+      <button onclick="stopSpotify()" style="
+        background: linear-gradient(135deg, #ef4444, #dc2626);
+        border: none;
+        padding: 8px 12px;
+        border-radius: 8px;
+        color: white;
+        cursor: pointer;
+        font-size: 13px;
+        transition: all 0.3s;
+      " onmouseover="this.style.transform='scale(1.05)'" 
+         onmouseout="this.style.transform='scale(1)'">
+        <i class="fa-solid fa-stop"></i> Dừng
+      </button>
+    `;
+    document.body.appendChild(miniPlayer);
+  }
+  
+  // Cập nhật tên bài hát
+  const songName = document.getElementById('spotifySongName').textContent;
+  document.getElementById('miniPlayerSongName').textContent = songName;
+  
+  miniPlayer.classList.add('show');
+}
+
+function reopenSpotifyDialog() {
+  spotifyDialog.showModal();
+  const miniPlayer = document.getElementById('spotifyMiniPlayer');
+  if (miniPlayer) miniPlayer.classList.remove('show');
+}
+
+function stopSpotify() {
+  document.getElementById('spotifyIframe').innerHTML = '';
+  const miniPlayer = document.getElementById('spotifyMiniPlayer');
+  if (miniPlayer) miniPlayer.remove();
+}

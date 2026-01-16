@@ -10,7 +10,7 @@ window.addEventListener('DOMContentLoaded', () => {
   if (savedTheme === 'light') {
     icon.className = 'fa-solid fa-sun';
     const sidebarIcon = document.getElementById('themeIconSidebar');
-    if (sidebarIcon) sidebarIcon.className = 'fa-solid fa-sun'; // THÊM DÒNG NÀY
+    if (sidebarIcon) sidebarIcon.className = 'fa-solid fa-sun'; 
   };
 
   const rankBtn = document.getElementById("btn-ranking");
@@ -86,7 +86,7 @@ function renderSongs(songs) {
   updateStats(songs);
 }
 
-// Thêm event delegation cho table - đặt sau hàm renderSongs
+
 list.addEventListener('click', (e) => {
   const row = e.target.closest('tr');
   if (!row) return;
@@ -127,7 +127,7 @@ searchInput.addEventListener('input', (e) => {
 window.showLyric = id => {
   const s = window._songs.find(x => x.Id === id);
   
-  // Batch all updates
+  
   const updates = {
     title: s['Tên'],
     artist: `${s['Ca sĩ']}ㅤ`,
@@ -142,7 +142,7 @@ window.showLyric = id => {
     avatarDisplay: s.avatar ? 'block' : 'none'
   };
   
-  // Apply all at once
+  
   requestAnimationFrame(() => {
     dTitle.textContent = updates.title;
     dArtist.textContent = updates.artist;
@@ -380,12 +380,12 @@ function removeDiacritics(str) {
 }
 
 
-// Sửa hàm buildRanking để đếm đúng
+
 function buildRanking(songs) {
   const map = {};
 
   songs.forEach(song => {
-    // Bỏ qua nếu không có người thêm hoặc bài chưa xác minh
+    
     if (!song.add_by) return;
     
     const name = song.add_by.trim();
@@ -397,7 +397,7 @@ function buildRanking(songs) {
     .sort((a, b) => b.count - a.count);
 }
 
-// Sửa hàm openRankingDialog
+
 window.openRankingDialog = async function () {
   const rankingList = document.getElementById("rankingList");
   const currentUserRank = document.getElementById("currentUserRank");
@@ -411,7 +411,7 @@ window.openRankingDialog = async function () {
   rankingList.innerHTML = "<li>Đang tải...</li>";
   
   try {
-    // Lấy lại tất cả bài hát đã xác minh từ database
+    
     const { data: allSongs, error } = await supabase
       .from('songs')
       .select('*')
@@ -421,7 +421,7 @@ window.openRankingDialog = async function () {
 
     const ranking = buildRanking(allSongs);
     
-    // Lấy tên người dùng từ profile
+    
     let myName = "Khách";
     if (currentUser) {
       const { data: profile } = await supabase
@@ -437,12 +437,12 @@ window.openRankingDialog = async function () {
 
     rankingList.innerHTML = "";
     
-    // Trong hàm openRankingDialog, thay thế phần này:
+    
 ranking.forEach((u, i) => {
   const li = document.createElement("li");
   li.textContent = `${i + 1}. ${u.name} — ${u.count} bài`;
   
-  // Thêm cursor pointer và onclick
+  
   li.style.cursor = "pointer";
   li.onclick = () => showUserSongs(u.name);
   
@@ -661,7 +661,7 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
     isValid = false;
   }
 
-  // Kiểm tra tên đã tồn tại chưa
+  
   const { data: existingUsers, error: checkError } = await supabase
     .from('profiles')
     .select('display_name')
@@ -988,7 +988,7 @@ gopyDialog.addEventListener('click', (e) => {
   }
 });
 
-// Thêm hàm mới để hiển thị bài hát của user
+
 window.showUserSongs = async function(userName) {
   const dialog = document.getElementById("userSongsDialog");
   const nameEl = document.getElementById("userSongsName");
@@ -1004,7 +1004,7 @@ window.showUserSongs = async function(userName) {
   listEl.innerHTML = "<div style='text-align: center; padding: 20px; color: var(--text-muted);'>Đang tải...</div>";
   
   try {
-    // Lấy tất cả bài hát của user này
+    
     const { data: userSongs, error } = await supabase
       .from('songs')
       .select('*')
@@ -1014,16 +1014,16 @@ window.showUserSongs = async function(userName) {
     
     if (error) throw error;
     
-    // Hiển thị thống kê
+    
     statsEl.innerHTML = `📊 Tổng số bài đã thêm: <span style="color: var(--accent-primary); font-size: 20px;">${userSongs.length}</span> bài`;
     
-    // Hiển thị danh sách
+    
     if (userSongs.length === 0) {
       listEl.innerHTML = "<div style='text-align: center; padding: 40px; color: var(--text-muted);'>Chưa có bài hát nào được xác minh</div>";
     } else {
-      // Thay thế phần hiển thị danh sách:
+      
 listEl.innerHTML = userSongs.map(song => {
-  // Format ngày thêm
+  
   const addedDate = song['Ngày thêm'] 
     ? new Date(song['Ngày thêm']).toLocaleDateString('vi-VN', { 
         year: 'numeric', 
@@ -1054,17 +1054,17 @@ listEl.innerHTML = userSongs.map(song => {
   }
 };
 
-// ==================== STREAK FUNCTIONS ====================
 
-// Hàm lấy ngày hiện tại theo GMT+7 (giờ VN)
+
+
 function getVietnamDate() {
   const now = new Date();
   const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
   const vnTime = new Date(utc + (3600000 * 7));
-  return vnTime.toISOString().split('T')[0]; // Format: YYYY-MM-DD
+  return vnTime.toISOString().split('T')[0]; 
 }
 
-// Hàm tính số ngày chênh lệch
+
 function daysDifference(date1, date2) {
   const d1 = new Date(date1);
   const d2 = new Date(date2);
@@ -1072,7 +1072,7 @@ function daysDifference(date1, date2) {
   return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 }
 
-// Hàm kiểm tra và cập nhật streak
+
 window.checkStreak = async function() {
   if (!currentUser) {
     alert('Vui lòng đăng nhập để sử dụng tính năng này!');
@@ -1080,7 +1080,7 @@ window.checkStreak = async function() {
   }
 
   try {
-    // Lấy thông tin streak hiện tại
+    
     const { data: profile, error: fetchError } = await supabase
       .from('profiles')
       .select('Streak, "Ngày cuối"')
@@ -1093,7 +1093,7 @@ window.checkStreak = async function() {
     const lastDate = profile['Ngày cuối'];
     let currentStreak = profile.Streak || 0;
 
-    // Nếu chưa có ngày cuối (lần đầu điểm danh)
+    
     if (!lastDate) {
       const { error: updateError } = await supabase
         .from('profiles')
@@ -1110,16 +1110,16 @@ window.checkStreak = async function() {
       return;
     }
 
-    // Kiểm tra nếu đã điểm danh hôm nay
+    
     if (lastDate === today) {
       alert(`✅ Bạn đã điểm danh hôm nay rồi!\n\n🔥 Streak hiện tại: ${currentStreak} ngày\n💪 Hãy quay lại vào ngày mai!`);
       return;
     }
 
-    // Tính số ngày chênh lệch
+    
     const daysDiff = daysDifference(lastDate, today);
 
-    // Nếu chênh đúng 1 ngày -> tăng streak
+    
     if (daysDiff === 1) {
       const newStreak = currentStreak + 1;
       
@@ -1137,7 +1137,7 @@ window.checkStreak = async function() {
       updateStreakCard(newStreak);
       
     } else {
-      // Nếu chênh > 1 ngày -> reset streak về 1
+      
       const { error: updateError } = await supabase
         .from('profiles')
         .update({
@@ -1158,7 +1158,7 @@ window.checkStreak = async function() {
   }
 };
 
-// Hàm cập nhật hiển thị streak trên UI
+
 function updateStreakDisplay(streakCount) {
   const streakText = document.getElementById('streakText');
   if (streakText) {
@@ -1166,8 +1166,8 @@ function updateStreakDisplay(streakCount) {
   }
 }
 
-// Tải streak khi đăng nhập
-// Tải streak khi đăng nhập
+
+
 async function loadStreakCard() {
   if (!currentUser) {
     updateStreakCard(0);
@@ -1184,7 +1184,7 @@ async function loadStreakCard() {
     if (data) {
       const streak = data.Streak || 0;
       updateStreakCard(streak);
-      updateStreakDisplay(streak); // Vẫn giữ cho nút sidebar
+      updateStreakDisplay(streak); 
     } else {
       updateStreakCard(0);
     }
@@ -1194,7 +1194,7 @@ async function loadStreakCard() {
   }
 }
 
-// Hàm lấy danh hiệu theo streak
+
 function getStreakTitle(streak) {
   if (streak < 0) return 'Hack';
   if (streak === 0) return 'Con gà';
@@ -1208,7 +1208,7 @@ function getStreakTitle(streak) {
   return 'GOD';
 }
 
-// Cập nhật hiển thị streak trên card
+
 function updateStreakCard(streakCount) {
   const streakLabel = document.getElementById('streakLabel');
   const streakValue = document.getElementById('streakValue');
@@ -1291,7 +1291,7 @@ document.getElementById('editProfileForm').addEventListener('submit', async (e) 
     isValid = false;
   }
 
-  // Kiểm tra tên đã tồn tại chưa (trừ tên hiện tại của mình)
+  
   const { data: existingUsers, error: checkError } = await supabase
     .from('profiles')
     .select('id, display_name')
@@ -1300,7 +1300,7 @@ document.getElementById('editProfileForm').addEventListener('submit', async (e) 
   if (checkError) {
     console.error('Lỗi kiểm tra tên:', checkError);
   } else if (existingUsers && existingUsers.length > 0) {
-    // Nếu tên đã tồn tại và không phải của mình
+    
     const isDuplicate = existingUsers.some(user => user.id !== currentUser.id);
     if (isDuplicate) {
       document.getElementById('error-editDisplayName').textContent = 'Tên này đã được sử dụng bởi người khác!';

@@ -1,4 +1,3 @@
-// ==================== HƯỚNG DẪN SỬ DỤNG ====================
 
 const GUIDE_DATA = {
     privacy: {
@@ -93,7 +92,6 @@ const GUIDE_DATA = {
   function openGuideDialog() {
     const content = document.getElementById('guideContent');
     
-    // Render nội dung
     content.innerHTML = Object.entries(GUIDE_DATA).map(([key, section]) => `
       <div style="
         margin-bottom: 28px;
@@ -131,7 +129,6 @@ const GUIDE_DATA = {
     guideDialog.showModal();
   }
   
-  // Đóng khi click overlay
   guideDialog.addEventListener('click', (e) => {
     if (e.target === guideDialog) {
       guideDialog.close();

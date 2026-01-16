@@ -1,14 +1,29 @@
 const UPDATES = [
-    // {
-    //     version: "",
-    //     date: "",
-    //     type: "",
-    //     title: "",
-    //     description: ""
-    // },
+    {
+        version: "",
+        date: "",
+        type: "",
+        title: "",
+        description: ""
+    },
+        {
+        version: "2937",
+        date: "2026-01-16",
+        type: "important",
+        title: "Lưu ý",
+        description: "Đây là trang web tổng hợp nhạc KHÔNG PHẢI TRANG WEB LƯU TRỮ NHẠC."
+    },
+        {
+        version: "1.06",
+        date: "2026-01-16",
+        type: "update",
+        title: "Thêm tính năng nghe nhạc trên web",
+        description: "Tính năng nghe nhạc trên Youtube và Spotify đã được thêm theo nhu câù nghe nhạc của đa số người nghe. w dkhang",
+        action: `document.getElementById('mfySong').click()`
+    },
     {
         version: "1.05",
-        date: "2025-01-15",
+        date: "2026-01-15",
         type: "update",
         title: "Thêm hướng dẫn sử dụng",
         description: "Bạn có thể đọc qua hướng dẫn sử dụng trang web trong phần MENU",
@@ -16,7 +31,7 @@ const UPDATES = [
     },
     {
       version: "1.04",
-      date: "2025-01-15",
+      date: "2026-01-15",
       type: "feature",
       title: "Thêm tính năng Streak",
       description: "Từ nay bạn có thể ghi lại hành trình SỐNG liên tục của mình bằng tính năng STREAK",
@@ -24,28 +39,28 @@ const UPDATES = [
     },
     {
       version: "1.03",
-      date: "2025-01-15",
-      type: "feature", // "feature", "bug", "update", "important"
+      date: "2026-01-15",
+      type: "feature", 
       title: "Hệ thống thông báo cập nhật",
       description: "Thêm banner thông báo cập nhật ở đầu trang"
     },
     {
       version: "1.02",
-      date: "2025-01-15",
+      date: "2026-01-15",
       type: "important",
       title: "Fix lag",
       description: "Fix lỗi chồng animation và xoá những hàm không cần thiết"
     },
     {
       version: "1.00",
-      date: "2025-01-05",
+      date: "2026-01-05",
       type: "important",
       title: "Khởi đầu",
       description: "Ngày khởi tạo và chạy chính thức"
     },
   ];
 
-  // Icon theo loại update
+  
 const UPDATE_ICONS = {
     feature: `<i class="fa-solid fa-star"></i>`,
     bug: `<i class="fa-solid fa-worm"></i>`, 
@@ -53,7 +68,7 @@ const UPDATE_ICONS = {
     important: `<i class="fa-solid fa-exclamation"></i>`
   };
   
-  // Màu theo loại update
+  
   const UPDATE_COLORS = {
     feature: "#10b981",
     bug: "#ef4444",
@@ -61,7 +76,7 @@ const UPDATE_ICONS = {
     important: "#f59e0b"
   };
   
-  // Tạo HTML cho update banner
+  
   function createUpdateBanner() {
     if (UPDATES.length === 0) return;
     
@@ -83,6 +98,7 @@ const UPDATE_ICONS = {
       z-index: 99;
       backdrop-filter: blur(20px);
       animation: slideDown 0.5s ease;
+      cursor: pointer;
     `;
     
     banner.innerHTML = `
@@ -138,10 +154,11 @@ const UPDATE_ICONS = {
         align-items: center;
         justify-content: center;
         padding: 0;
+        display: none;
       ">×</button>
     `;
     
-    // Thêm animation CSS
+    
     const style = document.createElement('style');
     style.textContent = `
       @keyframes slideDown {
@@ -203,21 +220,22 @@ const UPDATE_ICONS = {
     `;
     document.head.appendChild(style);
     
-    // Chèn banner vào đầu body
+    
     document.body.insertBefore(banner, document.body.firstChild);
     
-    // Xử lý sự kiện
-    document.getElementById('closeBanner').addEventListener('click', () => {
-      banner.style.animation = 'slideDown 0.3s ease reverse';
-      setTimeout(() => banner.remove(), 300);
-      localStorage.setItem('updateBannerClosed', latestUpdate.version);
-      if (window.updateUpdatesBadge) window.updateUpdatesBadge();
-    });
+    
+    
+    
+    
+    
+    
+    
     
     document.getElementById('viewAllUpdates').addEventListener('click', openUpdatesDialog);
+    document.getElementById('updateBanner').addEventListener('click', openUpdatesDialog)
   }
   
-  // Tạo dialog hiển thị tất cả updates
+  
   function openUpdatesDialog() {
     const dialog = document.createElement('dialog');
     dialog.id = 'updatesDialog';
@@ -317,7 +335,7 @@ const UPDATE_ICONS = {
         padding: 28px 32px 20px 32px;
         margin: 0;
         border-bottom: 1px solid var(--border-color);
-      ">📝 Lịch sử cập nhật</h2>
+      "><i class="fa-regular fa-note-sticky"></i> Lịch sử cập nhật</h2>
       
       <div style="
         padding: 24px 32px 32px 32px;
@@ -331,11 +349,11 @@ const UPDATE_ICONS = {
     document.body.appendChild(dialog);
     dialog.showModal();
     
-    // Xóa dialog khi đóng
+    
     dialog.addEventListener('close', () => dialog.remove());
   }
   
-  // Format ngày tháng
+  
   function formatDate(dateString) {
     const date = new Date(dateString);
     const today = new Date();
@@ -353,23 +371,23 @@ const UPDATE_ICONS = {
     });
   }
   
-  // Khởi tạo khi trang load
+  
   window.addEventListener('DOMContentLoaded', () => {
     const closedVersion = localStorage.getItem('updateBannerClosed');
     const latestVersion = UPDATES[0]?.version;
     
-    // Chỉ hiển thị nếu chưa đóng hoặc có version mới hơn
+    
     if (!closedVersion || closedVersion !== latestVersion) {
       createUpdateBanner();
     }
   });
   
-  // Export function để có thể gọi từ nơi khác
+  
   window.openUpdatesDialog = openUpdatesDialog;
 
-  // Thêm vào cuối file update.js
+  
 
-// Cập nhật badge số lượng updates chưa xem
+
 function updateUpdatesBadge() {
   const closedVersion = localStorage.getItem('updateBannerClosed');
   const latestVersion = UPDATES[0]?.version;
@@ -377,11 +395,11 @@ function updateUpdatesBadge() {
   const btn = document.getElementById('btn-updates-sc');
   if (!btn) return;
   
-  // Xóa badge cũ nếu có
+  
   const oldBadge = btn.querySelector('.update-badge');
   if (oldBadge) oldBadge.remove();
   
-  // Nếu có version mới chưa đóng banner
+  
   if (!closedVersion || closedVersion !== latestVersion) {
     const badge = document.createElement('span');
     badge.className = 'update-badge';
@@ -402,10 +420,10 @@ function updateUpdatesBadge() {
   }
 }
 
-// Gọi khi load trang
+
 window.addEventListener('DOMContentLoaded', () => {
   updateUpdatesBadge();
 });
 
-// Export để gọi từ nơi khác
+
 window.updateUpdatesBadge = updateUpdatesBadge;
