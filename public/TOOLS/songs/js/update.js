@@ -1,18 +1,33 @@
 const UPDATES = [
+    // {
+    //     version: "",
+    //     date: "",
+    //     type: "",
+    //     title: "",
+    //     description: ""
+    // },
     {
-        version: "",
-        date: "",
-        type: "",
-        title: "",
-        description: ""
+      version: "2937",
+      date: "2026-01-16",
+      type: "important",
+      title: "Lưu ý",
+      description: "Đây là trang web tổng hợp nhạc KHÔNG PHẢI TRANG WEB LƯU TRỮ NHẠC."
     },
         {
-        version: "2937",
+        version: "1.08",
         date: "2026-01-16",
-        type: "important",
-        title: "Lưu ý",
-        description: "Đây là trang web tổng hợp nhạc KHÔNG PHẢI TRANG WEB LƯU TRỮ NHẠC."
+        type: "update",
+        title: "Thêm tính năng nghe nhạc từ Youtube",
+        description: "Không tìm thấy nhạc trên web? Không cần lo đã có tính năng nghe nhạc từ Youtube, chỉ cần tên bài hát là đủ",
+        action: "document.getElementById('btn-youtube-sc').click()"
     },
+    {
+    version: "1.07",
+    date: "2026-01-16",
+    type: "update",
+    title: "Thêm tính năng phát nhạc liên tục",
+    description: "Từ nay bạn có thể nghe nhạc liên tục trên web không còn giới hạn nào nữa."
+},
         {
         version: "1.06",
         date: "2026-01-16",

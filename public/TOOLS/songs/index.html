@@ -57,6 +57,10 @@
       <span>Thêm bài hát</span>
     </button>
     Feature other
+    <button class="sidebar-item" id="btn-youtube-sc" onclick="openYoutubeSearchDialog(); toggleSidebar();">
+      <i class="fa-brands fa-youtube"></i>
+      <span>Tìm video YouTube</span>
+    </button>
     <button class="sidebar-item" id="btn-hoiAI-sc" onclick="hoiAI(); toggleSidebar();">
       <i class="fa-solid fa-robot"></i>
       <span>Hỏi AI</span>
@@ -619,17 +623,6 @@
     
     <div style="padding: 24px 32px 32px 32px;">
       <div id="spotifyIframe"></div>
-    </div>
-  </dialog>
-
-  <dialog id="youtubeDialog">
-    <button class="btn close" onclick="youtubeDialog.close();">
-    <span style="font-size: 30px;">+</span>
-    </button>
-    <h2><i class="fa-brands fa-youtube"></i> <span id="youtubeSongName"></span></h2>
-    
-    <div style="padding: 24px 32px 32px 32px;">
-      <div id="youtubeIframe"></div>
     </div>
   </dialog>
 

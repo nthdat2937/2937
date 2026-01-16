@@ -141,6 +141,10 @@ document.addEventListener("keydown", function(e) {
     e.preventDefault();
     document.getElementById("btn-updates-sc").click();
   };
+  if (e.shiftKey && e.key === "Y") {
+    e.preventDefault();
+    document.getElementById("btn-youtube-sc").click();
+  };
   if (e.key === " ") {
     e.preventDefault();
     document.getElementById("btn-menu").click();
@@ -481,4 +485,78 @@ function stopSpotify() {
   document.getElementById('spotifyIframe').innerHTML = '';
   const miniPlayer = document.getElementById('spotifyMiniPlayer');
   if (miniPlayer) miniPlayer.remove();
+}
+
+// Tìm kiếm video YouTube theo từ khóa
+function openYoutubeSearchDialog() {
+  const songName = prompt("Nhập tên bài hát:");
+  
+  if (!songName || songName.trim() === "") {
+    alert("Vui lòng nhập tên bài hát!");
+    return;
+  }
+  
+  const artist = prompt("Nhập tên ca sĩ (nếu biết, bỏ trống nếu không biết):");
+  
+  searchYoutubeVideo(songName.trim(), artist ? artist.trim() : "");
+}
+
+async function searchYoutubeVideo(songName, artist) {
+  const searchQuery = artist 
+    ? `${songName} ${artist} official` 
+    : `${songName} official`;
+  
+  // Hiển thị loading
+  document.getElementById('youtubeVideoIframe').innerHTML = `
+    <div style="text-align: center; padding: 100px 20px; color: var(--text-muted);">
+      <i class="fa-solid fa-spinner fa-spin" style="font-size: 48px; margin-bottom: 20px;"></i>
+      <p>Đang tìm video...</p>
+    </div>
+  `;
+  document.getElementById('youtubeVideoSongName').textContent = artist 
+    ? `${songName} - ${artist}` 
+    : songName;
+  youtubeVideoDialog.showModal();
+  
+  try {
+    const searchRes = await fetch(
+      `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=1&q=${encodeURIComponent(searchQuery)}&key=AIzaSyAS6c7bto_vvZ60g_FsdA60od3Fgw0y67g`
+    );
+    const searchData = await searchRes.json();
+    
+    if (!searchData.items?.length) {
+      document.getElementById('youtubeVideoIframe').innerHTML = `
+        <div style="text-align: center; padding: 100px 20px; color: var(--text-muted);">
+          <i class="fa-solid fa-circle-exclamation" style="font-size: 48px; margin-bottom: 20px; color: #ef4444;"></i>
+          <p>Không tìm thấy video phù hợp</p>
+        </div>
+      `;
+      return;
+    }
+    
+    const videoId = searchData.items[0].id.videoId;
+    
+    const iframeHtml = `
+      <iframe 
+        width="100%" 
+        height="650" 
+        src="https://www.youtube.com/embed/${videoId}?autoplay=1&vq=large" 
+        frameborder="0" 
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+        allowfullscreen
+        style="border-radius: 16px;"
+      ></iframe>
+    `;
+    
+    document.getElementById('youtubeVideoIframe').innerHTML = iframeHtml;
+    
+  } catch (error) {
+    console.error('Lỗi khi tìm video:', error);
+    document.getElementById('youtubeVideoIframe').innerHTML = `
+      <div style="text-align: center; padding: 100px 20px; color: var(--text-muted);">
+        <i class="fa-solid fa-triangle-exclamation" style="font-size: 48px; margin-bottom: 20px; color: #f59e0b;"></i>
+        <p>Có lỗi xảy ra khi tìm video</p>
+      </div>
+    `;
+  }
 }
