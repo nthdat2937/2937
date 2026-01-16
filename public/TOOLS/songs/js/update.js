@@ -7,11 +7,18 @@ const UPDATES = [
     //     description: ""
     // },
     {
-      version: "2937",
+      version: "1.09",
       date: "2026-01-16",
       type: "important",
       title: "Lưu ý",
       description: "Đây là trang web tổng hợp nhạc KHÔNG PHẢI TRANG WEB LƯU TRỮ NHẠC."
+    },
+        {
+        version: "1.09",
+        date: "2026-01-16",
+        type: "update",
+        title: "Thêm tính năng tag",
+        description: "Từ nay bạn có thể tìm ra những bài hát đúng gu, đúng tâm trạng"
     },
         {
         version: "1.08",

@@ -560,3 +560,48 @@ async function searchYoutubeVideo(songName, artist) {
     `;
   }
 }
+
+// Tag Selector Handler
+function initTagSelector(selectorId, inputId) {
+  const selector = document.getElementById(selectorId);
+  const input = document.getElementById(inputId);
+  
+  if (!selector || !input) return;
+  
+  selector.addEventListener('click', (e) => {
+    if (e.target.classList.contains('tag-option')) {
+      e.target.classList.toggle('selected');
+      
+      // Update hidden input
+      const selectedTags = Array.from(selector.querySelectorAll('.tag-option.selected'))
+        .map(el => el.dataset.tag);
+      input.value = JSON.stringify(selectedTags);
+    }
+  });
+}
+
+// Initialize tag selectors
+window.addEventListener('DOMContentLoaded', () => {
+  initTagSelector('tagSelector', 'selectedTags');
+  initTagSelector('editTagSelector', 'editSelectedTags');
+});
+
+// Function to set selected tags (for edit mode)
+function setSelectedTags(selectorId, tags) {
+  const selector = document.getElementById(selectorId);
+  if (!selector || !tags) return;
+  
+  // Clear all selections
+  selector.querySelectorAll('.tag-option').forEach(el => {
+    el.classList.remove('selected');
+  });
+  
+  // Parse tags if string
+  const tagArray = typeof tags === 'string' ? JSON.parse(tags) : tags;
+  
+  // Select matching tags
+  tagArray.forEach(tag => {
+    const option = selector.querySelector(`[data-tag="${tag}"]`);
+    if (option) option.classList.add('selected');
+  });
+}

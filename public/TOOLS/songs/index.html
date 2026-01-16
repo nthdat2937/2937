@@ -134,6 +134,7 @@
           <th>Sáng tác</th>
           <th>Ngày phát hành</th>
           <th>Hot</th>
+          <th>Tags</th>
           <th>Thao tác</th>
         </tr>
       </thead>
@@ -264,6 +265,23 @@
       </div>
 
       <div class="form-group">
+        <label>Tags (Chọn các tag phù hợp)</label>
+        <div class="tag-selector" id="tagSelector">
+          <div class="tag-option" data-tag="Ballad">🎵 Ballad</div>
+          <div class="tag-option" data-tag="Pop">🎤 Pop</div>
+          <div class="tag-option" data-tag="Rock">🎸 Rock</div>
+          <div class="tag-option" data-tag="Rap">🎧 Rap/Hip-hop</div>
+          <div class="tag-option" data-tag="EDM">🔊 EDM</div>
+          <div class="tag-option" data-tag="Bolero">🎻 Bolero</div>
+          <div class="tag-option" data-tag="Acoustic">🎼 Acoustic</div>
+          <div class="tag-option" data-tag="Remix">🔄 Remix</div>
+          <div class="tag-option" data-tag="Trending">🔥 Trending</div>
+          <div class="tag-option" data-tag="Chill">😌 Chill</div>
+        </div>
+        <input type="hidden" id="selectedTags" value="">
+      </div>
+
+      <div class="form-group">
         <label for="addedBy">Người thêm</label>
         <input type="text" id="addedBy" readonly style="background: #0f0f12; cursor: not-allowed; opacity: 0.7;" />
         <small style="color: #6b7280; font-size: 14px; margin-top: 4px; display: block;">
@@ -331,6 +349,24 @@
         <textarea id="editLyric"></textarea>
         <div class="error" id="error-editLyric"></div>
       </div>
+
+      <div class="form-group">
+        <label>Tags (Chọn các tag phù hợp)</label>
+        <div class="tag-selector" id="editTagSelector">
+          <div class="tag-option" data-tag="Ballad">🎵 Ballad</div>
+          <div class="tag-option" data-tag="Pop">🎤 Pop</div>
+          <div class="tag-option" data-tag="Rock">🎸 Rock</div>
+          <div class="tag-option" data-tag="Rap">🎧 Rap/Hip-hop</div>
+          <div class="tag-option" data-tag="EDM">🔊 EDM</div>
+          <div class="tag-option" data-tag="Bolero">🎻 Bolero</div>
+          <div class="tag-option" data-tag="Acoustic">🎼 Acoustic</div>
+          <div class="tag-option" data-tag="Remix">🔄 Remix</div>
+          <div class="tag-option" data-tag="Trending">🔥 Trending</div>
+          <div class="tag-option" data-tag="Chill">😌 Chill</div>
+        </div>
+        <input type="hidden" id="editSelectedTags" value="">
+      </div>
+
       <div class="form-actions">
         <button type="button" class="btn btn-cancel" onclick="editSongDialog.close()">
           Hủy

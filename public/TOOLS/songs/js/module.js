@@ -68,7 +68,16 @@ function renderSongs(songs) {
                 white-space:normal;
                 word-break:break-word" title="${hotText}"><span style="color:#fbbf24;
                 font-weight:500;
-                font-size:17px">🔥 ${hotText}</span></td><td><div class="actions-cell">
+                font-size:17px">🔥 ${hotText}</span></td>
+                <td class="song-clickable">
+  <div class="song-tags">
+    ${song.tag && song.tag.length > 0 
+      ? song.tag.map(tag => `<span class="tag-badge">${tag}</span>`).join('') 
+      : '<span style="color: var(--text-muted); font-size: 12px;">Chưa có</span>'
+    }
+  </div>
+</td>
+                <td><div class="actions-cell">
   ${isAdmin ? `
     <button class="btn btn-edit" data-action="edit" title="Chỉnh sửa">
       <i class="fa-solid fa-pen-to-square"></i>
@@ -177,6 +186,9 @@ window.openEditDialog = id => {
   document.getElementById('editAvatar').value = s.avatar || '';
   document.getElementById('editLyric').value = s['Lyric'] || '';
   clearEditErrors();
+  // Set selected tags
+setSelectedTags('editTagSelector', s.tag || []);
+document.getElementById('editSelectedTags').value = s.tag ? JSON.stringify(s.tag) : '[]';
   editSongDialog.showModal()
 }
 addSongDialog.addEventListener('click', async (e) => {
@@ -272,18 +284,22 @@ songForm.addEventListener('submit', async (e) => {
   if (!isValid) return;
   const correctAdminCode = 'xm1689';
   const isVerified = adminCode === correctAdminCode;
-  const {
-    error
-  } = await supabase.from('songs').insert([{
-    'Tên': songName,
-    'Ca sĩ': artist,
-    'Sáng tác': composer,
-    'Ngày phát hành': releaseDate,
-    'avatar': avatar || null,
-    'Lyric': lyric,
-    'Xác minh': isVerified,
-    'add_by': addedBy
-  }]);
+  const selectedTagsStr = document.getElementById('selectedTags').value;
+const selectedTags = selectedTagsStr ? JSON.parse(selectedTagsStr) : [];
+
+const {
+  error
+} = await supabase.from('songs').insert([{
+  'Tên': songName,
+  'Ca sĩ': artist,
+  'Sáng tác': composer,
+  'Ngày phát hành': releaseDate,
+  'avatar': avatar || null,
+  'Lyric': lyric,
+  'Xác minh': isVerified,
+  'add_by': addedBy,
+  'tag': selectedTags.length > 0 ? selectedTags : null
+}]);
   if (error) {
     console.error(error);
     alert('Lỗi khi thêm bài hát: ' + error.message);
@@ -326,16 +342,20 @@ editSongForm.addEventListener('submit', async (e) => {
     isValid = false
   }
   if (!isValid) return;
-  const {
-    error
-  } = await supabase.from('songs').update({
-    'Tên': songName,
-    'Ca sĩ': artist,
-    'Sáng tác': composer,
-    'Ngày phát hành': releaseDate,
-    'avatar': avatar || null,
-    'Lyric': lyric
-  }).eq('Id', currentEditId);
+  const selectedTagsStr = document.getElementById('editSelectedTags').value;
+const selectedTags = selectedTagsStr ? JSON.parse(selectedTagsStr) : [];
+
+const {
+  error
+} = await supabase.from('songs').update({
+  'Tên': songName,
+  'Ca sĩ': artist,
+  'Sáng tác': composer,
+  'Ngày phát hành': releaseDate,
+  'avatar': avatar || null,
+  'Lyric': lyric,
+  'tag': selectedTags.length > 0 ? selectedTags : null
+}).eq('Id', currentEditId);
   if (error) {
     console.error(error);
     alert('Lỗi khi cập nhật bài hát: ' + error.message);
