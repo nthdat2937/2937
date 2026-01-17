@@ -329,10 +329,9 @@ function showYoutubeMiniPlayer() {
   if (!miniPlayer) {
     miniPlayer = document.createElement('div');
     miniPlayer.id = 'youtubeMiniPlayer';
-    miniPlayer.onclick = reopenYoutubeDialog;
     miniPlayer.style = 'cursor: pointer;';
     miniPlayer.innerHTML = `
-      <div style="display: flex; align-items: center; gap: 12px; flex: 1;">
+      <div onclick="reopenYoutubeDialog()" style="display: flex; align-items: center; gap: 12px; flex: 1; padding: 15px;">
         <i class="fa-brands fa-youtube" style="font-size: 20px; color: white;"></i>
         <span id="miniPlayerYoutubeName" style="font-weight: 600; font-size: 14px;">Đang phát video...</span>
       </div>
@@ -340,27 +339,27 @@ function showYoutubeMiniPlayer() {
         background: rgba(255, 255, 255, 0.1);
         border: 1px solid var(--glass-border);
         padding: 8px 12px;
-        border-radius: 8px;
+        border-radius: 13px;
         color: white;
         cursor: pointer;
         font-size: 13px;
         transition: all 0.3s;
       " onmouseover="this.style.background='rgba(255, 255, 255, 0.2)'" 
          onmouseout="this.style.background='rgba(255, 255, 255, 0.1)'">
-        <i class="fa-solid fa-expand"></i> Mở lại
+        <i class="fa-solid fa-expand"></i>
       </button>
       <button onclick="stopYoutube()" style="
         background: linear-gradient(135deg, #ef4444, #dc2626);
         border: none;
         padding: 8px 12px;
-        border-radius: 8px;
+        border-radius: 13px;
         color: white;
         cursor: pointer;
         font-size: 13px;
         transition: all 0.3s;
       " onmouseover="this.style.transform='scale(1.05)'" 
          onmouseout="this.style.transform='scale(1)'">
-        <i class="fa-solid fa-stop"></i> Dừng
+        <i class="fa-solid fa-stop"></i>
       </button>
     `;
     document.body.appendChild(miniPlayer);
@@ -451,10 +450,9 @@ function showSpotifyMiniPlayer() {
   if (!miniPlayer) {
     miniPlayer = document.createElement('div');
     miniPlayer.id = 'spotifyMiniPlayer';
-    miniPlayer.onclick = reopenSpotifyDialog;
     miniPlayer.style = 'cursor: pointer;';
     miniPlayer.innerHTML = `
-      <div onclick="reopenSpotifyDialog()" style="display: flex; align-items: center; gap: 12px; flex: 1;">
+      <div onclick="reopenSpotifyDialog()" style="display: flex; align-items: center; gap: 12px; flex: 1; padding: 15px;">
         <i class="fa-brands fa-spotify" style="font-size: 20px; color: white;"></i>
         <span id="miniPlayerSongName" style="font-weight: 600; font-size: 14px;">Đang phát nhạc...</span>
       </div>
@@ -462,7 +460,7 @@ function showSpotifyMiniPlayer() {
         background: rgba(255, 255, 255, 0.1);
         border: 1px solid var(--glass-border);
         padding: 8px 12px;
-        border-radius: 8px;
+        border-radius: 13px;
         color: white;
         cursor: pointer;
         font-size: 13px;
@@ -475,7 +473,7 @@ function showSpotifyMiniPlayer() {
         background: linear-gradient(135deg, #ef4444, #dc2626);
         border: none;
         padding: 8px 12px;
-        border-radius: 8px;
+        border-radius: 13px;
         color: white;
         cursor: pointer;
         font-size: 13px;

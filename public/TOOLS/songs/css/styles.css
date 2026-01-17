@@ -345,8 +345,8 @@ th:nth-child(2) { width: 13%; }
 th:nth-child(3) { width: 9%; }
 th:nth-child(4) { width: 9%; }
 th:nth-child(5) { width: 9%; }
-th:nth-child(6) { width: 30% }
-th:nth-child(7) { width: auto; }
+th:nth-child(6) { width: auto }
+th:nth-child(7) { width: 12.5%; }
 th:nth-child(8) { width: 200px; }
 
 tbody tr {
@@ -1769,7 +1769,7 @@ select:focus {
   -webkit-text-fill-color: transparent;
 }
 
-.sidebar-item:nth-child(8) i {
+.sidebar-item:nth-child(9) i {
   background: gray;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -2003,7 +2003,7 @@ body.sidebar-open header {
   transform: translateX(-50%);
   background: linear-gradient(135deg, rgba(29, 185, 84, 0.95), rgba(30, 215, 96, 0.9));
   backdrop-filter: blur(20px);
-  padding: 16px 24px;
+  padding: 5px 5px 0 30px;
   border-radius: 16px 16px 0 0;
   display: flex;
   align-items: center;
@@ -2038,7 +2038,7 @@ body.sidebar-open header {
   transform: translateX(-50%);
   background: linear-gradient(135deg, rgba(255, 0, 0, 0.95), rgba(204, 0, 0, 0.9));
   backdrop-filter: blur(20px);
-  padding: 16px 24px;
+  padding: 0 5px 0 0;
   border-radius: 16px 16px 0 0;
   display: flex;
   align-items: center;
