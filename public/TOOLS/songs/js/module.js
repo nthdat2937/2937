@@ -41,18 +41,20 @@ const list = document.getElementById('list'),
 let currentEditId = null;
 
 async function loadSongs() {
-  const {
-    data,
-    error
-  } = await supabase.from('songs').select('*').eq('Xác minh', true);
+  const { data, error } = await supabase.from('songs').select('*').eq('Xác minh', true);
   if (error) {
     console.error(error);
-    return
+    return;
   }
   data.sort((a, b) => a['Tên'].localeCompare(b['Tên'], 'vi'));
   window._songs = data;
+  
   renderSongs(data);
   updateStats(data);
+  
+  // Initialize filters
+  initializeTagFilter();
+  initializeArtistFilter();
 }
 
 function renderSongs(songs) {
@@ -1239,6 +1241,117 @@ function updateStreakCard(streakCount) {
   }
 }
 
+// ===== TAG FILTER FUNCTIONALITY =====
+let selectedTags = [];
+
+function initializeTagFilter() {
+  if (!window._songs || window._songs.length === 0) return;
+  
+  // Lấy tất cả unique tags
+  const allTags = new Set();
+  window._songs.forEach(song => {
+    if (song.tag && Array.isArray(song.tag)) {
+      song.tag.forEach(tag => allTags.add(tag));
+    }
+  });
+  
+  // Tạo tag filter buttons
+  const container = document.getElementById('tagFilterOptions');
+  container.innerHTML = Array.from(allTags)
+    .sort()
+    .map(tag => `
+      <div class="tag-filter-item" data-tag="${tag}">
+        ${tag}
+      </div>
+    `).join('');
+  
+  // Add event listeners
+  container.querySelectorAll('.tag-filter-item').forEach(item => {
+    item.addEventListener('click', () => toggleTagFilter(item));
+  });
+}
+
+function toggleTagFilter(element) {
+  const tag = element.dataset.tag;
+  
+  if (selectedTags.includes(tag)) {
+    selectedTags = selectedTags.filter(t => t !== tag);
+    element.classList.remove('active');
+  } else {
+    selectedTags.push(tag);
+    element.classList.add('active');
+  }
+  
+  // Show/hide clear button
+  document.getElementById('btnClearTagFilter').style.display = 
+    selectedTags.length > 0 ? 'block' : 'none';
+  
+  applyFilters();
+}
+
+document.getElementById('btnClearTagFilter').addEventListener('click', () => {
+  selectedTags = [];
+  document.querySelectorAll('.tag-filter-item').forEach(item => {
+    item.classList.remove('active');
+  });
+  document.getElementById('btnClearTagFilter').style.display = 'none';
+  applyFilters();
+});
+
+// ===== ARTIST FILTER FUNCTIONALITY =====
+function initializeArtistFilter() {
+  if (!window._songs || window._songs.length === 0) return;
+  
+  // Lấy danh sách ca sĩ unique
+  const artists = [...new Set(window._songs.map(song => song['Ca sĩ']))].sort();
+  
+  const select = document.getElementById('artistFilter');
+  select.innerHTML = '<option value="">-- Tất cả ca sĩ --</option>' +
+    artists.map(artist => `<option value="${artist}">${artist}</option>`).join('');
+}
+
+document.getElementById('artistFilter').addEventListener('change', applyFilters);
+
+// ===== COMBINED FILTER FUNCTION =====
+function applyFilters() {
+  let filtered = window._songs;
+  
+  // Filter by tags
+  if (selectedTags.length > 0) {
+    filtered = filtered.filter(song => {
+      if (!song.tag || !Array.isArray(song.tag)) return false;
+      return selectedTags.every(tag => song.tag.includes(tag));
+    });
+  }
+  
+  // Filter by artist
+  const selectedArtist = document.getElementById('artistFilter').value;
+  if (selectedArtist) {
+    filtered = filtered.filter(song => song['Ca sĩ'] === selectedArtist);
+  }
+  
+  // Filter by search query
+  const searchQuery = document.getElementById('searchInput').value.toLowerCase().trim();
+  if (searchQuery) {
+    filtered = filtered.filter(song =>
+      removeDiacritics(song['Tên']).includes(removeDiacritics(searchQuery)) ||
+      removeDiacritics(song['Ca sĩ']).includes(removeDiacritics(searchQuery)) ||
+      removeDiacritics(song['Sáng tác']).includes(removeDiacritics(searchQuery)) ||
+      removeDiacritics(song['Lyric'] || '').includes(removeDiacritics(searchQuery))
+    );
+  }
+  
+  renderSongs(filtered);
+}
+
+// Update search input handler
+searchInput.addEventListener('input', (e) => {
+  clearTimeout(searchTimeout);
+  searchTimeout = setTimeout(() => {
+    applyFilters();
+  }, 300);
+});
+
 checkAuth();
 
 
@@ -1400,4 +1513,15 @@ document.getElementById('editProfileForm').addEventListener('submit', async (e) 
     console.error(error);
     alert('Lỗi khi cập nhật: ' + error.message);
   }
+});
+
+function loadTagsFromHTML() {
+  // CHỈ LẤY TỪ 1 CHỖ THÔI (chọn cái nào cũng được)
+  const tagElements = document.querySelectorAll('#tagSelector .tag-option');
+  window.availableTags = Array.from(tagElements).map(el => el.dataset.tag);
+}
+
+// Gọi sau khi DOM ready
+window.addEventListener('DOMContentLoaded', () => {
+  loadTagsFromHTML();
 });

@@ -17,7 +17,11 @@
       <span style="font-size: medium; color: rgba(255,255,255,0.5);"><span class="rauMa" onclick="alert('Bấm vô đây làm cái chó gì??? Var hả???')">36</span></span>
     </div>
     <div class="search-container">
-      <input type="text" id="searchInput" class="search-input" placeholder="🔍 Tìm theo tên, ca sĩ, sáng tác hoặc lời bài hát..." />
+      <input type="text" id="searchInput" class="search-input" placeholder="🔎 Tìm theo tên, ca sĩ, sáng tác hoặc lời bài hát..." />
+      <select id="artistFilter" class="artist-filter">
+        <option value="">-- Tất cả ca sĩ --</option>
+        <!-- Options sẽ được tạo động từ JS -->
+      </select>
     </div>
     <div id="authButtons">
       <button class="btn btn-add" onclick="loginDialog.showModal()" id="btn-login" title="Đăng nhập">
@@ -29,7 +33,7 @@
       <button class="btn btn-add" onclick="showViewProfile()" id="btn-info-sc" title="Thông tin tài khoản">
         <i class="fa-solid fa-user"></i>
       </button>
-      <button class="btn btn-add" onclick="handleLogout()" title="Đăng xuất">
+      <button class="btn btn-add" onclick="handleLogout()" id="btn-logout" title="Đăng xuất">
         <i class="fa-solid fa-right-from-bracket"></i>
       </button>
       <button class="btn btn-add" onclick="toggleSidebar()" id="btn-menu" title="Menu">
@@ -96,6 +100,21 @@
 
 <!-- Overlay -->
 <div id="sidebar-overlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+<div class="filter-section">
+  <div class="tag-filter-container">
+    <div class="tag-filter-label">
+      <i class="fa-solid fa-filter"></i>
+      <span>Lọc theo tag:</span>
+    </div>
+    <div class="tag-filter-options" id="tagFilterOptions">
+      <!-- Tags sẽ được tạo động từ JS -->
+    </div>
+    <button class="btn-clear-filter" id="btnClearTagFilter" style="display: none;">
+      <i class="fa-solid fa-xmark"></i> Xóa bộ lọc
+    </button>
+  </div>
+</div>
 
   <main>
     <div class="stats-container">
@@ -265,19 +284,21 @@
       </div>
 
       <div class="form-group">
+        <a href="#" class="goiy" onclick="timTag()">Tìm thể loại</a>
         <label>Tags (Chọn các tag phù hợp)</label>
         <div class="tag-selector" id="tagSelector">
-          <div class="tag-option" data-tag="Ballad">🎵 Ballad</div>
-          <div class="tag-option" data-tag="Pop">🎤 Pop</div>
-          <div class="tag-option" data-tag="Rock">🎸 Rock</div>
-          <div class="tag-option" data-tag="Rap">🎧 Rap/Hip-hop</div>
-          <div class="tag-option" data-tag="EDM">🔊 EDM</div>
-          <div class="tag-option" data-tag="Bolero">🎻 Bolero</div>
-          <div class="tag-option" data-tag="Acoustic">🎼 Acoustic</div>
-          <div class="tag-option" data-tag="Remix">🔄 Remix</div>
-          <div class="tag-option" data-tag="Trending">🔥 Trending</div>
-          <div class="tag-option" data-tag="Chill">😌 Chill</div>
+          <div class="tag-option" data-tag="Sad">Sad</div>
+          <div class="tag-option" data-tag="Happy">Happy</div>
+          <div class="tag-option" data-tag="Love">Love</div>
+          <div class="tag-option" data-tag="V-pop">V-pop</div>
+          <div class="tag-option" data-tag="Rap">Rap</div>
+          <div class="tag-option" data-tag="Ballad">Ballad</div>
+          <div class="tag-option" data-tag="K-pop">K-pop</div>
+          <div class="tag-option" data-tag="Lofi">Lofi</div>
+          <div class="tag-option" data-tag="Indie">Indie</div>
+          <div class="tag-option" data-tag="Trending">Trending</div>
         </div>
+
         <input type="hidden" id="selectedTags" value="">
       </div>
 
@@ -349,20 +370,21 @@
         <textarea id="editLyric"></textarea>
         <div class="error" id="error-editLyric"></div>
       </div>
-
+      
       <div class="form-group">
+        <a href="#" class="goiy" onclick="timTag2()">Tìm thể loại</a>
         <label>Tags (Chọn các tag phù hợp)</label>
         <div class="tag-selector" id="editTagSelector">
-          <div class="tag-option" data-tag="Ballad">🎵 Ballad</div>
-          <div class="tag-option" data-tag="Pop">🎤 Pop</div>
-          <div class="tag-option" data-tag="Rock">🎸 Rock</div>
-          <div class="tag-option" data-tag="Rap">🎧 Rap/Hip-hop</div>
-          <div class="tag-option" data-tag="EDM">🔊 EDM</div>
-          <div class="tag-option" data-tag="Bolero">🎻 Bolero</div>
-          <div class="tag-option" data-tag="Acoustic">🎼 Acoustic</div>
-          <div class="tag-option" data-tag="Remix">🔄 Remix</div>
-          <div class="tag-option" data-tag="Trending">🔥 Trending</div>
-          <div class="tag-option" data-tag="Chill">😌 Chill</div>
+          <div class="tag-option" data-tag="Sad">Sad</div>
+          <div class="tag-option" data-tag="Happy">Happy</div>
+          <div class="tag-option" data-tag="Love">Love</div>
+          <div class="tag-option" data-tag="V-pop">V-pop</div>
+          <div class="tag-option" data-tag="Rap">Rap</div>
+          <div class="tag-option" data-tag="Ballad">Ballad</div>
+          <div class="tag-option" data-tag="K-pop">K-pop</div>
+          <div class="tag-option" data-tag="Lofi">Lofi</div>
+          <div class="tag-option" data-tag="Indie">Indie</div>
+          <div class="tag-option" data-tag="Trending">Trending</div>
         </div>
         <input type="hidden" id="editSelectedTags" value="">
       </div>

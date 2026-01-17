@@ -33,6 +33,16 @@ function timLinkbaihat() {
   t.trim() ? window.open(`https://www.google.com/search?q=${encodeURIComponent(t)}+official+site:youtube.com+&btnI=1`, '_blank') : alert('Vui lòng nhập tên bài hát trước')
 }
 
+function timTag() {
+  let t = document.getElementById("songName").value;
+  t.trim() ? window.open(`https://www.google.com/search?q=thể+loại+của+bài+${encodeURIComponent(t)}`) : alert('Vui lòng nhập tên bài hát trước')
+}
+
+function timTag2() {
+  let t = `${document.getElementById("editSongName").value} của ${document.getElementById("editArtist").value}`;
+  t.trim() ? window.open(`https://www.google.com/search?q=trả+lời+ngắn+gọn+bài+${encodeURIComponent(t)}+thuộc+những+thể+loại+nào+trong+số: ${window.availableTags}&udm=50`) : alert('Vui lòng nhập tên bài hát trước')
+}
+
 function spotifyThismusic() {
   window.open(`https://www.duckduckgo.com/search?q=!spy+${encodeURIComponent(document.getElementById("dTitle").textContent)}+${encodeURIComponent(document.getElementById("dArtist").textContent)}`)
 }
@@ -144,6 +154,16 @@ document.addEventListener("keydown", function(e) {
   if (e.shiftKey && e.key === "Y") {
     e.preventDefault();
     document.getElementById("btn-youtube-sc").click();
+  };
+  if (e.shiftKey && e.key === "L") {
+    e.preventDefault();
+    const ttdn = document.getElementById("userDisplayName").textContent
+
+    if (ttdn === "") {
+    document.getElementById("btn-login").click();
+    } else if (ttdn !== "") {
+      document.getElementById("btn-logout").click();
+    }
   };
   if (e.key === " ") {
     e.preventDefault();

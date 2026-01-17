@@ -7,11 +7,25 @@ const UPDATES = [
     //     description: ""
     // },
     {
-      version: "1.09",
+      version: "1.11",
       date: "2026-01-16",
       type: "important",
       title: "Lưu ý",
       description: "Đây là trang web tổng hợp nhạc KHÔNG PHẢI TRANG WEB LƯU TRỮ NHẠC."
+    },
+        {
+        version: "1.11",
+        date: "2026-01-17",
+        type: "update",
+        title: "Thêm bộ lọc theo ca sĩ",
+        description: ""
+    },
+        {
+        version: "1.10",
+        date: "2026-01-17",
+        type: "update",
+        title: "Thêm bộ lọc theo tag",
+        description: ""
     },
         {
         version: "1.09",
