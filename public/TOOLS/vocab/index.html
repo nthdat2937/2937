@@ -3,11 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Korean Vocabulary</title>
+    <title>ntdVocab</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
     <style>
-        /* ========== CSS VARIABLES ========== */
         :root {
             --bg-primary: #030014;
             --bg-secondary: #0a0a1a;
@@ -26,7 +25,6 @@
             --glass-border: rgba(255, 255, 255, 0.08);
         }
 
-        /* ========== RESET & BASE ========== */
         * {
             margin: 0;
             padding: 0;
@@ -63,7 +61,6 @@
             color: white;
         }
 
-        /* ========== SCROLLBAR ========== */
         ::-webkit-scrollbar {
             width: 10px;
         }
@@ -81,7 +78,6 @@
             background: var(--accent-secondary);
         }
 
-        /* ========== HEADER ========== */
         header {
             padding: 16px 32px;
             display: flex;
@@ -172,6 +168,15 @@
             color: var(--text-primary);
         }
 
+        .user-role {
+            font-size: 12px;
+            padding: 4px 12px;
+            background: rgba(99, 102, 241, 0.2);
+            border-radius: 8px;
+            color: var(--accent-cyan);
+            font-weight: 600;
+        }
+
         .btn {
             background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
             border: none;
@@ -210,7 +215,6 @@
             padding: 10px 16px;
         }
 
-        /* ========== MAIN ========== */
         main {
             padding: 40px;
             max-width: 1800px;
@@ -258,7 +262,6 @@
             background-clip: text;
         }
 
-        /* ========== TABLE ========== */
         table {
             width: 100%;
             border-collapse: separate;
@@ -319,7 +322,6 @@
             color: var(--text-primary);
         }
 
-        /* ========== AUTH DIALOG ========== */
         dialog {
             position: fixed;
             top: 50%;
@@ -494,7 +496,6 @@
             border: 1px solid rgba(239, 68, 68, 0.3);
         }
 
-        /* ========== LOADING ========== */
         .loading {
             text-align: center;
             padding: 40px;
@@ -502,7 +503,6 @@
             color: var(--text-secondary);
         }
 
-        /* ========== RESPONSIVE ========== */
         @media (max-width: 768px) {
             header {
                 flex-wrap: wrap;
@@ -541,9 +541,8 @@
     </style>
 </head>
 <body>
-    <!-- Header -->
     <header>
-        <div class="logo">Korean Vocab</div>
+        <div class="logo">ntdVOCAB</div>
         
         <div class="search-container">
             <input type="text" class="search-input" id="searchInput" placeholder="🔍 Tìm kiếm từ vựng...">
@@ -556,16 +555,18 @@
         </div>
 
         <div class="user-info" id="userInfo" style="display: none;">
+            <button class="btn" id="addVocabBtn" onclick="addVocabDialog.showModal()" style="display: none;">
+                <i class="fa-solid fa-plus"></i> Thêm từ vựng
+            </button>
             <span class="user-name" id="userName"></span>
+            <span class="user-role" id="userRole"></span>
             <button class="btn btn-logout" onclick="handleLogout()">
                 <i class="fa-solid fa-right-from-bracket"></i>
             </button>
         </div>
     </header>
 
-    <!-- Main Content -->
     <main>
-        <!-- Stats -->
         <div class="stats-container">
             <div class="stat-card">
                 <div class="stat-label">Tổng số từ vựng</div>
@@ -573,10 +574,8 @@
             </div>
         </div>
 
-        <!-- Loading -->
-        <div class="loading" id="loading">Đang tải dữ liệu...</div>
+        <div class="loading" id="loading">Vui lòng đăng nhập...</div>
 
-        <!-- Table -->
         <table id="vocabTable" style="display: none;">
             <thead>
                 <tr>
@@ -590,7 +589,6 @@
         </table>
     </main>
 
-    <!-- Login Dialog -->
     <dialog id="loginDialog">
         <button class="close-btn" onclick="loginDialog.close()">×</button>
         <h2>Đăng nhập</h2>
@@ -614,7 +612,6 @@
         </form>
     </dialog>
 
-    <!-- Register Dialog -->
     <dialog id="registerDialog">
         <button class="close-btn" onclick="registerDialog.close()">×</button>
         <h2>Đăng ký tài khoản</h2>
@@ -650,24 +647,52 @@
         </form>
     </dialog>
 
+    <dialog id="addVocabDialog">
+        <button class="close-btn" onclick="addVocabDialog.close()">×</button>
+        <h2>Thêm từ vựng mới</h2>
+        <form id="addVocabForm">
+            <div id="addVocabMessage"></div>
+            <div class="form-group">
+                <label>Tiếng Hàn</label>
+                <input type="text" id="vocabKorean" required placeholder="예: 안녕하세요">
+            </div>
+            <div class="form-group">
+                <label>Nghĩa (Tiếng Việt)</label>
+                <input type="text" id="vocabMeaning" required placeholder="예: Xin chào">
+            </div>
+            <div class="form-group">
+                <label>Loại từ</label>
+                <input type="text" id="vocabPOS" placeholder="예: Động từ, Danh từ, ...">
+            </div>
+            <div class="form-group">
+                <label>Cấp độ</label>
+                <input type="text" id="vocabLevel" placeholder="예: TOPIK I, TOPIK II, ...">
+            </div>
+            <div class="form-actions">
+                <button type="button" class="btn btn-cancel" onclick="addVocabDialog.close()">Hủy</button>
+                <button type="submit" class="btn btn-submit">Thêm từ vựng</button>
+            </div>
+        </form>
+    </dialog>
+
     <script>
         const SUPABASE_URL = 'https://ktqdzlhvdkerjajffgfi.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_1wm-eXETyu07vl61sY4mBQ_xwYZVOCj';
         
         let allData = [];
         let currentUser = null;
+        let userProfile = null;
 
-        // Check session on load
         window.addEventListener('DOMContentLoaded', async () => {
             const session = getSession();
             if (session) {
                 currentUser = session;
+                await loadUserProfile();
                 showUserInfo();
                 loadData();
             }
         });
 
-        // Login
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const email = document.getElementById('loginEmail').value;
@@ -691,6 +716,7 @@
 
                 saveSession(data);
                 currentUser = data;
+                await loadUserProfile();
                 showUserInfo();
                 loadData();
                 loginDialog.close();
@@ -700,7 +726,6 @@
             }
         });
 
-        // Register
         document.getElementById('registerForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const displayName = document.getElementById('regDisplayName').value;
@@ -725,7 +750,6 @@
             }
 
             try {
-                // Check display name
                 const checkName = await fetch(`${SUPABASE_URL}/rest/v1/profiles?display_name=eq.${encodeURIComponent(displayName)}&select=id`, {
                     headers: {
                         'apikey': SUPABASE_KEY,
@@ -740,7 +764,6 @@
                     }
                 }
 
-                // Register
                 const response = await fetch(`${SUPABASE_URL}/auth/v1/signup`, {
                     method: 'POST',
                     headers: {
@@ -756,7 +779,6 @@
                     throw new Error(data.error_description || 'Đăng ký thất bại');
                 }
 
-                // Save profile
                 await new Promise(resolve => setTimeout(resolve, 1000));
 
                 await fetch(`${SUPABASE_URL}/rest/v1/profiles`, {
@@ -786,23 +808,94 @@
             }
         });
 
-        // Logout
+        document.getElementById('addVocabForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            if (!userProfile || userProfile.role !== 'Admin') {
+                showMessage('addVocabMessage', 'Bạn không có quyền thêm từ vựng', 'error');
+                return;
+            }
+
+            const vocabData = {
+                korean: document.getElementById('vocabKorean').value,
+                meaning: document.getElementById('vocabMeaning').value,
+                part_of_speech: document.getElementById('vocabPOS').value || null,
+                level: document.getElementById('vocabLevel').value || null
+            };
+
+            try {
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/vocab`, {
+                    method: 'POST',
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': `Bearer ${currentUser.access_token}`,
+                        'Content-Type': 'application/json',
+                        'Prefer': 'return=representation'
+                    },
+                    body: JSON.stringify(vocabData)
+                });
+
+                if (!response.ok) {
+                    throw new Error('Không thể thêm từ vựng');
+                }
+
+                showMessage('addVocabMessage', 'Thêm từ vựng thành công!', 'success');
+                
+                document.getElementById('addVocabForm').reset();
+                
+                setTimeout(() => {
+                    addVocabDialog.close();
+                    loadData();
+                }, 1500);
+            } catch (err) {
+                showMessage('addVocabMessage', err.message, 'error');
+            }
+        });
+
         function handleLogout() {
             clearSession();
             currentUser = null;
+            userProfile = null;
             document.getElementById('authButtons').style.display = 'flex';
             document.getElementById('userInfo').style.display = 'none';
             location.reload();
         }
 
-        // Show user info
+        async function loadUserProfile() {
+            try {
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${currentUser.user.id}&select=*`, {
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': `Bearer ${currentUser.access_token}`
+                    }
+                });
+
+                if (response.ok) {
+                    const profiles = await response.json();
+                    if (profiles.length > 0) {
+                        userProfile = profiles[0];
+                    }
+                }
+            } catch (err) {
+                console.error('Lỗi tải profile:', err);
+            }
+        }
+
         function showUserInfo() {
             document.getElementById('authButtons').style.display = 'none';
             document.getElementById('userInfo').style.display = 'flex';
-            document.getElementById('userName').textContent = currentUser.user?.email || 'User';
+            
+            const displayName = userProfile?.display_name || currentUser.user?.email || 'User';
+            const role = userProfile?.role || 'Member';
+            
+            document.getElementById('userName').textContent = displayName;
+            document.getElementById('userRole').textContent = role;
+            
+            if (role === 'Admin') {
+                document.getElementById('addVocabBtn').style.display = 'inline-block';
+            }
         }
 
-        // Session management
         function saveSession(data) {
             const session = {
                 access_token: data.access_token,
@@ -835,7 +928,6 @@
             msgDiv.textContent = text;
         }
 
-        // Load vocab data
         async function loadData() {
             try {
                 const response = await fetch(`${SUPABASE_URL}/rest/v1/vocab?select=*&order=korean.asc`, {
@@ -872,34 +964,34 @@
                 `;
                 tbody.appendChild(tr);
             });
-          }
+        }
 
-function normalizeVietnamese(str) {
-    return str
-        .toLowerCase()
-        .replace(/đ/g, 'd')
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '');
-}
+        function normalizeVietnamese(str) {
+            return str
+                .toLowerCase()
+                .replace(/đ/g, 'd')
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '');
+        }
 
-function searchVocab() {
-    const searchTerm = normalizeVietnamese(document.getElementById('searchInput').value);
-    
-    if (!searchTerm) {
-        renderTable(allData);
-        return;
-    }
+        function searchVocab() {
+            const searchTerm = normalizeVietnamese(document.getElementById('searchInput').value);
+            
+            if (!searchTerm) {
+                renderTable(allData);
+                return;
+            }
 
-    const filtered = allData.filter(item => {
-        const korean = normalizeVietnamese(item.korean || '');
-        const meaning = normalizeVietnamese(item.meaning || '');
-        return korean.includes(searchTerm) || meaning.includes(searchTerm);
-    });
+            const filtered = allData.filter(item => {
+                const korean = normalizeVietnamese(item.korean || '');
+                const meaning = normalizeVietnamese(item.meaning || '');
+                return korean.includes(searchTerm) || meaning.includes(searchTerm);
+            });
 
-    renderTable(filtered);
-}
+            renderTable(filtered);
+        }
 
-document.getElementById('searchInput').addEventListener('input', searchVocab);
-</script>
+        document.getElementById('searchInput').addEventListener('input', searchVocab);
+    </script>
 </body>
 </html>

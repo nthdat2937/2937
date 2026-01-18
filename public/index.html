@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
         /* ========== CSS VARIABLES ========== */
@@ -1060,6 +1061,188 @@
                 font-size: 14px;
             }
         }
+
+        .auth-container {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 12px;
+    z-index: 1000;
+}
+
+.btn-auth {
+    padding: 12px 24px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    color: var(--text-primary);
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition-normal);
+}
+
+.btn-auth:hover {
+    background: var(--accent-gradient);
+    border-color: transparent;
+    transform: translateY(-3px);
+    box-shadow: 0 10px 30px var(--glow-primary);
+}
+
+.user-info {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: none;
+    align-items: center;
+    gap: 12px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 12px 20px;
+    z-index: 1000;
+}
+
+.user-info.show {
+    display: flex;
+}
+
+/* Dialog Styles */
+dialog {
+    border: none;
+    border-radius: var(--radius-xl);
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    padding: 40px;
+    max-width: 500px;
+    width: 90%;
+    box-shadow: var(--shadow-lg);
+}
+
+dialog::backdrop {
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(10px);
+}
+
+dialog h2 {
+    font-size: 28px;
+    font-weight: 800;
+    background: var(--accent-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 24px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.form-group input {
+    width: 100%;
+    padding: 14px 18px;
+    background: var(--bg-card);
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    font-size: 16px;
+    transition: var(--transition-normal);
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 20px var(--glow-primary);
+}
+
+.error {
+    color: #ef4444;
+    font-size: 14px;
+    margin-top: 4px;
+}
+
+.form-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 24px;
+}
+
+.btn-submit {
+    flex: 1;
+    padding: 14px 24px;
+    background: var(--accent-gradient);
+    border: none;
+    border-radius: var(--radius-full);
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition-normal);
+}
+
+.btn-submit:hover {
+    transform: scale(1.05);
+    box-shadow: 0 10px 40px var(--glow-primary);
+}
+
+.btn-cancel {
+    flex: 1;
+    padding: 14px 24px;
+    background: transparent;
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius-full);
+    color: var(--text-primary);
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition-normal);
+}
+
+.btn-cancel:hover {
+    border-color: var(--accent-primary);
+    background: rgba(99, 102, 241, 0.1);
+}
+
+.dialog-link {
+    text-align: center;
+    margin-top: 16px;
+    color: var(--accent-primary);
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.dialog-link:hover {
+    text-decoration: underline;
+}
+
+.btn-close-dialog {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 40px;
+    height: 40px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-full);
+    color: var(--text-secondary);
+    font-size: 24px;
+    cursor: pointer;
+    transition: var(--transition-fast);
+}
+
+.btn-close-dialog:hover {
+    background: #ef4444;
+    border-color: #ef4444;
+    color: white;
+    transform: rotate(90deg);
+}
+
     </style>
 </head>
 <body>
@@ -1190,6 +1373,11 @@
             <p data-value="Trang web nhắn tin dành riêng cho admin. Bảo mật tuyệt đối! Không lưu tin nhắn khi rời khỏi!"></p>
             <url data-value="https://chat-zkjh.onrender.com/"></url>
         </li>
+        <li onclick="openPopup2(this)">
+            <i class="fa-solid fa-list" style="font-size: 100px; background-color: transparent;" data-value="Vocab"></i>
+            <p data-value="Empty"></p>
+            <url data-value="/TOOLS/vocab/index.html"></url>
+        </li>        
     </ul>
 
     <!-- Popup -->
@@ -1225,13 +1413,288 @@
     </div>
 
     <!-- Logo + Menu -->
-    <div class="test2">nthdat</div>
-    <div class="menu" id="menuBtn">|||</div>
+    <div class="test2">ntdHOME</div>
+<div class="menu" id="menuBtn">|||</div>
     <nav id="menu">
         <a href="http://2937.vercel.app" target="_blank">Home</a>
         <a href="#">About</a>
         <a href="https://mail.google.com/mail/?view=cm&fs=1&to=nthdat.2937@gmail.com" target="_blank">Contact</a>
     </nav>
+
+    <div class="auth-container" id="authButtons">
+        <button class="btn-auth" onclick="loginDialog.showModal()">
+            <i class="fa-solid fa-right-to-bracket"></i> Đăng nhập
+        </button>
+        <button class="btn-auth" onclick="registerDialog.showModal()">
+            <i class="fa-solid fa-user-plus"></i> Đăng ký
+        </button>
+    </div>
+    
+    <div class="user-info" id="userInfo">
+        <span id="userDisplayName"></span>
+        <button class="btn-auth" onclick="handleLogout()">
+            <i class="fa-solid fa-right-from-bracket"></i>
+        </button>
+    </div>
+
+    <dialog id="loginDialog">
+        <button class="btn-close-dialog" onclick="loginDialog.close()">×</button>
+        <h2>Đăng nhập</h2>
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="loginEmail">Email *</label>
+                <input type="email" id="loginEmail" required placeholder="example@email.com" />
+            </div>
+            <div class="form-group">
+                <label for="loginPassword">Mật khẩu *</label>
+                <input type="password" id="loginPassword" required />
+            </div>
+            <div class="form-actions">
+                <button type="button" class="btn-cancel" onclick="loginDialog.close()">Hủy</button>
+                <button type="submit" class="btn-submit">Đăng nhập</button>
+            </div>
+            <div class="dialog-link">
+                <a href="#" onclick="event.preventDefault(); loginDialog.close(); registerDialog.showModal()">
+                    Chưa có tài khoản? Đăng ký ngay
+                </a>
+            </div>
+        </form>
+    </dialog>
+
+    <dialog id="registerDialog">
+        <button class="btn-close-dialog" onclick="registerDialog.close()">×</button>
+        <h2>Đăng ký tài khoản</h2>
+        <form id="registerForm">
+            <div class="form-group">
+                <label for="regDisplayName">Tên hiển thị * (3~20 ký tự)</label>
+                <input type="text" id="regDisplayName" required placeholder="Nguyễn Văn A" minlength="3" maxlength="20"/>
+                <div class="error" id="error-regDisplayName"></div>
+            </div>
+            <div class="form-group">
+                <label for="regEmail">Email *</label>
+                <input type="email" id="regEmail" required placeholder="example@email.com" />
+                <div class="error" id="error-regEmail"></div>
+            </div>
+            <div class="form-group">
+                <label for="regPhone">Số điện thoại *</label>
+                <input type="tel" id="regPhone" required placeholder="0912345678" />
+                <div class="error" id="error-regPhone"></div>
+            </div>
+            <div class="form-group">
+                <label for="regPassword">Mật khẩu *</label>
+                <input type="password" id="regPassword" required placeholder="Tối thiểu 6 ký tự" />
+                <div class="error" id="error-regPassword"></div>
+            </div>
+            <div class="form-group">
+                <label for="regConfirmPassword">Nhập lại mật khẩu *</label>
+                <input type="password" id="regConfirmPassword" required />
+                <div class="error" id="error-regConfirmPassword"></div>
+            </div>
+            <div class="form-actions">
+                <button type="button" class="btn-cancel" onclick="registerDialog.close()">Hủy</button>
+                <button type="submit" class="btn-submit">Đăng ký</button>
+            </div>
+            <div class="dialog-link">
+                <a href="#" onclick="event.preventDefault(); registerDialog.close(); loginDialog.showModal()">
+                    Đã có tài khoản? Đăng nhập
+                </a>
+            </div>
+        </form>
+    </dialog>
+
+    <script type="module">
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+        
+        const supabase = createClient(
+            "https://ktqdzlhvdkerjajffgfi.supabase.co",
+            "sb_publishable_1wm-eXETyu07vl61sY4mBQ_xwYZVOCj"
+        );
+        
+        let currentUser = null;
+        
+        // Check authentication
+        async function checkAuth() {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session) {
+                currentUser = session.user;
+                await loadUserProfile();
+                updateAuthUI(true);
+            } else {
+                updateAuthUI(false);
+            }
+        }
+        
+        async function loadUserProfile() {
+            if (!currentUser) return;
+        
+            const { data } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', currentUser.id)
+                .single();
+        
+            if (data) {
+                document.getElementById('userDisplayName').innerHTML = `
+                    <i class="fa-solid fa-user"></i> ${data.display_name}
+                    <span style="
+                        background: var(--accent-primary);
+                        padding: 4px 10px;
+                        border-radius: 6px;
+                        font-size: 12px;
+                        font-weight: 600;
+                        margin-left: 8px;
+                    ">${data.role}</span>
+                `;
+            }
+        }
+        
+        function updateAuthUI(isLoggedIn) {
+            const authButtons = document.getElementById('authButtons');
+            const userInfo = document.getElementById('userInfo');
+        
+            if (isLoggedIn) {
+                authButtons.style.display = 'none';
+                userInfo.classList.add('show');
+            } else {
+                authButtons.style.display = 'flex';
+                userInfo.classList.remove('show');
+            }
+        }
+        
+        // Register
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            document.querySelectorAll('#registerForm .error').forEach(el => el.textContent = '');
+        
+            const displayName = document.getElementById('regDisplayName').value.trim();
+            const email = document.getElementById('regEmail').value.trim();
+            const phone = document.getElementById('regPhone').value.trim();
+            const password = document.getElementById('regPassword').value;
+            const confirmPassword = document.getElementById('regConfirmPassword').value;
+        
+            let isValid = true;
+        
+            if (displayName.length < 3) {
+                document.getElementById('error-regDisplayName').textContent = 'Tên hiển thị quá ngắn';
+                isValid = false;
+            }
+        
+            const phoneRegex = /^0\d{9}$/;
+            if (!phoneRegex.test(phone)) {
+                document.getElementById('error-regPhone').textContent = 'Số điện thoại không hợp lệ';
+                isValid = false;
+            }
+        
+            if (password.length < 6) {
+                document.getElementById('error-regPassword').textContent = 'Mật khẩu phải có ít nhất 6 ký tự';
+                isValid = false;
+            }
+        
+            if (password !== confirmPassword) {
+                document.getElementById('error-regConfirmPassword').textContent = 'Mật khẩu không khớp';
+                isValid = false;
+            }
+        
+            if (!isValid) return;
+        
+            try {
+                const { data: authData, error: authError } = await supabase.auth.signUp({
+                    email: email,
+                    password: password,
+                    options: {
+                        data: {
+                            display_name: displayName,
+                            phone: phone
+                        }
+                    }
+                });
+        
+                if (authError) {
+                    alert('Lỗi đăng ký: ' + authError.message);
+                    return;
+                }
+        
+                await new Promise(resolve => setTimeout(resolve, 500));
+        
+                const { error: profileError } = await supabase
+                    .from('profiles')
+                    .insert([{
+                        id: authData.user.id,
+                        display_name: displayName,
+                        email: email,
+                        phone: phone,
+                        role: 'Member'
+                    }]);
+        
+                if (profileError) {
+                    console.error('Lỗi tạo profile:', profileError);
+                }
+        
+                currentUser = authData.user;
+                await loadUserProfile();
+                updateAuthUI(true);
+        
+                alert('Đăng ký thành công! Chào mừng bạn! 🎵');
+                document.getElementById('registerForm').reset();
+                registerDialog.close();
+        
+            } catch (error) {
+                console.error('Lỗi:', error);
+                alert('Có lỗi xảy ra: ' + error.message);
+            }
+        });
+        
+        // Login
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+        
+            const email = document.getElementById('loginEmail').value.trim();
+            const password = document.getElementById('loginPassword').value;
+        
+            const { data, error } = await supabase.auth.signInWithPassword({
+                email: email,
+                password: password
+            });
+        
+            if (error) {
+                alert('Lỗi đăng nhập: Thông tin đăng nhập sai!');
+                return;
+            }
+        
+            currentUser = data.user;
+            await loadUserProfile();
+            updateAuthUI(true);
+        
+            document.getElementById('loginForm').reset();
+            loginDialog.close();
+            alert('Đăng nhập thành công!');
+        });
+        
+        // Logout
+        window.handleLogout = async function() {
+            if (!confirm('Bạn có chắc muốn đăng xuất?')) return;
+        
+            await supabase.auth.signOut();
+            currentUser = null;
+            updateAuthUI(false);
+            alert('Đã đăng xuất!');
+        };
+        
+        // Auth state change
+        supabase.auth.onAuthStateChange((event, session) => {
+            if (event === 'SIGNED_IN') {
+                currentUser = session.user;
+                loadUserProfile();
+                updateAuthUI(true);
+            } else if (event === 'SIGNED_OUT') {
+                currentUser = null;
+                updateAuthUI(false);
+            }
+        });
+        
+        checkAuth();
+        </script>
+        
 </body>
 
 <br><hr><br>
