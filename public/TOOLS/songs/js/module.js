@@ -71,14 +71,6 @@ function renderSongs(songs) {
                 word-break:break-word" title="${hotText}"><span style="color:#fbbf24;
                 font-weight:500;
                 font-size:17px">🔥 ${hotText}</span></td>
-                <td class="song-clickable">
-  <div class="song-tags">
-    ${song.tag && song.tag.length > 0 
-      ? song.tag.map(tag => `<span class="tag-badge">${tag}</span>`).join('') 
-      : '<span style="color: var(--text-muted); font-size: 12px;">Chưa có</span>'
-    }
-  </div>
-</td>
                 <td><div class="actions-cell">
   ${isAdmin ? `
     <button class="btn btn-edit" data-action="edit" title="Chỉnh sửa">
@@ -91,7 +83,9 @@ function renderSongs(songs) {
   <button class="btn btn-lyric" data-action="lyric" title="Chi tiết">
     <i class="fa-solid fa-music"></i>
   </button>
-</div></td></tr>`
+</div></td>
+                
+                </tr>`
   }).join('');
 
   updateStats(songs);
