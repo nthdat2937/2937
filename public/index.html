@@ -519,7 +519,13 @@
             opacity: 0;
             transition: var(--transition-normal);
             position: relative;
+            max-height: 85vh;      /* QUAN TRỌNG */
+            overflow-y: auto;
         }
+
+        .popup {
+    -webkit-overflow-scrolling: touch;
+}
 
         .overlay.show .popup {
             transform: scale(1) translateY(0);
@@ -590,6 +596,8 @@
             text-align: center;
             animation: bounce-in 0.4s ease;
             position: relative;
+            max-height: 85vh;
+            overflow-y: auto;
         }
 
         .popup-box2 .heading {
@@ -623,6 +631,13 @@
             border-radius: var(--radius-md);
             margin-bottom: 24px;
             text-align: left;
+        }
+
+        .popup,
+        .popup-box2,
+        #motaTool {
+            word-wrap: break-word;
+            overflow-wrap: break-word;
         }
 
         #btn-closePopup2 {
@@ -863,18 +878,13 @@
         }
 
         @media (max-width: 450px) {
-            div, p, button, footer, li, h3 {
-                display: none;
-            }
-            
-            note {
-                display: block;
-                padding: 60px 20px;
-            }
-            
-            .hr {
-                display: block;
-            }
+            body > div:not(.overlay):not(.popup2),
+    body > p,
+    body > h3,
+    body > ul,
+    footer {
+        display: none;
+    }
         }
 
         /* ========== SCROLLBAR ========== */
@@ -1033,6 +1043,12 @@
             .social-icon {
                 width: 40px;
                 height: 40px;
+            }
+
+            #btn-closePopup2 {
+                top: 10px;
+                right: 10px;
+                position: absolute;
             }
         }
 
