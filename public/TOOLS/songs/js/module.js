@@ -181,6 +181,11 @@ window.openEditDialog = id => {
   document.getElementById('editReleaseDate').value = s['Ngày phát hành'] || '';
   document.getElementById('editAvatar').value = s.avatar || '';
   document.getElementById('editLyric').value = s['Lyric'] || '';
+  const hasAlbum = s.album && s.album.trim() !== '';
+  document.getElementById('editHasAlbum').checked = hasAlbum;
+  document.getElementById('editAlbum').value = s.album || '';
+  document.getElementById('editAlbumGroup').style.display = hasAlbum ? 'block' : 'none';
+
   clearEditErrors();
   // Set selected tags
 setSelectedTags('editTagSelector', s.tag || []);
@@ -294,6 +299,7 @@ const {
   'Lyric': lyric,
   'Xác minh': isVerified,
   'add_by': addedBy,
+  'album': document.getElementById('hasAlbum').checked ? document.getElementById('album').value.trim() : null,
   'tag': selectedTags.length > 0 ? selectedTags : null
 }]);
   if (error) {
@@ -350,6 +356,7 @@ const {
   'Ngày phát hành': releaseDate,
   'avatar': avatar || null,
   'Lyric': lyric,
+  'album': document.getElementById('editHasAlbum').checked ? document.getElementById('editAlbum').value.trim() : null,
   'tag': selectedTags.length > 0 ? selectedTags : null
 }).eq('Id', currentEditId);
   if (error) {
@@ -1519,3 +1526,231 @@ function loadTagsFromHTML() {
 window.addEventListener('DOMContentLoaded', () => {
   loadTagsFromHTML();
 });
+
+// ===== LỊCH SỬ THÊM BÀI HÁT =====
+
+window.openHistoryDialog = async function() {
+  const dialog = document.getElementById("historyDialog");
+  const listEl = document.getElementById("historyList");
+  const statsEl = document.getElementById("historyStats");
+  
+  if (!dialog || !listEl || !statsEl) {
+    console.error('Không tìm thấy elements');
+    return;
+  }
+  
+  // Hiển thị loading
+  listEl.innerHTML = `
+    <div style="text-align: center; padding: 60px 20px; color: var(--text-muted);">
+      <i class="fa-solid fa-spinner fa-spin" style="font-size: 48px; margin-bottom: 20px;"></i>
+      <p>Đang tải lịch sử...</p>
+    </div>
+  `;
+  
+  dialog.showModal();
+  
+  try {
+    // Lấy TOÀN BỘ bài hát (cả đã xác minh và chưa xác minh)
+    const { data: allSongs, error } = await supabase
+      .from('songs')
+      .select('*')
+      .order('Ngày thêm', { ascending: false }); // Sắp xếp theo ngày thêm, mới nhất trước
+    
+    if (error) throw error;
+    
+    if (!allSongs || allSongs.length === 0) {
+      listEl.innerHTML = `
+        <div style="text-align: center; padding: 60px 20px; color: var(--text-muted);">
+          <i class="fa-solid fa-circle-exclamation" style="font-size: 48px; margin-bottom: 20px; opacity: 0.5;"></i>
+          <p>Chưa có bài hát nào được thêm</p>
+        </div>
+      `;
+      statsEl.innerHTML = '📊 Tổng: 0 bài';
+      return;
+    }
+    
+    // Đếm số bài đã xác minh và chưa xác minh
+    const verifiedCount = allSongs.filter(s => s['Xác minh'] === true).length;
+    const pendingCount = allSongs.length - verifiedCount;
+    
+    // Cập nhật thống kê
+    statsEl.innerHTML = `
+      <div style="display: flex; gap: 24px; flex-wrap: wrap; justify-content: center;">
+        <div style="text-align: center;">
+          <div style="font-size: 28px; font-weight: 700; color: var(--accent-primary);">${allSongs.length}</div>
+          <div style="font-size: 13px; color: var(--text-muted);">Tổng số bài</div>
+        </div>
+        <div style="text-align: center;">
+          <div style="font-size: 28px; font-weight: 700; color: #10b981;">✅ ${verifiedCount}</div>
+          <div style="font-size: 13px; color: var(--text-muted);">Đã xác minh</div>
+        </div>
+        <div style="text-align: center;">
+          <div style="font-size: 28px; font-weight: 700; color: #f59e0b;">⏳ ${pendingCount}</div>
+          <div style="font-size: 13px; color: var(--text-muted);">Chờ duyệt</div>
+        </div>
+      </div>
+    `;
+    
+    // Render danh sách
+    listEl.innerHTML = allSongs.map((song, index) => {
+      const addedDate = song['Ngày thêm'] 
+        ? new Date(song['Ngày thêm']).toLocaleString('vi-VN', { 
+            year: 'numeric', 
+            month: '2-digit', 
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit'
+          })
+        : 'N/A';
+      
+      const releaseDate = song['Ngày phát hành'] || 'N/A';
+      const isVerified = song['Xác minh'] === true;
+      const addedBy = song['add_by'] || 'Không rõ';
+      
+      // Badge cho top 3
+      let badge = '';
+      if (index === 0) badge = '<span style="background: linear-gradient(135deg, #ffd700, #ffb300); color: white; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; margin-left: 8px;">🥇 MỚI NHẤT</span>';
+      else if (index === 1) badge = '<span style="background: linear-gradient(135deg, #c0c0c0, #a9a9a9); color: white; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; margin-left: 8px;">🥈 THỨ 2</span>';
+      else if (index === 2) badge = '<span style="background: linear-gradient(135deg, #cd7f32, #b87333); color: white; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; margin-left: 8px;">🥉 THỨ 3</span>';
+      
+      return `
+        <div class="history-item ${isVerified ? 'verified' : 'pending'}" onclick="showLyric(${song.Id})">
+          <div class="history-left">
+            ${song.avatar 
+              ? `<img src="${song.avatar}" alt="avatar">` 
+              : '<div class="history-no-avatar">🎵</div>'}
+            <div class="history-info">
+              <div class="history-title">
+                ${song['Tên']}
+                ${badge}
+              </div>
+              <div class="history-artist">${song['Ca sĩ']}</div>
+              <div class="history-meta">
+                <span>👤 ${addedBy}</span>
+                <span>•</span>
+                <span>📅 Phát hành: ${releaseDate}</span>
+              </div>
+            </div>
+          </div>
+          <div class="history-right">
+            <div class="history-status ${isVerified ? 'status-verified' : 'status-pending'}">
+              ${isVerified ? '✅ Đã duyệt' : '⏳ Chờ duyệt'}
+            </div>
+            <div class="history-date">
+              <i class="fa-solid fa-clock"></i>
+              ${addedDate}
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+    
+  } catch (error) {
+    console.error('Lỗi khi tải lịch sử:', error);
+    listEl.innerHTML = `
+      <div style="text-align: center; padding: 60px 20px; color: #ef4444;">
+        <i class="fa-solid fa-triangle-exclamation" style="font-size: 48px; margin-bottom: 20px;"></i>
+        <p>Có lỗi xảy ra khi tải lịch sử</p>
+      </div>
+    `;
+  }
+};
+
+window.openAlbumDialog = async function() {
+  const dialog = document.getElementById("albumDialog");
+  const listEl = document.getElementById("albumList");
+  const statsEl = document.getElementById("albumStats");
+  
+  listEl.innerHTML = `<div style="text-align: center; padding: 60px 20px; color: var(--text-muted);"><i class="fa-solid fa-spinner fa-spin" style="font-size: 48px; margin-bottom: 20px;"></i><p>Đang tải...</p></div>`;
+  dialog.showModal();
+  
+  try {
+    const { data: allSongs, error } = await supabase
+      .from('songs')
+      .select('*')
+      .eq('Xác minh', true)
+      .not('album', 'is', null);
+    
+    if (error) throw error;
+    
+    // Nhóm theo album
+    const albumMap = {};
+    allSongs.forEach(song => {
+      const albumName = song.album.trim();
+      if (!albumMap[albumName]) {
+        albumMap[albumName] = [];
+      }
+      albumMap[albumName].push(song);
+    });
+    
+    const albums = Object.entries(albumMap)
+      .map(([name, songs]) => ({ name, songs, count: songs.length }))
+      .sort((a, b) => b.count - a.count);
+    
+    statsEl.innerHTML = `<div style="text-align: center; padding: 20px; background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(139, 92, 246, 0.1)); border: 1px solid var(--accent-primary); border-radius: 16px; margin-bottom: 24px;"><div style="font-size: 28px; font-weight: 700; color: var(--accent-primary);">${albums.length}</div><div style="font-size: 13px; color: var(--text-muted);">Tổng số Album</div></div>`;
+    
+    if (albums.length === 0) {
+      listEl.innerHTML = `<div style="text-align: center; padding: 60px 20px; color: var(--text-muted);"><i class="fa-solid fa-compact-disc" style="font-size: 48px; margin-bottom: 20px; opacity: 0.5;"></i><p>Chưa có album nào</p></div>`;
+      return;
+    }
+    
+    listEl.innerHTML = albums.map((album, index) => `
+      <div class="history-item" onclick="showAlbumSongs('${album.name.replace(/'/g, "\\'")}')">
+        <div class="history-left">
+          <div class="history-no-avatar">💿</div>
+          <div class="history-info">
+            <div class="history-title">${album.name}${index < 3 ? (index === 0 ? ' <span style="background: linear-gradient(135deg, #ffd700, #ffb300); color: white; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; margin-left: 8px;">🥇 TOP 1</span>' : index === 1 ? ' <span style="background: linear-gradient(135deg, #c0c0c0, #a9a9a9); color: white; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; margin-left: 8px;">🥈 TOP 2</span>' : ' <span style="background: linear-gradient(135deg, #cd7f32, #b87333); color: white; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; margin-left: 8px;">🥉 TOP 3</span>') : ''}</div>
+            <div class="history-artist">Ca sĩ: ${[...new Set(album.songs.map(s => s['Ca sĩ']))].join(', ')}</div>
+          </div>
+        </div>
+        <div class="history-right">
+          <div class="history-status status-verified">🎵 ${album.count} bài</div>
+        </div>
+      </div>
+    `).join('');
+    
+  } catch (error) {
+    console.error('Lỗi:', error);
+    listEl.innerHTML = `<div style="text-align: center; padding: 60px 20px; color: #ef4444;"><p>Có lỗi xảy ra</p></div>`;
+  }
+};
+
+window.showAlbumSongs = async function(albumName) {
+  const { data: songs, error } = await supabase
+    .from('songs')
+    .select('*')
+    .eq('album', albumName)
+    .eq('Xác minh', true);
+  
+  if (error) {
+    console.error(error);
+    return;
+  }
+  
+  const listHtml = songs.map(song => `
+    <div class="user-song-item" onclick="showLyric(${song.Id})">
+      ${song.avatar ? `<img src="${song.avatar}" alt="avatar">` : '<div style="width: 50px; height: 50px; background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary)); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 24px;">🎵</div>'}
+      <div class="user-song-info">
+        <div class="user-song-title">${song['Tên']}</div>
+        <div class="user-song-artist">${song['Ca sĩ']}</div>
+      </div>
+    </div>
+  `).join('');
+  
+  albumDialog.close();
+  
+  const tempDialog = document.createElement('dialog');
+  tempDialog.style.cssText = document.getElementById('userSongsDialog').style.cssText;
+  tempDialog.innerHTML = `
+    <button class="btn close" onclick="this.closest('dialog').close(); this.closest('dialog').remove();">
+      <span style="font-size: 30px;">+</span>
+    </button>
+    <h2>💿 ${albumName}</h2>
+    <div style="padding: 24px;">
+      <div style="padding: 16px 20px; background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(139, 92, 246, 0.1)); border: 1px solid var(--accent-primary); border-radius: 12px; margin-bottom: 20px; text-align: center; font-weight: 600;">📊 Tổng số bài: <span style="color: var(--accent-primary); font-size: 20px;">${songs.length}</span></div>
+      <div style="max-height: 500px; overflow-y: auto;">${listHtml}</div>
+    </div>
+  `;
+  document.body.appendChild(tempDialog);
+  tempDialog.showModal();
+};

@@ -69,6 +69,7 @@ const GUIDE_DATA = {
           <strong>Shift + H</strong> <span>Trang chủ</span>
           <strong>Shift + B</strong> <span>Bảng xếp hạng</span>
           <strong>Shift + S</strong> <span>Điểm danh streak</span>
+          <strong>Shift + O</strong> <span>Lịch sử thêm bài</span>
           <strong>Shift + M</strong> <span>Menu</span>
           <strong>ESC</strong> <span>Đóng dialog/Bỏ focus</span>
         </div>

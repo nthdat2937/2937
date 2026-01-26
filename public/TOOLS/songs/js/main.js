@@ -165,6 +165,14 @@ document.addEventListener("keydown", function(e) {
       document.getElementById("btn-logout").click();
     }
   };
+  if (e.shiftKey && e.key === "O") {
+    e.preventDefault();
+    document.getElementById("btn-history-sc").click();
+  };
+  if (e.shiftKey && e.key === "D") {
+    e.preventDefault();
+    document.getElementById("btn-album-sc").click();
+  }
   if (e.key === " ") {
     e.preventDefault();
     document.getElementById("btn-menu").click();
@@ -205,24 +213,6 @@ function roleCheck() {
   }
 }
 
-function toggleTheme() {
-  const html = document.documentElement;
-  const currentTheme = html.getAttribute('data-theme');
-  const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-  const icon = document.getElementById('themeIcon');
-  const sidebarIcon = document.getElementById('themeIconSidebar'); // THÊM DÒNG NÀY
-
-  html.setAttribute('data-theme', newTheme);
-  localStorage.setItem('theme', newTheme);
-
-  if (newTheme === 'light') {
-    icon.className = 'fa-solid fa-sun';
-    if (sidebarIcon) sidebarIcon.className = 'fa-solid fa-sun'; // THÊM DÒNG NÀY
-  } else {
-    icon.className = 'fa-solid fa-moon';
-    if (sidebarIcon) sidebarIcon.className = 'fa-solid fa-moon'; // THÊM DÒNG NÀY
-  }
-}
 
 function toggleSidebar() {
   const sidebar = document.getElementById('sidebar');
@@ -623,3 +613,41 @@ function setSelectedTags(selectorId, tags) {
     if (option) option.classList.add('selected');
   });
 }
+
+// Thêm các hàm tìm album
+function timAlbum() {
+  let songName = document.getElementById("songName").value;
+  let artist = document.getElementById("artist").value;
+  if (songName.trim() || artist.trim()) {
+    window.open(`https://www.google.com/search?q=album+của+bài+${encodeURIComponent(songName)}+${encodeURIComponent(artist)}`, '_blank');
+  } else {
+    alert('Vui lòng nhập tên bài hát hoặc ca sĩ trước');
+  }
+}
+
+function timAlbum2() {
+  let songName = document.getElementById("editSongName").value;
+  let artist = document.getElementById("editArtist").value;
+  if (songName.trim() || artist.trim()) {
+    window.open(`https://www.google.com/search?q=album+của+bài+${encodeURIComponent(songName)}+${encodeURIComponent(artist)}`, '_blank');
+  } else {
+    alert('Vui lòng nhập tên bài hát hoặc ca sĩ trước');
+  }
+}
+
+// Toggle hiển thị input album
+document.getElementById('hasAlbum').addEventListener('change', function() {
+  document.getElementById('albumGroup').style.display = this.checked ? 'block' : 'none';
+  if (!this.checked) {
+    document.getElementById('album').value = '';
+    document.getElementById('error-album').textContent = '';
+  }
+});
+
+document.getElementById('editHasAlbum').addEventListener('change', function() {
+  document.getElementById('editAlbumGroup').style.display = this.checked ? 'block' : 'none';
+  if (!this.checked) {
+    document.getElementById('editAlbum').value = '';
+    document.getElementById('error-editAlbum').textContent = '';
+  }
+});

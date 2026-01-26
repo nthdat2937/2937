@@ -73,9 +73,17 @@
       <i class="fa-solid fa-house"></i>
       <span>Trang chủ</span>
     </button>
-    <button class="sidebar-item" id="btn-theme-sc" onclick="toggleTheme(); toggleSidebar();">
-      <i class="fa-solid fa-moon" id="themeIconSidebar"></i>
-      <span>Đổi theme</span>
+    <button class="sidebar-item" id="btn-settings-sc" onclick="openSettingsDialog(); toggleSidebar();">
+      <i class="fa-solid fa-gear"></i>
+      <span>Cài đặt</span>
+    </button>
+    <button class="sidebar-item" id="btn-history-sc" onclick="openHistoryDialog(); toggleSidebar();">
+      <i class="fa-solid fa-clock-rotate-left"></i>
+      <span>Lịch sử thêm bài</span>
+    </button>
+    <button class="sidebar-item" id="btn-album-sc" onclick="openAlbumDialog(); toggleSidebar();">
+      <i class="fa-solid fa-compact-disc"></i>
+      <span>Danh sách Album</span>
     </button>
     Social
     <button class="sidebar-item" id="btn-rank-sc" onclick="openRankingDialog(); toggleSidebar();">
@@ -247,6 +255,18 @@
         <div class="error" id="error-composer"></div>
       </div>
       <div class="form-group">
+        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; text-transform: none; font-size: 15px;">
+          <input type="checkbox" id="hasAlbum" style="width: auto; cursor: pointer; accent-color: var(--accent-primary);">
+          <span>Bài hát nằm trong album</span>
+        </label>
+      </div>
+      <div class="form-group" id="albumGroup" style="display: none;">
+        <a href="#" class="goiy" onclick="timAlbum()">Tìm album</a>
+        <label for="album">Tên Album</label>
+        <input type="text" id="album" placeholder="Nhập tên album" />
+        <div class="error" id="error-album"></div>
+      </div>
+      <div class="form-group">
         <a href="#" class="goiy" onclick="timLinkbaihat()">Tìm link bài hát</a>
         <label>Link YouTube (chỉ cần khi thấy ngày phát hành bị sai)</label>
         <div style="display:flex; gap:8px">
@@ -352,6 +372,18 @@
         <label for="editComposer">Sáng tác *</label>
         <input type="text" id="editComposer" required />
         <div class="error" id="error-editComposer"></div>
+      </div>
+      <div class="form-group">
+        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; text-transform: none; font-size: 15px;">
+          <input type="checkbox" id="editHasAlbum" style="width: auto; cursor: pointer; accent-color: var(--accent-primary);">
+          <span>Bài hát nằm trong album</span>
+        </label>
+      </div>
+      <div class="form-group" id="editAlbumGroup" style="display: none;">
+        <a href="#" class="goiy" onclick="timAlbum2()">Tìm album</a>
+        <label for="editAlbum">Tên Album</label>
+        <input type="text" id="editAlbum" placeholder="Nhập tên album" />
+        <div class="error" id="error-editAlbum"></div>
       </div>
       <div class="form-group">
         <label for="editReleaseDate">Ngày phát hành *</label>
@@ -683,12 +715,131 @@
     </div>
   </dialog>
 
+  <dialog id="settingsDialog">
+    <button class="btn close" onclick="settingsDialog.close()">
+      <span style="font-size: 30px;">+</span>
+    </button>
+    
+    <h2><i class="fa-solid fa-gear"></i> Cài đặt</h2>
+    
+    <form id="settingsForm">
+      <div style="padding: 24px 32px 32px 32px; max-height: 70vh; overflow-y: auto;">
+        
+        <!-- THEME SECTION -->
+        <div class="settings-section">
+          <h3><i class="fa-solid fa-palette"></i> Giao diện</h3>
+          <div class="setting-item">
+            <div class="setting-label">
+              <strong>Theme</strong>
+              <small>Chọn giao diện sáng hoặc tối</small>
+            </div>
+            <select id="settingTheme" class="theme-select" style="width: 140px; margin-left: 16px;">
+              <option value="dark">🌙 Tối</option>
+              <option value="light">☀️ Sáng</option>
+            </select>
+          </div>
+        </div>
+  
+        <!-- PERFORMANCE SECTION -->
+        <div class="settings-section">
+          <h3>
+            <i class="fa-solid fa-gauge-high"></i> Hiệu suất
+            <span class="performance-badge">Giảm lag</span>
+          </h3>
+          
+          <div class="setting-item">
+            <div class="setting-label">
+              <strong>Hiệu ứng chuyển động</strong>
+              <small>Bật/tắt animations và transitions (giảm lag ~40%)</small>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="settingAnimations" checked>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          
+          <div class="setting-item">
+            <div class="setting-label">
+              <strong>Hiệu ứng nền</strong>
+              <small>Gradient và noise background (giảm lag ~30%)</small>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="settingBackgroundEffects" checked>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          
+          <div class="setting-item">
+            <div class="setting-label">
+              <strong>Hiệu ứng phát sáng</strong>
+              <small>Glow effects và shadows (giảm lag ~20%)</small>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="settingGlowEffects" checked>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+  
+        <!-- INFO SECTION -->
+        <div class="settings-section" style="background: rgba(16, 185, 129, 0.05); border-color: rgba(16, 185, 129, 0.3);">
+          <h3 style="color: #10b981;"><i class="fa-solid fa-circle-info"></i> Gợi ý</h3>
+          <p style="margin: 0; font-size: 14px; color: var(--text-secondary); line-height: 1.6;">
+            💡 Nếu web lag, hãy tắt các hiệu ứng để cải thiện hiệu suất.<br>
+            🚀 Tắt cả 3 hiệu ứng có thể giảm lag lên đến 90%.<br>
+            ⚡ Cài đặt được lưu tự động và áp dụng mỗi khi mở web.
+          </p>
+        </div>
+  
+      </div>
+      
+      <div class="settings-actions" style="padding: 20px 32px 32px 32px; border-top: 1px solid var(--border-color);">
+        <button type="button" class="btn btn-reset" onclick="resetSettings()">
+          <i class="fa-solid fa-rotate-left"></i> Đặt lại mặc định
+        </button>
+        <button type="submit" class="btn btn-submit">
+          <i class="fa-solid fa-check"></i> Lưu cài đặt
+        </button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="historyDialog">
+    <button class="btn close" onclick="historyDialog.close()">
+      <span style="font-size: 30px;">+</span>
+    </button>
+    
+    <h2><i class="fa-solid fa-clock-rotate-left"></i> Lịch sử thêm bài hát</h2>
+    
+    <div style="padding: 24px 32px 32px 32px;">
+      <!-- Thống kê -->
+      <div id="historyStats"></div>
+      
+      <!-- Danh sách -->
+      <div id="historyList"></div>
+    </div>
+  </dialog>
+
+  <dialog id="albumDialog">
+    <button class="btn close" onclick="albumDialog.close()">
+      <span style="font-size: 30px;">+</span>
+    </button>
+    <h2><i class="fa-solid fa-compact-disc"></i> Danh sách Album</h2>
+    
+    <div style="padding: 24px 32px 32px 32px;">
+      <div id="albumStats"></div>
+      <div id="albumList"></div>
+    </div>
+  </dialog>
+
   <br><br><br><br><br>
   
   <script src="js/main.js"></script>
   <script src="js/guide.js"></script>
+  <script src="js/settings.js"></script>
   <script type="module" src="js/module.js"></script>
   <script type="module" src="js/update.js"></script>
+
 </body>
 
 </html>

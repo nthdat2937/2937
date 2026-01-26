@@ -13,6 +13,21 @@ const UPDATES = [
       title: "Lưu ý",
       description: "Đây là trang web tổng hợp nhạc KHÔNG PHẢI TRANG WEB LƯU TRỮ NHẠC."
     },
+    {
+        version: "1.13",
+        date: "2026/01/27",
+        type: "update",
+        title: "Thêm lịch sử thêm nhạc",
+        description: "Lịch sử thêm bài hát được thêm vào để dễ dàng theo dõi list nhạc mới trên web"
+    },
+    {
+        version: "1.12",
+        date: "2026/01/27",
+        type: "important",
+        title: "Fix lag",
+        description: "Lag đã fix triệt để. Truy cập cài đặt để tuỳ chỉnh",
+        action: "document.getElementById('btn-settings-sc').click()"
+    },
         {
         version: "1.11",
         date: "2026-01-17",
