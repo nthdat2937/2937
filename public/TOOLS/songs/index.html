@@ -750,7 +750,7 @@
           <div class="setting-item">
             <div class="setting-label">
               <strong>Hiệu ứng chuyển động</strong>
-              <small>Bật/tắt animations và transitions (giảm lag ~40%)</small>
+              <small>Animations và transitions (giảm lag ~15%)</small>
             </div>
             <label class="toggle-switch">
               <input type="checkbox" id="settingAnimations" checked>
@@ -760,8 +760,8 @@
           
           <div class="setting-item">
             <div class="setting-label">
-              <strong>Hiệu ứng nền</strong>
-              <small>Gradient và noise background (giảm lag ~30%)</small>
+              <strong>Hiệu ứng nền gradient</strong>
+              <small>4 lớp gradient + SVG noise (giảm lag ~25%)</small>
             </div>
             <label class="toggle-switch">
               <input type="checkbox" id="settingBackgroundEffects" checked>
@@ -772,10 +772,65 @@
           <div class="setting-item">
             <div class="setting-label">
               <strong>Hiệu ứng phát sáng</strong>
-              <small>Glow effects và shadows (giảm lag ~20%)</small>
+              <small>Glow effects và drop-shadows (giảm lag ~10%)</small>
             </div>
             <label class="toggle-switch">
               <input type="checkbox" id="settingGlowEffects" checked>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          
+          <div class="setting-item">
+            <div class="setting-label">
+              <strong>Backdrop Blur</strong>
+              <small>Làm mờ nền dialog/header (giảm lag ~30%)</small>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="settingBackdropBlur" checked>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          
+          <div class="setting-item">
+            <div class="setting-label">
+              <strong>Box Shadows</strong>
+              <small>Bóng đổ các elements (giảm lag ~15%)</small>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="settingBoxShadows" checked>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          
+          <div class="setting-item">
+            <div class="setting-label">
+              <strong>Hiệu ứng hover ảnh</strong>
+              <small>Transform/scale ảnh khi hover (giảm lag ~8%)</small>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="settingImageHover" checked>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          
+          <div class="setting-item">
+            <div class="setting-label">
+              <strong>Hiệu ứng hover bảng</strong>
+              <small>Gradient/scale rows khi hover (giảm lag ~12%)</small>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="settingTableHover" checked>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          
+          <div class="setting-item">
+            <div class="setting-label">
+              <strong>Animation dialog</strong>
+              <small>Pop-up effect khi mở dialog (giảm lag ~5%)</small>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="settingDialogAnimations" checked>
               <span class="toggle-slider"></span>
             </label>
           </div>
@@ -785,9 +840,10 @@
         <div class="settings-section" style="background: rgba(16, 185, 129, 0.05); border-color: rgba(16, 185, 129, 0.3);">
           <h3 style="color: #10b981;"><i class="fa-solid fa-circle-info"></i> Gợi ý</h3>
           <p style="margin: 0; font-size: 14px; color: var(--text-secondary); line-height: 1.6;">
-            💡 Nếu web lag, hãy tắt các hiệu ứng để cải thiện hiệu suất.<br>
-            🚀 Tắt cả 3 hiệu ứng có thể giảm lag lên đến 90%.<br>
-            ⚡ Cài đặt được lưu tự động và áp dụng mỗi khi mở web.
+            💡 <strong>Lag nhẹ:</strong> Tắt Backdrop Blur + Background Effects<br>
+            🚀 <strong>Lag trung bình:</strong> Tắt thêm Box Shadows + Table Hover<br>
+            ⚡ <strong>Lag nặng:</strong> Tắt hết tất cả (giảm lag lên đến 95%)<br>
+            📌 Cài đặt tự động lưu và áp dụng mỗi khi mở web
           </p>
         </div>
   

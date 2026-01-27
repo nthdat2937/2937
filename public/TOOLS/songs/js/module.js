@@ -1,6 +1,3 @@
-
-
-
 window.addEventListener('DOMContentLoaded', () => {
   const savedTheme = localStorage.getItem('theme') || 'dark';
   const icon = document.getElementById('themeIcon');
