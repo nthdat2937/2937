@@ -7,11 +7,27 @@ const UPDATES = [
   //     description: ""
   // },
   {
-    version: "1.11",
-    date: "2026-01-16",
+    version: "1.15",
+    date: "2026-01-28",
     type: "important",
     title: "Lưu ý",
     description: "Đây là trang web tổng hợp nhạc KHÔNG PHẢI TRANG WEB LƯU TRỮ NHẠC."
+  },
+  {
+      version: "1.15",
+      date: "2026/01/28",
+      type: "update",
+      title: "Thêm tính năng Yêu thích",
+      description: "Từ nay có thể đánh dấu các bài hát yêu thích vào mục yêu thích của riêng bạn.",
+      action: "document.getElementById('btn-favourite-sc').click()"
+  },
+  {
+      version: "1.14",
+      date: "2026/01/28",
+      type: "important",
+      title: "Fix lag",
+      description: "Lag đã fix triệt để. Còn lag thì mua máy mới đi má.",
+      action: "document.getElementById('btn-settings-sc').click()"
   },
   {
       version: "1.13",

@@ -21,7 +21,8 @@ import {
   createClient
 } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
 
-const supabase = createClient("https://ktqdzlhvdkerjajffgfi.supabase.co", "sb_publishable_1wm-eXETyu07vl61sY4mBQ_xwYZVOCj");
+// Import supabase client từ file chung
+import { supabase } from './supabase-client.js';
 
 const list = document.getElementById('list'),
   lyricDialog = document.getElementById('lyricDialog'),
@@ -56,9 +57,13 @@ async function loadSongs() {
 
 function renderSongs(songs) {
   const isAdmin = window.currentUserRole === 'Admin';
+  const favourites = window.userFavourites || [];
+  
   list.innerHTML = songs.map(song => {
     const hotLines = (song['Lyric'] || '').split('\n').filter(line => line.includes('--hot')).map(line => line.replace('--hot', '').trim());
     const hotText = hotLines.length > 0 ? hotLines.join(' | ') : 'Không có';
+    const isFavourite = favourites.includes(song.Id.toString());
+    
     return `<tr data-song-id="${song.Id}"><td class="song-clickable">${song.avatar?`<img src="${song.avatar}" loading="lazy" alt="avatar" style="width:60px;
                 height:60px;
                 object-fit:cover;
@@ -77,6 +82,14 @@ function renderSongs(songs) {
       <i class="fa-solid fa-delete-left"></i>
     </button>
   ` : ''}
+  <button 
+    class="btn btn-favourite ${isFavourite ? 'active' : ''}" 
+    data-action="favourite" 
+    data-song-id="${song.Id}"
+    title="Yêu thích"
+  >
+    <i class="fa-solid fa-heart"></i>
+  </button>
   <button class="btn btn-lyric" data-action="lyric" title="Chi tiết">
     <i class="fa-solid fa-music"></i>
   </button>
@@ -87,6 +100,9 @@ function renderSongs(songs) {
 
   updateStats(songs);
 }
+
+// Export renderSongs để các module khác có thể sử dụng
+window.renderSongs = renderSongs;
 
 
 list.addEventListener('click', (e) => {
@@ -101,6 +117,7 @@ list.addEventListener('click', (e) => {
     if (action === 'edit') openEditDialog(songId);
     else if (action === 'delete') deleteSong(songId);
     else if (action === 'lyric') showLyric(songId);
+    else if (action === 'favourite') window.toggleFavourite(songId);
   } else if (e.target.closest('.song-clickable')) {
     showLyric(songId);
   }
@@ -127,13 +144,15 @@ searchInput.addEventListener('input', (e) => {
 });
 
 window.showLyric = id => {
+  window.currentSongId = id;
   const s = window._songs.find(x => x.Id === id);
   
   
   const updates = {
     title: s['Tên'],
     artist: `${s['Ca sĩ']}ㅤ`,
-    date: `•ㅤ${s['Ngày phát hành']||''}`,
+    date: `${s['Ngày phát hành']||''}`,
+    onalbum: `Album: ${s['album']||'Không có'}`,
     addedBy: s['add_by'] ? `👤 Người thêm: ${s['add_by']}` : '',
     lyric: (s['Lyric'] || '').split('\n').map(line => {
       const cleanLine = line.replace('--hot', '').trim();
@@ -149,10 +168,23 @@ window.showLyric = id => {
     dTitle.textContent = updates.title;
     dArtist.textContent = updates.artist;
     dDate.textContent = updates.date;
+    dAlbum.textContent = updates.onalbum;
     dAddedBy.textContent = updates.addedBy;
     dLyric.innerHTML = updates.lyric;
     dAvatar.src = updates.avatarSrc || '';
     dAvatar.style.display = updates.avatarDisplay;
+    
+    // Update favourite button
+    const btnFav = document.getElementById('btnFavouriteLyric');
+    if (btnFav) {
+      const favourites = window.userFavourites || [];
+      if (favourites.includes(id.toString())) {
+        btnFav.classList.add('active');
+      } else {
+        btnFav.classList.remove('active');
+      }
+    }
+    
     lyricDialog.showModal();
   });
 }
@@ -584,6 +616,7 @@ window.autoFindReleaseDate = async function() {
 };
 
 let currentUser = null;
+window.currentUser = null;
 
 async function checkAuth() {
   const {
@@ -593,6 +626,7 @@ async function checkAuth() {
   } = await supabase.auth.getSession();
   if (session) {
     currentUser = session.user;
+    window.currentUser = session.user;
     await loadUserProfile();
     updateAuthUI(true);
   } else {
@@ -644,6 +678,10 @@ async function loadUserProfile() {
 
     window.currentUserRole = data.role;
     
+    // Load favourites của user
+    if (window.loadUserFavourites) {
+      await window.loadUserFavourites();
+    }
     
     if (window._songs && window._songs.length > 0) {
       renderSongs(window._songs);
@@ -658,8 +696,15 @@ function updateAuthUI(isLoggedIn) {
   const userInfo = document.getElementById('userInfo');
 
   if (authButtons && userInfo) {
-    authButtons.style.display = isLoggedIn ? 'none' : 'flex';
-    userInfo.style.display = isLoggedIn ? 'flex' : 'none';
+    if (isLoggedIn) {
+      authButtons.style.display = 'none';
+      userInfo.style.display = 'flex';
+    } else {
+      authButtons.style.display = 'flex';
+      authButtons.style.alignItems = 'center';
+      authButtons.style.gap = '12px';
+      userInfo.style.display = 'none';
+    }
   }
 }
 
@@ -768,6 +813,7 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
     }
 
     currentUser = authData.user;
+    window.currentUser = authData.user;
     await loadUserProfile();
     updateAuthUI(true);
 
@@ -805,6 +851,7 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
   }
 
   currentUser = data.user;
+  window.currentUser = data.user;
   await loadUserProfile();
   updateAuthUI(true);
 
@@ -818,13 +865,30 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
 window.handleLogout = async function() {
   if (!confirm('Bạn có chắc muốn đăng xuất?')) return;
 
-  await supabase.auth.signOut();
+  try {
+    // Try normal signOut
+    const { error } = await supabase.auth.signOut();
+    if (error) throw error;
+  } catch (error) {
+    console.warn('SignOut API failed, clearing local session:', error);
+    
+    // Fallback: Clear localStorage tokens
+    const keys = Object.keys(localStorage);
+    keys.forEach(key => {
+      if (key.includes('supabase') || key.includes('sb-')) {
+        localStorage.removeItem(key);
+      }
+    });
+    sessionStorage.clear();
+  }
+  
+  // Always clear app state and reload
   currentUser = null;
+  window.currentUser = null;
+  window.currentUserRole = null;
   updateAuthUI(false);
-  alert('Đã đăng xuất!');
-  loadSongs();
   updateStreakCard(0);
-  location.reload()
+  location.reload();
 };
 
 supabase.auth.onAuthStateChange((event, session) => {

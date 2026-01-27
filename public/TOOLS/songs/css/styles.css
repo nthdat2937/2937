@@ -1516,7 +1516,6 @@ select:focus {
 .user-song-item:hover {
   background: linear-gradient(135deg, rgba(99, 102, 241, 0.08), rgba(139, 92, 246, 0.05));
   border-color: var(--accent-primary);
-  transform: translateX(8px);
 }
 
 .user-song-item img {
@@ -1746,7 +1745,7 @@ select:focus {
 }
 
 .sidebar-item:nth-child(3) i {
-  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+  background: red;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -1764,12 +1763,36 @@ select:focus {
 }
 
 .sidebar-item:nth-child(6) i {
-  background: linear-gradient(135deg, #06b6d4, #0891b2);
+  background: gray;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.sidebar-item:nth-child(7) i {
+  /* background: gray; */
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.sidebar-item:nth-child(8) i {
+  background: pink;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
 .sidebar-item:nth-child(9) i {
+  background: yellow;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.sidebar-item:nth-child(11) i {
+  background: var(--accent-pink);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.sidebar-item:nth-child(12) i {
   background: gray;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -2638,6 +2661,209 @@ body.no-animations .guide-section:hover {
 }
 
 /* ===== END GUIDE DIALOG STYLES ===== */
+
+/* ===== FAVOURITE FEATURE STYLES ===== */
+
+.btn-favourite {
+  background: rgba(239, 68, 68, 0.1);
+  border: 2px solid rgba(239, 68, 68, 0.3);
+  color: #ef4444;
+  padding: 8px 14px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-favourite:hover {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: #ef4444;
+  transform: scale(1.1);
+}
+
+.btn-favourite.active {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  border-color: #ef4444;
+  color: white;
+  box-shadow: 0 4px 20px rgba(239, 68, 68, 0.4);
+}
+
+.btn-favourite.active i {
+  animation: heartBeat 0.5s ease;
+}
+
+@keyframes heartBeat {
+  0%, 100% { transform: scale(1); }
+  25% { transform: scale(1.3); }
+  50% { transform: scale(1.1); }
+  75% { transform: scale(1.2); }
+}
+
+/* Favourite in table */
+tbody .btn-favourite {
+  padding: 8px 12px;
+  font-size: 14px;
+}
+
+/* Favourite in dialogs */
+#btnFavouriteLyric,
+#btnFavouriteYoutube {
+  min-width: 44px;
+  height: 44px;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+/* Favourite Dialog */
+#favouriteDialog {
+  width: min(900px, 92vw);
+  max-height: 85vh;
+}
+
+.favourite-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  margin-bottom: 12px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  gap: 20px;
+}
+
+.favourite-item:hover {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.08), rgba(220, 38, 38, 0.05));
+  border-color: #ef4444;
+}
+
+.favourite-item-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex: 1;
+  min-width: 0;
+}
+
+.favourite-item img {
+  width: 60px;
+  height: 60px;
+  border-radius: 12px;
+  object-fit: cover;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  flex-shrink: 0;
+}
+
+.favourite-no-avatar {
+  width: 60px;
+  height: 60px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  flex-shrink: 0;
+  box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
+}
+
+.favourite-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.favourite-title {
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.favourite-artist {
+  font-size: 14px;
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.favourite-item-right {
+  flex-shrink: 0;
+}
+
+.btn-remove-favourite {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  border: none;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  transition: all 0.3s;
+}
+
+.btn-remove-favourite:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
+}
+
+/* Toast animations */
+@keyframes toastSlideUp {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 20px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+@keyframes toastSlideDown {
+  from {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+  to {
+    opacity: 0;
+    transform: translate(-50%, 20px);
+  }
+}
+
+/* Responsive */
+@media screen and (max-width: 480px) {
+  #favouriteDialog {
+    width: 96vw;
+  }
+  
+  .favourite-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .favourite-item-left {
+    width: 100%;
+  }
+  
+  .favourite-item-right {
+    width: 100%;
+    display: flex;
+    justify-content: flex-end;
+  }
+}
+
+/* ===== END FAVOURITE FEATURE STYLES ===== */
 
 /* ===== FIX DIALOG CHO IPHONE ĐỜI CŨ ===== */
 
