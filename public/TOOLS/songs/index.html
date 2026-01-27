@@ -23,9 +23,12 @@
         <!-- Options sẽ được tạo động từ JS -->
       </select>
     </div>
-    <div id="authButtons">
+    <div id="authButtons" style="display: flex; align-items: center; gap: 12px;">
       <button class="btn btn-add" onclick="loginDialog.showModal()" id="btn-login" title="Đăng nhập">
         <i class="fa-solid fa-user"></i>
+      </button>
+      <button class="btn btn-add" onclick="toggleSidebar()" id="btn-menu-guest" title="Menu">
+        <i class="fa-solid fa-bars"></i>
       </button>
     </div>
     <div id="userInfo" style="display: none; align-items: center; gap: 12px;">

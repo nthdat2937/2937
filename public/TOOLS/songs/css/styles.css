@@ -411,8 +411,9 @@ dialog {
   margin: 0;
   border: none;
   border-radius: 24px;
-  width: min(70vw, 92vw);
-  max-height: 85vh;
+  width: 92vw;
+  max-height: 90vh;
+  min-width: 320px;
   background: var(--bg-secondary);
   color: var(--text-primary);
   padding: 0;
@@ -2624,6 +2625,254 @@ body.no-animations .guide-section:hover {
 }
 
 /* ===== END GUIDE DIALOG STYLES ===== */
+
+/* ===== FIX DIALOG CHO IPHONE ĐỜI CŨ ===== */
+
+/* iPhone 8 Plus, 7 Plus, 6s Plus (414px) */
+@media screen and (max-width: 414px) and (min-width: 376px) {
+  dialog {
+    width: 95vw;
+    max-height: 92vh;
+    border-radius: 16px;
+  }
+  
+  dialog h2 {
+    font-size: 22px;
+    padding: 20px 24px 16px 24px;
+  }
+  
+  .close {
+    width: 36px;
+    height: 36px;
+    top: 12px;
+    right: 12px;
+  }
+  
+  #lyricDialog h2 {
+    font-size: 28px !important;
+  }
+  
+  .lyric-container {
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  .lyric-avatar {
+    width: 100%;
+  }
+  
+  .lyric-avatar > img:first-of-type {
+    width: 200px !important;
+    height: 200px !important;
+  }
+}
+
+/* iPhone 8, 7, 6s, 6 (375px) */
+@media screen and (max-width: 375px) and (min-width: 361px) {
+  dialog {
+    width: 96vw;
+    max-height: 93vh;
+    border-radius: 14px;
+  }
+  
+  dialog h2 {
+    font-size: 20px;
+    padding: 18px 20px 14px 20px;
+  }
+  
+  .close {
+    width: 34px;
+    height: 34px;
+    top: 10px;
+    right: 10px;
+  }
+  
+  dialog form,
+  dialog > div,
+  .lyric-container {
+    padding: 18px 20px 20px 20px;
+  }
+  
+  .form-group input,
+  .form-group textarea {
+    padding: 12px 16px;
+    font-size: 15px;
+  }
+  
+  #lyricDialog h2 {
+    font-size: 24px !important;
+  }
+  
+  .lyric-container {
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .lyric-avatar {
+    width: 100%;
+  }
+  
+  .lyric-avatar > img:first-of-type {
+    width: 180px !important;
+    height: 180px !important;
+  }
+  
+  .iconMXH {
+    width: 45px !important;
+    height: 45px !important;
+  }
+}
+
+/* iPhone SE, 5s (320px) */
+@media screen and (max-width: 360px) {
+  dialog {
+    width: 98vw;
+    max-height: 94vh;
+    border-radius: 12px;
+  }
+  
+  dialog h2 {
+    font-size: 18px;
+    padding: 16px 18px 12px 18px;
+  }
+  
+  .close {
+    width: 32px;
+    height: 32px;
+    top: 8px;
+    right: 8px;
+    font-size: 12px;
+  }
+  
+  dialog form,
+  dialog > div,
+  .lyric-container {
+    padding: 16px 18px 18px 18px;
+  }
+  
+  .form-group {
+    margin-bottom: 16px;
+  }
+  
+  .form-group label {
+    font-size: 12px;
+    margin-bottom: 6px;
+  }
+  
+  .form-group input,
+  .form-group textarea {
+    padding: 10px 14px;
+    font-size: 14px;
+  }
+  
+  .btn {
+    padding: 8px 16px;
+    font-size: 14px;
+  }
+  
+  #lyricDialog h2 {
+    font-size: 20px !important;
+  }
+  
+  .lyric-container {
+    flex-direction: column;
+    gap: 14px;
+  }
+  
+  .lyric-avatar {
+    width: 100%;
+  }
+  
+  .lyric-avatar > img:first-of-type {
+    width: 160px !important;
+    height: 160px !important;
+  }
+  
+  .iconMXH {
+    width: 40px !important;
+    height: 40px !important;
+    margin: 4px 6px !important;
+  }
+}
+
+/* Header responsive for mobile */
+@media screen and (max-width: 768px) {
+  header {
+    padding: 12px 16px;
+    font-size: 20px;
+  }
+  
+  .logoweb {
+    font-size: 20px;
+  }
+  
+  .search-container {
+    flex: 1;
+    min-width: 0;
+    margin: 0 12px;
+  }
+  
+  .search-input {
+    font-size: 14px;
+    padding: 10px 16px;
+  }
+  
+  .btn-add {
+    padding: 10px 14px;
+    font-size: 14px;
+  }
+  
+  #userDisplayName {
+    font-size: 18px !important;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  header {
+    padding: 10px 12px;
+    font-size: 18px;
+    gap: 8px;
+  }
+  
+  .logoweb {
+    font-size: 18px;
+    display: none;
+  }
+  
+  header > div:first-child > span:first-child {
+    font-size: 24px;
+  }
+  
+  .search-container {
+    margin: 0 8px;
+  }
+  
+  .search-input {
+    font-size: 13px;
+    padding: 8px 14px;
+  }
+  
+  .artist-filter {
+    display: none;
+  }
+  
+  .btn-add {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+  
+  #userDisplayName {
+    display: none !important;
+  }
+  
+  #authButtons {
+    gap: 8px !important;
+  }
+  
+  #userInfo {
+    gap: 8px !important;
+  }
+}
 
 #historyDialog {
   width: min(900px, 92vw);
