@@ -1611,11 +1611,11 @@ window.openHistoryDialog = async function() {
   dialog.showModal();
   
   try {
-    // Lấy TOÀN BỘ bài hát (cả đã xác minh và chưa xác minh)
+    // Lấy TOÀN BỘ bài hát (cả đã xác minh, chờ duyệt và bị từ chối)
     const { data: allSongs, error } = await supabase
       .from('songs')
       .select('*')
-      .order('Ngày thêm', { ascending: false }); // Sắp xếp theo ngày thêm, mới nhất trước
+      .order('Ngày thêm', { ascending: false });
     
     if (error) throw error;
     
@@ -1630,9 +1630,10 @@ window.openHistoryDialog = async function() {
       return;
     }
     
-    // Đếm số bài đã xác minh và chưa xác minh
+    // Đếm số bài theo trạng thái
     const verifiedCount = allSongs.filter(s => s['Xác minh'] === true).length;
-    const pendingCount = allSongs.length - verifiedCount;
+    const rejectedCount = allSongs.filter(s => s['Xác minh'] === false && s.rejection_status === 'rejected').length;
+    const pendingCount = allSongs.filter(s => s['Xác minh'] === false && (!s.rejection_status || s.rejection_status === 'pending')).length;
     
     // Cập nhật thống kê
     statsEl.innerHTML = `
@@ -1643,11 +1644,15 @@ window.openHistoryDialog = async function() {
         </div>
         <div style="text-align: center;">
           <div style="font-size: 28px; font-weight: 700; color: #10b981;">✅ ${verifiedCount}</div>
-          <div style="font-size: 13px; color: var(--text-muted);">Đã xác minh</div>
+          <div style="font-size: 13px; color: var(--text-muted);">Đã duyệt</div>
         </div>
         <div style="text-align: center;">
           <div style="font-size: 28px; font-weight: 700; color: #f59e0b;">⏳ ${pendingCount}</div>
           <div style="font-size: 13px; color: var(--text-muted);">Chờ duyệt</div>
+        </div>
+        <div style="text-align: center;">
+          <div style="font-size: 28px; font-weight: 700; color: #ef4444;">❌ ${rejectedCount}</div>
+          <div style="font-size: 13px; color: var(--text-muted);">Từ chối</div>
         </div>
       </div>
     `;
@@ -1666,7 +1671,23 @@ window.openHistoryDialog = async function() {
       
       const releaseDate = song['Ngày phát hành'] || 'N/A';
       const isVerified = song['Xác minh'] === true;
+      const isRejected = song['Xác minh'] === false && song.rejection_status === 'rejected';
       const addedBy = song['add_by'] || 'Không rõ';
+      
+      // Xác định trạng thái
+      let statusClass = 'status-pending';
+      let statusText = '⏳ Chờ duyệt';
+      let itemClass = 'pending';
+      
+      if (isVerified) {
+        statusClass = 'status-verified';
+        statusText = '✅ Đã duyệt';
+        itemClass = 'verified';
+      } else if (isRejected) {
+        statusClass = 'status-rejected';
+        statusText = '❌ Từ chối';
+        itemClass = 'rejected';
+      }
       
       // Badge cho top 3
       let badge = '';
@@ -1674,8 +1695,16 @@ window.openHistoryDialog = async function() {
       else if (index === 1) badge = '<span style="background: linear-gradient(135deg, #c0c0c0, #a9a9a9); color: white; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; margin-left: 8px;">🥈 THỨ 2</span>';
       else if (index === 2) badge = '<span style="background: linear-gradient(135deg, #cd7f32, #b87333); color: white; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; margin-left: 8px;">🥉 THỨ 3</span>';
       
+      // Hiển thị lý do từ chối nếu có
+      const rejectionReason = isRejected && song.rejection_reason 
+        ? `<div class="rejection-reason-history">
+             <i class="fa-solid fa-circle-info"></i> 
+             <strong>Lý do:</strong> ${song.rejection_reason}
+           </div>`
+        : '';
+      
       return `
-        <div class="history-item ${isVerified ? 'verified' : 'pending'}" onclick="showLyric(${song.Id})">
+        <div class="history-item ${itemClass}" onclick="showLyric(${song.Id})">
           <div class="history-left">
             ${song.avatar 
               ? `<img src="${song.avatar}" alt="avatar">` 
@@ -1691,17 +1720,27 @@ window.openHistoryDialog = async function() {
                 <span>•</span>
                 <span>📅 Phát hành: ${releaseDate}</span>
               </div>
+              ${rejectionReason}
             </div>
           </div>
           <div class="history-right">
-            <div class="history-status ${isVerified ? 'status-verified' : 'status-pending'}">
-              ${isVerified ? '✅ Đã duyệt' : '⏳ Chờ duyệt'}
-            </div>
-            <div class="history-date">
-              <i class="fa-solid fa-clock"></i>
-              ${addedDate}
-            </div>
-          </div>
+  <div class="history-status ${statusClass}">
+    ${statusText}
+  </div>
+  ${window.currentUserRole === 'Admin' && !isVerified && !isRejected ? `
+    <button 
+      class="btn-reject-history" 
+      onclick="event.stopPropagation(); rejectSongFromHistory(${song.Id})"
+      title="Từ chối bài này"
+    >
+      <i class="fa-solid fa-ban"></i> Từ chối
+    </button>
+  ` : ''}
+  <div class="history-date">
+    <i class="fa-solid fa-clock"></i>
+    ${addedDate}
+  </div>
+</div>
         </div>
       `;
     }).join('');
@@ -1716,6 +1755,7 @@ window.openHistoryDialog = async function() {
     `;
   }
 };
+
 
 window.openAlbumDialog = async function() {
   const dialog = document.getElementById("albumDialog");
@@ -1814,4 +1854,47 @@ window.showAlbumSongs = async function(albumName) {
   `;
   document.body.appendChild(tempDialog);
   tempDialog.showModal();
+};
+
+window.rejectSongFromHistory = async function(songId) {
+  if (!window.currentUser) {
+    alert('Vui lòng đăng nhập!');
+    return;
+  }
+  
+  if (window.currentUserRole !== 'Admin') {
+    alert('Chỉ Admin mới có quyền từ chối bài!');
+    return;
+  }
+  
+  const reason = prompt('Nhập lý do từ chối (tối thiểu 10 ký tự):');
+  
+  if (!reason) return;
+  
+  if (reason.trim().length < 10) {
+    alert('Lý do quá ngắn! Vui lòng nhập ít nhất 10 ký tự.');
+    return;
+  }
+  
+  if (!confirm('Bạn chắc chắn muốn từ chối bài hát này?')) return;
+  
+  try {
+    const { error } = await supabase
+      .from('songs')
+      .update({
+        'Xác minh': false,
+        'rejection_status': 'rejected',
+        'rejection_reason': reason.trim()
+      })
+      .eq('Id', songId);
+    
+    if (error) throw error;
+    
+    alert('✅ Đã từ chối bài hát!');
+    openHistoryDialog(); // Reload lịch sử
+    
+  } catch (error) {
+    console.error('Error:', error);
+    alert('❌ Có lỗi xảy ra: ' + error.message);
+  }
 };
