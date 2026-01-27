@@ -2135,9 +2135,8 @@ body.sidebar-open header {
   background: var(--bg-card);
   backdrop-filter: blur(20px);
   border-bottom: 1px solid var(--border-color);
-  position: sticky;
-  top: 73px;
-  z-index: 99;
+  position: relative;
+  z-index: 1;
 }
 
 .tag-filter-container {
@@ -2240,7 +2239,7 @@ body.sidebar-open header {
 @media screen and (max-width: 1300px) {
   .filter-section {
     padding: 12px 16px;
-    top: 120px;
+    position: relative;
   }
   
   .tag-filter-label span {
@@ -2255,6 +2254,11 @@ body.sidebar-open header {
 }
 
 @media screen and (max-width: 480px) {
+  .filter-section {
+    padding: 10px 12px;
+    position: relative;
+  }
+  
   .search-container {
     flex-direction: column;
     gap: 8px;
@@ -2266,6 +2270,15 @@ body.sidebar-open header {
   
   .tag-filter-container {
     gap: 8px;
+  }
+  
+  .tag-filter-label {
+    font-size: 13px;
+  }
+  
+  .tag-filter-item {
+    padding: 6px 12px;
+    font-size: 12px;
   }
   
   .tag-filter-item {
@@ -2631,8 +2644,8 @@ body.no-animations .guide-section:hover {
 /* iPhone 8 Plus, 7 Plus, 6s Plus (414px) */
 @media screen and (max-width: 414px) and (min-width: 376px) {
   dialog {
-    width: 95vw;
-    max-height: 92vh;
+    width: 96vw;
+    max-height: 95vh;
     border-radius: 16px;
   }
   
@@ -2650,6 +2663,16 @@ body.no-animations .guide-section:hover {
   
   #lyricDialog h2 {
     font-size: 28px !important;
+  }
+  
+  #lyricDialog {
+    max-height: 96vh !important;
+  }
+  
+  #addSongDialog,
+  #editSongDialog,
+  #settingsDialog {
+    max-height: 95vh !important;
   }
   
   .lyric-container {
