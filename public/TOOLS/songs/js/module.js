@@ -1088,12 +1088,13 @@ window.showUserSongs = async function(userName) {
   listEl.innerHTML = "<div style='text-align: center; padding: 20px; color: var(--text-muted);'>Đang tải...</div>";
   
   try {
+    
     const { data: userSongs, error } = await supabase
       .from('songs')
       .select('*')
       .eq('add_by', userName)
       .eq('Xác minh', true)
-      .order('Ngày thêm', { ascending: false });
+      .order('Ngày phát hành', { ascending: false });
     
     if (error) throw error;
     

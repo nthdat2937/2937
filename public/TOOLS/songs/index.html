@@ -101,6 +101,10 @@
       <i class="fa-solid fa-heart"></i>
       <span>Bài hát yêu thích</span>
     </button>
+    <button class="sidebar-item" id="btn-users-sc" onclick="openUsersDialog(); toggleSidebar();">
+      <i class="fa-solid fa-users"></i>
+      <span>Danh sách người dùng</span>
+    </button>
     About
     <button class="sidebar-item" id="btn-guide-sc" onclick="openGuideDialog(); toggleSidebar();">
       <i class="fa-solid fa-circle-info"></i>
@@ -942,11 +946,288 @@
     </div>
   </dialog>
   
+  <!-- Ban User Dialogs -->
+  <script>
+    fetch('ban.html')
+      .then(response => response.text())
+      .then(html => {
+        const div = document.createElement('div');
+        div.innerHTML = html;
+        document.body.appendChild(div);
+      });
+  </script>
+
+<!-- ===== THAY THẾ PHẦN CODE TỪ DÒNG 960-975 TRONG INDEX.HTML ===== -->
+<!-- Xóa code cũ từ dòng 960-975 và thay bằng code này: -->
+
+<script type="module">
+  import { supabase } from './js/supabase-client.js';
+
+  // Wrap trong async IIFE để có thể dùng await
+  (async function() {
+    try {
+      const { data } = await supabase.auth.getUser();
+      if (!data || !data.user) {
+        console.log('No user logged in');
+        return;
+      }
+
+      // Kiểm tra ban status
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('ban, unban_date, reason_ban')
+        .eq('id', data.user.id)
+        .single();
+
+      if (error) {
+        console.error('Error checking ban status:', error);
+        return;
+      }
+
+      // Nếu user bị ban
+      if (profile && profile.ban) {
+        // Kiểm tra xem đã hết hạn chưa
+        if (profile.unban_date) {
+          const unbanDate = new Date(profile.unban_date);
+          const now = new Date();
+          
+          if (now >= unbanDate) {
+            // Tự động unban
+            await supabase
+              .from('profiles')
+              .update({ 
+                ban: false, 
+                unban_date: null, 
+                reason_ban: null 
+              })
+              .eq('id', data.user.id);
+            
+            console.log('User auto-unbanned');
+            return;
+          }
+        }
+        
+        // Vẫn còn bị ban - hiển thị trang ban
+        // Import showBanPage từ ban.js sẽ được load sau
+        // Đợi DOM load xong
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', () => {
+            showBanPageNow(profile.reason_ban, profile.unban_date, data.user.email);
+          });
+        } else {
+          showBanPageNow(profile.reason_ban, profile.unban_date, data.user.email);
+        }
+      }
+    } catch (err) {
+      console.error('Error in ban check:', err);
+    }
+  })();
+
+  // Function để hiển thị ban page ngay lập tức
+  function showBanPageNow(reason, unbanDate, userEmail) {
+    // Xóa toàn bộ nội dung
+    document.body.innerHTML = '';
+    document.body.classList.add('banned');
+    
+    // Thêm inline CSS
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+      @keyframes slideUp {
+        from {
+          transform: translateY(50px);
+          opacity: 0;
+        }
+        to {
+          transform: translateY(0);
+          opacity: 1;
+        }
+      }
+      @keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+      }
+      body.banned {
+        overflow: hidden !important;
+        margin: 0;
+        padding: 0;
+      }
+    `;
+    document.head.appendChild(style);
+    
+    // Ngăn mọi hành động
+    const preventAll = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      return false;
+    };
+    
+    document.addEventListener('keydown', preventAll, true);
+    document.addEventListener('click', preventAll, true);
+    document.addEventListener('contextmenu', preventAll, true);
+    document.addEventListener('mousedown', preventAll, true);
+    
+    window.onbeforeunload = () => "Tài khoản của bạn đã bị khóa.";
+    
+    const unbanText = unbanDate 
+      ? `Bạn sẽ được mở khóa vào: <strong>${new Date(unbanDate).toLocaleString('vi-VN')}</strong>` 
+      : 'Tài khoản của bạn bị khóa vĩnh viễn';
+    
+    const banPage = document.createElement('div');
+    banPage.id = 'banPage';
+    banPage.style.cssText = `
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 20px;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 999999;
+      animation: fadeIn 0.5s ease-in-out;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    `;
+    
+    banPage.innerHTML = `
+      <div style="
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(20px);
+        border-radius: 24px;
+        padding: 48px;
+        max-width: 600px;
+        text-align: center;
+        box-shadow: 0 25px 80px rgba(0, 0, 0, 0.3);
+        animation: slideUp 0.6s ease-out;
+      ">
+        <div style="
+          width: 120px;
+          height: 120px;
+          background: linear-gradient(135deg, #ef4444, #dc2626);
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin: 0 auto 32px;
+          box-shadow: 0 10px 40px rgba(239, 68, 68, 0.4);
+          animation: pulse 2s infinite;
+        ">
+          <svg style="width: 64px; height: 64px; color: white;" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M13.477 14.89A6 6 0 015.11 6.524l8.367 8.368zm1.414-1.414L6.524 5.11a6 6 0 018.367 8.367zM18 10a8 8 0 11-16 0 8 8 0 0116 0z" clip-rule="evenodd"/>
+          </svg>
+        </div>
+        
+        <h1 style="
+          font-size: 32px;
+          font-weight: 800;
+          color: #1f2937;
+          margin: 0 0 16px 0;
+        ">Tài khoản đã bị khóa</h1>
+        
+        <p style="
+          font-size: 18px;
+          color: #6b7280;
+          margin: 0 0 32px 0;
+          line-height: 1.6;
+        ">${unbanText}</p>
+        
+        <div style="
+          background: #fee2e2;
+          border: 2px solid #ef4444;
+          border-radius: 16px;
+          padding: 24px;
+          margin-bottom: 32px;
+          text-align: left;
+        ">
+          <div style="
+            font-size: 14px;
+            font-weight: 700;
+            color: #dc2626;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+          ">Lý do:</div>
+          <div style="
+            font-size: 16px;
+            color: #1f2937;
+            line-height: 1.6;
+            word-wrap: break-word;
+          ">${reason || 'Không có lý do cụ thể'}</div>
+        </div>
+        
+        <div style="
+          background: #dbeafe;
+          border: 2px solid #3b82f6;
+          border-radius: 16px;
+          padding: 24px;
+          margin-bottom: 32px;
+          text-align: left;
+        ">
+          <div style="
+            font-size: 14px;
+            font-weight: 700;
+            color: #1e40af;
+            margin-bottom: 12px;
+          ">ℹ️ Thông tin liên hệ</div>
+          <div style="
+            font-size: 15px;
+            color: #1f2937;
+            line-height: 1.8;
+          ">
+            Nếu bạn cho rằng đây là nhầm lẫn hoặc muốn khiếu nại, vui lòng liên hệ:<br>
+            <strong style="color: #3b82f6;">
+              📧 nthdat.2937@gmail.com
+            </strong>
+          </div>
+        </div>
+        
+        <div style="
+          font-size: 13px;
+          color: #9ca3af;
+          margin-top: 24px;
+          word-wrap: break-word;
+        ">
+          Email: <strong>${userEmail || 'N/A'}</strong>
+        </div>
+        
+        <div style="
+          margin-top: 24px;
+          padding-top: 24px;
+          border-top: 1px solid rgba(0,0,0,0.1);
+          font-size: 12px;
+          color: #9ca3af;
+        ">
+          🔒 Bạn không thể đăng xuất hay thực hiện bất kỳ thao tác nào khác trên hệ thống.
+        </div>
+      </div>
+    `;
+    
+    document.body.appendChild(banPage);
+    
+    // Disable console
+    if (typeof console !== 'undefined') {
+      const noop = () => {};
+      ['log', 'warn', 'error', 'info', 'debug'].forEach(method => {
+        console[method] = noop;
+      });
+    }
+  }
+</script>
+
+  
   <script src="js/main.js"></script>
   <script src="js/guide.js"></script>
   <script src="js/settings.js"></script>
   <script type="module" src="js/supabase-client.js"></script>
   <script type="module" src="js/favourite.js"></script>
+  <script type="module" src="js/ban.js"></script>
   <script type="module" src="js/module.js"></script>
   <script type="module" src="js/update.js"></script>
 
