@@ -220,8 +220,12 @@ function toggleSidebar() {
   const body = document.body;
   
   sidebar.classList.toggle('active');
-  overlay.classList.toggle('active');
   body.classList.toggle('sidebar-open');
+  
+  // Chỉ toggle overlay trên mobile
+  if (overlay && window.innerWidth <= 768) {
+    overlay.classList.toggle('active');
+  }
 }
 
 // Đóng sidebar khi nhấn ESC
