@@ -1724,18 +1724,28 @@ window.openHistoryDialog = async function() {
             </div>
           </div>
           <div class="history-right">
-  <div class="history-status ${statusClass}">
-    ${statusText}
-  </div>
   ${window.currentUserRole === 'Admin' && !isVerified && !isRejected ? `
-    <button 
-      class="btn-reject-history" 
-      onclick="event.stopPropagation(); rejectSongFromHistory(${song.Id})"
-      title="Từ chối bài này"
-    >
-      <i class="fa-solid fa-ban"></i> Từ chối
-    </button>
-  ` : ''}
+    <div class="admin-actions">
+      <button 
+        class="btn-approve-history" 
+        onclick="event.stopPropagation(); approveSong(${song.Id})"
+        title="Duyệt bài này"
+      >
+        <i class="fa-solid fa-check"></i> Duyệt
+      </button>
+      <button 
+        class="btn-reject-history" 
+        onclick="event.stopPropagation(); openRejectDialog(${song.Id})"
+        title="Từ chối bài này"
+      >
+        <i class="fa-solid fa-xmark"></i> Từ chối
+      </button>
+    </div>
+  ` : `
+    <div class="history-status ${statusClass}">
+      ${statusText}
+    </div>
+  `}
   <div class="history-date">
     <i class="fa-solid fa-clock"></i>
     ${addedDate}

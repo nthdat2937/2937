@@ -255,6 +255,50 @@ async function openYoutubeVideoDialog() {
     </div>
   `;
   document.getElementById('youtubeVideoSongName').textContent = `${songName} - ${artist}`;
+  document.getElementById('ytVersionRemix').innerHTML = `<button onclick="searchYoutubeVideo('${songName.trim()} - ${artist} - remix');" style="
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 10px 24px;
+  border-radius: 25px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  position: relative;
+  overflow: hidden;
+"
+onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(102, 126, 234, 0.6)';"
+onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(102, 126, 234, 0.4)';"
+onmousedown="this.style.transform='scale(0.95)';"
+onmouseup="this.style.transform='translateY(-2px)';">
+  Remix
+</button>`;
+document.getElementById('ytVersionLofi').innerHTML = `<button onclick="searchYoutubeVideo('${songName.trim()} - ${artist} - lofi');" style="
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 10px 24px;
+  border-radius: 25px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  position: relative;
+  overflow: hidden;
+"
+onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(102, 126, 234, 0.6)';"
+onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(102, 126, 234, 0.4)';"
+onmousedown="this.style.transform='scale(0.95)';"
+onmouseup="this.style.transform='translateY(-2px)';">
+  Lofi
+</button>`;
   youtubeVideoDialog.showModal();
   
   try {

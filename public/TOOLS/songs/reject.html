@@ -1,0 +1,438 @@
+<!-- ===== REJECT SONG DIALOG ===== -->
+<dialog id="rejectDialog" style="
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  margin: 0;
+  border: none;
+  border-radius: 24px;
+  width: min(600px, 92vw);
+  max-height: 85vh;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  padding: 0;
+  overflow: hidden;
+  box-shadow: 
+    0 0 0 1px var(--glass-border),
+    0 25px 80px rgba(0, 0, 0, 0.6),
+    0 0 120px rgba(239, 68, 68, 0.15);
+">
+  <button class="btn close" onclick="rejectDialog.close()" style="
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid var(--glass-border);
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border-radius: 50%;
+    color: var(--text-primary);
+    cursor: pointer;
+    font-size: 24px;
+    transition: all 0.3s;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  ">
+    <span style="font-size: 30px;">×</span>
+  </button>
+  
+  <h2 style="
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-size: 28px;
+    font-weight: 800;
+    padding: 28px 32px 20px 32px;
+    margin: 0;
+    border-bottom: 1px solid var(--border-color);
+  ">
+    <i class="fa-solid fa-ban"></i> Từ chối bài hát
+  </h2>
+  
+  <div style="padding: 24px 32px; overflow-y: auto; max-height: calc(85vh - 100px);">
+    <div style="
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 24px;
+      font-size: 14px;
+      color: var(--text-secondary);
+    ">
+      <i class="fa-solid fa-circle-info" style="color: #ef4444;"></i>
+      Bài hát bị từ chối sẽ không hiển thị cho người dùng. Vui lòng nêu rõ lý do để người đóng góp hiểu và cải thiện.
+    </div>
+    
+    <form id="rejectForm">
+      <div class="form-group" style="margin-bottom: 20px;">
+        <label for="rejectReason" style="
+          display: block;
+          font-weight: 600;
+          margin-bottom: 8px;
+          color: var(--text-primary);
+        ">Lý do từ chối *</label>
+        <textarea 
+          id="rejectReason" 
+          placeholder="Nhập lý do từ chối bài hát (tối thiểu 10 ký tự)"
+          rows="4"
+          required
+          style="
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-size: 15px;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 120px;
+            transition: all 0.3s;
+          "
+        ></textarea>
+        <div class="error" id="error-rejectReason" style="
+          color: #ef4444;
+          font-size: 13px;
+          margin-top: 6px;
+        "></div>
+      </div>
+      
+      <button type="submit" class="btn btn-primary" style="
+        width: 100%;
+        padding: 14px 24px;
+        background: linear-gradient(135deg, #ef4444, #dc2626);
+        border: none;
+        border-radius: 12px;
+        color: white;
+        font-weight: 700;
+        font-size: 16px;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+      ">
+        <i class="fa-solid fa-ban"></i> Xác nhận từ chối
+      </button>
+    </form>
+  </div>
+</dialog>
+
+<!-- ===== PENDING SONGS DIALOG ===== -->
+<dialog id="pendingSongsDialog" style="
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  margin: 0;
+  border: none;
+  border-radius: 24px;
+  width: min(1000px, 92vw);
+  max-height: 85vh;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  padding: 0;
+  overflow: hidden;
+  box-shadow: 
+    0 0 0 1px var(--glass-border),
+    0 25px 80px rgba(0, 0, 0, 0.6),
+    0 0 120px rgba(99, 102, 241, 0.15);
+">
+  <button class="btn close" onclick="pendingSongsDialog.close()" style="
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid var(--glass-border);
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border-radius: 50%;
+    color: var(--text-primary);
+    cursor: pointer;
+    font-size: 24px;
+    transition: all 0.3s;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  ">
+    <span style="font-size: 30px;">×</span>
+  </button>
+  
+  <h2 style="
+    background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary), var(--accent-pink));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-size: 28px;
+    font-weight: 800;
+    padding: 28px 32px 20px 32px;
+    margin: 0;
+    border-bottom: 1px solid var(--border-color);
+  ">
+    <i class="fa-solid fa-clock"></i> Quản lý bài hát chờ duyệt
+  </h2>
+  
+  <!-- Tabs -->
+  <div style="
+    display: flex;
+    gap: 8px;
+    padding: 16px 32px 0 32px;
+    border-bottom: 1px solid var(--border-color);
+  ">
+    <button 
+      id="pendingTab" 
+      class="tab-button active" 
+      onclick="switchPendingTab('pending')"
+      style="
+        padding: 12px 24px;
+        background: transparent;
+        border: none;
+        border-bottom: 3px solid transparent;
+        color: var(--text-muted);
+        font-weight: 600;
+        font-size: 15px;
+        cursor: pointer;
+        transition: all 0.3s;
+      "
+    >
+      ⏳ Chờ duyệt (<span id="pendingCount">0</span>)
+    </button>
+    <button 
+      id="rejectedTab" 
+      class="tab-button" 
+      onclick="switchPendingTab('rejected')"
+      style="
+        padding: 12px 24px;
+        background: transparent;
+        border: none;
+        border-bottom: 3px solid transparent;
+        color: var(--text-muted);
+        font-weight: 600;
+        font-size: 15px;
+        cursor: pointer;
+        transition: all 0.3s;
+      "
+    >
+      ❌ Bị từ chối (<span id="rejectedCount">0</span>)
+    </button>
+  </div>
+  
+  <!-- Pending Content -->
+  <div id="pendingContent" style="padding: 24px 32px; max-height: 60vh; overflow-y: auto;">
+    <div id="pendingList"></div>
+  </div>
+  
+  <!-- Rejected Content -->
+  <div id="rejectedContent" style="display: none; padding: 24px 32px; max-height: 60vh; overflow-y: auto;">
+    <div id="rejectedList"></div>
+  </div>
+</dialog>
+
+<style>
+.tab-button.active {
+  color: var(--accent-primary) !important;
+  border-bottom-color: var(--accent-primary) !important;
+}
+
+.tab-button:hover {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.pending-song-item {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  transition: all 0.3s;
+}
+
+.pending-song-item:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: var(--accent-primary);
+  transform: translateX(8px);
+}
+
+.pending-song-item.rejected {
+  background: rgba(239, 68, 68, 0.05);
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+.pending-song-info {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.pending-song-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 12px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.pending-song-no-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--accent-primary), var(--accent-pink));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  flex-shrink: 0;
+}
+
+.pending-song-details {
+  flex: 1;
+}
+
+.pending-song-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+}
+
+.pending-song-artist {
+  font-size: 15px;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+}
+
+.pending-song-meta {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.rejection-reason {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin-top: 8px;
+  font-size: 13px;
+  color: #ef4444;
+}
+
+.pending-song-actions {
+  display: flex;
+  gap: 12px;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+.btn-approve,
+.btn-reject,
+.btn-delete,
+.btn-view {
+  padding: 10px 18px;
+  border: none;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.btn-approve {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+}
+
+.btn-approve:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+}
+
+.btn-reject {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: white;
+}
+
+.btn-reject:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+}
+
+.btn-delete {
+  background: linear-gradient(135deg, #7c3aed, #6d28d9);
+  color: white;
+}
+
+.btn-delete:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(124, 58, 237, 0.4);
+}
+
+.btn-view {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+}
+
+.btn-view:hover {
+  background: rgba(255, 255, 255, 0.15);
+  transform: translateY(-2px);
+}
+
+/* Button hover for close button */
+.btn.close:hover {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  border-color: transparent;
+  transform: rotate(90deg) scale(1.1);
+}
+
+/* Form button hover */
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(239, 68, 68, 0.4);
+}
+
+/* Textarea focus */
+textarea:focus {
+  outline: none;
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+@media screen and (max-width: 768px) {
+  .pending-song-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .pending-song-actions {
+    width: 100%;
+  }
+  
+  .btn-approve,
+  .btn-reject,
+  .btn-delete,
+  .btn-view {
+    flex: 1;
+    justify-content: center;
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+}
+</style>

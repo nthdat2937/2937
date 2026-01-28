@@ -335,11 +335,10 @@ window.openUsersDialog = async function() {
                 ${isBanned ? '<span class="user-badge banned">BỊ KHÓA</span>' : ''}
               </div>
               <div class="user-meta">
-                Email: ${user.email}
+                Email: ${canBan ? user.email : 'Không thể xem!'}
               </div>
               <div class="user-meta">
-                SĐT: ${user.phone || 'Chưa cập nhật'} • 
-                Đóng góp: <strong>${songCount}</strong> bài hát
+                SĐT: ${canBan ? user.phone : user.phone.slice(0, 3) + '*****' + user.phone.slice(-2)}
               </div>
               ${isBanned && user.reason_ban ? `
                 <div class="user-ban-reason">

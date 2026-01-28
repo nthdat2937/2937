@@ -7,11 +7,18 @@ const UPDATES = [
   //     description: ""
   // },
   {
-    version: "1.15",
-    date: "2026-01-28",
+    version: "1.16",
+    date: "2026-01-29",
     type: "important",
     title: "Lưu ý",
     description: "Đây là trang web tổng hợp nhạc KHÔNG PHẢI TRANG WEB LƯU TRỮ NHẠC."
+  },
+  {
+    version: "1.16",
+    date: "2026-01-29",
+    type: "update",
+    title: "BIG UPDATE",
+    description: " Cập nhật: Ban user, List user, Tính năng từ chối bài hát, Album, Thêm version remix lofi cho các bài hát đỡ nhàm chán hơn"
   },
   {
       version: "1.15",

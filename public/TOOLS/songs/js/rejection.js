@@ -55,7 +55,18 @@ document.getElementById('rejectForm').addEventListener('submit', async (e) => {
     
     // Reload danh sách
     if (window.loadSongs) window.loadSongs();
-    if (window.openPendingSongsDialog) window.openPendingSongsDialog();
+    
+    // Chỉ reload pending dialog nếu nó đang mở
+    const pendingDialog = document.getElementById('pendingSongsDialog');
+    if (pendingDialog && pendingDialog.open && window.openPendingSongsDialog) {
+      window.openPendingSongsDialog();
+    }
+    
+    // Reload history dialog nếu đang mở
+    const historyDialog = document.getElementById('historyDialog');
+    if (historyDialog && historyDialog.open && window.openHistoryDialog) {
+      window.openHistoryDialog();
+    }
     
   } catch (error) {
     console.error('Error rejecting song:', error);
@@ -102,7 +113,18 @@ window.approveSong = async function(songId) {
     
     // Reload danh sách
     if (window.loadSongs) window.loadSongs();
-    if (window.openPendingSongsDialog) window.openPendingSongsDialog();
+    
+    // Chỉ reload pending dialog nếu nó đang mở
+    const pendingDialog = document.getElementById('pendingSongsDialog');
+    if (pendingDialog && pendingDialog.open) {
+      window.openPendingSongsDialog();
+    }
+    
+    // Reload history dialog nếu đang mở
+    const historyDialog = document.getElementById('historyDialog');
+    if (historyDialog && historyDialog.open && window.openHistoryDialog) {
+      window.openHistoryDialog();
+    }
     
   } catch (error) {
     console.error('Error approving song:', error);
@@ -128,7 +150,7 @@ window.openPendingSongsDialog = async function() {
       .from('songs')
       .select('*')
       .eq('Xác minh', false)
-      .order('created_at', { ascending: false });
+      .order('Ngày thêm', { ascending: false });
     
     if (error) throw error;
     
@@ -162,7 +184,7 @@ window.openPendingSongsDialog = async function() {
               <div class="pending-song-artist">${song['Ca sĩ']}</div>
               <div class="pending-song-meta">
                 Người thêm: <strong>${song.add_by || 'Không rõ'}</strong> • 
-                ${new Date(song.created_at).toLocaleDateString('vi-VN')}
+                ${song['Ngày thêm'] ? new Date(song['Ngày thêm']).toLocaleDateString('vi-VN') : 'N/A'}
               </div>
             </div>
           </div>
@@ -215,7 +237,7 @@ window.openPendingSongsDialog = async function() {
               <div class="pending-song-artist">${song['Ca sĩ']}</div>
               <div class="pending-song-meta">
                 Người thêm: <strong>${song.add_by || 'Không rõ'}</strong> • 
-                ${new Date(song.created_at).toLocaleDateString('vi-VN')}
+                ${song['Ngày thêm'] ? new Date(song['Ngày thêm']).toLocaleDateString('vi-VN') : 'N/A'}
               </div>
               <div class="rejection-reason">
                 <strong>Lý do:</strong> ${song.rejection_reason || 'Không có lý do'}
