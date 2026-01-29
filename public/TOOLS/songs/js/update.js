@@ -7,11 +7,38 @@ const UPDATES = [
   //     description: ""
   // },
   {
-    version: "1.16",
+    version: "1.20",
     date: "2026-01-29",
     type: "important",
-    title: "Lưu ý",
-    description: "Đây là trang web tổng hợp nhạc KHÔNG PHẢI TRANG WEB LƯU TRỮ NHẠC."
+    title: "Đây là trang web tổng hợp nhạc KHÔNG PHẢI TRANG WEB LƯU TRỮ NHẠC."
+  },
+  {
+    version: "1.20",
+    date: "2026-01-29",
+    type: "update",
+    title: "Cập nhật chat (Demo)",
+    description: "Từ nay bạn có thể chat trực tiếp với Admin hoặc đồng môn khác qua nút chat",
+  },
+  {
+    version: "1.19",
+    date: "2026-01-29",
+    type: "update",
+    title: "Cập nhật trang ban",
+    description: "Admin thấy trang ban có giao diện tách biệt với trang chính là điều vô lý nên admin quyết định chỉnh sửa tí màu sắc của trang ban, ai muốn xem thay đổi như thế nào liên hệ admin nhé=))",
+  },
+  {
+    version: "1.18",
+    date: "2026-01-29",
+    type: "update",
+    title: "Thêm tính năng nghe nhạc",
+    description: "Do spotify cần có tài khoản đang đăng nhập mới có thể chạy trang tìm kiếm nên admin quyết định thay nó bằng Nhaccuatui (ứng dụng nhạc Việt cho người Việt) không kém gì so với Spotify",
+  },
+  {
+    version: "1.17",
+    date: "2026-01-29",
+    type: "update",
+    title: "Cập nhật tính năng thêm video khác",
+    description: "Do 1 số video Youtube bị giới hạn nên 1 số video music official có thể không phát được, nên admin đã thêm tính năng hiển thị thêm những video cùng tên khác",
   },
   {
     version: "1.16",

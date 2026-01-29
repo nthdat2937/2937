@@ -276,6 +276,7 @@ header > div:first-child > span:first-child {
 .btn-delete {
   background: linear-gradient(135deg, #ef4444, #dc2626);
   padding: 8px 14px;
+  min-width: 30px !important;
   font-size: 14px;
   box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
 }
@@ -405,7 +406,7 @@ tbody tr:hover td:first-child img {
 .actions-cell {
   display: flex;
   gap: 8px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
 }
 
@@ -1814,6 +1815,12 @@ select:focus {
 }
 
 .sidebar-item:nth-child(12) i {
+  background: lightgreen;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.sidebar-item:nth-child(13) i {
   background: gray;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -3677,13 +3684,13 @@ tbody .btn-favourite {
 }
 
 .btn-delete {
-  background: rgba(239, 68, 68, 0.1);
+  background: red !important;
   border: 1px solid rgba(239, 68, 68, 0.3);
   color: #ef4444;
 }
 
 .btn-delete:hover {
-  background: rgba(239, 68, 68, 0.2);
+  background: red;
   border-color: #ef4444;
   transform: translateY(-2px);
 }
@@ -3952,7 +3959,7 @@ tbody .btn-favourite {
 }
 
 .other-nct-thumbnail {
-  width: 120px;
+  width: 68px;
   height: 68px;
   border-radius: 8px;
   object-fit: cover;

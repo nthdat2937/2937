@@ -103,55 +103,51 @@ document.addEventListener("keydown", function(e) {
     return;
   }
 
-  if (e.shiftKey && e.key === "R") {
+  if (e.shiftKey && e.key === "R") { // Reload
     e.preventDefault();
     document.getElementById("btn-reload-sc").click();
   };
-  if (e.shiftKey && e.key === "A") {
+  if (e.shiftKey && e.key === "A") { // Them bai
     e.preventDefault();
     document.getElementById("btn-add-sc").click();
   };
-  if (e.shiftKey && e.key === "C") {
+  if (e.shiftKey && e.key === "Q") { // Chat Gemini
     e.preventDefault();
     document.getElementById("btn-hoiAI-sc").click();
   };
-  if (e.shiftKey && e.key === "I") {
+  if (e.shiftKey && e.key === "I") { // Thong tin
     e.preventDefault();
     document.getElementById("btn-info-sc").click();
   };
-  if (e.shiftKey && e.key === "T") {
+  if (e.shiftKey && e.key === "T") { // Dark/Light
     e.preventDefault();
     document.getElementById("btn-theme-sc").click();
   };
-  if (e.shiftKey && e.key === "H") {
+  if (e.shiftKey && e.key === "H") { // Home
     e.preventDefault();
     document.getElementById("btn-home-sc").click();
   };
-  if (e.shiftKey && e.key === "B") {
+  if (e.shiftKey && e.key === "B") { // Bang xep hang
     e.preventDefault();
     document.getElementById("btn-rank-sc").click();
   };
-  if (e.shiftKey && e.key === "M") {
-    e.preventDefault();
-    document.getElementById("btn-menu").click();
-  };
-  if (e.shiftKey && e.key === "S") {
+  if (e.shiftKey && e.key === "S") { // Streak
     e.preventDefault();
     document.getElementById("btn-streak-sc").click();
   };
-  if (e.shiftKey && e.key === "G") {
+  if (e.shiftKey && e.key === "G") { // Huong dan
     e.preventDefault();
     document.getElementById("btn-guide-sc").click();
   };
-  if (e.shiftKey && e.key === "U") {
+  if (e.shiftKey && e.key === "U") { // Thong bao
     e.preventDefault();
     document.getElementById("btn-updates-sc").click();
   };
-  if (e.shiftKey && e.key === "Y") {
+  if (e.shiftKey && e.key === "Y") { // Youtube
     e.preventDefault();
     document.getElementById("btn-youtube-sc").click();
   };
-  if (e.shiftKey && e.key === "L") {
+  if (e.shiftKey && e.key === "L") { // Login/Logout
     e.preventDefault();
     const ttdn = document.getElementById("userDisplayName").textContent
 
@@ -161,11 +157,11 @@ document.addEventListener("keydown", function(e) {
       document.getElementById("btn-logout").click();
     }
   };
-  if (e.shiftKey && e.key === "O") {
+  if (e.shiftKey && e.key === "O") { // Lich su
     e.preventDefault();
     document.getElementById("btn-history-sc").click();
   };
-  if (e.shiftKey && e.key === "D") {
+  if (e.shiftKey && e.key === "D") { // Album
     e.preventDefault();
     document.getElementById("btn-album-sc").click();
   }

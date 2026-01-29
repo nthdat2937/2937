@@ -859,7 +859,7 @@
       <span style="font-size: 30px;">+</span>
     </button>
     <h2>
-      <img src="https://upload.wikimedia.org/wikipedia/commons/2/2b/NhacCuaTui_2022logo.png" 
+      <img src="https://apkcombo.vn/wp-content/uploads/2023/02/nct-nhaccuatui-nghe-mp3.png" 
            style="height: 32px; vertical-align: middle; margin-right: 8px;" 
            alt="NCT">
       <span id="nctMusicSongName"></span>
@@ -1254,7 +1254,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: #111127;
       padding: 20px;
       position: fixed;
       top: 0;
@@ -1268,7 +1268,7 @@
     
     banPage.innerHTML = `
       <div style="
-        background: rgba(255, 255, 255, 0.95);
+        background: #1e1e43;
         backdrop-filter: blur(20px);
         border-radius: 24px;
         padding: 48px;
@@ -1297,7 +1297,7 @@
         <h1 style="
           font-size: 32px;
           font-weight: 800;
-          color: #1f2937;
+          color: white;
           margin: 0 0 16px 0;
         ">Tài khoản đã bị khóa</h1>
         
@@ -1309,7 +1309,7 @@
         ">${unbanText}</p>
         
         <div style="
-          background: #fee2e2;
+          background: #fee2e224;
           border: 2px solid #ef4444;
           border-radius: 16px;
           padding: 24px;
@@ -1319,21 +1319,21 @@
           <div style="
             font-size: 14px;
             font-weight: 700;
-            color: #dc2626;
+            color: #ff9d9d;
             margin-bottom: 8px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
           ">Lý do:</div>
           <div style="
             font-size: 16px;
-            color: #1f2937;
+            color: white;
             line-height: 1.6;
             word-wrap: break-word;
           ">${reason || 'Không có lý do cụ thể'}</div>
         </div>
         
         <div style="
-          background: #dbeafe;
+          background: #bdd9ff2e;
           border: 2px solid #3b82f6;
           border-radius: 16px;
           padding: 24px;
@@ -1341,18 +1341,18 @@
           text-align: left;
         ">
           <div style="
-            font-size: 14px;
             font-weight: 700;
-            color: #1e40af;
+            color: #a5baff;
+            font-size; 25px;
             margin-bottom: 12px;
           ">ℹ️ Thông tin liên hệ</div>
           <div style="
             font-size: 15px;
-            color: #1f2937;
+            color: white;
             line-height: 1.8;
           ">
             Nếu bạn cho rằng đây là nhầm lẫn hoặc muốn khiếu nại, vui lòng liên hệ:<br>
-            <strong style="color: #3b82f6;">
+            <strong style="color: white;">
               📧 nthdat.2937@gmail.com
             </strong>
           </div>
@@ -1391,6 +1391,364 @@
   }
 </script>
 
+<!-- ===== CHAT BUTTON & DIALOG ===== -->
+<!-- Nút chat có thể kéo thả -->
+<button id="chatButton" class="chat-float-button" title="Mở Chat (Kéo để di chuyển)">
+  <i class="fa-solid fa-comments"></i>
+</button>
+
+<!-- Chat Dialog -->
+<dialog id="chatDialog" class="dialog-standard dialog-fullscreen">
+  <button class="btn-close-dialog" onclick="chatDialog.close()">
+    <span>×</span>
+  </button>
+  
+  <h2 class="dialog-header dialog-header-chat">
+    <i class="fa-solid fa-comments"></i> 
+    Chat
+  </h2>
+  
+  <div class="chat-iframe-container">
+    <iframe 
+      id="chatIframe"
+      src="https://chat-zkjh.onrender.com/"
+      frameborder="0"
+      allow="microphone; camera"
+      loading="lazy"
+    ></iframe>
+  </div>
+</dialog>
+
+<style>
+/* ===== FLOATING CHAT BUTTON ===== */
+.chat-float-button {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+  border: none;
+  color: white;
+  font-size: 24px;
+  cursor: move;
+  box-shadow: 
+    0 8px 30px rgba(99, 102, 241, 0.4),
+    0 0 0 1px rgba(255, 255, 255, 0.1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: chatButtonPulse 2s infinite;
+  user-select: none;
+  touch-action: none;
+}
+
+.chat-float-button.dragging {
+  cursor: grabbing;
+  transform: scale(1.1);
+  animation: none;
+  box-shadow: 
+    0 15px 50px rgba(99, 102, 241, 0.6),
+    0 0 0 1px rgba(255, 255, 255, 0.2);
+}
+
+.chat-float-button:hover {
+  transform: scale(1.1) rotate(5deg);
+  box-shadow: 
+    0 12px 40px rgba(99, 102, 241, 0.6),
+    0 0 0 1px rgba(255, 255, 255, 0.2);
+}
+
+.chat-float-button:active {
+  transform: scale(0.95);
+}
+
+/* Pulse animation */
+@keyframes chatButtonPulse {
+  0%, 100% {
+    box-shadow: 
+      0 8px 30px rgba(99, 102, 241, 0.4),
+      0 0 0 1px rgba(255, 255, 255, 0.1),
+      0 0 0 0 rgba(99, 102, 241, 0.4);
+  }
+  50% {
+    box-shadow: 
+      0 8px 30px rgba(99, 102, 241, 0.4),
+      0 0 0 1px rgba(255, 255, 255, 0.1),
+      0 0 0 20px rgba(99, 102, 241, 0);
+  }
+}
+
+/* ===== CHAT DIALOG ===== */
+.dialog-fullscreen {
+  width: min(1200px, 95vw);
+  height: 85vh;
+  max-height: 85vh;
+}
+
+.dialog-header-chat {
+  background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.chat-iframe-container {
+  width: 100%;
+  height: calc(100% - 80px);
+  padding: 0;
+  overflow: hidden;
+  border-radius: 0 0 24px 24px;
+}
+
+.chat-iframe-container iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  display: block;
+}
+
+/* Mobile responsive */
+@media screen and (max-width: 768px) {
+  .chat-float-button {
+    width: 56px;
+    height: 56px;
+    bottom: 20px;
+    right: 20px;
+    font-size: 22px;
+  }
+  
+  .dialog-fullscreen {
+    width: 100vw;
+    height: 100vh;
+    max-height: 100vh;
+    border-radius: 0;
+  }
+  
+  .chat-iframe-container {
+    height: calc(100% - 70px);
+    border-radius: 0;
+  }
+}
+
+/* Dark mode adjustments */
+[data-theme="light"] .chat-float-button {
+  box-shadow: 
+    0 8px 30px rgba(99, 102, 241, 0.3),
+    0 0 0 1px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="light"] .chat-float-button:hover {
+  box-shadow: 
+    0 12px 40px rgba(99, 102, 241, 0.5),
+    0 0 0 1px rgba(0, 0, 0, 0.15);
+}
+
+/* No animations mode */
+.no-animations .chat-float-button {
+  animation: none;
+}
+
+.no-animations .chat-float-button:hover {
+  transform: none;
+}
+</style>
+
+<script>
+// Open chat dialog
+function openChatDialog() {
+  const chatDialog = document.getElementById('chatDialog');
+  if (chatDialog) {
+    chatDialog.showModal();
+  }
+}
+
+// Close dialog when clicking outside
+chatDialog.addEventListener('click', (e) => {
+  if (e.target === chatDialog) {
+    chatDialog.close();
+  }
+});
+
+// ===== DRAGGABLE CHAT BUTTON =====
+const chatButton = document.getElementById('chatButton');
+let isDragging = false;
+let startX, startY;
+let hasMoved = false;
+
+// Load saved position from localStorage
+function loadButtonPosition() {
+  const savedPosition = localStorage.getItem('chatButtonPosition');
+  if (savedPosition) {
+    const { x, y } = JSON.parse(savedPosition);
+    
+    // Kiểm tra xem vị trí có hợp lệ không
+    const windowWidth = window.innerWidth;
+    const windowHeight = window.innerHeight;
+    const buttonWidth = chatButton.offsetWidth;
+    const buttonHeight = chatButton.offsetHeight;
+    
+    // Nếu vị trí hợp lệ thì dùng
+    if (x >= 0 && y >= 0 && x <= windowWidth - buttonWidth && y <= windowHeight - buttonHeight) {
+      chatButton.style.left = x + 'px';
+      chatButton.style.top = y + 'px';
+      chatButton.style.right = 'auto';
+      chatButton.style.bottom = 'auto';
+    } else {
+      // Vị trí không hợp lệ, reset về default
+      resetToDefaultPosition();
+    }
+  }
+  // Nếu chưa có vị trí lưu, giữ nguyên CSS default (bottom-right)
+}
+
+// Reset về vị trí mặc định (góc dưới phải)
+function resetToDefaultPosition() {
+  chatButton.style.left = 'auto';
+  chatButton.style.top = 'auto';
+  chatButton.style.right = '24px';
+  chatButton.style.bottom = '24px';
+  localStorage.removeItem('chatButtonPosition');
+}
+
+// Save position to localStorage
+function saveButtonPosition() {
+  const rect = chatButton.getBoundingClientRect();
+  const position = {
+    x: rect.left,
+    y: rect.top
+  };
+  localStorage.setItem('chatButtonPosition', JSON.stringify(position));
+}
+
+// Get mouse/touch position
+function getEventPosition(e) {
+  if (e.type.startsWith('touch')) {
+    return {
+      x: e.touches[0].clientX,
+      y: e.touches[0].clientY
+    };
+  }
+  return {
+    x: e.clientX,
+    y: e.clientY
+  };
+}
+
+// Drag start
+function dragStart(e) {
+  if (e.target === chatButton || e.target.parentElement === chatButton) {
+    isDragging = true;
+    hasMoved = false;
+    
+    const pos = getEventPosition(e);
+    const rect = chatButton.getBoundingClientRect();
+    
+    // Lưu khoảng cách từ con trỏ đến góc trên trái của button
+    startX = pos.x - rect.left;
+    startY = pos.y - rect.top;
+    
+    chatButton.classList.add('dragging');
+    
+    // Chuyển sang position absolute để dễ di chuyển
+    chatButton.style.position = 'fixed';
+    chatButton.style.right = 'auto';
+    chatButton.style.bottom = 'auto';
+    
+    e.preventDefault();
+  }
+}
+
+// Dragging
+function drag(e) {
+  if (isDragging) {
+    e.preventDefault();
+    
+    const pos = getEventPosition(e);
+    
+    // Tính toán vị trí mới (con trỏ - offset ban đầu)
+    let newX = pos.x - startX;
+    let newY = pos.y - startY;
+    
+    // Lấy kích thước màn hình và button
+    const windowWidth = window.innerWidth;
+    const windowHeight = window.innerHeight;
+    const buttonWidth = chatButton.offsetWidth;
+    const buttonHeight = chatButton.offsetHeight;
+    
+    // Giới hạn biên (không cho button ra khỏi màn hình)
+    newX = Math.max(0, Math.min(windowWidth - buttonWidth, newX));
+    newY = Math.max(0, Math.min(windowHeight - buttonHeight, newY));
+    
+    // Set vị trí mới
+    chatButton.style.left = newX + 'px';
+    chatButton.style.top = newY + 'px';
+    
+    // Đánh dấu là đã di chuyển
+    hasMoved = true;
+  }
+}
+
+// Drag end
+function dragEnd(e) {
+  if (isDragging) {
+    isDragging = false;
+    chatButton.classList.remove('dragging');
+    
+    // Nếu có di chuyển thì lưu vị trí
+    if (hasMoved) {
+      saveButtonPosition();
+    }
+  }
+}
+
+// Prevent dialog from opening when dragging
+chatButton.addEventListener('click', (e) => {
+  if (hasMoved) {
+    e.stopPropagation();
+    e.preventDefault();
+    
+    // Reset hasMoved sau khi ngăn chặn click
+    setTimeout(() => {
+      hasMoved = false;
+    }, 50);
+  } else {
+    // Chỉ mở dialog khi KHÔNG có drag
+    openChatDialog();
+  }
+}, true); // useCapture = true để chặn sớm nhất
+
+// Event listeners for desktop
+chatButton.addEventListener('mousedown', dragStart);
+document.addEventListener('mousemove', drag);
+document.addEventListener('mouseup', dragEnd);
+
+// Event listeners for mobile
+chatButton.addEventListener('touchstart', dragStart, { passive: false });
+document.addEventListener('touchmove', drag, { passive: false });
+document.addEventListener('touchend', dragEnd);
+
+// Load saved position on page load
+window.addEventListener('DOMContentLoaded', loadButtonPosition);
+
+// Keyboard shortcut: Shift + C for chat
+document.addEventListener('keydown', (e) => {
+  if (e.shiftKey && e.key === 'C' && !e.ctrlKey && !e.altKey) {
+    const activeElement = document.activeElement;
+    const isInputFocused = activeElement.tagName === 'INPUT' || 
+                          activeElement.tagName === 'TEXTAREA' ||
+                          activeElement.isContentEditable;
+    
+    if (!isInputFocused) {
+      e.preventDefault();
+      openChatDialog();
+    }
+  }
+});
+</script>
   
   <script src="js/main.js"></script>
   <script src="js/guide.js"></script>

@@ -1,3 +1,6 @@
+// Biến global để lưu search query từ URL
+let urlSearchQuery = null;
+
 window.addEventListener('DOMContentLoaded', () => {
   const savedTheme = localStorage.getItem('theme') || 'dark';
   const icon = document.getElementById('themeIcon');
@@ -14,6 +17,25 @@ window.addEventListener('DOMContentLoaded', () => {
 if (rankBtn) {
   rankBtn.addEventListener("click", openRankingDialog);
 }
+
+  // Lấy search query từ URL
+  const urlParams = new URLSearchParams(window.location.search);
+  const searchQuery = urlParams.get('search') || urlParams.get('q');
+  
+  if (searchQuery) {
+    // Lưu vào biến global để dùng sau khi load songs xong
+    urlSearchQuery = decodeURIComponent(searchQuery);
+    
+    // Lưu vào sessionStorage để persist
+    sessionStorage.setItem('currentSearch', urlSearchQuery);
+    
+    // Xóa params khỏi URL (optional - giữ URL sạch)
+    const cleanURL = window.location.pathname;
+    window.history.replaceState({}, document.title, cleanURL);
+  }
+  
+  // Gọi loadSongs() SAU KHI đã set urlSearchQuery
+  loadSongs();
 
 });
 
@@ -47,8 +69,65 @@ async function loadSongs() {
   data.sort((a, b) => a['Tên'].localeCompare(b['Tên'], 'vi'));
   window._songs = data;
   
-  renderSongs(data);
-  updateStats(data);
+  // Xác định search query từ nhiều nguồn (theo thứ tự ưu tiên):
+  // 1. URL parameter (urlSearchQuery)
+  // 2. Giá trị hiện tại trong search input
+  // 3. Session storage (để persist qua các reload)
+  let searchQuery = urlSearchQuery;
+  const searchInput = document.getElementById('searchInput');
+  
+  if (!searchQuery && searchInput) {
+    // Kiểm tra giá trị trong search input
+    if (searchInput.value.trim()) {
+      searchQuery = searchInput.value.trim();
+    } else {
+      // Kiểm tra session storage
+      const savedSearch = sessionStorage.getItem('currentSearch');
+      if (savedSearch) {
+        searchQuery = savedSearch;
+      }
+    }
+  }
+  
+  // Xử lý search query TRƯỚC KHI render
+  let songsToRender = data;
+  if (searchQuery) {
+    if (searchInput) {
+      // Điền giá trị vào ô search (nếu chưa có)
+      if (!searchInput.value) {
+        searchInput.value = searchQuery;
+      }
+      
+      // Lưu vào session storage
+      sessionStorage.setItem('currentSearch', searchQuery);
+      
+      // Filter songs
+      const query = searchQuery.toLowerCase().trim();
+      songsToRender = window._songs.filter(song =>
+        removeDiacritics(song['Tên']).includes(removeDiacritics(query)) ||
+        removeDiacritics(song['Ca sĩ']).includes(removeDiacritics(query)) ||
+        removeDiacritics(song['Sáng tác']).includes(removeDiacritics(query)) ||
+        removeDiacritics(song['Lyric'] || '').includes(removeDiacritics(query))
+      );
+      
+      // Focus vào search input nếu đến từ URL
+      if (urlSearchQuery) {
+        setTimeout(() => {
+          searchInput.focus();
+        }, 300);
+      }
+      
+      // Clear biến global URL search query
+      urlSearchQuery = null;
+    }
+  } else {
+    // Không có search query, xóa session storage
+    sessionStorage.removeItem('currentSearch');
+  }
+  
+  // Chỉ render 1 lần với kết quả đã filter (nếu có)
+  renderSongs(songsToRender);
+  updateStats(songsToRender);
   
   // Initialize filters
   initializeTagFilter();
@@ -129,10 +208,15 @@ searchInput.addEventListener('input', (e) => {
   searchTimeout = setTimeout(() => {
     const query = e.target.value.toLowerCase().trim();
     if (!query) {
+      // Xóa session storage khi search rỗng
+      sessionStorage.removeItem('currentSearch');
       renderSongs(window._songs);
       return;
     }
 
+    // Lưu vào session storage
+    sessionStorage.setItem('currentSearch', query);
+    
     const filtered = window._songs.filter(song =>
       removeDiacritics(song['Tên']).includes(removeDiacritics(query)) ||
       removeDiacritics(song['Ca sĩ']).includes(removeDiacritics(query)) ||
@@ -519,7 +603,6 @@ ranking.forEach((u, i) => {
   }
 };
 
-loadSongs();
 
 const YOUTUBE_API_KEY = "AIzaSyAS6c7bto_vvZ60g_FsdA60od3Fgw0y67g";
 
