@@ -94,9 +94,171 @@ function showBanPage(reason, unbanDate) {
     body.banned {
       overflow: hidden !important;
       pointer-events: none !important;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     }
     body.banned #banPage {
       pointer-events: auto !important;
+    }
+    
+    /* Ban Page Styles */
+    .ban-page-container {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 20px;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 999999;
+      animation: fadeIn 0.5s ease-in-out;
+    }
+    
+    .ban-page-card {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      border-radius: 24px;
+      padding: 48px;
+      max-width: 600px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 25px 80px rgba(0, 0, 0, 0.3);
+      animation: slideUp 0.6s ease-out;
+    }
+    
+    .ban-icon-circle {
+      width: 120px;
+      height: 120px;
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 32px;
+      box-shadow: 0 10px 40px rgba(239, 68, 68, 0.4);
+      animation: pulse 2s infinite;
+    }
+    
+    .ban-icon-circle i {
+      font-size: 64px;
+      color: white;
+    }
+    
+    .ban-title {
+      font-size: 32px;
+      font-weight: 800;
+      color: #1f2937;
+      margin: 0 0 16px 0;
+    }
+    
+    .ban-subtitle {
+      font-size: 18px;
+      color: #6b7280;
+      margin: 0 0 32px 0;
+      line-height: 1.6;
+    }
+    
+    .ban-reason-box {
+      background: #fee2e2;
+      border: 2px solid #ef4444;
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 32px;
+      text-align: left;
+    }
+    
+    .ban-reason-label {
+      font-size: 14px;
+      font-weight: 700;
+      color: #dc2626;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .ban-reason-text {
+      font-size: 16px;
+      color: #1f2937;
+      line-height: 1.6;
+      word-wrap: break-word;
+    }
+    
+    .ban-contact-box {
+      background: #dbeafe;
+      border: 2px solid #3b82f6;
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 32px;
+      text-align: left;
+    }
+    
+    .ban-contact-label {
+      font-size: 14px;
+      font-weight: 700;
+      color: #1e40af;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .ban-contact-text {
+      font-size: 15px;
+      color: #1f2937;
+      line-height: 1.8;
+    }
+    
+    .ban-contact-email {
+      color: #3b82f6;
+      font-weight: 600;
+    }
+    
+    .ban-user-email {
+      font-size: 13px;
+      color: #9ca3af;
+      margin-top: 24px;
+      word-wrap: break-word;
+    }
+    
+    .ban-footer {
+      margin-top: 24px;
+      padding-top: 24px;
+      border-top: 1px solid rgba(0,0,0,0.1);
+      font-size: 12px;
+      color: #9ca3af;
+    }
+    
+    @media screen and (max-width: 640px) {
+      .ban-page-card {
+        padding: 32px 24px;
+      }
+      
+      .ban-icon-circle {
+        width: 96px;
+        height: 96px;
+      }
+      
+      .ban-icon-circle i {
+        font-size: 48px;
+      }
+      
+      .ban-title {
+        font-size: 24px;
+      }
+      
+      .ban-subtitle {
+        font-size: 16px;
+      }
+      
+      .ban-reason-box,
+      .ban-contact-box {
+        padding: 16px;
+      }
     }
   `;
   document.head.appendChild(style);
@@ -131,134 +293,41 @@ function showBanPage(reason, unbanDate) {
   
   const banPage = document.createElement('div');
   banPage.id = 'banPage';
-  banPage.style.cssText = `
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    padding: 20px;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 999999;
-    animation: fadeIn 0.5s ease-in-out;
-  `;
+  banPage.className = 'ban-page-container';
   
   banPage.innerHTML = `
-    <div style="
-      background: rgba(255, 255, 255, 0.95);
-      backdrop-filter: blur(20px);
-      border-radius: 24px;
-      padding: 48px;
-      max-width: 600px;
-      text-align: center;
-      box-shadow: 0 25px 80px rgba(0, 0, 0, 0.3);
-      animation: slideUp 0.6s ease-out;
-    ">
-      <div style="
-        width: 120px;
-        height: 120px;
-        background: linear-gradient(135deg, #ef4444, #dc2626);
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin: 0 auto 32px;
-        box-shadow: 0 10px 40px rgba(239, 68, 68, 0.4);
-        animation: pulse 2s infinite;
-      ">
-        <i class="fa-solid fa-ban" style="font-size: 64px; color: white;"></i>
+    <div class="ban-page-card">
+      <div class="ban-icon-circle">
+        <i class="fa-solid fa-ban"></i>
       </div>
       
-      <h1 style="
-        font-size: 32px;
-        font-weight: 800;
-        color: #1f2937;
-        margin: 0 0 16px 0;
-      ">Tài khoản đã bị khóa</h1>
+      <h1 class="ban-title">Tài khoản đã bị khóa</h1>
       
-      <p style="
-        font-size: 18px;
-        color: #6b7280;
-        margin: 0 0 32px 0;
-        line-height: 1.6;
-      ">${unbanText}</p>
+      <p class="ban-subtitle">${unbanText}</p>
       
-      <div style="
-        background: #fee2e2;
-        border: 2px solid #ef4444;
-        border-radius: 16px;
-        padding: 24px;
-        margin-bottom: 32px;
-        text-align: left;
-      ">
-        <div style="
-          font-size: 14px;
-          font-weight: 700;
-          color: #dc2626;
-          margin-bottom: 8px;
-          text-transform: uppercase;
-          letter-spacing: 0.5px;
-        ">Lý do:</div>
-        <div style="
-          font-size: 16px;
-          color: #1f2937;
-          line-height: 1.6;
-          word-wrap: break-word;
-        ">${reason || 'Không có lý do cụ thể'}</div>
+      <div class="ban-reason-box">
+        <div class="ban-reason-label">Lý do:</div>
+        <div class="ban-reason-text">${reason || 'Không có lý do cụ thể'}</div>
       </div>
       
-      <div style="
-        background: #dbeafe;
-        border: 2px solid #3b82f6;
-        border-radius: 16px;
-        padding: 24px;
-        margin-bottom: 32px;
-        text-align: left;
-      ">
-        <div style="
-          font-size: 14px;
-          font-weight: 700;
-          color: #1e40af;
-          margin-bottom: 12px;
-          display: flex;
-          align-items: center;
-          gap: 8px;
-        ">
+      <div class="ban-contact-box">
+        <div class="ban-contact-label">
           <i class="fa-solid fa-circle-info"></i>
           <span>Thông tin liên hệ</span>
         </div>
-        <div style="
-          font-size: 15px;
-          color: #1f2937;
-          line-height: 1.8;
-        ">
+        <div class="ban-contact-text">
           Nếu bạn cho rằng đây là nhầm lẫn hoặc muốn khiếu nại, vui lòng liên hệ:<br>
-          <strong style="color: #3b82f6;">
+          <strong class="ban-contact-email">
             <i class="fa-solid fa-envelope"></i> nthdat.2937@gmail.com
           </strong>
         </div>
       </div>
       
-      <div style="
-        font-size: 13px;
-        color: #9ca3af;
-        margin-top: 24px;
-        word-wrap: break-word;
-      ">
+      <div class="ban-user-email">
         Email: <strong>${window.currentUser ? window.currentUser.email : 'N/A'}</strong>
       </div>
       
-      <div style="
-        margin-top: 24px;
-        padding-top: 24px;
-        border-top: 1px solid rgba(0,0,0,0.1);
-        font-size: 12px;
-        color: #9ca3af;
-      ">
+      <div class="ban-footer">
         <i class="fa-solid fa-lock"></i> Bạn không thể đăng xuất hay thực hiện bất kỳ thao tác nào khác trên hệ thống.
       </div>
     </div>

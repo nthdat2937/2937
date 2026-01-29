@@ -1,218 +1,69 @@
 <!-- ===== USERS DIALOG ===== -->
-<dialog id="usersDialog" style="
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  margin: 0;
-  border: none;
-  border-radius: 24px;
-  width: min(900px, 92vw);
-  max-height: 85vh;
-  background: var(--bg-secondary);
-  color: var(--text-primary);
-  padding: 0;
-  overflow: hidden;
-  box-shadow: 
-    0 0 0 1px var(--glass-border),
-    0 25px 80px rgba(0, 0, 0, 0.6),
-    0 0 120px rgba(99, 102, 241, 0.15);
-">
-  <button class="btn close" onclick="usersDialog.close()" style="
-    position: absolute;
-    top: 16px;
-    right: 16px;
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid var(--glass-border);
-    width: 40px;
-    height: 40px;
-    padding: 0;
-    border-radius: 50%;
-    color: var(--text-primary);
-    cursor: pointer;
-    font-size: 24px;
-    transition: all 0.3s;
-    z-index: 10;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  ">
-    <span style="font-size: 30px;">+</span>
+<dialog id="usersDialog" class="dialog-standard">
+  <button class="btn-close-dialog" onclick="usersDialog.close()">
+    <span>×</span>
   </button>
   
-  <h2 style="
-    background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary), var(--accent-pink));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    font-size: 28px;
-    font-weight: 800;
-    padding: 28px 32px 20px 32px;
-    margin: 0;
-    border-bottom: 1px solid var(--border-color);
-  ">
+  <h2 class="dialog-header dialog-header-primary">
     <i class="fa-solid fa-users"></i> 
     Danh sách người dùng
-    <span style="font-size: 16px; color: var(--text-muted); font-weight: 400;">
+    <span class="dialog-count">
       (<span id="userCount">0</span> người)
     </span>
   </h2>
   
-  <div id="userList" style="
-    max-height: 60vh;
-    overflow-y: auto;
-    padding: 24px 32px 32px 32px;
-  "></div>
+  <div class="dialog-content-scrollable">
+    <div id="userList"></div>
+  </div>
 </dialog>
 
 <!-- ===== BAN DIALOG ===== -->
-<dialog id="banDialog" style="
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  margin: 0;
-  border: none;
-  border-radius: 24px;
-  width: min(600px, 92vw);
-  max-height: 85vh;
-  background: var(--bg-secondary);
-  color: var(--text-primary);
-  padding: 0;
-  overflow: hidden;
-  box-shadow: 
-    0 0 0 1px var(--glass-border),
-    0 25px 80px rgba(0, 0, 0, 0.6),
-    0 0 120px rgba(239, 68, 68, 0.15);
-">
-  <button class="btn close" onclick="banDialog.close()" style="
-    position: absolute;
-    top: 16px;
-    right: 16px;
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid var(--glass-border);
-    width: 40px;
-    height: 40px;
-    padding: 0;
-    border-radius: 50%;
-    color: var(--text-primary);
-    cursor: pointer;
-    font-size: 24px;
-    transition: all 0.3s;
-    z-index: 10;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  ">
-    <span style="font-size: 30px;">+</span>
+<dialog id="banDialog" class="dialog-standard dialog-medium">
+  <button class="btn-close-dialog" onclick="banDialog.close()">
+    <span>×</span>
   </button>
   
-  <h2 style="
-    background: linear-gradient(135deg, #ef4444, #dc2626);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    font-size: 28px;
-    font-weight: 800;
-    padding: 28px 32px 20px 32px;
-    margin: 0;
-    border-bottom: 1px solid var(--border-color);
-  ">
+  <h2 class="dialog-header dialog-header-danger">
     <i class="fa-solid fa-ban"></i> Khóa tài khoản
   </h2>
   
-  <div style="padding: 24px 32px; overflow-y: auto; max-height: calc(85vh - 100px);">
-    <div style="
-      background: rgba(239, 68, 68, 0.1);
-      border: 1px solid rgba(239, 68, 68, 0.3);
-      border-radius: 12px;
-      padding: 16px;
-      margin-bottom: 24px;
-    ">
-      <div style="font-size: 14px; color: var(--text-muted); margin-bottom: 4px;">
+  <div class="dialog-content-form">
+    <div class="alert-box alert-danger">
+      <div class="alert-label">
         Bạn đang khóa tài khoản:
       </div>
-      <div style="font-size: 18px; font-weight: 700; color: var(--text-primary);" id="banUserName">
+      <div class="alert-value" id="banUserName">
         ---
       </div>
     </div>
     
     <form id="banForm">
-      <div class="form-group" style="margin-bottom: 20px;">
-        <label for="banReason" style="
-          display: block;
-          font-weight: 600;
-          margin-bottom: 8px;
-          color: var(--text-primary);
-        ">Lý do khóa *</label>
+      <div class="form-group">
+        <label for="banReason" class="form-label">Lý do khóa *</label>
         <textarea 
           id="banReason" 
+          class="form-textarea"
           placeholder="Nhập lý do khóa tài khoản (tối thiểu 10 ký tự)"
           rows="4"
           required
-          style="
-            width: 100%;
-            padding: 12px 16px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            color: var(--text-primary);
-            font-size: 15px;
-            font-family: inherit;
-            resize: vertical;
-            min-height: 100px;
-            transition: all 0.3s;
-          "
         ></textarea>
-        <div class="error" id="error-banReason" style="
-          color: #ef4444;
-          font-size: 13px;
-          margin-top: 6px;
-        "></div>
+        <div class="error" id="error-banReason"></div>
       </div>
       
-      <div class="form-group" style="margin-bottom: 20px;">
-        <label style="
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          cursor: pointer;
-          font-size: 15px;
-          color: var(--text-primary);
-        ">
+      <div class="form-group">
+        <label class="form-checkbox-label">
           <input 
             type="checkbox" 
             id="permanentBan" 
-            style="
-              width: 20px;
-              height: 20px;
-              cursor: pointer;
-              accent-color: var(--accent-primary);
-            "
+            class="form-checkbox"
           >
           <span>Khóa vĩnh viễn</span>
         </label>
       </div>
       
-      <div class="form-group" id="banDurationGroup" style="margin-bottom: 20px;">
-        <label for="banDuration" style="
-          display: block;
-          font-weight: 600;
-          margin-bottom: 8px;
-          color: var(--text-primary);
-        ">Thời gian khóa</label>
-        <select id="banDuration" style="
-          width: 100%;
-          padding: 12px 16px;
-          background: rgba(255, 255, 255, 0.05);
-          border: 1px solid var(--border-color);
-          border-radius: 12px;
-          color: var(--text-primary);
-          font-size: 15px;
-          font-family: inherit;
-          cursor: pointer;
-          transition: all 0.3s;
-        ">
+      <div class="form-group" id="banDurationGroup">
+        <label for="banDuration" class="form-label">Thời gian khóa</label>
+        <select id="banDuration" class="form-select">
           <option value="1">1 ngày</option>
           <option value="3">3 ngày</option>
           <option value="7" selected>7 ngày</option>
@@ -222,36 +73,12 @@
         </select>
       </div>
       
-      <div style="
-        background: rgba(59, 130, 246, 0.1);
-        border: 1px solid rgba(59, 130, 246, 0.3);
-        border-radius: 12px;
-        padding: 16px;
-        margin: 24px 0;
-        font-size: 14px;
-        line-height: 1.6;
-        color: var(--text-secondary);
-      ">
-        <i class="fa-solid fa-circle-info" style="color: #3b82f6;"></i>
+      <div class="alert-box alert-info">
+        <i class="fa-solid fa-circle-info"></i>
         <strong>Lưu ý:</strong> Người dùng bị khóa sẽ không thể đăng xuất và sẽ thấy trang thông báo khóa tài khoản kèm lý do và email liên hệ để khiếu nại.
       </div>
       
-      <button type="submit" class="btn btn-primary" style="
-        width: 100%;
-        padding: 14px 24px;
-        background: linear-gradient(135deg, #ef4444, #dc2626);
-        border: none;
-        border-radius: 12px;
-        color: white;
-        font-weight: 700;
-        font-size: 16px;
-        cursor: pointer;
-        transition: all 0.3s;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-      ">
+      <button type="submit" class="btn-submit-danger btn-full">
         <i class="fa-solid fa-ban"></i> Xác nhận khóa
       </button>
     </form>
@@ -259,6 +86,7 @@
 </dialog>
 
 <style>
+/* ===== USER MANAGEMENT STYLES ===== */
 /* User Item Styles */
 .user-item {
   background: rgba(255, 255, 255, 0.03);
@@ -419,27 +247,6 @@
   }
 }
 
-/* Button hover styles for close buttons */
-.btn.close:hover {
-  background: linear-gradient(135deg, #ef4444, #dc2626);
-  border-color: transparent;
-  transform: rotate(90deg) scale(1.1);
-}
-
-/* Form button hover */
-.btn-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(239, 68, 68, 0.4);
-}
-
-/* Textarea and select focus */
-textarea:focus,
-select:focus {
-  outline: none;
-  border-color: var(--accent-primary);
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-}
-
 @media screen and (max-width: 768px) {
   .user-item {
     flex-direction: column;
@@ -454,20 +261,6 @@ select:focus {
   .btn-unban {
     flex: 1;
     justify-content: center;
-  }
-  
-  dialog {
-    width: 95vw !important;
-  }
-  
-  dialog h2 {
-    font-size: 22px !important;
-    padding: 20px 16px 16px 16px !important;
-  }
-  
-  #userList,
-  dialog > div {
-    padding: 16px !important;
   }
 }
 </style>
