@@ -292,13 +292,19 @@
       <div class="form-group">
         <a href="#" class="goiy" onclick="timCasi()">Không biết tên ca sĩ?</a>
         <label for="artist">Ca sĩ *</label>
-        <input type="text" id="artist" placeholder="Nhập tên ca sĩ" required />
+        <div class="input-with-btn">
+          <input type="text" id="artist" placeholder="Nhập tên ca sĩ" required />
+          <button type="button" class="btn btn-inline" onclick="autoFillArtistComposer('add')" title="Tự tìm ca sĩ, sáng tác theo tên bài hát">✨</button>
+        </div>
         <div class="error" id="error-artist"></div>
       </div>
       <div class="form-group">
         <a href="#" class="goiy" onclick="timSangtac()">Không biết ai sáng tác?</a>
         <label for="composer">Sáng tác *</label>
-        <input type="text" id="composer" placeholder="Nhập tên người sáng tác" required />
+        <div class="input-with-btn">
+          <input type="text" id="composer" placeholder="Nhập tên người sáng tác" required />
+          <button type="button" class="btn btn-inline" onclick="autoFillArtistComposer('add')" title="Tự tìm ca sĩ, sáng tác theo tên bài hát">✨</button>
+        </div>
         <div class="error" id="error-composer"></div>
       </div>
       <div class="form-group">
@@ -337,9 +343,12 @@
         <div class="error" id="error-releaseDate"></div>
       </div>
       <div class="form-group">
-        <a href="#" onclick="timAvatar1()" class="goiy">Tìm avatar</a>
+        <a href="#" onclick="timAvatar1()" class="goiy">Tìm avatar trên Google</a>
         <label for="avatar">URL Avatar</label>
-        <input type="url" id="avatar" placeholder="Nhập link/url của ảnh" />
+        <div class="input-with-btn">
+          <input type="url" id="avatar" placeholder="Nhập link/url của ảnh" />
+          <button type="button" class="btn btn-inline" onclick="autoFillAvatar('add')" title="Tự động tìm ảnh từ iTunes, YouTube">🖼️</button>
+        </div>
         <div class="error" id="error-avatar"></div>
       </div>
       <div class="form-group">
@@ -412,12 +421,18 @@
       </div>
       <div class="form-group">
         <label for="editArtist">Ca sĩ *</label>
-        <input type="text" id="editArtist" required />
+        <div class="input-with-btn">
+          <input type="text" id="editArtist" required />
+          <button type="button" class="btn btn-inline" onclick="autoFillArtistComposer('edit')" title="Tự tìm ca sĩ, sáng tác theo tên bài hát">✨</button>
+        </div>
         <div class="error" id="error-editArtist"></div>
       </div>
       <div class="form-group">
         <label for="editComposer">Sáng tác *</label>
-        <input type="text" id="editComposer" required />
+        <div class="input-with-btn">
+          <input type="text" id="editComposer" required />
+          <button type="button" class="btn btn-inline" onclick="autoFillArtistComposer('edit')" title="Tự tìm ca sĩ, sáng tác theo tên bài hát">✨</button>
+        </div>
         <div class="error" id="error-editComposer"></div>
       </div>
       <div class="form-group">
@@ -438,9 +453,12 @@
         <div class="error" id="error-editReleaseDate"></div>
       </div>
       <div class="form-group">
-        <a href="#" onclick="timAvatar()" class="goiy">Tìm avatar</a>
+        <a href="#" onclick="timAvatar()" class="goiy">Tìm avatar trên Google</a>
         <label for="editAvatar">URL Avatar</label>
-        <input type="url" id="editAvatar" />
+        <div class="input-with-btn">
+          <input type="url" id="editAvatar" />
+          <button type="button" class="btn btn-inline" onclick="autoFillAvatar('edit')" title="Tự động tìm ảnh từ iTunes, YouTube">🖼️</button>
+        </div>
         <div class="error" id="error-editAvatar"></div>
       </div>
       <div class="form-group">
@@ -1444,6 +1462,7 @@
   animation: chatButtonPulse 2s infinite;
   user-select: none;
   touch-action: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .chat-float-button.dragging {
@@ -1576,8 +1595,12 @@ chatDialog.addEventListener('click', (e) => {
 // ===== DRAGGABLE CHAT BUTTON =====
 const chatButton = document.getElementById('chatButton');
 let isDragging = false;
+let dragStartTime = 0;
 let startX, startY;
+let initialX, initialY;
 let hasMoved = false;
+const dragThreshold = 10; // pixels
+const tapTimeout = 200; // milliseconds
 
 // Load saved position from localStorage
 function loadButtonPosition() {
@@ -1609,7 +1632,7 @@ function loadButtonPosition() {
 function resetToDefaultPosition() {
   chatButton.style.left = 'auto';
   chatButton.style.top = 'auto';
-  chatButton.style.right = '24px';
+  chatButton.style.right = '24px';  
   chatButton.style.bottom = '24px';
   localStorage.removeItem('chatButtonPosition');
 }
@@ -1641,11 +1664,16 @@ function getEventPosition(e) {
 // Drag start
 function dragStart(e) {
   if (e.target === chatButton || e.target.parentElement === chatButton) {
-    isDragging = true;
-    hasMoved = false;
-    
     const pos = getEventPosition(e);
     const rect = chatButton.getBoundingClientRect();
+    
+    isDragging = true;
+    hasMoved = false;
+    dragStartTime = Date.now();
+    
+    // Lưu vị trí ban đầu
+    initialX = pos.x;
+    initialY = pos.y;
     
     // Lưu khoảng cách từ con trỏ đến góc trên trái của button
     startX = pos.x - rect.left;
@@ -1653,8 +1681,11 @@ function dragStart(e) {
     
     chatButton.classList.add('dragging');
     
-    // Chuyển sang position absolute để dễ di chuyển
+    // Chuyển sang position fixed và set vị trí hiện tại
+    // Điều này quan trọng để tránh nút biến mất khi click lần đầu
     chatButton.style.position = 'fixed';
+    chatButton.style.left = rect.left + 'px';
+    chatButton.style.top = rect.top + 'px';
     chatButton.style.right = 'auto';
     chatButton.style.bottom = 'auto';
     
@@ -1664,12 +1695,22 @@ function dragStart(e) {
 
 // Dragging
 function drag(e) {
-  if (isDragging) {
-    e.preventDefault();
+  if (!isDragging) return;
+  
+  e.preventDefault();
+  
+  const pos = getEventPosition(e);
+  
+  // Tính khoảng cách di chuyển từ vị trí ban đầu
+  const deltaX = Math.abs(pos.x - initialX);
+  const deltaY = Math.abs(pos.y - initialY);
+  const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+  
+  // Nếu di chuyển quá ngưỡng, coi là drag
+  if (distance > dragThreshold) {
+    hasMoved = true;
     
-    const pos = getEventPosition(e);
-    
-    // Tính toán vị trí mới (con trỏ - offset ban đầu)
+    // Tính toán vị trí mới
     let newX = pos.x - startX;
     let newY = pos.y - startY;
     
@@ -1679,60 +1720,103 @@ function drag(e) {
     const buttonWidth = chatButton.offsetWidth;
     const buttonHeight = chatButton.offsetHeight;
     
-    // Giới hạn biên (không cho button ra khỏi màn hình)
+    // Giới hạn biên
     newX = Math.max(0, Math.min(windowWidth - buttonWidth, newX));
     newY = Math.max(0, Math.min(windowHeight - buttonHeight, newY));
     
     // Set vị trí mới
     chatButton.style.left = newX + 'px';
     chatButton.style.top = newY + 'px';
-    
-    // Đánh dấu là đã di chuyển
-    hasMoved = true;
   }
 }
 
 // Drag end
 function dragEnd(e) {
-  if (isDragging) {
-    isDragging = false;
-    chatButton.classList.remove('dragging');
-    
-    // Nếu có di chuyển thì lưu vị trí
-    if (hasMoved) {
-      saveButtonPosition();
+  if (!isDragging) return;
+  
+  const dragDuration = Date.now() - dragStartTime;
+  
+  isDragging = false;
+  chatButton.classList.remove('dragging');
+  
+  // Nếu có di chuyển thì lưu vị trí
+  if (hasMoved) {
+    saveButtonPosition();
+    e.preventDefault();
+    e.stopPropagation();
+  } else if (dragDuration < tapTimeout) {
+    // Nếu không di chuyển và thời gian ngắn -> coi là tap/click
+    // Trên mobile, click event không fire do preventDefault trong touchstart
+    // Nên mở dialog trực tiếp ở đây cho touch events
+    if (e.type === 'touchend') {
+      e.preventDefault();
+      openChatDialog();
     }
+    // Desktop vẫn dùng click event như bình thường
   }
+  
+  // Reset sau 150ms
+  setTimeout(() => {
+    hasMoved = false;
+  }, 150);
 }
 
-// Prevent dialog from opening when dragging
-chatButton.addEventListener('click', (e) => {
+// Handle click
+function handleChatButtonClick(e) {
+  // Nếu vừa drag thì không mở dialog
   if (hasMoved) {
-    e.stopPropagation();
     e.preventDefault();
-    
-    // Reset hasMoved sau khi ngăn chặn click
-    setTimeout(() => {
-      hasMoved = false;
-    }, 50);
-  } else {
-    // Chỉ mở dialog khi KHÔNG có drag
-    openChatDialog();
+    e.stopPropagation();
+    return false;
   }
-}, true); // useCapture = true để chặn sớm nhất
+  
+  // Mở dialog
+  openChatDialog();
+  e.preventDefault();
+}
 
-// Event listeners for desktop
+// Event listeners
+chatButton.addEventListener('click', handleChatButtonClick);
+
+// Desktop events
 chatButton.addEventListener('mousedown', dragStart);
 document.addEventListener('mousemove', drag);
 document.addEventListener('mouseup', dragEnd);
 
-// Event listeners for mobile
+// Mobile events - quan trọng: phải preventDefault để tránh conflict
 chatButton.addEventListener('touchstart', dragStart, { passive: false });
 document.addEventListener('touchmove', drag, { passive: false });
-document.addEventListener('touchend', dragEnd);
+document.addEventListener('touchend', dragEnd, { passive: false });
 
 // Load saved position on page load
 window.addEventListener('DOMContentLoaded', loadButtonPosition);
+
+// Reset về vị trí mặc định khi xoay màn hình (mobile)
+let lastOrientation = window.innerWidth > window.innerHeight ? 'landscape' : 'portrait';
+
+function handleOrientationChange() {
+  const currentOrientation = window.innerWidth > window.innerHeight ? 'landscape' : 'portrait';
+  
+  // Chỉ reset khi orientation thực sự thay đổi
+  if (currentOrientation !== lastOrientation) {
+    lastOrientation = currentOrientation;
+    resetToDefaultPosition();
+  }
+}
+
+// Lắng nghe sự kiện xoay màn hình
+window.addEventListener('orientationchange', () => {
+  // Delay một chút để đợi browser cập nhật kích thước màn hình
+  setTimeout(handleOrientationChange, 100);
+});
+
+// Fallback cho các trình duyệt không hỗ trợ orientationchange
+window.addEventListener('resize', () => {
+  // Chỉ xử lý trên mobile (màn hình nhỏ)
+  if (window.innerWidth <= 1024) {
+    handleOrientationChange();
+  }
+});
 
 // Keyboard shortcut: Shift + C for chat
 document.addEventListener('keydown', (e) => {

@@ -39,10 +39,6 @@ if (rankBtn) {
 
 });
 
-import {
-  createClient
-} from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
-
 // Import supabase client từ file chung
 import { supabase } from './supabase-client.js';
 
@@ -372,7 +368,7 @@ songForm.addEventListener('submit', async (e) => {
   clearErrors();
   const songName = document.getElementById('songName').value.trim();
   const artist = document.getElementById('artist').value.trim();
-  const composer = document.getElementById('composer').value.trim();
+  let composer = document.getElementById('composer').value.trim();
   const releaseDate = document.getElementById('releaseDate').value;
   const avatar = document.getElementById('avatar').value.trim();
   const lyric = document.getElementById('lyric').value.trim();
@@ -387,10 +383,14 @@ songForm.addEventListener('submit', async (e) => {
     showError('artist', 'Vui lòng nhập tên ca sĩ');
     isValid = false
   }
+  
+  // Nếu không có sáng tác, tự động điền ca sĩ
   if (!composer) {
-    showError('composer', 'Vui lòng nhập tên sáng tác');
-    isValid = false
+    composer = artist;
+    document.getElementById('composer').value = artist;
+    alert('ℹ️ Không tìm thấy thông tin sáng tác!\n\nHệ thống đã tự động điền ca sĩ vào mục sáng tác.\nBạn có thể chỉnh sửa nếu cần.');
   }
+  
   if (!releaseDate) {
     showError('releaseDate', 'Vui lòng chọn ngày phát hành');
     isValid = false
@@ -435,7 +435,7 @@ editSongForm.addEventListener('submit', async (e) => {
   clearEditErrors();
   const songName = document.getElementById('editSongName').value.trim();
   const artist = document.getElementById('editArtist').value.trim();
-  const composer = document.getElementById('editComposer').value.trim();
+  let composer = document.getElementById('editComposer').value.trim();
   const releaseDate = document.getElementById('editReleaseDate').value;
   const avatar = document.getElementById('editAvatar').value.trim();
   const lyric = document.getElementById('editLyric').value.trim();
@@ -448,10 +448,14 @@ editSongForm.addEventListener('submit', async (e) => {
     showEditError('editArtist', 'Vui lòng nhập tên ca sĩ');
     isValid = false
   }
+  
+  // Nếu không có sáng tác, tự động điền ca sĩ
   if (!composer) {
-    showEditError('editComposer', 'Vui lòng nhập tên sáng tác');
-    isValid = false
+    composer = artist;
+    document.getElementById('editComposer').value = artist;
+    alert('ℹ️ Không tìm thấy thông tin sáng tác!\n\nHệ thống đã tự động điền ca sĩ vào mục sáng tác.\nBạn có thể chỉnh sửa nếu cần.');
   }
+  
   if (!releaseDate) {
     showEditError('editReleaseDate', 'Vui lòng chọn ngày phát hành');
     isValid = false
@@ -613,6 +617,274 @@ window.extractVideoId = function(url) {
 
 let isFetchingYoutube = false;
 
+/** Parse artist và tên bài từ title YouTube (dạng "Artist - Song" hoặc "Song - Artist") */
+function parseArtistAndSongFromTitle(title, knownSongName = '') {
+  if (!title || typeof title !== 'string') return { artist: '', song: '' };
+  const t = title.trim();
+  const separators = [' - ', ' – ', ' — ', ' | ', ' • '];
+  for (const sep of separators) {
+    const idx = t.indexOf(sep);
+    if (idx > 0) {
+      let part1 = t.substring(0, idx).replace(/\s*\([^)]*\)\s*$|\s*\[[^\]]*\]\s*$/g, '').trim();
+      let part2 = t.substring(idx + sep.length).replace(/\s*\([^)]*\)\s*$|\s*\[[^\]]*\]\s*$/g, '').trim();
+      if (part1.length > 0 && part2.length > 0) {
+        if (knownSongName) {
+          const k = removeDiacritics(knownSongName);
+          const p1 = removeDiacritics(part1);
+          const p2 = removeDiacritics(part2);
+          if (p1.includes(k) || k.includes(p1)) return { artist: part2, song: part1 };
+          if (p2.includes(k) || k.includes(p2)) return { artist: part1, song: part2 };
+        }
+        return { artist: part1, song: part2 };
+      }
+    }
+  }
+  return { artist: '', song: t };
+}
+
+/** Tự động tìm và điền URL ảnh từ các nguồn uy tín */
+window.autoFillAvatar = async function(type) {
+  const isAdd = type === 'add';
+  const songNameInput = document.getElementById(isAdd ? 'songName' : 'editSongName');
+  const artistInput = document.getElementById(isAdd ? 'artist' : 'editArtist');
+  const avatarInput = document.getElementById(isAdd ? 'avatar' : 'editAvatar');
+
+  const songName = songNameInput.value.trim();
+  const artist = artistInput.value.trim();
+
+  if (!songName) {
+    alert('Vui lòng nhập tên bài hát trước');
+    return;
+  }
+
+  // Kiểm tra xem đã có avatar chưa
+  if (avatarInput.value.trim()) {
+    const confirmOverwrite = confirm(
+      'Đã có URL ảnh trong ô Avatar.\n\n' +
+      'Bạn có muốn tìm lại và ghi đè không?'
+    );
+    if (!confirmOverwrite) return;
+  }
+
+  // Hiển thị loading
+  const originalValue = avatarInput.value;
+  avatarInput.value = '⏳ Đang tìm ảnh...';
+  avatarInput.disabled = true;
+
+  let imageUrl = null;
+  const searchQuery = artist ? `${songName} ${artist}` : songName;
+
+  try {
+    // 1. Thử lấy từ iTunes API (chất lượng cao, có ảnh album)
+    try {
+      const itunesRes = await fetch(
+        `https://itunes.apple.com/search?term=${encodeURIComponent(searchQuery)}&media=music&limit=5&country=VN`
+      );
+      const itunesData = await itunesRes.json();
+      
+      if (itunesData.results?.length > 0) {
+        const q = removeDiacritics(songName);
+        const best = itunesData.results.find(r =>
+          removeDiacritics(r.trackName || '').includes(q) || q.includes(removeDiacritics(r.trackName || ''))
+        ) || itunesData.results[0];
+        
+        // iTunes trả về ảnh 100x100, ta thay thế thành 600x600 cho chất lượng cao hơn
+        if (best.artworkUrl100) {
+          imageUrl = best.artworkUrl100.replace('100x100bb', '600x600bb');
+        }
+      }
+    } catch (e) {
+      console.warn('iTunes image search failed:', e);
+    }
+
+    // 2. Nếu chưa có, thử lấy từ YouTube (thumbnail của video)
+    if (!imageUrl) {
+      try {
+        const searchRes = await fetch(
+          `https://www.googleapis.com/youtube/v3/search` +
+          `?part=snippet&type=video&maxResults=1` +
+          `&q=${encodeURIComponent(searchQuery + ' official')}` +
+          `&key=${YOUTUBE_API_KEY}`
+        );
+        const searchData = await searchRes.json();
+        
+        if (searchData.items?.length > 0) {
+          const snippet = searchData.items[0].snippet;
+          // Ưu tiên maxres (1280x720) > high (480x360) > medium (320x180)
+          const thumbnails = snippet.thumbnails;
+          if (thumbnails.maxres) {
+            imageUrl = thumbnails.maxres.url;
+          } else if (thumbnails.high) {
+            imageUrl = thumbnails.high.url;
+          } else if (thumbnails.medium) {
+            imageUrl = thumbnails.medium.url;
+          }
+        }
+      } catch (e) {
+        console.warn('YouTube image search failed:', e);
+      }
+    }
+
+    // 3. Cập nhật kết quả
+    if (imageUrl) {
+      avatarInput.value = imageUrl;
+      avatarInput.disabled = false;
+      
+      // Hiển thị preview ảnh (nếu có thể)
+      showImagePreview(imageUrl, type);
+    } else {
+      avatarInput.value = originalValue;
+      avatarInput.disabled = false;
+      alert('Không tìm thấy ảnh phù hợp cho bài hát này.\nBạn có thể thử:\n• Bấm nút "Tìm avatar" để tìm trên Google Images\n• Hoặc tự nhập URL ảnh');
+    }
+
+  } catch (error) {
+    console.error('Error finding avatar:', error);
+    avatarInput.value = originalValue;
+    avatarInput.disabled = false;
+    alert('Có lỗi xảy ra khi tìm ảnh. Vui lòng thử lại!');
+  }
+};
+
+/** Hiển thị preview ảnh */
+function showImagePreview(imageUrl, type) {
+  const isAdd = type === 'add';
+  const formId = isAdd ? 'addSongDialog' : 'editSongDialog';
+  const avatarInputId = isAdd ? 'avatar' : 'editAvatar';
+  
+  // Tìm hoặc tạo preview container
+  let previewContainer = document.getElementById(`${avatarInputId}-preview`);
+  
+  if (!previewContainer) {
+    const avatarInput = document.getElementById(avatarInputId);
+    previewContainer = document.createElement('div');
+    previewContainer.id = `${avatarInputId}-preview`;
+    previewContainer.style.cssText = `
+      margin-top: 12px;
+      text-align: center;
+      padding: 12px;
+      background: rgba(99, 102, 241, 0.1);
+      border: 1px solid var(--accent-primary);
+      border-radius: 12px;
+    `;
+    avatarInput.parentElement.appendChild(previewContainer);
+  }
+  
+  previewContainer.innerHTML = `
+    <img src="${imageUrl}" 
+         alt="Preview" 
+         style="max-width: 200px; max-height: 200px; border-radius: 8px; object-fit: cover;"
+         onerror="this.parentElement.innerHTML='<p style=color:#ef4444>⚠️ Không thể tải ảnh</p>'"
+    >
+    <p style="font-size: 13px; color: var(--text-muted); margin-top: 8px;">
+      ✅ Đã tìm thấy ảnh!
+    </p>
+  `;
+}
+
+/** Tự động tìm và điền lời bài hát */
+/** Tự động điền ca sĩ, sáng tác bằng tìm kiếm theo tên bài hát (iTunes API + YouTube fallback) */
+window.autoFillArtistComposer = async function(type) {
+  const isAdd = type === 'add';
+  const songNameInput = document.getElementById(isAdd ? 'songName' : 'editSongName');
+  const artistInput = document.getElementById(isAdd ? 'artist' : 'editArtist');
+  const composerInput = document.getElementById(isAdd ? 'composer' : 'editComposer');
+
+  const query = songNameInput.value.trim();
+  if (!query) {
+    alert('Vui lòng nhập tên bài hát trước');
+    return;
+  }
+
+  // Kiểm tra xem đã có giá trị chưa
+  const hasExistingArtist = artistInput.value.trim();
+  const hasExistingComposer = composerInput.value.trim();
+  
+  if (hasExistingArtist || hasExistingComposer) {
+    const confirmOverwrite = confirm(
+      'Đã có thông tin trong ô Ca sĩ hoặc Sáng tác.\n\n' +
+      'Bạn có muốn tìm lại và ghi đè không?'
+    );
+    if (!confirmOverwrite) return;
+  }
+
+  let foundArtist = null; // Lưu giá trị tìm được
+  let foundComposer = null; // Lưu giá trị tìm được
+
+  // 1. Thử iTunes Search API trước (miễn phí, có artist + composer)
+  try {
+    const itunesRes = await fetch(
+      `https://itunes.apple.com/search?term=${encodeURIComponent(query)}&media=music&limit=5&country=VN`
+    );
+    const itunesData = await itunesRes.json();
+    if (itunesData.results?.length > 0) {
+      const q = removeDiacritics(query);
+      const best = itunesData.results.find(r =>
+        removeDiacritics(r.trackName || '').includes(q) || q.includes(removeDiacritics(r.trackName || ''))
+      ) || itunesData.results[0];
+      
+      if (best.artistName) {
+        foundArtist = best.artistName;
+        artistInput.value = best.artistName;
+      }
+      if (best.composer) {
+        foundComposer = best.composer;
+        composerInput.value = best.composer;
+      }
+      if (foundArtist && foundComposer) return;
+    }
+  } catch (e) {
+    console.warn('iTunes search failed:', e);
+  }
+
+  // 2. Fallback: YouTube search → parse title (Artist - Song)
+  if (!foundArtist) {
+    try {
+      const searchRes = await fetch(
+        `https://www.googleapis.com/youtube/v3/search` +
+        `?part=snippet&type=video&maxResults=1` +
+        `&q=${encodeURIComponent(query + ' official')}` +
+        `&key=${YOUTUBE_API_KEY}`
+      );
+      const searchData = await searchRes.json();
+      if (searchData.items?.length) {
+        const videoId = searchData.items[0].id.videoId;
+        const videoRes = await fetch(
+          `https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${videoId}&key=${YOUTUBE_API_KEY}`
+        );
+        const videoData = await videoRes.json();
+        const title = videoData.items?.[0]?.snippet?.title;
+        if (title) {
+          const parsed = parseArtistAndSongFromTitle(title, query);
+          if (parsed.artist) {
+            foundArtist = parsed.artist;
+            artistInput.value = parsed.artist;
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('YouTube search failed:', e);
+    }
+  }
+
+  // 3. Xử lý kết quả
+  if (foundArtist && !foundComposer) {
+    // Tìm được ca sĩ nhưng không tìm được sáng tác
+    const useArtistAsComposer = confirm(
+      `Đã tìm được ca sĩ: "${foundArtist}"\n\n` +
+      `Nhưng không tìm được thông tin sáng tác.\n\n` +
+      `Bạn có muốn điền ca sĩ vào ô Sáng tác không?`
+    );
+    
+    if (useArtistAsComposer) {
+      composerInput.value = foundArtist;
+    }
+  } else if (!foundArtist && !foundComposer) {
+    // Không tìm được gì cả
+    alert('Không tìm thấy thông tin ca sĩ/sáng tác cho bài hát này');
+  }
+};
+
 window.fetchYoutubeDate = async function(type) {
   if (isFetchingYoutube) return;
   isFetchingYoutube = true;
@@ -627,7 +899,7 @@ window.fetchYoutubeDate = async function(type) {
     document.getElementById('releaseDate') :
     document.getElementById('editReleaseDate');
 
-  const videoId = extractVideoId(linkInput.value.trim());
+  const videoId = extractVideoId(linkInput?.value?.trim() || '');
   if (!videoId) {
     isFetchingYoutube = false;
     return alert('Link YouTube không hợp lệ');
@@ -644,14 +916,31 @@ window.fetchYoutubeDate = async function(type) {
     return;
   }
 
-  const publishedAt = data.items[0].snippet.publishedAt;
+  const snippet = data.items[0].snippet;
+  const publishedAt = snippet.publishedAt;
   dateInput.value = publishedAt.substring(0, 10);
+
+  // Tự động điền tên bài, ca sĩ từ title video (nếu ô trống)
+  const parsed = parseArtistAndSongFromTitle(snippet.title);
+  if (type === 'add') {
+    const songNameInput = document.getElementById('songName');
+    const artistInput = document.getElementById('artist');
+    if (parsed.song && !songNameInput.value.trim()) songNameInput.value = parsed.song;
+    if (parsed.artist && !artistInput.value.trim()) artistInput.value = parsed.artist;
+  } else {
+    const songNameInput = document.getElementById('editSongName');
+    const artistInput = document.getElementById('editArtist');
+    if (songNameInput && parsed.song && !songNameInput.value.trim()) songNameInput.value = parsed.song;
+    if (artistInput && parsed.artist && !artistInput.value.trim()) artistInput.value = parsed.artist;
+  }
+
   isFetchingYoutube = false;
 };
 
 window.autoFindReleaseDate = async function() {
   const title = document.getElementById('songName').value.trim();
-  const artist = document.getElementById('artist').value.trim();
+  const artistInput = document.getElementById('artist');
+  const artist = artistInput.value.trim();
   const dateInput = document.getElementById('releaseDate');
 
   if (!title) {
@@ -689,8 +978,15 @@ window.autoFindReleaseDate = async function() {
       return;
     }
 
-    const publishedAt = videoData.items[0].snippet.publishedAt;
+    const snippet = videoData.items[0].snippet;
+    const publishedAt = snippet.publishedAt;
     dateInput.value = publishedAt.substring(0, 10);
+
+    // Tự động điền ca sĩ nếu ô trống (parse từ title video)
+    if (!artist && snippet.title) {
+      const parsed = parseArtistAndSongFromTitle(snippet.title, title);
+      if (parsed.artist) artistInput.value = parsed.artist;
+    }
 
   } catch (e) {
     console.error(e);

@@ -3,903 +3,1009 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Korean Vocabulary</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <title>RealTalk - Chat Realtime</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Archivo+Black&display=swap" rel="stylesheet">
     <style>
-        /* ========== CSS VARIABLES ========== */
         :root {
-            --bg-primary: #030014;
-            --bg-secondary: #0a0a1a;
-            --bg-card: rgba(17, 17, 39, 0.7);
-            --accent-primary: #6366f1;
-            --accent-secondary: #8b5cf6;
-            --accent-pink: #ec4899;
-            --accent-cyan: #06b6d4;
-            --glow-primary: rgba(99, 102, 241, 0.5);
-            --glow-secondary: rgba(139, 92, 246, 0.5);
-            --text-primary: #f1f5f9;
-            --text-secondary: #94a3b8;
-            --text-muted: #64748b;
-            --border-color: rgba(255, 255, 255, 0.06);
-            --glass-bg: rgba(255, 255, 255, 0.02);
-            --glass-border: rgba(255, 255, 255, 0.08);
+            --bg-main: #0a0a0a;
+            --bg-secondary: #1a1a1a;
+            --accent: #00ff41;
+            --accent-dim: #00cc33;
+            --text: #e0e0e0;
+            --text-dim: #808080;
+            --border: #333;
+            --danger: #ff3366;
+            --warning: #ffaa00;
         }
 
-        /* ========== RESET & BASE ========== */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
 
-        html {
-            scroll-behavior: smooth;
-        }
-
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: var(--bg-primary);
-            color: var(--text-primary);
-            line-height: 1.6;
-            min-height: 100vh;
-            overflow-x: hidden;
+            font-family: 'Space Mono', monospace;
+            background: var(--bg-main);
+            color: var(--text);
+            overflow: hidden;
+            height: 100vh;
         }
 
-        body::before {
+        #loginScreen {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        #loginScreen::before {
             content: '';
-            position: fixed;
-            inset: 0;
-            background: 
-                radial-gradient(ellipse 80% 50% at 20% -20%, rgba(99, 102, 241, 0.25), transparent),
-                radial-gradient(ellipse 60% 40% at 80% 0%, rgba(139, 92, 246, 0.2), transparent),
-                radial-gradient(ellipse 50% 30% at 10% 60%, rgba(236, 72, 153, 0.15), transparent);
-            pointer-events: none;
-            z-index: -1;
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(0, 255, 65, 0.03) 2px,
+                rgba(0, 255, 65, 0.03) 4px
+            );
+            animation: scanlines 8s linear infinite;
         }
 
-        ::selection {
-            background: var(--accent-primary);
-            color: white;
+        @keyframes scanlines {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(50px); }
         }
 
-        /* ========== SCROLLBAR ========== */
-        ::-webkit-scrollbar {
-            width: 10px;
+        .login-container {
+            background: var(--bg-secondary);
+            border: 3px solid var(--accent);
+            padding: 3rem;
+            max-width: 400px;
+            width: 90%;
+            position: relative;
+            box-shadow: 0 0 30px rgba(0, 255, 65, 0.3);
+            animation: slideIn 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
         }
 
-        ::-webkit-scrollbar-track {
-            background: var(--bg-primary);
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-30px) scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
         }
 
-        ::-webkit-scrollbar-thumb {
-            background: linear-gradient(180deg, var(--accent-primary), var(--accent-secondary));
-            border-radius: 10px;
+        .login-container h1 {
+            font-family: 'Archivo Black', sans-serif;
+            font-size: 2.5rem;
+            color: var(--accent);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            text-shadow: 0 0 10px rgba(0, 255, 65, 0.5);
         }
 
-        ::-webkit-scrollbar-thumb:hover {
-            background: var(--accent-secondary);
+        .login-container p {
+            color: var(--text-dim);
+            margin-bottom: 2rem;
+            font-size: 0.9rem;
         }
 
-        /* ========== HEADER ========== */
-        header {
-            padding: 16px 32px;
+        input {
+            width: 100%;
+            padding: 1rem;
+            background: var(--bg-main);
+            border: 2px solid var(--border);
+            color: var(--text);
+            font-family: 'Space Mono', monospace;
+            font-size: 1rem;
+            margin-bottom: 1rem;
+            transition: all 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 15px rgba(0, 255, 65, 0.2);
+        }
+
+        button {
+            width: 100%;
+            padding: 1rem;
+            background: var(--accent);
+            border: none;
+            color: var(--bg-main);
+            font-family: 'Space Mono', monospace;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: var(--accent-dim);
+            transform: translate(-50%, -50%);
+            transition: width 0.4s, height 0.4s;
+            border-radius: 50%;
+        }
+
+        button:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 255, 65, 0.4);
+        }
+
+        button span {
+            position: relative;
+            z-index: 1;
+        }
+
+        #chatScreen {
+            display: none;
+            height: 100vh;
+            flex-direction: column;
+        }
+
+        .chat-header {
+            background: var(--bg-secondary);
+            border-bottom: 3px solid var(--accent);
+            padding: 1.5rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: rgba(3, 0, 20, 0.8);
-            backdrop-filter: blur(20px);
-            border-bottom: 1px solid var(--glass-border);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            gap: 16px;
         }
 
-        .logo {
-            font-size: 26px;
-            font-weight: 800;
-            letter-spacing: -1px;
-            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary), var(--accent-pink));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            padding: 6px 18px;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: all 0.4s;
-            position: relative;
-        }
-
-        .logo::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            border-radius: 12px;
-            padding: 2px;
-            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary), var(--accent-pink));
-            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-            -webkit-mask-composite: xor;
-            mask-composite: exclude;
-            opacity: 0.8;
-        }
-
-        .logo:hover {
-            transform: scale(1.05);
-            filter: drop-shadow(0 0 30px var(--glow-primary));
-        }
-
-        .search-container {
-            flex: 1;
-            max-width: 600px;
-            margin: 0 20px;
-        }
-
-        .search-input {
-            width: 100%;
-            padding: 14px 24px;
-            border: 1px solid var(--glass-border);
-            border-radius: 16px;
-            background: var(--glass-bg);
-            backdrop-filter: blur(10px);
-            color: var(--text-primary);
-            font-family: inherit;
-            font-size: 15px;
-            transition: all 0.4s;
-        }
-
-        .search-input::placeholder {
-            color: var(--text-muted);
-        }
-
-        .search-input:focus {
-            outline: none;
-            border-color: var(--accent-primary);
-            background: rgba(99, 102, 241, 0.05);
-            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
-            transform: translateY(-2px);
+        .chat-header h2 {
+            font-family: 'Archivo Black', sans-serif;
+            color: var(--accent);
+            font-size: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
         }
 
         .user-info {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 1rem;
         }
 
         .user-name {
-            font-size: 16px;
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-
-        .btn {
-            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
-            border: none;
-            color: white;
-            padding: 12px 20px;
-            border-radius: 12px;
-            cursor: pointer;
-            font-size: 15px;
-            font-weight: 600;
-            transition: all 0.3s;
-            position: relative;
-            overflow: hidden;
-            box-shadow: 0 4px 20px rgba(99, 102, 241, 0.3);
-        }
-
-        .btn::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(135deg, rgba(255,255,255,0.2), transparent);
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-
-        .btn:hover::before {
-            opacity: 1;
-        }
-
-        .btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 30px rgba(99, 102, 241, 0.4);
-        }
-
-        .btn-logout {
-            background: linear-gradient(135deg, #ef4444, #dc2626);
-            padding: 10px 16px;
-        }
-
-        /* ========== MAIN ========== */
-        main {
-            padding: 40px;
-            max-width: 1800px;
-            margin: 0 auto;
-        }
-
-        .stats-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 24px;
-            margin-bottom: 32px;
-        }
-
-        .stat-card {
-            background: var(--bg-card);
-            backdrop-filter: blur(20px);
-            border-radius: 20px;
-            padding: 28px 32px;
-            border: 1px solid var(--glass-border);
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-            transition: all 0.4s;
-        }
-
-        .stat-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 20px 50px rgba(99, 102, 241, 0.2);
-            border-color: var(--accent-primary);
-        }
-
-        .stat-label {
-            font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            color: var(--text-secondary);
-            font-weight: 600;
-            margin-bottom: 8px;
-        }
-
-        .stat-value {
-            font-size: 32px;
-            font-weight: 800;
-            background: linear-gradient(135deg, var(--accent-primary), var(--accent-pink));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        /* ========== TABLE ========== */
-        table {
-            width: 100%;
-            border-collapse: separate;
-            border-spacing: 0;
-            background: var(--bg-card);
-            backdrop-filter: blur(20px);
-            border-radius: 24px;
-            overflow: hidden;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-            border: 1px solid var(--glass-border);
-        }
-
-        thead {
-            background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(139, 92, 246, 0.1));
-        }
-
-        th {
-            padding: 20px 24px;
-            text-align: left;
+            color: var(--text);
             font-weight: 700;
-            font-size: 12px;
+        }
+
+        .status-indicator {
+            width: 10px;
+            height: 10px;
+            background: var(--accent);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.2); }
+        }
+
+        .logout-btn {
+            width: auto;
+            padding: 0.5rem 1rem;
+            background: transparent;
+            border: 2px solid var(--danger);
+            color: var(--danger);
+            font-size: 0.8rem;
+        }
+
+        .logout-btn:hover {
+            background: var(--danger);
+            color: var(--text);
+        }
+
+        .online-users {
+            background: var(--bg-main);
+            border-bottom: 2px solid var(--border);
+            padding: 1rem 1.5rem;
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .online-users-label {
+            color: var(--text-dim);
+            font-size: 0.8rem;
             text-transform: uppercase;
-            letter-spacing: 1.5px;
-            color: var(--text-secondary);
-            border-bottom: 1px solid var(--border-color);
+            letter-spacing: 1px;
         }
 
-        td {
-            padding: 16px 24px;
-            border-bottom: 1px solid var(--border-color);
-            font-size: 15px;
+        .online-user {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--bg-secondary);
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--border);
+            font-size: 0.85rem;
         }
 
-        tbody tr {
-            transition: all 0.3s;
+        .online-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--accent);
+            border-radius: 50%;
+        }
+
+        .messages-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 2rem;
+            background: var(--bg-main);
             position: relative;
         }
 
-        tbody tr:hover {
-            background: linear-gradient(135deg, rgba(99, 102, 241, 0.08), rgba(139, 92, 246, 0.05));
-            transform: scale(1.01);
+        .messages-container::-webkit-scrollbar {
+            width: 10px;
         }
 
-        tbody tr:hover td:first-child::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 4px;
-            height: 100%;
-            background: linear-gradient(180deg, var(--accent-primary), var(--accent-pink));
-            border-radius: 0 4px 4px 0;
-        }
-
-        .korean {
-            font-size: 1.2em;
-            font-weight: bold;
-            color: var(--text-primary);
-        }
-
-        /* ========== AUTH DIALOG ========== */
-        dialog {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            margin: 0;
-            border: none;
-            border-radius: 24px;
-            width: min(500px, 92vw);
-            max-height: 85vh;
+        .messages-container::-webkit-scrollbar-track {
             background: var(--bg-secondary);
-            color: var(--text-primary);
-            padding: 0;
-            overflow: hidden;
-            display: none;
-            flex-direction: column;
-            box-shadow: 0 25px 80px rgba(0, 0, 0, 0.6);
-            border: 1px solid var(--glass-border);
         }
 
-        dialog[open] {
-            display: flex;
-            animation: dialogPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-
-        dialog::backdrop {
-            background: rgba(0, 0, 0, 0.85);
-            backdrop-filter: blur(12px);
-        }
-
-        @keyframes dialogPop {
-            from {
-                opacity: 0;
-                transform: translate(-50%, -50%) scale(0.9);
-            }
-            to {
-                opacity: 1;
-                transform: translate(-50%, -50%) scale(1);
-            }
-        }
-
-        dialog h2 {
-            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary), var(--accent-pink));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            font-size: 28px;
-            font-weight: 800;
-            padding: 28px 32px 20px;
-            margin: 0;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        dialog form {
-            padding: 24px 32px 32px;
-            overflow-y: auto;
-        }
-
-        .close-btn {
-            position: absolute;
-            top: 16px;
-            right: 16px;
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid var(--glass-border);
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            color: var(--text-primary);
-            cursor: pointer;
-            font-size: 20px;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .close-btn:hover {
-            background: linear-gradient(135deg, #ef4444, #dc2626);
-            border-color: transparent;
-            transform: rotate(90deg) scale(1.1);
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            font-size: 13px;
-            color: var(--text-secondary);
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
-        }
-
-        .form-group input {
-            width: 100%;
-            padding: 14px 18px;
-            border: 2px solid var(--border-color);
-            border-radius: 14px;
-            background: rgba(255, 255, 255, 0.03);
-            color: var(--text-primary);
-            font-family: inherit;
-            font-size: 16px;
-            transition: all 0.3s;
-        }
-
-        .form-group input::placeholder {
-            color: var(--text-muted);
-        }
-
-        .form-group input:focus {
-            outline: none;
-            border-color: var(--accent-primary);
-            background: rgba(99, 102, 241, 0.05);
-            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
-        }
-
-        .form-actions {
-            display: flex;
-            gap: 12px;
-            margin-top: 28px;
-            padding-top: 20px;
-            border-top: 1px solid var(--border-color);
-        }
-
-        .btn-cancel {
-            background: linear-gradient(135deg, #475569, #334155);
-            flex: 1;
-        }
-
-        .btn-submit {
-            background: linear-gradient(135deg, #10b981, #059669);
-            flex: 1;
-        }
-
-        .switch-mode {
-            text-align: center;
-            margin-top: 16px;
-            color: var(--text-secondary);
-        }
-
-        .switch-mode a {
-            color: var(--accent-primary);
-            text-decoration: none;
-            font-weight: 600;
-            transition: all 0.3s;
-        }
-
-        .switch-mode a:hover {
-            color: var(--accent-secondary);
+        .messages-container::-webkit-scrollbar-thumb {
+            background: var(--accent);
+            border-radius: 5px;
         }
 
         .message {
-            padding: 12px 16px;
-            border-radius: 12px;
-            margin-bottom: 20px;
+            margin-bottom: 1.5rem;
+            animation: messageIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            opacity: 0;
+            animation-fill-mode: forwards;
+        }
+
+        @keyframes messageIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .message-sender {
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .message-time {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+        }
+
+        .message-content {
+            background: var(--bg-secondary);
+            border-left: 3px solid var(--accent);
+            padding: 1rem;
+            color: var(--text);
+            line-height: 1.6;
+            position: relative;
+        }
+
+        .message.own .message-sender {
+            color: var(--warning);
+        }
+
+        .message.own .message-content {
+            border-left-color: var(--warning);
+            background: rgba(255, 170, 0, 0.1);
+        }
+
+        .message-reactions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .reaction {
+            background: var(--bg-main);
+            border: 1px solid var(--border);
+            padding: 0.25rem 0.5rem;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .reaction:hover {
+            border-color: var(--accent);
+            transform: scale(1.1);
+        }
+
+        .reaction.active {
+            background: var(--accent);
+            color: var(--bg-main);
+            border-color: var(--accent);
+        }
+
+        .typing-indicator {
+            display: none;
+            color: var(--text-dim);
+            font-size: 0.9rem;
+            padding: 1rem 2rem;
+            font-style: italic;
+        }
+
+        .typing-indicator.active {
+            display: block;
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .typing-dots {
+            display: inline-flex;
+            gap: 4px;
+            margin-left: 5px;
+        }
+
+        .typing-dot {
+            width: 6px;
+            height: 6px;
+            background: var(--accent);
+            border-radius: 50%;
+            animation: typingBounce 1.4s infinite;
+        }
+
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typingBounce {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-8px); }
+        }
+
+        .input-container {
+            background: var(--bg-secondary);
+            border-top: 3px solid var(--accent);
+            padding: 1.5rem;
+            display: flex;
+            gap: 1rem;
+        }
+
+        #messageInput {
+            flex: 1;
+            margin-bottom: 0;
+            border: 2px solid var(--border);
+        }
+
+        #sendBtn {
+            width: auto;
+            padding: 1rem 2rem;
+            margin-bottom: 0;
+        }
+
+        .reaction-picker {
+            position: absolute;
+            bottom: 100%;
+            right: 0;
+            background: var(--bg-secondary);
+            border: 2px solid var(--accent);
+            padding: 0.5rem;
+            display: none;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+            z-index: 10;
+        }
+
+        .reaction-picker.active {
+            display: flex;
+        }
+
+        .reaction-option {
+            padding: 0.5rem;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: all 0.2s;
+        }
+
+        .reaction-option:hover {
+            transform: scale(1.3);
+        }
+
+        .message-actions {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .message-content:hover .message-actions {
+            opacity: 1;
+        }
+
+        .react-btn {
+            background: var(--bg-main);
+            border: 1px solid var(--border);
+            padding: 0.25rem 0.5rem;
+            color: var(--text);
+            font-size: 0.8rem;
+            cursor: pointer;
+            width: auto;
+        }
+
+        .react-btn:hover {
+            border-color: var(--accent);
+            background: var(--accent);
+            color: var(--bg-main);
+        }
+
+        .error-message {
+            background: var(--danger);
+            color: white;
+            padding: 1rem;
             text-align: center;
-            font-size: 14px;
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
         }
 
-        .message.success {
-            background: rgba(16, 185, 129, 0.15);
-            color: #10b981;
-            border: 1px solid rgba(16, 185, 129, 0.3);
+        .error-message.active {
+            display: block;
+            animation: slideDown 0.3s;
         }
 
-        .message.error {
-            background: rgba(239, 68, 68, 0.15);
-            color: #ef4444;
-            border: 1px solid rgba(239, 68, 68, 0.3);
-        }
-
-        /* ========== LOADING ========== */
-        .loading {
-            text-align: center;
-            padding: 40px;
-            font-size: 1.2em;
-            color: var(--text-secondary);
-        }
-
-        /* ========== RESPONSIVE ========== */
-        @media (max-width: 768px) {
-            header {
-                flex-wrap: wrap;
-                padding: 14px 16px;
-            }
-
-            .logo {
-                font-size: 20px;
-            }
-
-            .search-container {
-                order: 3;
-                width: 100%;
-                max-width: 100%;
-                margin: 0;
-            }
-
-            main {
-                padding: 16px;
-            }
-
-            .stats-container {
-                grid-template-columns: 1fr;
-                gap: 16px;
-            }
-
-            th, td {
-                padding: 12px 10px;
-                font-size: 13px;
-            }
-
-            dialog {
-                width: 96vw;
-            }
+        @keyframes slideDown {
+            from { transform: translateY(-100%); }
+            to { transform: translateY(0); }
         }
     </style>
 </head>
 <body>
-    <!-- Header -->
-    <header>
-        <div class="logo">Korean Vocab</div>
-        
-        <div class="search-container">
-            <input type="text" class="search-input" id="searchInput" placeholder="🔍 Tìm kiếm từ vựng...">
-        </div>
+    <div class="error-message" id="errorMessage"></div>
 
-        <div class="user-info" id="authButtons">
-            <button class="btn" onclick="loginDialog.showModal()">
-                <i class="fa-solid fa-user"></i> Đăng nhập
+    <div id="loginScreen">
+        <div class="login-container">
+            <h1>RealTalk</h1>
+            <p>Kết nối. Trò chuyện. Thời gian thực.</p>
+            <input type="text" id="usernameInput" placeholder="Nhập tên của bạn..." maxlength="20">
+            <button onclick="handleLogin()">
+                <span>Tham gia ngay</span>
             </button>
         </div>
+    </div>
 
-        <div class="user-info" id="userInfo" style="display: none;">
-            <span class="user-name" id="userName"></span>
-            <button class="btn btn-logout" onclick="handleLogout()">
-                <i class="fa-solid fa-right-from-bracket"></i>
+    <div id="chatScreen">
+        <div class="chat-header">
+            <h2>RealTalk</h2>
+            <div class="user-info">
+                <div class="status-indicator"></div>
+                <span class="user-name" id="currentUserName"></span>
+                <button class="logout-btn" onclick="handleLogout()">
+                    <span>Thoát</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="online-users">
+            <span class="online-users-label">Online:</span>
+            <div id="onlineUsersList"></div>
+        </div>
+
+        <div class="messages-container" id="messagesContainer"></div>
+
+        <div class="typing-indicator" id="typingIndicator">
+            <span id="typingUserName"></span> đang nhập
+            <div class="typing-dots">
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+            </div>
+        </div>
+
+        <div class="input-container">
+            <input 
+                type="text" 
+                id="messageInput" 
+                placeholder="Nhập tin nhắn..."
+                onkeypress="handleKeyPress(event)"
+                oninput="handleTyping()"
+            >
+            <button id="sendBtn" onclick="sendMessage()">
+                <span>Gửi</span>
             </button>
         </div>
-    </header>
-
-    <!-- Main Content -->
-    <main>
-        <!-- Stats -->
-        <div class="stats-container">
-            <div class="stat-card">
-                <div class="stat-label">Tổng số từ vựng</div>
-                <div class="stat-value" id="totalWords">0</div>
-            </div>
-        </div>
-
-        <!-- Loading -->
-        <div class="loading" id="loading">Đang tải dữ liệu...</div>
-
-        <!-- Table -->
-        <table id="vocabTable" style="display: none;">
-            <thead>
-                <tr>
-                    <th>Tiếng Hàn</th>
-                    <th>Nghĩa</th>
-                    <th>Loại từ</th>
-                    <th>Cấp độ</th>
-                </tr>
-            </thead>
-            <tbody id="tableBody"></tbody>
-        </table>
-    </main>
-
-    <!-- Login Dialog -->
-    <dialog id="loginDialog">
-        <button class="close-btn" onclick="loginDialog.close()">×</button>
-        <h2>Đăng nhập</h2>
-        <form id="loginForm">
-            <div id="loginMessage"></div>
-            <div class="form-group">
-                <label>Email</label>
-                <input type="email" id="loginEmail" required placeholder="example@email.com">
-            </div>
-            <div class="form-group">
-                <label>Mật khẩu</label>
-                <input type="password" id="loginPassword" required>
-            </div>
-            <div class="form-actions">
-                <button type="button" class="btn btn-cancel" onclick="loginDialog.close()">Hủy</button>
-                <button type="submit" class="btn btn-submit">Đăng nhập</button>
-            </div>
-            <div class="switch-mode">
-                Chưa có tài khoản? <a href="#" onclick="event.preventDefault(); loginDialog.close(); registerDialog.showModal()">Đăng ký ngay</a>
-            </div>
-        </form>
-    </dialog>
-
-    <!-- Register Dialog -->
-    <dialog id="registerDialog">
-        <button class="close-btn" onclick="registerDialog.close()">×</button>
-        <h2>Đăng ký tài khoản</h2>
-        <form id="registerForm">
-            <div id="registerMessage"></div>
-            <div class="form-group">
-                <label>Tên hiển thị (3-20 ký tự)</label>
-                <input type="text" id="regDisplayName" required minlength="3" maxlength="20">
-            </div>
-            <div class="form-group">
-                <label>Số điện thoại</label>
-                <input type="tel" id="regPhone" required pattern="[0-9]{10,11}">
-            </div>
-            <div class="form-group">
-                <label>Email</label>
-                <input type="email" id="regEmail" required>
-            </div>
-            <div class="form-group">
-                <label>Mật khẩu (tối thiểu 6 ký tự)</label>
-                <input type="password" id="regPassword" required minlength="6">
-            </div>
-            <div class="form-group">
-                <label>Nhập lại mật khẩu</label>
-                <input type="password" id="regConfirmPassword" required>
-            </div>
-            <div class="form-actions">
-                <button type="button" class="btn btn-cancel" onclick="registerDialog.close()">Hủy</button>
-                <button type="submit" class="btn btn-submit">Đăng ký</button>
-            </div>
-            <div class="switch-mode">
-                Đã có tài khoản? <a href="#" onclick="event.preventDefault(); registerDialog.close(); loginDialog.showModal()">Đăng nhập</a>
-            </div>
-        </form>
-    </dialog>
+    </div>
 
     <script>
-        const SUPABASE_URL = 'https://ktqdzlhvdkerjajffgfi.supabase.co';
-        const SUPABASE_KEY = 'sb_publishable_1wm-eXETyu07vl61sY4mBQ_xwYZVOCj';
+        // ===============================================
+        // CẤU HÌNH SUPABASE - THAY ĐỔI Ở ĐÂY
+        // ===============================================
+        const SUPABASE_URL = 'https://gdbtjzebjwnbwbvktcue.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_j4d-Jt17QF57Ie3AsBpkBQ_-2xG_Dno';
+        // ===============================================
         
-        let allData = [];
+        /*
+        HƯỚNG DẪN SETUP DATABASE:
+        
+        1. Vào Supabase Dashboard > SQL Editor
+        2. Chạy câu lệnh SQL sau để tạo bảng messages:
+        
+        CREATE TABLE messages (
+            id BIGSERIAL PRIMARY KEY,
+            user_id TEXT NOT NULL,
+            username TEXT NOT NULL,
+            content TEXT NOT NULL,
+            reactions JSONB DEFAULT '{}'::jsonb,
+            created_at TIMESTAMPTZ DEFAULT NOW()
+        );
+        
+        3. Bật Realtime cho bảng messages:
+        
+        ALTER PUBLICATION supabase_realtime ADD TABLE messages;
+        
+        4. (Optional) Tạo index cho performance tốt hơn:
+        
+        CREATE INDEX idx_messages_created_at ON messages(created_at DESC);
+        
+        5. Lấy Supabase URL và Anon Key từ Settings > API
+        6. Điền vào 2 biến SUPABASE_URL và SUPABASE_ANON_KEY ở trên
+        */
+
+        let supabaseClient;
         let currentUser = null;
+        let typingTimeout;
+        let messagesSubscription;
+        let presenceChannel;
 
-        // Check session on load
-        window.addEventListener('DOMContentLoaded', async () => {
-            const session = getSession();
-            if (session) {
-                currentUser = session;
-                showUserInfo();
-                loadData();
+        // Initialize Supabase
+        function initSupabase() {
+            if (SUPABASE_URL === 'YOUR_SUPABASE_URL_HERE' || SUPABASE_ANON_KEY === 'YOUR_SUPABASE_ANON_KEY_HERE') {
+                console.warn('Supabase chưa được cấu hình');
+                return false;
             }
-        });
+            supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            return true;
+        }
 
-        // Login
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const email = document.getElementById('loginEmail').value;
-            const password = document.getElementById('loginPassword').value;
-            
-            try {
-                const response = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
-                    method: 'POST',
-                    headers: {
-                        'apikey': SUPABASE_KEY,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ email, password })
-                });
+        // Login function
+        async function handleLogin() {
+            const username = document.getElementById('usernameInput').value.trim();
 
-                const data = await response.json();
-                
-                if (!response.ok) {
-                    throw new Error(data.error_description || 'Đăng nhập thất bại');
-                }
-
-                saveSession(data);
-                currentUser = data;
-                showUserInfo();
-                loadData();
-                loginDialog.close();
-                showMessage('loginMessage', 'Đăng nhập thành công!', 'success');
-            } catch (err) {
-                showMessage('loginMessage', err.message, 'error');
-            }
-        });
-
-        // Register
-        document.getElementById('registerForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const displayName = document.getElementById('regDisplayName').value;
-            const phone = document.getElementById('regPhone').value;
-            const email = document.getElementById('regEmail').value;
-            const password = document.getElementById('regPassword').value;
-            const confirmPassword = document.getElementById('regConfirmPassword').value;
-            
-            if (displayName.length < 3 || displayName.length > 20) {
-                showMessage('registerMessage', 'Tên hiển thị phải từ 3-20 ký tự', 'error');
+            if (!username) {
+                showError('Vui lòng nhập tên của bạn!');
                 return;
             }
-            
-            if (!/^[0-9]{10,11}$/.test(phone)) {
-                showMessage('registerMessage', 'Số điện thoại không hợp lệ', 'error');
-                return;
-            }
-            
-            if (password !== confirmPassword) {
-                showMessage('registerMessage', 'Mật khẩu nhập lại không khớp', 'error');
+
+            if (!supabaseClient && !initSupabase()) {
+                showError('Không thể kết nối đến server!');
                 return;
             }
 
             try {
-                // Check display name
-                const checkName = await fetch(`${SUPABASE_URL}/rest/v1/profiles?display_name=eq.${encodeURIComponent(displayName)}&select=id`, {
-                    headers: {
-                        'apikey': SUPABASE_KEY,
-                        'Authorization': `Bearer ${SUPABASE_KEY}`
-                    }
-                });
-
-                if (checkName.ok) {
-                    const result = await checkName.json();
-                    if (result.length > 0) {
-                        throw new Error('Tên hiển thị đã được sử dụng');
-                    }
+                const { error: testError } = await supabaseClient.from('messages').select('count').limit(1);
+                
+                if (testError) {
+                    showError('Không thể kết nối đến server!');
+                    console.error(testError);
+                    return;
                 }
 
-                // Register
-                const response = await fetch(`${SUPABASE_URL}/auth/v1/signup`, {
-                    method: 'POST',
-                    headers: {
-                        'apikey': SUPABASE_KEY,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ email, password })
-                });
+                currentUser = {
+                    id: generateId(),
+                    username: username,
+                    joined_at: new Date().toISOString()
+                };
 
-                const data = await response.json();
-                
-                if (!response.ok) {
-                    throw new Error(data.error_description || 'Đăng ký thất bại');
-                }
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
 
-                // Save profile
-                await new Promise(resolve => setTimeout(resolve, 1000));
+                document.getElementById('loginScreen').style.display = 'none';
+                document.getElementById('chatScreen').style.display = 'flex';
+                document.getElementById('currentUserName').textContent = username;
 
-                await fetch(`${SUPABASE_URL}/rest/v1/profiles`, {
-                    method: 'POST',
-                    headers: {
-                        'apikey': SUPABASE_KEY,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        id: data.user.id,
-                        email: email,
-                        display_name: displayName,
-                        phone: phone,
-                        role: 'Member'
-                    })
-                });
-
-                showMessage('registerMessage', 'Đăng ký thành công! Vui lòng đăng nhập.', 'success');
-                
-                setTimeout(() => {
-                    registerDialog.close();
-                    loginDialog.showModal();
-                    document.getElementById('loginEmail').value = email;
-                }, 2000);
-            } catch (err) {
-                showMessage('registerMessage', err.message, 'error');
+                await initializeChat();
+            } catch (error) {
+                showError('Lỗi kết nối: ' + error.message);
+                console.error(error);
             }
-        });
+        }
+
+        // Initialize chat
+        async function initializeChat() {
+            await loadMessages();
+
+            messagesSubscription = supabaseClient
+                .channel('public:messages')
+                .on('postgres_changes', 
+                    { event: 'INSERT', schema: 'public', table: 'messages' },
+                    handleNewMessage
+                )
+                .on('postgres_changes',
+                    { event: 'UPDATE', schema: 'public', table: 'messages' },
+                    handleMessageUpdate
+                )
+                .subscribe();
+
+            presenceChannel = supabaseClient.channel('presence', {
+                config: {
+                    presence: {
+                        key: currentUser.id
+                    }
+                }
+            });
+
+            presenceChannel
+                .on('presence', { event: 'sync' }, () => {
+                    const state = presenceChannel.presenceState();
+                    updateOnlineUsers(state);
+                })
+                .on('broadcast', { event: 'typing' }, ({ payload }) => {
+                    if (payload.userId !== currentUser.id) {
+                        showTypingIndicator(payload.username);
+                    }
+                })
+                .subscribe(async (status) => {
+                    if (status === 'SUBSCRIBED') {
+                        await presenceChannel.track({
+                            user_id: currentUser.id,
+                            username: currentUser.username,
+                            online_at: new Date().toISOString()
+                        });
+                    }
+                });
+        }
+
+        // Load messages
+        async function loadMessages() {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('messages')
+                    .select('*')
+                    .order('created_at', { ascending: true })
+                    .limit(50);
+
+                if (error) throw error;
+
+                const container = document.getElementById('messagesContainer');
+                container.innerHTML = '';
+
+                if (data && data.length > 0) {
+                    data.forEach(message => {
+                        displayMessage(message);
+                    });
+                } else {
+                    container.innerHTML = '<div style="text-align: center; color: var(--text-dim); padding: 2rem;">Chưa có tin nhắn nào. Hãy gửi tin nhắn đầu tiên! 👋</div>';
+                }
+
+                scrollToBottom();
+            } catch (error) {
+                console.error('Error loading messages:', error);
+                showError('Không thể tải tin nhắn');
+            }
+        }
+
+        // Send message
+        async function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const content = input.value.trim();
+
+            if (!content) return;
+
+            try {
+                const { error } = await supabaseClient
+                    .from('messages')
+                    .insert([
+                        {
+                            user_id: currentUser.id,
+                            username: currentUser.username,
+                            content: content,
+                            reactions: {}
+                        }
+                    ]);
+
+                if (error) throw error;
+
+                input.value = '';
+            } catch (error) {
+                showError('Không thể gửi tin nhắn!');
+                console.error('Error sending message:', error);
+            }
+        }
+
+        // Handle new message
+        function handleNewMessage(payload) {
+            const container = document.getElementById('messagesContainer');
+            
+            if (container.innerHTML.includes('Chưa có tin nhắn')) {
+                container.innerHTML = '';
+            }
+            
+            displayMessage(payload.new);
+            scrollToBottom();
+        }
+
+        // Handle message update
+        function handleMessageUpdate(payload) {
+            const messageElement = document.querySelector(`[data-message-id="${payload.new.id}"]`);
+            if (messageElement) {
+                updateMessageReactions(messageElement, payload.new.reactions);
+            }
+        }
+
+        // Display message
+        function displayMessage(message) {
+            const container = document.getElementById('messagesContainer');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${message.user_id === currentUser.id ? 'own' : ''}`;
+            messageDiv.setAttribute('data-message-id', message.id);
+
+            const time = new Date(message.created_at).toLocaleTimeString('vi-VN', {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+
+            messageDiv.innerHTML = `
+                <div class="message-header">
+                    <span class="message-sender">${escapeHtml(message.username)}</span>
+                    <span class="message-time">${time}</span>
+                </div>
+                <div class="message-content">
+                    ${escapeHtml(message.content)}
+                    <div class="message-actions">
+                        <button class="react-btn" onclick="toggleReactionPicker(${message.id})">❤️</button>
+                    </div>
+                    <div class="reaction-picker" id="picker-${message.id}">
+                        <span class="reaction-option" onclick="addReaction(${message.id}, '❤️')">❤️</span>
+                        <span class="reaction-option" onclick="addReaction(${message.id}, '👍')">👍</span>
+                        <span class="reaction-option" onclick="addReaction(${message.id}, '😂')">😂</span>
+                        <span class="reaction-option" onclick="addReaction(${message.id}, '🔥')">🔥</span>
+                        <span class="reaction-option" onclick="addReaction(${message.id}, '✨')">✨</span>
+                    </div>
+                </div>
+                <div class="message-reactions" id="reactions-${message.id}"></div>
+            `;
+
+            container.appendChild(messageDiv);
+            
+            if (message.reactions) {
+                updateMessageReactions(messageDiv, message.reactions);
+            }
+        }
+
+        // Toggle reaction picker
+        function toggleReactionPicker(messageId) {
+            const picker = document.getElementById(`picker-${messageId}`);
+            const allPickers = document.querySelectorAll('.reaction-picker');
+            
+            allPickers.forEach(p => {
+                if (p.id !== `picker-${messageId}`) {
+                    p.classList.remove('active');
+                }
+            });
+            
+            picker.classList.toggle('active');
+        }
+
+        // Add reaction
+        async function addReaction(messageId, emoji) {
+            try {
+                const { data: message, error: fetchError } = await supabaseClient
+                    .from('messages')
+                    .select('reactions')
+                    .eq('id', messageId)
+                    .single();
+
+                if (fetchError) throw fetchError;
+
+                const reactions = message.reactions || {};
+                
+                if (!reactions[emoji]) {
+                    reactions[emoji] = [];
+                }
+
+                const userIndex = reactions[emoji].indexOf(currentUser.id);
+                if (userIndex > -1) {
+                    reactions[emoji].splice(userIndex, 1);
+                    if (reactions[emoji].length === 0) {
+                        delete reactions[emoji];
+                    }
+                } else {
+                    reactions[emoji].push(currentUser.id);
+                }
+
+                const { error: updateError } = await supabaseClient
+                    .from('messages')
+                    .update({ reactions })
+                    .eq('id', messageId);
+
+                if (updateError) throw updateError;
+
+                document.getElementById(`picker-${messageId}`).classList.remove('active');
+            } catch (error) {
+                console.error('Error adding reaction:', error);
+                showError('Không thể thêm reaction');
+            }
+        }
+
+        // Update message reactions
+        function updateMessageReactions(messageElement, reactions) {
+            const reactionsContainer = messageElement.querySelector('.message-reactions');
+            reactionsContainer.innerHTML = '';
+
+            if (!reactions) return;
+
+            Object.entries(reactions).forEach(([emoji, userIds]) => {
+                if (userIds.length > 0) {
+                    const reactionDiv = document.createElement('div');
+                    reactionDiv.className = `reaction ${userIds.includes(currentUser.id) ? 'active' : ''}`;
+                    reactionDiv.innerHTML = `${emoji} <span>${userIds.length}</span>`;
+                    reactionDiv.onclick = () => {
+                        const messageId = messageElement.getAttribute('data-message-id');
+                        addReaction(parseInt(messageId), emoji);
+                    };
+                    reactionsContainer.appendChild(reactionDiv);
+                }
+            });
+        }
+
+        // Handle typing
+        function handleTyping() {
+            if (presenceChannel) {
+                presenceChannel.send({
+                    type: 'broadcast',
+                    event: 'typing',
+                    payload: { 
+                        userId: currentUser.id,
+                        username: currentUser.username 
+                    }
+                });
+            }
+        }
+
+        // Show typing indicator
+        function showTypingIndicator(username) {
+            const indicator = document.getElementById('typingIndicator');
+            const usernameSpan = document.getElementById('typingUserName');
+            
+            usernameSpan.textContent = username;
+            indicator.classList.add('active');
+
+            clearTimeout(typingTimeout);
+            typingTimeout = setTimeout(() => {
+                indicator.classList.remove('active');
+            }, 2000);
+        }
+
+        // Update online users
+        function updateOnlineUsers(state) {
+            const container = document.getElementById('onlineUsersList');
+            container.innerHTML = '';
+
+            Object.values(state).forEach(presences => {
+                presences.forEach(presence => {
+                    if (presence.username) {
+                        const userDiv = document.createElement('div');
+                        userDiv.className = 'online-user';
+                        userDiv.innerHTML = `
+                            <div class="online-dot"></div>
+                            <span>${escapeHtml(presence.username)}</span>
+                        `;
+                        container.appendChild(userDiv);
+                    }
+                });
+            });
+        }
+
+        // Handle key press
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
 
         // Logout
-        function handleLogout() {
-            clearSession();
-            currentUser = null;
-            document.getElementById('authButtons').style.display = 'flex';
-            document.getElementById('userInfo').style.display = 'none';
+        async function handleLogout() {
+            if (presenceChannel) {
+                await presenceChannel.untrack();
+                await presenceChannel.unsubscribe();
+            }
+            if (messagesSubscription) {
+                await messagesSubscription.unsubscribe();
+            }
+
+            localStorage.removeItem('currentUser');
             location.reload();
         }
 
-        // Show user info
-        function showUserInfo() {
-            document.getElementById('authButtons').style.display = 'none';
-            document.getElementById('userInfo').style.display = 'flex';
-            document.getElementById('userName').textContent = currentUser.user?.email || 'User';
+        // Utility functions
+        function scrollToBottom() {
+            const container = document.getElementById('messagesContainer');
+            setTimeout(() => {
+                container.scrollTop = container.scrollHeight;
+            }, 100);
         }
 
-        // Session management
-        function saveSession(data) {
-            const session = {
-                access_token: data.access_token,
-                refresh_token: data.refresh_token,
-                user: data.user,
-                expires_at: Date.now() + (data.expires_in * 1000)
+        function escapeHtml(text) {
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
             };
-            sessionStorage.setItem('supabase_session', JSON.stringify(session));
+            return text.replace(/[&<>"']/g, m => map[m]);
         }
 
-        function getSession() {
-            const stored = sessionStorage.getItem('supabase_session');
-            if (!stored) return null;
+        function generateId() {
+            return Date.now().toString(36) + Math.random().toString(36).substr(2);
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.classList.add('active');
             
-            const session = JSON.parse(stored);
-            if (Date.now() > session.expires_at) {
-                clearSession();
-                return null;
+            setTimeout(() => {
+                errorDiv.classList.remove('active');
+            }, 4000);
+        }
+
+        // Auto-fill username if exists
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedUser = localStorage.getItem('currentUser');
+            if (savedUser) {
+                document.getElementById('usernameInput').value = JSON.parse(savedUser).username;
             }
-            return session;
-        }
-
-        function clearSession() {
-            sessionStorage.removeItem('supabase_session');
-        }
-
-        function showMessage(elementId, text, type) {
-            const msgDiv = document.getElementById(elementId);
-            msgDiv.className = `message ${type}`;
-            msgDiv.textContent = text;
-        }
-
-        // Load vocab data
-        async function loadData() {
-            try {
-                const response = await fetch(`${SUPABASE_URL}/rest/v1/vocab?select=*&order=korean.asc`, {
-                    headers: {
-                        'apikey': SUPABASE_KEY,
-                        'Authorization': `Bearer ${currentUser.access_token}`
-                    }
-                });
-
-                if (!response.ok) throw new Error('Không thể tải dữ liệu');
-
-                allData = await response.json();
-                renderTable(allData);
-
-                document.getElementById('loading').style.display = 'none';
-                document.getElementById('vocabTable').style.display = 'table';
-                document.getElementById('totalWords').textContent = allData.length;
-            } catch (err) {
-                document.getElementById('loading').textContent = 'Lỗi: ' + err.message;
-            }
-        }
-
-        function renderTable(data) {
-            const tbody = document.getElementById('tableBody');
-            tbody.innerHTML = '';
-            
-            data.forEach(item => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td class="korean">${item.korean || ''}</td>
-                    <td>${item.meaning || ''}</td>
-                    <td>${item.part_of_speech || ''}</td>
-                    <td>${item.level || ''}</td>
-                `;
-                tbody.appendChild(tr);
-            });
-          }
-
-function normalizeVietnamese(str) {
-    return str
-        .toLowerCase()
-        .replace(/đ/g, 'd')
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '');
-}
-
-function searchVocab() {
-    const searchTerm = normalizeVietnamese(document.getElementById('searchInput').value);
-    
-    if (!searchTerm) {
-        renderTable(allData);
-        return;
-    }
-
-    const filtered = allData.filter(item => {
-        const korean = normalizeVietnamese(item.korean || '');
-        const meaning = normalizeVietnamese(item.meaning || '');
-        return korean.includes(searchTerm) || meaning.includes(searchTerm);
-    });
-
-    renderTable(filtered);
-}
-
-document.getElementById('searchInput').addEventListener('input', searchVocab);
-</script>
+        });
+    </script>
 </body>
 </html>
