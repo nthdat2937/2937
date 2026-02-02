@@ -1,0 +1,2520 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ntdChat v2</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Archivo+Black&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-main: #000000;
+            --bg-secondary: #0a0a0a;
+            --bg-message: #1a1a1a;
+            --accent: #00ff41;
+            --accent-dim: #00cc33;
+            --text: #ffffff;
+            --text-dim: #999999;
+            --border: #00ff41;
+            --border-subtle: #333333;
+            --danger: #ff3366;
+            --warning: #ffaa00;
+            --admin: #ff00ff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Space Mono', monospace;
+            background: var(--bg-main);
+            color: var(--text);
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        #loginScreen {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background: linear-gradient(135deg, #000000 0%, #0a0a0a 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        #loginScreen::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(0, 255, 65, 0.03) 2px,
+                rgba(0, 255, 65, 0.03) 4px
+            );
+            animation: scanlines 8s linear infinite;
+        }
+
+        @keyframes scanlines {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(50px); }
+        }
+
+        .login-container {
+            background: var(--bg-main);
+            border: 2px solid var(--accent);
+            padding: 3rem;
+            max-width: 400px;
+            width: 90%;
+            position: relative;
+            box-shadow: 0 0 30px rgba(0, 255, 65, 0.3);
+            animation: slideIn 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        .login-container.admin-mode {
+            border-color: var(--admin);
+            box-shadow: 0 0 30px rgba(255, 0, 255, 0.3);
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-30px) scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .login-container h1 {
+            font-family: 'Archivo Black', sans-serif;
+            font-size: 2.5rem;
+            color: var(--accent);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            text-shadow: 0 0 10px rgba(0, 255, 65, 0.5);
+        }
+
+        .login-container.admin-mode h1 {
+            color: var(--admin);
+            text-shadow: 0 0 10px rgba(255, 0, 255, 0.5);
+        }
+
+        .login-container p {
+            color: var(--text-dim);
+            margin-bottom: 2rem;
+            font-size: 0.9rem;
+        }
+
+        .admin-notice {
+            background: rgba(255, 0, 255, 0.1);
+            border: 1px solid var(--admin);
+            padding: 0.5rem;
+            margin-bottom: 1rem;
+            color: var(--admin);
+            font-size: 0.85rem;
+            text-align: center;
+            display: none;
+        }
+
+        .admin-notice.active {
+            display: block;
+        }
+
+        #adminPasswordInput {
+            display: none;
+        }
+
+        #adminPasswordInput.active {
+            display: block;
+        }
+
+        input {
+            width: 100%;
+            padding: 1rem;
+            background: var(--bg-main);
+            border: 2px solid var(--border-subtle);
+            color: var(--text);
+            font-family: 'Space Mono', monospace;
+            font-size: 1rem;
+            margin-bottom: 1rem;
+            transition: all 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 15px rgba(0, 255, 65, 0.3);
+        }
+
+        .admin-mode input:focus {
+            border-color: var(--admin);
+            box-shadow: 0 0 15px rgba(255, 0, 255, 0.2);
+        }
+
+        button {
+            width: 100%;
+            padding: 1rem;
+            background: var(--accent);
+            border: 2px solid var(--accent);
+            color: #000000;
+            font-family: 'Space Mono', monospace;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            /* background: var(--accent-dim); */
+            transform: translate(-50%, -50%);
+            transition: width 0.4s, height 0.4s;
+            border-radius: 50%;
+        }
+
+        button:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 255, 65, 0.4);
+        }
+
+        button span {
+            position: relative;
+            z-index: 1;
+        }
+
+        #chatScreen {
+            display: none;
+            height: 100vh;
+            flex-direction: column;
+            margin-left: 250px;
+        }
+
+        .chat-header {
+            background: var(--bg-main);
+            border-bottom: 2px solid var(--accent);
+            padding: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .chat-header.admin-header {
+            border-bottom-color: var(--admin);
+        }
+
+        .chat-header h2 {
+            font-family: 'Archivo Black', sans-serif;
+            color: var(--accent);
+            font-size: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .admin-header h2 {
+            color: var(--admin);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .user-name {
+            color: var(--text);
+            font-weight: 700;
+        }
+
+        .admin-badge {
+            background: var(--admin);
+            color: var(--bg-main);
+            padding: 0.2rem 0.5rem;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            border-radius: 3px;
+            display: none;
+        }
+
+        .admin-badge.active {
+            display: inline-block;
+        }
+
+        .status-indicator {
+            width: 10px;
+            height: 10px;
+            background: var(--accent);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.2); }
+        }
+
+        .logout-btn {
+            width: auto;
+            padding: 0.5rem 1rem;
+            background: transparent;
+            border: 2px solid var(--danger);
+            color: var(--danger);
+            font-size: 0.8rem;
+        }
+
+        .logout-btn:hover {
+            background: var(--danger);
+            color: var(--text);
+        }
+
+        .online-users {
+            position: fixed;
+            left: 0;
+            top: 0;
+            height: 100vh;
+            width: 250px;
+            background: var(--bg-main);
+            border-right: 2px solid var(--accent);
+            padding: 1.5rem;
+            display: none;
+            flex-direction: column;
+            gap: 1rem;
+            overflow-y: auto;
+            z-index: 100;
+        }
+
+        .online-users.active {
+            display: flex;
+        }
+
+        .online-users-label {
+            color: var(--accent);
+            font-size: 0.9rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--accent);
+        }
+
+        .online-user {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.6rem 0.8rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-subtle);
+            border-radius: 5px;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+
+        .online-user:hover {
+            border-color: var(--accent);
+            background: rgba(0, 255, 65, 0.05);
+        }
+
+        .online-users::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .online-users::-webkit-scrollbar-track {
+            background: var(--bg-main);
+        }
+
+        .online-users::-webkit-scrollbar-thumb {
+            background: var(--accent);
+            border-radius: 3px;
+        }
+
+        .online-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--accent);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        .messages-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            background: var(--bg-main);
+        }
+
+        .messages-container::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .messages-container::-webkit-scrollbar-track {
+            background: var(--bg-secondary);
+        }
+
+        .messages-container::-webkit-scrollbar-thumb {
+            background: var(--accent);
+            border-radius: 4px;
+        }
+
+        .message {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            padding: 1rem 1.2rem;
+            background: var(--bg-message);
+            border: 1px solid var(--border-subtle);
+            border-left: 3px solid var(--accent);
+            border-radius: 8px;
+            max-width: 600px;
+            width: fit-content;
+            position: relative;
+            animation: messageSlide 0.3s ease-out;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        @keyframes messageSlide {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .message.own {
+            align-self: flex-end;
+            border-left: 1px solid var(--border-subtle);
+            border-right: 3px solid var(--accent);
+        }
+
+        .message.deleted {
+            opacity: 0.5;
+            background: rgba(255, 51, 102, 0.1);
+            border-left-color: var(--danger);
+        }
+
+        .message-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .message-sender {
+            font-weight: 700;
+            color: var(--accent);
+            font-size: 0.9rem;
+        }
+
+        .message-time {
+            color: var(--text-dim);
+            font-size: 0.75rem;
+        }
+
+        .message-content {
+            color: var(--text);
+            line-height: 1.5;
+            word-wrap: break-word;
+            position: relative;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .message-text {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .message-content.deleted-content {
+            font-style: italic;
+            color: var(--text-dim);
+            display: block;
+        }
+
+        .delete-reason {
+            margin-top: 0.5rem;
+            padding: 0.5rem;
+            background: rgba(255, 51, 102, 0.1);
+            border-left: 2px solid var(--danger);
+            font-size: 0.8rem;
+            color: var(--danger);
+        }
+
+        .message-actions {
+            display: flex;
+            gap: 0.3rem;
+            opacity: 0;
+            transition: opacity 0.2s;
+            flex-shrink: 0;
+            align-items: center;
+        }
+
+        .message:hover .message-actions {
+            opacity: 1;
+        }
+
+        .react-btn, .delete-msg-btn {
+            background: var(--bg-main);
+            border: 1px solid var(--border-subtle);
+            color: var(--text);
+            padding: 0.2rem 0.4rem;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            width: auto;
+            border-radius: 4px;
+        }
+
+        .react-btn:hover {
+            background: var(--accent);
+            color: #000000;
+            border-color: var(--accent);
+        }
+
+        .delete-msg-btn {
+            border-color: var(--danger);
+            color: var(--danger);
+            display: none;
+        }
+
+        .delete-msg-btn.visible {
+            display: inline-block;
+        }
+
+        .delete-msg-btn:hover {
+            background: var(--danger);
+            color: #ffffff;
+        }
+
+        .reaction-picker {
+            display: none;
+            position: absolute;
+            bottom: 100%;
+            left: 0;
+            background: var(--bg-secondary);
+            border: 2px solid var(--accent);
+            padding: 0.5rem;
+            gap: 0.5rem;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            z-index: 10;
+        }
+
+        .reaction-picker.active {
+            display: flex;
+        }
+
+        .reaction-option {
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .reaction-option:hover {
+            transform: scale(1.3);
+        }
+
+        .message-reactions {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-top: 0.5rem;
+        }
+
+        .reaction {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            padding: 0.2rem 0.5rem;
+            background: var(--bg-main);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .reaction:hover {
+            border-color: var(--accent);
+            background: rgba(0, 255, 65, 0.1);
+        }
+
+        .reaction.active {
+            background: var(--accent);
+            color: var(--bg-main);
+            border-color: var(--accent);
+        }
+
+        .reaction span {
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+
+        .typing-indicator {
+            padding: 1rem 1.5rem;
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border);
+            color: var(--text-dim);
+            font-size: 0.85rem;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .typing-indicator.active {
+            opacity: 1;
+        }
+
+        .typing-dots {
+            display: inline-flex;
+            gap: 4px;
+            margin-left: 8px;
+        }
+
+        .typing-dots span {
+            width: 6px;
+            height: 6px;
+            background: var(--accent);
+            border-radius: 50%;
+            animation: typingBounce 1.4s infinite;
+        }
+
+        .typing-dots span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-dots span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typingBounce {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-10px); }
+        }
+
+        .input-container {
+            padding: 1.5rem;
+            background: var(--bg-main);
+            border-top: 2px solid var(--accent);
+            display: flex;
+            gap: 1rem;
+            flex-direction: column;
+        }
+
+        .preview-container {
+            display: none;
+            padding: 0.5rem 0;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .preview-container.active {
+            display: flex;
+        }
+
+        .image-preview {
+            position: relative;
+            display: inline-block;
+        }
+
+        .image-preview img {
+            max-width: 100px;
+            max-height: 100px;
+            border: 2px solid var(--accent);
+            border-radius: 4px;
+        }
+
+        .image-preview .remove-image {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: var(--danger);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            font-weight: 700;
+        }
+
+        .input-wrapper {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .input-container input {
+            flex: 1;
+            margin-bottom: 0;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-subtle);
+        }
+
+        .image-button {
+            background: var(--bg-secondary);
+            border: 2px solid var(--accent);
+            color: var(--accent);
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 1.2rem;
+            width: auto;
+            flex-shrink: 0;
+        }
+
+        .image-button:hover {
+            background: var(--accent);
+            color: #000000;
+            transform: none;
+            box-shadow: none;
+        }
+
+        #imageInput {
+            display: none;
+        }
+
+        .message-image {
+            max-width: 300px;
+            max-height: 300px;
+            border-radius: 4px;
+            margin-top: 0.5rem;
+            cursor: pointer;
+            border: 2px solid var(--border-subtle);
+            display: block;
+        }
+
+        .message-image:hover {
+            border-color: var(--accent);
+        }
+
+        /* Image Viewer Dialog */
+        .image-viewer-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .image-viewer-modal.active {
+            display: flex;
+        }
+
+        .image-viewer-container {
+            position: relative;
+            width: 90%;
+            height: 90%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .image-viewer-header {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(to bottom, rgba(0, 0, 0, 0.8), transparent);
+            z-index: 10;
+        }
+
+        .image-viewer-title {
+            color: var(--accent);
+            font-family: 'Archivo Black', sans-serif;
+            font-size: 1.2rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .image-viewer-close {
+            background: var(--danger);
+            border: 2px solid var(--danger);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            padding: 0;
+        }
+
+        .image-viewer-close:hover {
+            transform: rotate(90deg) scale(1.1);
+            box-shadow: 0 0 20px rgba(255, 51, 102, 0.6);
+        }
+
+        .image-viewer-content {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            width: 100%;
+        }
+
+        .image-viewer-image {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            transition: transform 0.3s ease;
+            cursor: move;
+        }
+
+        .image-viewer-controls {
+            position: absolute;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 1rem;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 1rem 2rem;
+            border: 2px solid var(--accent);
+            border-radius: 50px;
+            backdrop-filter: blur(10px);
+        }
+
+        .viewer-control-btn {
+            background: var(--bg-secondary);
+            border: 2px solid var(--accent);
+            color: var(--accent);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            padding: 0;
+        }
+
+        .viewer-control-btn:hover {
+            background: var(--accent);
+            color: #000000;
+            transform: scale(1.1);
+            box-shadow: 0 0 20px rgba(0, 255, 65, 0.5);
+        }
+
+        .viewer-control-btn.active {
+            background: var(--accent);
+            color: #000000;
+        }
+
+        .zoom-level {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text);
+            font-weight: 700;
+            padding: 0 1rem;
+            min-width: 80px;
+            justify-content: center;
+        }
+
+        .input-container input:focus {
+            border-color: var(--accent);
+        }
+
+        .send-btn {
+            width: auto;
+            padding: 1rem 2rem;
+            background: var(--accent);
+            color: #000000;
+            font-weight: 700;
+        }
+
+        .send-btn:hover {
+            box-shadow: 0 0 20px rgba(0, 255, 65, 0.5);
+            background: var(--accent-dim);
+        }
+
+        .error-message {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--danger);
+            color: var(--text);
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 700;
+            opacity: 0;
+            transform: translateX(100%);
+            transition: all 0.3s;
+            z-index: 1000;
+            max-width: 300px;
+        }
+
+        .error-message.active {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--bg-main);
+            border: 2px solid var(--accent);
+            padding: 2rem;
+            max-width: 500px;
+            width: 90%;
+            border-radius: 8px;
+            animation: modalSlide 0.3s ease-out;
+            box-shadow: 0 10px 40px rgba(0, 255, 65, 0.3);
+        }
+
+        .modal-content.danger {
+            border-color: var(--danger);
+        }
+
+        @keyframes modalSlide {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modal-header {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+        }
+
+        .modal-content.danger .modal-header {
+            color: var(--danger);
+        }
+
+        .modal-body {
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-body label {
+            display: block;
+            color: var(--text-dim);
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .modal-body input,
+        .modal-body textarea,
+        .modal-body select {
+            width: 100%;
+            padding: 0.8rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-subtle);
+            color: var(--text);
+            font-family: 'Space Mono', monospace;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .modal-body input:focus,
+        .modal-body textarea:focus,
+        .modal-body select:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .modal-body textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .modal-btn {
+            flex: 1;
+            padding: 0.8rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-subtle);
+            color: var(--text);
+            font-family: 'Space Mono', monospace;
+            font-weight: 700;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: all 0.3s;
+        }
+
+        .modal-btn:hover {
+            border-color: var(--accent);
+        }
+
+        .modal-btn.primary {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #000000;
+        }
+
+        .modal-btn.primary:hover {
+            background: var(--accent-dim);
+        }
+
+        .modal-btn.danger {
+            background: var(--danger);
+            border-color: var(--danger);
+            color: #ffffff;
+        }
+
+        .modal-btn.danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 51, 102, 0.4);
+        }
+
+        .user-list-item {
+            padding: 0.8rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-subtle);
+            margin-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 4px;
+            transition: border-color 0.2s;
+        }
+
+        .user-list-item:hover {
+            border-color: var(--accent);
+        }
+
+        .user-list-info {
+            flex: 1;
+        }
+
+        .user-list-name {
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 0.3rem;
+        }
+
+        .user-list-reason {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            font-style: italic;
+        }
+
+        .unban-btn {
+            padding: 0.5rem 1rem;
+            background: var(--accent);
+            border: 1px solid var(--accent);
+            color: #000000;
+            font-family: 'Space Mono', monospace;
+            font-weight: 700;
+            cursor: pointer;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            transition: all 0.3s;
+        }
+
+        .unban-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 255, 65, 0.5);
+            background: var(--accent-dim);
+        }
+
+        .admin-controls {
+            display: none;
+            gap: 0.5rem;
+            margin-left: 1rem;
+        }
+
+        .admin-controls.active {
+            display: flex;
+        }
+
+        .admin-control-btn {
+            padding: 0.4rem 0.8rem;
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text);
+            font-family: 'Space Mono', monospace;
+            font-weight: 700;
+            cursor: pointer;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            transition: all 0.3s;
+            width: auto;
+        }
+
+        .admin-control-btn:hover {
+            border-color: var(--accent);
+            background: rgba(0, 255, 65, 0.1);
+        }
+
+        .admin-control-btn.danger {
+            border-color: var(--danger);
+            color: var(--danger);
+        }
+
+        .admin-control-btn.danger:hover {
+            /* background: rgba(255, 51, 102, 0.1); */
+        }
+
+        @media (max-width: 768px) {
+            .online-users {
+                width: 200px;
+            }
+
+            #chatScreen {
+                margin-left: 200px;
+            }
+
+            .message {
+                max-width: 500px;
+            }
+            
+            .login-container {
+                padding: 2rem;
+            }
+
+            .chat-header {
+                padding: 1rem;
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .chat-header h2 {
+                font-size: 1.2rem;
+            }
+
+            .user-info {
+                width: 100%;
+                justify-content: space-between;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Screen -->
+    <div id="loginScreen">
+        <div class="login-container">
+            <h1>ntdChat v2</h1>
+            <p>Trò chuyện không giới hạn</p>
+            
+            <div class="admin-notice" id="adminNotice">
+                🔐 Chế độ Admin được kích hoạt
+            </div>
+            
+            <input 
+                type="text" 
+                id="usernameInput" 
+                placeholder="Nhập tên của bạn..."
+                maxlength="20"
+                autocomplete="off"
+            >
+            
+            <input 
+                type="password" 
+                id="adminPasswordInput" 
+                placeholder="Mật khẩu admin..."
+                autocomplete="off"
+            >
+            
+            <button onclick="handleLogin()">
+                <span>Tham gia ngay</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Chat Screen -->
+    <div class="online-users">
+        <span class="online-users-label">⚡ ONLINE USERS</span>
+        <div id="onlineUsersList"></div>
+    </div>
+
+    <div id="chatScreen">
+        <div class="chat-header">
+            <h2>🟢 ntdChat v2</h2>
+            <div class="admin-controls" id="adminControls">
+                <button class="admin-control-btn danger" onclick="showKickModal()">
+                    ⚠️ Kick User
+                </button>
+                <button class="admin-control-btn" onclick="showUnbanModal()">
+                    ✅ Unban
+                </button>
+            </div>
+            <div class="user-info">
+                <span class="admin-badge" id="adminBadge">ADMIN</span>
+                <span class="user-name" id="userName"></span>
+                <div class="status-indicator"></div>
+                <button class="logout-btn" onclick="handleLogout()">
+                    <span>Đăng xuất</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="messages-container" id="messagesContainer">
+            <div style="text-align: center; color: var(--text-dim); padding: 2rem;">
+                Chưa có tin nhắn nào. Hãy bắt đầu cuộc trò chuyện! 🚀
+            </div>
+        </div>
+
+        <div class="typing-indicator" id="typingIndicator">
+            <span id="typingUserName"></span> đang nhập
+            <div class="typing-dots">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+
+        <div class="input-container">
+            <div class="preview-container" id="previewContainer"></div>
+            <div class="input-wrapper">
+                <button class="image-button" onclick="document.getElementById('imageInput').click()" title="Gửi ảnh">
+                    📷
+                </button>
+                <input type="file" id="imageInput" accept="image/*" onchange="handleImageSelect(event)" style="display: none;">
+                <input 
+                    type="text" 
+                    id="messageInput" 
+                    placeholder="Nhập tin nhắn..."
+                    onkeypress="handleKeyPress(event)"
+                    oninput="handleTyping()"
+                    autocomplete="off"
+                >
+                <button class="send-btn" onclick="sendMessage()">
+                    <span>Gửi ➤</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Message Modal -->
+    <div class="modal" id="deleteMessageModal">
+        <div class="modal-content danger">
+            <div class="modal-header">🗑️ Xóa tin nhắn</div>
+            <div class="modal-body">
+                <label>Lý do xóa tin nhắn:</label>
+                <textarea id="deleteReasonInput" placeholder="Nhập lý do xóa tin nhắn này..."></textarea>
+            </div>
+            <div class="modal-actions">
+                <button class="modal-btn" onclick="closeDeleteModal()">Hủy</button>
+                <button class="modal-btn danger" onclick="confirmDeleteMessage()">Xóa</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Kick User Modal -->
+    <div class="modal" id="kickUserModal">
+        <div class="modal-content danger">
+            <div class="modal-header">⚠️ Kick người dùng</div>
+            <div class="modal-body">
+                <label>Chọn người dùng:</label>
+                <select id="kickUserSelect">
+                    <option value="">-- Chọn người dùng --</option>
+                </select>
+                
+                <label>Lý do kick:</label>
+                <textarea id="kickReasonInput" placeholder="Nhập lý do kick người dùng này..."></textarea>
+            </div>
+            <div class="modal-actions">
+                <button class="modal-btn" onclick="closeKickModal()">Hủy</button>
+                <button class="modal-btn danger" onclick="confirmKickUser()">Kick</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Unban User Modal -->
+    <div class="modal" id="unbanUserModal">
+        <div class="modal-content">
+            <div class="modal-header">✅ Unban người dùng</div>
+            <div class="modal-body">
+                <label>Danh sách người dùng bị kick:</label>
+                <div id="bannedUsersList" style="max-height: 300px; overflow-y: auto;">
+                    <div style="text-align: center; color: var(--text-dim); padding: 1rem;">
+                        Đang tải...
+                    </div>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="modal-btn" onclick="closeUnbanModal()">Đóng</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Image Viewer Modal -->
+    <div class="image-viewer-modal" id="imageViewerModal">
+        <div class="image-viewer-container">
+            <div class="image-viewer-header">
+                <div class="image-viewer-title">🖼️ Image Viewer</div>
+                <button class="image-viewer-close" onclick="closeImageViewer()">×</button>
+            </div>
+            
+            <div class="image-viewer-content" id="imageViewerContent">
+                <img id="viewerImage" class="image-viewer-image" src="" alt="Viewing image">
+            </div>
+            
+            <div class="image-viewer-controls">
+                <button class="viewer-control-btn" onclick="zoomOut()" title="Thu nhỏ">-</button>
+                <div class="zoom-level" id="zoomLevel">100%</div>
+                <button class="viewer-control-btn" onclick="zoomIn()" title="Phóng to">+</button>
+                <button class="viewer-control-btn" onclick="rotateLeft()" title="Xoay trái">↶</button>
+                <button class="viewer-control-btn" onclick="rotateRight()" title="Xoay phải">↷</button>
+                <button class="viewer-control-btn" onclick="resetImage()" title="Reset">⟲</button>
+                <button class="viewer-control-btn" onclick="downloadImage()" title="Tải xuống">⬇</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="error-message" id="errorMessage"></div>
+
+    <script>
+        // Supabase Configuration
+        const SUPABASE_URL = 'https://gdbtjzebjwnbwbvktcue.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdkYnRqemVianduYndidmt0Y3VlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk5NDYyMzYsImV4cCI6MjA4NTUyMjIzNn0.FxHP1_wOzNuc7eb3PhuAJ8T6L8RSPjSh6Vw3cskVjiE';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        /* 
+         * IMPORTANT: To enable UNBAN functionality, you need to add RLS policies in Supabase:
+         * 
+         * For 'kicks' table, add these policies:
+         * 
+         * 1. Allow UPDATE for admins:
+         * CREATE POLICY "Admins can update kicks" ON kicks
+         * FOR UPDATE USING (
+         *   EXISTS (
+         *     SELECT 1 FROM users 
+         *     WHERE users.id = auth.uid() 
+         *     AND users.is_admin = true
+         *   )
+         * );
+         * 
+         * 2. OR Allow DELETE for admins:
+         * CREATE POLICY "Admins can delete kicks" ON kicks
+         * FOR DELETE USING (
+         *   EXISTS (
+         *     SELECT 1 FROM users 
+         *     WHERE users.id = auth.uid() 
+         *     AND users.is_admin = true
+         *   )
+         * );
+         * 
+         * Note: Since we're using anon key (not authenticated users), 
+         * you may need to allow public UPDATE/DELETE on kicks table:
+         * 
+         * CREATE POLICY "Allow public to update kicks" ON kicks FOR UPDATE USING (true);
+         * CREATE POLICY "Allow public to delete kicks" ON kicks FOR DELETE USING (true);
+         */
+
+        // State
+        let currentUser = null;
+        let isAdmin = false;
+        let presenceChannel = null;
+        let messagesSubscription = null;
+        let kicksSubscription = null;
+        let typingTimeout = null;
+        let currentDeleteMessageId = null;
+        let selectedImage = null;
+        let isLockedMode = false; // True khi login qua URL parameter
+        
+        // Image viewer state
+        let currentZoom = 1;
+        let currentRotation = 0;
+        let currentImageUrl = '';
+        let isDragging = false;
+        let startX = 0;
+        let startY = 0;
+        let translateX = 0;
+        let translateY = 0;
+
+        // Get URL parameters
+        function getUrlParameter(name) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(name);
+        }
+
+        // Check and auto-login from URL
+        function checkAutoLogin() {
+            const nameFromUrl = getUrlParameter('q');
+            
+            if (nameFromUrl) {
+                const usernameInput = document.getElementById('usernameInput');
+                usernameInput.value = nameFromUrl;
+                
+                // Check if it's admin username - don't auto-login, show password field
+                if (nameFromUrl === 'nthdat2937') {
+                    // Show admin password field but don't lock or auto-login
+                    const passwordInput = document.getElementById('adminPasswordInput');
+                    const adminNotice = document.getElementById('adminNotice');
+                    const container = document.querySelector('.login-container');
+                    
+                    passwordInput.classList.add('active');
+                    adminNotice.classList.add('active');
+                    container.classList.add('admin-mode');
+                    
+                    // Don't disable input, allow password entry
+                    usernameInput.disabled = false;
+                    isLockedMode = false;
+                } else {
+                    // Regular user - auto-login in locked mode
+                    isLockedMode = true;
+                    usernameInput.disabled = true;
+                    usernameInput.style.opacity = '0.7';
+                    handleLogin();
+                }
+            } else {
+                // Normal mode - check localStorage
+                const savedUsername = localStorage.getItem('savedUsername');
+                if (savedUsername) {
+                    document.getElementById('usernameInput').value = savedUsername;
+                }
+            }
+        }
+
+        // Check admin username
+        document.getElementById('usernameInput').addEventListener('input', function(e) {
+            const username = e.target.value.trim();
+            const passwordInput = document.getElementById('adminPasswordInput');
+            const adminNotice = document.getElementById('adminNotice');
+            const container = document.querySelector('.login-container');
+            
+            if (username === 'nthdat2937') {
+                passwordInput.classList.add('active');
+                adminNotice.classList.add('active');
+                container.classList.add('admin-mode');
+            } else {
+                passwordInput.classList.remove('active');
+                adminNotice.classList.remove('active');
+                container.classList.remove('admin-mode');
+                passwordInput.value = '';
+            }
+        });
+
+        // Login handler
+        async function handleLogin() {
+            const username = document.getElementById('usernameInput').value.trim();
+            const adminPassword = document.getElementById('adminPasswordInput').value.trim();
+            
+            if (!username) {
+                showError('Vui lòng nhập tên của bạn');
+                return;
+            }
+
+            try {
+                // Check if trying to login as admin
+                if (username === 'nthdat2937') {
+                    if (!adminPassword) {
+                        showError('Vui lòng nhập mật khẩu admin');
+                        return;
+                    }
+
+                    // Verify admin password
+                    const { data: adminData, error: adminError } = await supabaseClient
+                        .from('admins')
+                        .select('*')
+                        .eq('username', username)
+                        .eq('password', adminPassword)
+                        .single();
+
+                    if (adminError || !adminData) {
+                        showError('Mật khẩu admin không đúng');
+                        return;
+                    }
+
+                    isAdmin = true;
+                }
+
+                // Save username to localStorage (only in normal mode)
+                if (!isLockedMode) {
+                    localStorage.setItem('savedUsername', username);
+                }
+
+                // Create or get user
+                const { data: existingUser, error: fetchError } = await supabaseClient
+                    .from('users')
+                    .select('*')
+                    .eq('username', username)
+                    .single();
+
+                if (fetchError && fetchError.code !== 'PGRST116') {
+                    throw fetchError;
+                }
+
+                let userId;
+                if (existingUser) {
+                    currentUser = existingUser;
+                    userId = existingUser.id;
+                } else {
+                    const { data: newUser, error: insertError } = await supabaseClient
+                        .from('users')
+                        .insert([{ 
+                            username, 
+                            is_admin: isAdmin 
+                        }])
+                        .select()
+                        .single();
+
+                    if (insertError) throw insertError;
+                    currentUser = newUser;
+                    userId = newUser.id;
+                }
+
+                // Check if user is kicked (unless admin)
+                if (!isAdmin) {
+                    try {
+                        const { data: kickData, error: kickError } = await supabaseClient
+                            .from('kicks')
+                            .select('*')
+                            .eq('user_id', userId)
+                            .eq('active', true)
+                            .maybeSingle();
+
+                        if (kickData) {
+                            showError(`Bạn đã bị kick khỏi chat!\nLý do: ${kickData.reason}`, true);
+                            return;
+                        }
+                    } catch (kickCheckError) {
+                        console.warn('Could not check kick status:', kickCheckError);
+                        // Continue login even if kick check fails
+                    }
+                }
+
+                // Save to localStorage
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                localStorage.setItem('isAdmin', isAdmin);
+
+                // Show chat screen
+                document.getElementById('loginScreen').style.display = 'none';
+                document.getElementById('chatScreen').style.display = 'flex';
+                document.querySelector('.online-users').classList.add('active');
+                document.getElementById('userName').textContent = currentUser.username;
+
+                // Hide logout button in locked mode
+                if (isLockedMode) {
+                    document.querySelector('.logout-btn').style.display = 'none';
+                }
+
+                // Show admin badge if admin
+                if (isAdmin) {
+                    document.getElementById('adminBadge').classList.add('active');
+                    document.querySelector('.chat-header').classList.add('admin-header');
+                    document.getElementById('adminControls').classList.add('active');
+                }
+
+                // Initialize chat
+                await initializeChat();
+            } catch (error) {
+                console.error('Login error:', error);
+                showError('Đã xảy ra lỗi khi đăng nhập');
+            }
+        }
+
+        // Initialize chat
+        async function initializeChat() {
+            try {
+                // Setup presence
+                presenceChannel = supabaseClient.channel('online-users', {
+                    config: { presence: { key: currentUser.id } }
+                });
+
+                presenceChannel
+                    .on('presence', { event: 'sync' }, () => {
+                        const state = presenceChannel.presenceState();
+                        updateOnlineUsers(state);
+                        
+                        // Update kick user list if admin
+                        if (isAdmin) {
+                            updateKickUserList(state);
+                        }
+                    })
+                    .on('broadcast', { event: 'typing' }, ({ payload }) => {
+                        if (payload.userId !== currentUser.id) {
+                            showTypingIndicator(payload.username);
+                        }
+                    })
+                    .on('broadcast', { event: 'user-kicked' }, ({ payload }) => {
+                        console.log('Kick event received:', payload);
+                        if (payload.userId === currentUser.id) {
+                            // Show alert and immediately logout
+                            alert(`⚠️ BẠN ĐÃ BỊ KICK KHỎI CHAT!\n\nLý do: ${payload.reason}\n\nBạn sẽ bị đăng xuất ngay lập tức.`);
+                            handleLogout();
+                        }
+                    })
+                    .subscribe(async (status) => {
+                        if (status === 'SUBSCRIBED') {
+                            await presenceChannel.track({
+                                user_id: currentUser.id,
+                                username: currentUser.username,
+                                online_at: new Date().toISOString()
+                            });
+                        }
+                    });
+
+                // Load messages
+                await loadMessages();
+
+                // Subscribe to new messages
+                messagesSubscription = supabaseClient
+                    .channel('messages-channel')
+                    .on('postgres_changes', {
+                        event: 'INSERT',
+                        schema: 'public',
+                        table: 'messages'
+                    }, handleNewMessage)
+                    .on('postgres_changes', {
+                        event: 'UPDATE',
+                        schema: 'public',
+                        table: 'messages'
+                    }, handleMessageUpdate)
+                    .subscribe();
+
+                // Subscribe to kicks table for realtime kick detection
+                kicksSubscription = supabaseClient
+                    .channel('kicks-channel')
+                    .on('postgres_changes', {
+                        event: 'INSERT',
+                        schema: 'public',
+                        table: 'kicks',
+                        filter: `user_id=eq.${currentUser.id}`
+                    }, async (payload) => {
+                        console.log('Kick detected via database:', payload);
+                        if (payload.new.active === true) {
+                            const kickReason = payload.new.reason;
+                            alert(`⚠️ BẠN ĐÃ BỊ KICK KHỎI CHAT!\n\nLý do: ${kickReason}\n\nBạn sẽ bị đăng xuất ngay lập tức.`);
+                            await handleLogout();
+                        }
+                    })
+                    .subscribe();
+
+                scrollToBottom();
+            } catch (error) {
+                console.error('Error initializing chat:', error);
+                showError('Không thể kết nối đến chat');
+            }
+        }
+
+        // Load messages
+        async function loadMessages() {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('messages')
+                    .select('*')
+                    .order('created_at', { ascending: true })
+                    .limit(100);
+
+                if (error) throw error;
+
+                const container = document.getElementById('messagesContainer');
+                container.innerHTML = '';
+
+                if (data && data.length > 0) {
+                    data.forEach(message => displayMessage(message));
+                } else {
+                    container.innerHTML = `
+                        <div style="text-align: center; color: var(--text-dim); padding: 2rem;">
+                            Chưa có tin nhắn nào. Hãy bắt đầu cuộc trò chuyện! 🚀
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error loading messages:', error);
+                showError('Không thể tải tin nhắn');
+            }
+        }
+
+        // Send message
+        async function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const content = input.value.trim();
+
+            if (!content && !selectedImage) return;
+
+            try {
+                let imageUrl = null;
+                
+                // Upload image if selected
+                if (selectedImage) {
+                    const fileExt = selectedImage.name.split('.').pop();
+                    const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+                    const filePath = `chat-images/${fileName}`;
+
+                    const { error: uploadError } = await supabaseClient.storage
+                        .from('images')
+                        .upload(filePath, selectedImage);
+
+                    if (uploadError) {
+                        console.error('Upload error:', uploadError);
+                        showError('Không thể tải ảnh lên');
+                        return;
+                    }
+
+                    const { data: urlData } = supabaseClient.storage
+                        .from('images')
+                        .getPublicUrl(filePath);
+
+                    imageUrl = urlData.publicUrl;
+                }
+
+                const { error } = await supabaseClient
+                    .from('messages')
+                    .insert([{
+                        user_id: currentUser.id,
+                        username: currentUser.username,
+                        content: content || '',
+                        image_url: imageUrl,
+                        reactions: {}
+                    }]);
+
+                if (error) throw error;
+
+                input.value = '';
+                selectedImage = null;
+                document.getElementById('previewContainer').innerHTML = '';
+                document.getElementById('previewContainer').classList.remove('active');
+                document.getElementById('imageInput').value = '';
+            } catch (error) {
+                console.error('Error sending message:', error);
+                showError('Không thể gửi tin nhắn');
+            }
+        }
+
+        // Handle new message
+        function handleNewMessage(payload) {
+            const container = document.getElementById('messagesContainer');
+            
+            if (container.innerHTML.includes('Chưa có tin nhắn')) {
+                container.innerHTML = '';
+            }
+            
+            displayMessage(payload.new);
+            scrollToBottom();
+        }
+
+        // Handle message update
+        function handleMessageUpdate(payload) {
+            const messageElement = document.querySelector(`[data-message-id="${payload.new.id}"]`);
+            if (messageElement) {
+                if (payload.new.deleted) {
+                    // Update deleted message
+                    messageElement.classList.add('deleted');
+                    const contentDiv = messageElement.querySelector('.message-content');
+                    contentDiv.classList.add('deleted-content');
+                    contentDiv.innerHTML = `
+                        <em>Tin nhắn đã bị xóa bởi admin</em>
+                        ${payload.new.delete_reason ? `<div class="delete-reason">Lý do: ${escapeHtml(payload.new.delete_reason)}</div>` : ''}
+                    `;
+                } else {
+                    updateMessageReactions(messageElement, payload.new.reactions);
+                }
+            }
+        }
+
+        // Display message
+        function displayMessage(message) {
+            const container = document.getElementById('messagesContainer');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${message.user_id === currentUser.id ? 'own' : ''} ${message.deleted ? 'deleted' : ''}`;
+            messageDiv.setAttribute('data-message-id', message.id);
+
+            const time = new Date(message.created_at).toLocaleTimeString('vi-VN', {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+
+            let contentHtml;
+            if (message.deleted) {
+                contentHtml = `
+                    <em>Tin nhắn đã bị xóa bởi admin</em>
+                    ${message.delete_reason ? `<div class="delete-reason">Lý do: ${escapeHtml(message.delete_reason)}</div>` : ''}
+                `;
+            } else {
+                contentHtml = message.content ? escapeHtml(message.content) : '';
+            }
+
+            // Add image if exists
+            let imageHtml = '';
+            if (message.image_url && !message.deleted) {
+                imageHtml = `<img src="${message.image_url}" alt="Image" class="message-image" onclick="openImageViewer('${message.image_url}')">`;
+            }
+
+            messageDiv.innerHTML = `
+                <div class="message-header">
+                    <span class="message-sender">${escapeHtml(message.username)}</span>
+                    <span class="message-time">${time}</span>
+                </div>
+                <div class="message-content ${message.deleted ? 'deleted-content' : ''}">
+                    ${message.deleted ? contentHtml : `
+                        ${contentHtml ? `<span class="message-text">${contentHtml}</span>` : ''}
+                        ${imageHtml}
+                        <div class="message-actions">
+                            <button class="react-btn" onclick="toggleReactionPicker(${message.id})">❤️</button>
+                            <button class="delete-msg-btn ${isAdmin && message.user_id !== currentUser.id ? 'visible' : ''}" onclick="showDeleteModal(${message.id})">🗑️</button>
+                        </div>
+                    `}
+                    ${!message.deleted ? `
+                    <div class="reaction-picker" id="picker-${message.id}">
+                        <span class="reaction-option" onclick="addReaction(${message.id}, '❤️')">❤️</span>
+                        <span class="reaction-option" onclick="addReaction(${message.id}, '👍')">👍</span>
+                        <span class="reaction-option" onclick="addReaction(${message.id}, '😂')">😂</span>
+                        <span class="reaction-option" onclick="addReaction(${message.id}, '🔥')">🔥</span>
+                        <span class="reaction-option" onclick="addReaction(${message.id}, '✨')">✨</span>
+                    </div>
+                    ` : ''}
+                </div>
+                <div class="message-reactions" id="reactions-${message.id}"></div>
+            `;
+
+            container.appendChild(messageDiv);
+            
+            if (message.reactions && !message.deleted) {
+                updateMessageReactions(messageDiv, message.reactions);
+            }
+        }
+
+        // Show delete message modal
+        function showDeleteModal(messageId) {
+            currentDeleteMessageId = messageId;
+            document.getElementById('deleteMessageModal').classList.add('active');
+            document.getElementById('deleteReasonInput').value = '';
+        }
+
+        // Close delete modal
+        function closeDeleteModal() {
+            document.getElementById('deleteMessageModal').classList.remove('active');
+            currentDeleteMessageId = null;
+        }
+
+        // Confirm delete message
+        async function confirmDeleteMessage() {
+            const reason = document.getElementById('deleteReasonInput').value.trim();
+            
+            if (!reason) {
+                showError('Vui lòng nhập lý do xóa tin nhắn');
+                return;
+            }
+
+            if (!currentDeleteMessageId) return;
+
+            try {
+                const { error } = await supabaseClient
+                    .from('messages')
+                    .update({ 
+                        deleted: true,
+                        delete_reason: reason,
+                        deleted_by: currentUser.id,
+                        deleted_at: new Date().toISOString()
+                    })
+                    .eq('id', currentDeleteMessageId);
+
+                if (error) throw error;
+
+                closeDeleteModal();
+                showError('Đã xóa tin nhắn', false);
+            } catch (error) {
+                console.error('Error deleting message:', error);
+                showError('Không thể xóa tin nhắn');
+            }
+        }
+
+        // Show kick user modal
+        function showKickModal() {
+            if (!isAdmin) return;
+            document.getElementById('kickUserModal').classList.add('active');
+            document.getElementById('kickReasonInput').value = '';
+        }
+
+        // Close kick modal
+        function closeKickModal() {
+            document.getElementById('kickUserModal').classList.remove('active');
+        }
+
+        // Update kick user list
+        function updateKickUserList(presenceState) {
+            const select = document.getElementById('kickUserSelect');
+            select.innerHTML = '<option value="">-- Chọn người dùng --</option>';
+
+            Object.values(presenceState).forEach(presences => {
+                presences.forEach(presence => {
+                    if (presence.username && presence.user_id !== currentUser.id) {
+                        const option = document.createElement('option');
+                        option.value = presence.user_id;
+                        option.textContent = presence.username;
+                        select.appendChild(option);
+                    }
+                });
+            });
+        }
+
+        // Confirm kick user
+        async function confirmKickUser() {
+            const userId = document.getElementById('kickUserSelect').value;
+            const reason = document.getElementById('kickReasonInput').value.trim();
+            
+            if (!userId) {
+                showError('Vui lòng chọn người dùng');
+                return;
+            }
+
+            if (!reason) {
+                showError('Vui lòng nhập lý do kick');
+                return;
+            }
+
+            try {
+                // Record kick in database with active = true
+                const { error: kickError } = await supabaseClient
+                    .from('kicks')
+                    .insert([{
+                        user_id: userId,
+                        kicked_by: currentUser.id,
+                        reason: reason,
+                        active: true
+                    }]);
+
+                if (kickError) throw kickError;
+
+                // Send broadcast to kick user
+                if (presenceChannel) {
+                    console.log('Broadcasting kick event to user:', userId);
+                    await presenceChannel.send({
+                        type: 'broadcast',
+                        event: 'user-kicked',
+                        payload: { 
+                            userId: userId,
+                            reason: reason
+                        }
+                    });
+                    console.log('Kick broadcast sent successfully');
+                }
+
+                closeKickModal();
+                showError('✅ Đã kick người dùng! Họ sẽ bị văng khỏi chat ngay lập tức.', false);
+            } catch (error) {
+                console.error('Error kicking user:', error);
+                showError('Không thể kick người dùng');
+            }
+        }
+
+        // Show unban user modal
+        async function showUnbanModal() {
+            if (!isAdmin) return;
+            document.getElementById('unbanUserModal').classList.add('active');
+            await loadBannedUsers();
+        }
+
+        // Close unban modal
+        function closeUnbanModal() {
+            document.getElementById('unbanUserModal').classList.remove('active');
+        }
+
+        // Load banned users
+        async function loadBannedUsers() {
+            try {
+                const { data: kicks, error } = await supabaseClient
+                    .from('kicks')
+                    .select('*')
+                    .eq('active', true)
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                const container = document.getElementById('bannedUsersList');
+                
+                if (!kicks || kicks.length === 0) {
+                    container.innerHTML = `
+                        <div style="text-align: center; color: var(--text-dim); padding: 1rem;">
+                            Không có người dùng nào bị kick
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = '';
+                
+                // Fetch user details for each kick
+                for (const kick of kicks) {
+                    try {
+                        const { data: user } = await supabaseClient
+                            .from('users')
+                            .select('username')
+                            .eq('id', kick.user_id)
+                            .single();
+
+                        const item = document.createElement('div');
+                        item.className = 'user-list-item';
+                        item.innerHTML = `
+                            <div class="user-list-info">
+                                <div class="user-list-name">${escapeHtml(user?.username || 'Unknown User')}</div>
+                                <div class="user-list-reason">Lý do: ${escapeHtml(kick.reason)}</div>
+                            </div>
+                            <button class="unban-btn" onclick="unbanUser('${kick.id}', '${kick.user_id}')">
+                                Unban
+                            </button>
+                        `;
+                        container.appendChild(item);
+                    } catch (userError) {
+                        console.warn('Could not load user for kick:', userError);
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading banned users:', error);
+                const container = document.getElementById('bannedUsersList');
+                container.innerHTML = `
+                    <div style="text-align: center; color: var(--text-dim); padding: 1rem;">
+                        Không thể tải danh sách. Vui lòng thử lại.
+                    </div>
+                `;
+            }
+        }
+
+        // Unban user - Global function
+        window.unbanUser = async function(kickId, userId) {
+            try {
+                console.log('Attempting to unban:', { kickId, userId, type: typeof kickId });
+                
+                // First, check if the record exists
+                const { data: existingKick, error: fetchError } = await supabaseClient
+                    .from('kicks')
+                    .select('*')
+                    .eq('id', kickId)
+                    .single();
+
+                console.log('Existing kick record:', { existingKick, fetchError });
+
+                if (fetchError || !existingKick) {
+                    showError('Không tìm thấy bản ghi kick này. Có thể đã được unban rồi.');
+                    await loadBannedUsers();
+                    return;
+                }
+
+                // Try to update active = false
+                const { data: updateData, error: updateError } = await supabaseClient
+                    .from('kicks')
+                    .update({ active: false })
+                    .eq('id', kickId)
+                    .select();
+
+                console.log('Update result:', { updateData, updateError });
+
+                if (updateError) {
+                    console.error('Update error:', updateError);
+                    throw updateError;
+                }
+
+                if (updateData && updateData.length > 0) {
+                    showError('Đã unban người dùng thành công! Người dùng có thể đăng nhập lại.', false);
+                    await loadBannedUsers();
+                    return;
+                }
+
+                // If update returns empty array (RLS policy issue), try delete
+                console.log('Update returned empty, trying delete instead...');
+                
+                const { data: deleteData, error: deleteError } = await supabaseClient
+                    .from('kicks')
+                    .delete()
+                    .eq('id', kickId)
+                    .select();
+
+                console.log('Delete result:', { deleteData, deleteError });
+
+                if (deleteError) {
+                    console.error('Delete error:', deleteError);
+                    throw deleteError;
+                }
+
+                if (deleteData && deleteData.length > 0) {
+                    showError('Đã unban người dùng thành công! Người dùng có thể đăng nhập lại.', false);
+                    await loadBannedUsers();
+                    return;
+                }
+
+                // If both failed, it's likely an RLS policy issue
+                showError('Không thể unban: Vui lòng kiểm tra RLS policies trong Supabase cho bảng kicks (cần cho phép UPDATE hoặc DELETE)');
+                
+            } catch (error) {
+                console.error('Error unbanning user:', error);
+                showError('Lỗi khi unban: ' + error.message);
+            }
+        }
+
+        // Toggle reaction picker
+        function toggleReactionPicker(messageId) {
+            const picker = document.getElementById(`picker-${messageId}`);
+            const allPickers = document.querySelectorAll('.reaction-picker');
+            
+            allPickers.forEach(p => {
+                if (p.id !== `picker-${messageId}`) {
+                    p.classList.remove('active');
+                }
+            });
+            
+            picker.classList.toggle('active');
+        }
+
+        // Add reaction
+        async function addReaction(messageId, emoji) {
+            try {
+                const { data: message, error: fetchError } = await supabaseClient
+                    .from('messages')
+                    .select('reactions')
+                    .eq('id', messageId)
+                    .single();
+
+                if (fetchError) throw fetchError;
+
+                const reactions = message.reactions || {};
+                
+                if (!reactions[emoji]) {
+                    reactions[emoji] = [];
+                }
+
+                const userIndex = reactions[emoji].indexOf(currentUser.id);
+                if (userIndex > -1) {
+                    reactions[emoji].splice(userIndex, 1);
+                    if (reactions[emoji].length === 0) {
+                        delete reactions[emoji];
+                    }
+                } else {
+                    reactions[emoji].push(currentUser.id);
+                }
+
+                const { error: updateError } = await supabaseClient
+                    .from('messages')
+                    .update({ reactions })
+                    .eq('id', messageId);
+
+                if (updateError) throw updateError;
+
+                document.getElementById(`picker-${messageId}`).classList.remove('active');
+            } catch (error) {
+                console.error('Error adding reaction:', error);
+                showError('Không thể thêm reaction');
+            }
+        }
+
+        // Update message reactions
+        function updateMessageReactions(messageElement, reactions) {
+            const reactionsContainer = messageElement.querySelector('.message-reactions');
+            reactionsContainer.innerHTML = '';
+
+            if (!reactions) return;
+
+            Object.entries(reactions).forEach(([emoji, userIds]) => {
+                if (userIds.length > 0) {
+                    const reactionDiv = document.createElement('div');
+                    reactionDiv.className = `reaction ${userIds.includes(currentUser.id) ? 'active' : ''}`;
+                    reactionDiv.innerHTML = `${emoji} <span>${userIds.length}</span>`;
+                    reactionDiv.onclick = () => {
+                        const messageId = messageElement.getAttribute('data-message-id');
+                        addReaction(parseInt(messageId), emoji);
+                    };
+                    reactionsContainer.appendChild(reactionDiv);
+                }
+            });
+        }
+
+        // Handle typing
+        function handleTyping() {
+            if (presenceChannel) {
+                presenceChannel.send({
+                    type: 'broadcast',
+                    event: 'typing',
+                    payload: { 
+                        userId: currentUser.id,
+                        username: currentUser.username 
+                    }
+                });
+            }
+        }
+
+        // Show typing indicator
+        function showTypingIndicator(username) {
+            const indicator = document.getElementById('typingIndicator');
+            const usernameSpan = document.getElementById('typingUserName');
+            
+            usernameSpan.textContent = username;
+            indicator.classList.add('active');
+
+            clearTimeout(typingTimeout);
+            typingTimeout = setTimeout(() => {
+                indicator.classList.remove('active');
+            }, 2000);
+        }
+
+        // Update online users
+        function updateOnlineUsers(state) {
+            const container = document.getElementById('onlineUsersList');
+            container.innerHTML = '';
+
+            Object.values(state).forEach(presences => {
+                presences.forEach(presence => {
+                    if (presence.username) {
+                        const userDiv = document.createElement('div');
+                        userDiv.className = 'online-user';
+                        userDiv.innerHTML = `
+                            <div class="online-dot"></div>
+                            <span>${escapeHtml(presence.username)}</span>
+                        `;
+                        container.appendChild(userDiv);
+                    }
+                });
+            });
+        }
+
+        // Image Viewer Functions
+        function openImageViewer(imageUrl) {
+            currentImageUrl = imageUrl;
+            currentZoom = 1;
+            currentRotation = 0;
+            translateX = 0;
+            translateY = 0;
+            
+            const modal = document.getElementById('imageViewerModal');
+            const img = document.getElementById('viewerImage');
+            
+            img.src = imageUrl;
+            modal.classList.add('active');
+            
+            updateImageTransform();
+            updateZoomLevel();
+            
+            // Add drag functionality
+            setupDragListeners();
+        }
+
+        function closeImageViewer() {
+            const modal = document.getElementById('imageViewerModal');
+            modal.classList.remove('active');
+            removeDragListeners();
+        }
+
+        function zoomIn() {
+            currentZoom = Math.min(currentZoom + 0.25, 5);
+            updateImageTransform();
+            updateZoomLevel();
+        }
+
+        function zoomOut() {
+            currentZoom = Math.max(currentZoom - 0.25, 0.25);
+            updateImageTransform();
+            updateZoomLevel();
+        }
+
+        function rotateLeft() {
+            currentRotation -= 90;
+            updateImageTransform();
+        }
+
+        function rotateRight() {
+            currentRotation += 90;
+            updateImageTransform();
+        }
+
+        function resetImage() {
+            currentZoom = 1;
+            currentRotation = 0;
+            translateX = 0;
+            translateY = 0;
+            updateImageTransform();
+            updateZoomLevel();
+        }
+
+        function updateImageTransform() {
+            const img = document.getElementById('viewerImage');
+            img.style.transform = `translate(${translateX}px, ${translateY}px) scale(${currentZoom}) rotate(${currentRotation}deg)`;
+        }
+
+        function updateZoomLevel() {
+            document.getElementById('zoomLevel').textContent = Math.round(currentZoom * 100) + '%';
+        }
+
+        function downloadImage() {
+            const link = document.createElement('a');
+            link.href = currentImageUrl;
+            link.download = 'image_' + Date.now() + '.jpg';
+            link.target = '_blank';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Drag functionality
+        function setupDragListeners() {
+            const img = document.getElementById('viewerImage');
+            
+            img.addEventListener('mousedown', startDrag);
+            document.addEventListener('mousemove', drag);
+            document.addEventListener('mouseup', endDrag);
+            
+            // Touch support
+            img.addEventListener('touchstart', startDragTouch);
+            document.addEventListener('touchmove', dragTouch);
+            document.addEventListener('touchend', endDrag);
+        }
+
+        function removeDragListeners() {
+            const img = document.getElementById('viewerImage');
+            
+            img.removeEventListener('mousedown', startDrag);
+            document.removeEventListener('mousemove', drag);
+            document.removeEventListener('mouseup', endDrag);
+            
+            img.removeEventListener('touchstart', startDragTouch);
+            document.removeEventListener('touchmove', dragTouch);
+            document.removeEventListener('touchend', endDrag);
+        }
+
+        function startDrag(e) {
+            if (currentZoom <= 1) return;
+            isDragging = true;
+            startX = e.clientX - translateX;
+            startY = e.clientY - translateY;
+            e.preventDefault();
+        }
+
+        function startDragTouch(e) {
+            if (currentZoom <= 1) return;
+            isDragging = true;
+            const touch = e.touches[0];
+            startX = touch.clientX - translateX;
+            startY = touch.clientY - translateY;
+            e.preventDefault();
+        }
+
+        function drag(e) {
+            if (!isDragging) return;
+            translateX = e.clientX - startX;
+            translateY = e.clientY - startY;
+            updateImageTransform();
+        }
+
+        function dragTouch(e) {
+            if (!isDragging) return;
+            const touch = e.touches[0];
+            translateX = touch.clientX - startX;
+            translateY = touch.clientY - startY;
+            updateImageTransform();
+        }
+
+        function endDrag() {
+            isDragging = false;
+        }
+
+        // Close viewer on ESC key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeImageViewer();
+            }
+        });
+
+        // Mouse wheel zoom
+        document.getElementById('imageViewerModal').addEventListener('wheel', function(e) {
+            if (!document.getElementById('imageViewerModal').classList.contains('active')) return;
+            
+            e.preventDefault();
+            if (e.deltaY < 0) {
+                zoomIn();
+            } else {
+                zoomOut();
+            }
+        });
+
+        // Handle image selection
+        function handleImageSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            // Check if file is an image
+            if (!file.type.startsWith('image/')) {
+                showError('Vui lòng chọn file ảnh');
+                return;
+            }
+
+            // Check file size (max 5MB)
+            if (file.size > 5 * 1024 * 1024) {
+                showError('Ảnh quá lớn. Vui lòng chọn ảnh nhỏ hơn 5MB');
+                return;
+            }
+
+            selectedImage = file;
+
+            // Show preview
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const previewContainer = document.getElementById('previewContainer');
+                previewContainer.innerHTML = `
+                    <div class="image-preview">
+                        <img src="${e.target.result}" alt="Preview">
+                        <button class="remove-image" onclick="removeImage()">×</button>
+                    </div>
+                `;
+                previewContainer.classList.add('active');
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // Remove selected image
+        function removeImage() {
+            selectedImage = null;
+            document.getElementById('previewContainer').innerHTML = '';
+            document.getElementById('previewContainer').classList.remove('active');
+            document.getElementById('imageInput').value = '';
+        }
+
+        // Handle key press
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+
+        // Logout
+        async function handleLogout() {
+            // Prevent logout in locked mode
+            if (isLockedMode) {
+                showError('Không thể đăng xuất trong chế độ này');
+                return;
+            }
+
+            if (presenceChannel) {
+                await presenceChannel.untrack();
+                await presenceChannel.unsubscribe();
+            }
+            if (messagesSubscription) {
+                await messagesSubscription.unsubscribe();
+            }
+            if (kicksSubscription) {
+                await kicksSubscription.unsubscribe();
+            }
+
+            localStorage.removeItem('currentUser');
+            localStorage.removeItem('isAdmin');
+            // Keep savedUsername for next login
+            location.reload();
+        }
+
+        // Utility functions
+        function scrollToBottom() {
+            const container = document.getElementById('messagesContainer');
+            setTimeout(() => {
+                container.scrollTop = container.scrollHeight;
+            }, 100);
+        }
+
+        function escapeHtml(text) {
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return text.replace(/[&<>"']/g, m => map[m]);
+        }
+
+        function showError(message, isError = true) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.style.background = isError ? 'var(--danger)' : 'var(--accent)';
+            errorDiv.classList.add('active');
+            
+            setTimeout(() => {
+                errorDiv.classList.remove('active');
+            }, 4000);
+        }
+
+        // Initialize on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            // Check for URL parameter login first
+            checkAutoLogin();
+            
+            // If not URL login, check localStorage
+            if (!isLockedMode) {
+                const savedUser = localStorage.getItem('currentUser');
+                const savedIsAdmin = localStorage.getItem('isAdmin');
+                
+                if (savedUser) {
+                    const user = JSON.parse(savedUser);
+                    document.getElementById('usernameInput').value = user.username;
+                    
+                    // Trigger input event to show admin fields if needed
+                    if (savedIsAdmin === 'true') {
+                        document.getElementById('usernameInput').dispatchEvent(new Event('input'));
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

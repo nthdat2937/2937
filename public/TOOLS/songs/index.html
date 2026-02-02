@@ -1426,10 +1426,20 @@
     Chat
   </h2>
   
+  <!-- Version Selector -->
+  <div class="chat-version-selector">
+    <button class="chat-version-btn" id="btnChatV1" onclick="switchChatVersion('v1')">
+      <i class="fa-solid fa-1"></i> Version 1
+    </button>
+    <button class="chat-version-btn active" id="btnChatV2" onclick="switchChatVersion('v2')">
+      <i class="fa-solid fa-2"></i> Version 2 (Mặc định)
+    </button>
+  </div>
+  
   <div class="chat-iframe-container">
     <iframe 
       id="chatIframe"
-      src="https://2937.vercel.app/TOOLS/demo"
+      src="https://2937.vercel.app/TOOLS/chatv2"
       frameborder="0"
       allow="microphone; camera"
       loading="lazy"
@@ -1515,9 +1525,53 @@
   background-clip: text;
 }
 
+/* Version Selector */
+.chat-version-selector {
+  display: flex;
+  gap: 12px;
+  padding: 16px 24px;
+  background: rgba(255, 255, 255, 0.03);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  justify-content: center;
+}
+
+.chat-version-btn {
+  padding: 10px 24px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.chat-version-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: white;
+  transform: translateY(-2px);
+}
+
+.chat-version-btn.active {
+  background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+  border-color: var(--accent-primary);
+  color: white;
+  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+}
+
+.chat-version-btn.active:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5);
+}
+
 .chat-iframe-container {
   width: 100%;
-  height: calc(100% - 80px);
+  height: calc(100% - 150px);
   padding: 0;
   overflow: hidden;
   border-radius: 0 0 24px 24px;
@@ -1547,8 +1601,19 @@
     border-radius: 0;
   }
   
+  .chat-version-selector {
+    padding: 12px 16px;
+    gap: 8px;
+  }
+  
+  .chat-version-btn {
+    padding: 8px 16px;
+    font-size: 13px;
+    flex: 1;
+  }
+  
   .chat-iframe-container {
-    height: calc(100% - 70px);
+    height: calc(100% - 130px);
     border-radius: 0;
   }
 }
@@ -1577,10 +1642,47 @@
 </style>
 
 <script>
+// Chat version URLs
+const chatVersions = {
+  v1: 'https://chat-zkjh.onrender.com/',
+  v2: 'https://2937.vercel.app/TOOLS/chatv2'
+};
+
+// Switch chat version
+function switchChatVersion(version) {
+  const iframe = document.getElementById('chatIframe');
+  const btnV1 = document.getElementById('btnChatV1');
+  const btnV2 = document.getElementById('btnChatV2');
+  
+  if (version === 'v1') {
+    iframe.src = chatVersions.v1;
+    btnV1.classList.add('active');
+    btnV2.classList.remove('active');
+    // Lưu lựa chọn
+    localStorage.setItem('preferredChatVersion', 'v1');
+  } else {
+    iframe.src = chatVersions.v2;
+    btnV2.classList.add('active');
+    btnV1.classList.remove('active');
+    // Lưu lựa chọn
+    localStorage.setItem('preferredChatVersion', 'v2');
+  }
+}
+
 // Open chat dialog
 function openChatDialog() {
   const chatDialog = document.getElementById('chatDialog');
   if (chatDialog) {
+    // Kiểm tra xem người dùng có lựa chọn version đã lưu không
+    const preferredVersion = localStorage.getItem('preferredChatVersion') || 'v2';
+    
+    // Load version đã lưu (mặc định là v2)
+    if (preferredVersion === 'v1') {
+      switchChatVersion('v1');
+    } else {
+      switchChatVersion('v2');
+    }
+    
     chatDialog.showModal();
   }
 }
