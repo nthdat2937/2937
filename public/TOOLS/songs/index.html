@@ -1424,22 +1424,22 @@
   <h2 class="dialog-header dialog-header-chat">
     <i class="fa-solid fa-comments"></i> 
     Chat
+    <!-- Version Selector -->
+    <div class="chat-version-selector">
+      <button class="chat-version-btn" id="btnChatV1" onclick="switchChatVersion('v1')">
+        <i class="fa-solid fa-1"></i> Version 1
+      </button>
+      <button class="chat-version-btn active" id="btnChatV2" onclick="switchChatVersion('v2')">
+        <i class="fa-solid fa-2"></i> Version 2
+      </button>
+    </div>
   </h2>
   
-  <!-- Version Selector -->
-  <div class="chat-version-selector">
-    <button class="chat-version-btn" id="btnChatV1" onclick="switchChatVersion('v1')">
-      <i class="fa-solid fa-1"></i> Version 1
-    </button>
-    <button class="chat-version-btn active" id="btnChatV2" onclick="switchChatVersion('v2')">
-      <i class="fa-solid fa-2"></i> Version 2 (Mặc định)
-    </button>
-  </div>
   
   <div class="chat-iframe-container">
     <iframe 
       id="chatIframe"
-      src="https://2937.vercel.app/TOOLS/chatv2"
+      src=""
       frameborder="0"
       allow="microphone; camera"
       loading="lazy"
@@ -1528,50 +1528,51 @@
 /* Version Selector */
 .chat-version-selector {
   display: flex;
-  gap: 12px;
-  padding: 16px 24px;
+  gap: 8px;
+  padding: 8px 16px;
   background: rgba(255, 255, 255, 0.03);
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   justify-content: center;
+  border-radius: 25pc;
 }
 
 .chat-version-btn {
-  padding: 10px 24px;
-  border: 2px solid rgba(255, 255, 255, 0.2);
-  border-radius: 12px;
+  padding: 6px 16px;
+  border: 1.5px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
   background: rgba(255, 255, 255, 0.05);
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 14px;
+  color: white;
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 
-.chat-version-btn:hover {
+/* .chat-version-btn:hover {
   background: rgba(255, 255, 255, 0.1);
   border-color: rgba(255, 255, 255, 0.3);
-  color: white;
-  transform: translateY(-2px);
-}
+  color: white !important;
+  transform: translateY(-1px);
+} */
 
 .chat-version-btn.active {
-  background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
   border-color: var(--accent-primary);
   color: white;
-  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+  box-shadow: 0 2px 10px rgba(99, 102, 241, 0.4);
 }
 
-.chat-version-btn.active:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5);
-}
+/* .chat-version-btn.active:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.5);
+  color: white !important;
+} */
 
 .chat-iframe-container {
   width: 100%;
-  height: calc(100% - 150px);
+  height: calc(100% - 110px);
   padding: 0;
   overflow: hidden;
   border-radius: 0 0 24px 24px;
@@ -1602,18 +1603,19 @@
   }
   
   .chat-version-selector {
-    padding: 12px 16px;
-    gap: 8px;
+    padding: 8px 12px;
+    gap: 6px;
   }
   
   .chat-version-btn {
-    padding: 8px 16px;
-    font-size: 13px;
+    padding: 6px 12px;
+    font-size: 12px;
     flex: 1;
+    gap: 4px;
   }
   
   .chat-iframe-container {
-    height: calc(100% - 130px);
+    height: calc(100% - 100px);
     border-radius: 0;
   }
 }
@@ -1648,11 +1650,30 @@ const chatVersions = {
   v2: 'https://2937.vercel.app/TOOLS/chatv2'
 };
 
+// Function để lấy username hiện tại
+function getCurrentUsername() {
+  const userDisplayName = document.getElementById('userDisplayName');
+  if (userDisplayName && userDisplayName.textContent) {
+    // Lấy text trước role badge
+    const fullText = userDisplayName.textContent.trim();
+    const roleElement = document.getElementById('role');
+    if (roleElement) {
+      // Xóa phần role để lấy display name
+      return fullText.replace(roleElement.textContent, '').trim();
+    }
+    return fullText;
+  }
+  return null;
+}
+
 // Switch chat version
 function switchChatVersion(version) {
   const iframe = document.getElementById('chatIframe');
   const btnV1 = document.getElementById('btnChatV1');
   const btnV2 = document.getElementById('btnChatV2');
+  
+  // Lấy username hiện tại
+  const username = getCurrentUsername();
   
   if (version === 'v1') {
     iframe.src = chatVersions.v1;
@@ -1661,7 +1682,12 @@ function switchChatVersion(version) {
     // Lưu lựa chọn
     localStorage.setItem('preferredChatVersion', 'v1');
   } else {
-    iframe.src = chatVersions.v2;
+    // Thêm username vào URL cho chatv2
+    let url = chatVersions.v2;
+    if (username) {
+      url += `?q=${encodeURIComponent(username)}`;
+    }
+    iframe.src = url;
     btnV2.classList.add('active');
     btnV1.classList.remove('active');
     // Lưu lựa chọn
