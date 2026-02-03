@@ -793,7 +793,12 @@
             border: 1px solid var(--border-subtle);
         }
 
-        .image-button {
+        .media-btn-container {
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .media-button {
             background: var(--bg-secondary);
             border: 2px solid var(--accent);
             color: var(--accent);
@@ -802,17 +807,64 @@
             transition: all 0.3s;
             font-size: 1.2rem;
             width: auto;
-            flex-shrink: 0;
         }
 
-        .image-button:hover {
+        .media-button:hover {
             background: var(--accent);
             color: #000000;
             transform: none;
             box-shadow: none;
         }
 
-        #imageInput {
+        .media-menu {
+            position: absolute;
+            bottom: 100%;
+            left: 0;
+            background: var(--bg-main);
+            border: 2px solid var(--accent);
+            margin-bottom: 0.5rem;
+            display: none;
+            flex-direction: column;
+            min-width: 180px;
+            box-shadow: 0 5px 20px rgba(0, 255, 65, 0.3);
+            z-index: 1000;
+        }
+
+        .media-menu.active {
+            display: flex;
+        }
+
+        .media-menu-item {
+            padding: 0.75rem 1rem;
+            background: transparent;
+            border: none;
+            color: var(--accent);
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.85rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-subtle);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .media-menu-item:last-child {
+            border-bottom: none;
+        }
+
+        .media-menu-item:hover {
+            background: var(--accent);
+            color: #000000;
+        }
+
+        .media-menu-item i {
+            margin-right: 0.5rem;
+            width: 20px;
+            display: inline-block;
+        }
+
+        #imageInput, #videoInput, #audioInput {
             display: none;
         }
 
@@ -827,6 +879,37 @@
         }
 
         .message-image:hover {
+            border-color: var(--accent);
+        }
+
+        .message-video, .message-audio {
+            min-width: 400px;
+            max-width: 400px;
+            width: 100%;
+            margin-top: 0.5rem;
+            border-radius: 4px;
+            border: 2px solid var(--border-subtle);
+            display: block;
+            background: var(--bg-secondary);
+        }
+
+        .message-audio {
+            min-height: 54px;
+            height: 54px;
+        }
+
+        /* Đảm bảo controls của audio hiển thị đầy đủ */
+        .message-audio::-webkit-media-controls-panel {
+            display: flex;
+            align-items: center;
+            height: 50px;
+        }
+
+        .message-audio::-webkit-media-controls-enclosure {
+            height: 50px;
+        }
+
+        .message-video:hover, .message-audio:hover {
             border-color: var(--accent);
         }
 
@@ -1330,6 +1413,226 @@
     background: rgba(153, 153, 153, 0.1);
     color: var(--text-dim);
 }
+
+/* Online Users List */
+.online-users-section {
+    margin-top: 1rem;
+    border-top: 1px solid var(--border-subtle);
+    padding-top: 1rem;
+}
+
+.online-users-title {
+    color: var(--accent);
+    font-size: 0.9rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.online-users-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.online-user-item {
+    background: var(--bg-main);
+    padding: 0.5rem;
+    border-left: 2px solid var(--accent);
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s;
+}
+
+.online-user-item:hover {
+    background: var(--bg-message);
+    transform: translateX(3px);
+}
+
+.online-user-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+    animation: pulse 2s infinite;
+}
+
+.online-user-name {
+    flex: 1;
+    color: var(--text);
+    font-weight: 500;
+}
+
+.online-user-room {
+    color: var(--text-dim);
+    font-size: 0.75rem;
+}
+
+/* ========== TÍNH NĂNG GỬI FILE - CSS BỔ SUNG ========== */
+
+/* File attachment button */
+#fileAttachBtn {
+    background: transparent;
+    border: 2px solid var(--accent);
+    color: var(--accent);
+    padding: 0.85rem 1.25rem;
+    cursor: pointer;
+    transition: all 0.3s;
+    width: auto;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+#fileAttachBtn:hover {
+    background: var(--accent);
+    color: #000000;
+}
+
+#fileAttachBtn i {
+    font-size: 1.1rem;
+}
+
+#fileInput {
+    display: none;
+}
+
+/* File preview trong input area */
+.file-preview {
+    margin-bottom: 0.5rem;
+    padding: 0.75rem;
+    background: rgba(0, 255, 65, 0.05);
+    border: 1px solid var(--accent);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.file-preview-icon {
+    font-size: 1.5rem;
+    color: var(--accent);
+}
+
+.file-preview-info {
+    flex: 1;
+}
+
+.file-preview-name {
+    font-size: 0.85rem;
+    color: var(--text);
+    margin-bottom: 0.25rem;
+}
+
+.file-preview-size {
+    font-size: 0.75rem;
+    color: var(--text-dim);
+}
+
+.file-preview-remove {
+    background: transparent;
+    border: 1px solid var(--danger);
+    color: var(--danger);
+    padding: 0.3rem 0.6rem;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: all 0.3s;
+    width: auto;
+}
+
+.file-preview-remove:hover {
+    background: var(--danger);
+    color: #000000;
+}
+
+/* File attachments trong messages */
+.message-file {
+    margin-top: 0.75rem;
+}
+
+.message-file img {
+    max-width: 100%;
+    max-height: 400px;
+    border: 2px solid var(--accent);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.message-file img:hover {
+    box-shadow: 0 0 20px rgba(0, 255, 65, 0.3);
+    transform: scale(1.02);
+}
+
+.message-file audio,
+.message-file video {
+    width: 100%;
+    max-width: 500px;
+    margin-top: 0.5rem;
+    border: 2px solid var(--accent);
+    border-radius: 4px;
+}
+
+.file-download-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: transparent;
+    border: 2px solid var(--accent);
+    color: var(--accent);
+    padding: 0.75rem 1.25rem;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.3s;
+    width: auto;
+    text-decoration: none;
+    margin-top: 0.5rem;
+}
+
+.file-download-btn:hover {
+    background: var(--accent);
+    color: #000000;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 255, 65, 0.3);
+}
+
+.file-download-btn i {
+    font-size: 1rem;
+}
+
+/* Upload progress */
+.upload-progress {
+    margin-bottom: 0.5rem;
+    padding: 0.5rem;
+    background: rgba(0, 255, 65, 0.1);
+    border: 1px solid var(--accent);
+    border-radius: 4px;
+    text-align: center;
+    font-size: 0.85rem;
+}
+
+.upload-progress-bar {
+    width: 100%;
+    height: 4px;
+    background: var(--bg-main);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-top: 0.5rem;
+}
+
+.upload-progress-fill {
+    height: 100%;
+    background: var(--accent);
+    transition: width 0.3s;
+}
+
+/* ========== KẾT THÚC CSS FILE ========== */
     </style>
 </head>
 <body>
@@ -1432,10 +1735,31 @@
         <div class="input-container">
             <div class="preview-container" id="previewContainer"></div>
             <div class="input-wrapper">
-                <button class="image-button" onclick="document.getElementById('imageInput').click()" title="Gửi ảnh">
-                    <i class="fas fa-camera"></i>
-                </button>
+                <div class="media-btn-container">
+                    <button class="media-button" onclick="toggleMediaMenu()" title="Gửi media">
+                        <i class="fas fa-paperclip"></i>
+                    </button>
+                    <div class="media-menu" id="mediaMenu">
+                        <button class="media-menu-item" onclick="selectMediaType('image')">
+                            <i class="fas fa-image"></i> Gửi ảnh
+                        </button>
+                        <button class="media-menu-item" onclick="selectMediaType('video')">
+                            <i class="fas fa-video"></i> Gửi video
+                        </button>
+                        <button class="media-menu-item" onclick="selectMediaType('audio')">
+                            <i class="fas fa-microphone"></i> Gửi audio
+                        </button>
+                        <!-- THÊM OPTION GỬI FILE KHÁC -->
+                        <button class="media-menu-item" onclick="selectMediaType('document')">
+                            <i class="fas fa-file-alt"></i> Gửi file khác
+                        </button>
+                    </div>
+                </div>
                 <input type="file" id="imageInput" accept="image/*" onchange="handleImageSelect(event)" style="display: none;">
+                <input type="file" id="videoInput" accept="video/*" onchange="handleVideoSelect(event)" style="display: none;">
+                <input type="file" id="audioInput" accept="audio/*" onchange="handleAudioSelect(event)" style="display: none;">
+                <!-- THÊM INPUT CHO CÁC FILE KHÁC -->
+                <input type="file" id="documentInput" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.zip,.rar,.7z" onchange="handleDocumentSelect(event)" style="display: none;">
                 <input 
                     type="text" 
                     id="messageInput" 
@@ -1578,6 +1902,8 @@
         let currentDeleteMessageId = null;
         let selectedImage = null;
         let isLockedMode = false; // True khi login qua URL parameter
+        let currentRoomId = null; // ID của phòng hiện tại
+        let currentRoomName = null; // Tên của phòng hiện tại
         
         // Image viewer state
         let currentZoom = 1;
@@ -1790,18 +2116,10 @@
                         }
                     })
                     .on('presence', { event: 'join' }, ({ key, newPresences }) => {
-                        // Show join notification when someone logs in
-                        const joinedUser = newPresences[0];
-                        if (joinedUser && joinedUser.username !== currentUser.username) {
-                            showSystemNotification(`👋 ${joinedUser.username} đã tham gia chat`, 'join');
-                        }
+                        // Tắt thông báo join - chỉ theo dõi qua online users list
                     })
                     .on('presence', { event: 'leave' }, ({ key, leftPresences }) => {
-                        // Show leave notification when someone logs out
-                        const leftUser = leftPresences[0];
-                        if (leftUser && leftUser.username !== currentUser.username) {
-                            showSystemNotification(`👋 ${leftUser.username} đã rời chat`, 'leave');
-                        }
+                        // Tắt thông báo leave - chỉ theo dõi qua online users list
                     })
                     .on('broadcast', { event: 'typing' }, ({ payload }) => {
                         if (payload.userId !== currentUser.id) {
@@ -1827,7 +2145,9 @@
                             await presenceChannel.track({
                                 user_id: currentUser.id,
                                 username: currentUser.username,
-                                online_at: new Date().toISOString()
+                                online_at: new Date().toISOString(),
+                                room_id: currentRoomId,
+                                room_name: currentRoomName || 'Chính'
                             });
                         }
                     });
@@ -1941,13 +2261,20 @@
                     const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
                     const filePath = `chat-images/${fileName}`;
 
+                    // Xác định contentType dựa vào loại file
+                    const uploadOptions = {
+                        contentType: selectedImage.type || 'application/octet-stream',
+                        cacheControl: '3600',
+                        upsert: false
+                    };
+
                     const { error: uploadError } = await supabaseClient.storage
                         .from('images')
-                        .upload(filePath, selectedImage);
+                        .upload(filePath, selectedImage, uploadOptions);
 
                     if (uploadError) {
                         console.error('Upload error:', uploadError);
-                        showError('Không thể tải ảnh lên');
+                        showError('Không thể tải file lên');
                         return;
                     }
 
@@ -2212,6 +2539,8 @@
                 document.getElementById('previewContainer').innerHTML = '';
                 document.getElementById('previewContainer').classList.remove('active');
                 document.getElementById('imageInput').value = '';
+                document.getElementById('videoInput').value = '';
+                document.getElementById('audioInput').value = '';
             } catch (error) {
                 console.error('Error sending message:', error);
                 showError('Không thể gửi tin nhắn');
@@ -2285,10 +2614,73 @@
                 contentHtml = message.content ? escapeHtml(message.content) : '';
             }
 
-            // Add image if exists
-            let imageHtml = '';
+            // Add image/video/audio if exists
+            let mediaHtml = '';
             if (message.image_url && !message.deleted) {
-                imageHtml = `<img src="${message.image_url}" alt="Image" class="message-image" onclick="openImageViewer('${message.image_url}')">`;
+                const url = message.image_url;
+                // Xác định loại media dựa vào extension
+                const urlLower = url.toLowerCase();
+                
+                // Check for video
+                if (urlLower.includes('.mp4') || urlLower.includes('.webm') || 
+                    urlLower.includes('.mov') || urlLower.includes('.avi') ||
+                    urlLower.includes('video')) {
+                    mediaHtml = `<video src="${url}" controls class="message-video" preload="metadata" controlsList="nodownload"></video>`;
+                }
+                // Check for audio - bổ sung thêm nhiều định dạng
+                else if (urlLower.includes('.mp3') || urlLower.includes('.wav') || 
+                         urlLower.includes('.ogg') || urlLower.includes('.m4a') ||
+                         urlLower.includes('.aac') || urlLower.includes('.flac') ||
+                         urlLower.includes('audio')) {
+                    mediaHtml = `<audio src="${url}" controls class="message-audio" preload="metadata" controlsList="nodownload"></audio>`;
+                }
+                // ========== THÊM XỬ LÝ CHO FILE DOCUMENTS ==========
+                // Check for documents (pdf, docx, xlsx, zip, etc.)
+                else if (urlLower.includes('.pdf') || urlLower.includes('.doc') || 
+                         urlLower.includes('.xls') || urlLower.includes('.ppt') ||
+                         urlLower.includes('.zip') || urlLower.includes('.rar') ||
+                         urlLower.includes('.txt') || urlLower.includes('.csv') ||
+                         urlLower.includes('.7z')) {
+                    // Extract file name from URL
+                    const fileName = url.split('/').pop().split('?')[0];
+                    const ext = fileName.split('.').pop().toLowerCase();
+                    
+                    // Get icon based on file type
+                    let fileIcon = 'fa-file';
+                    const iconMap = {
+                        'pdf': 'fa-file-pdf',
+                        'doc': 'fa-file-word', 'docx': 'fa-file-word',
+                        'xls': 'fa-file-excel', 'xlsx': 'fa-file-excel',
+                        'ppt': 'fa-file-powerpoint', 'pptx': 'fa-file-powerpoint',
+                        'zip': 'fa-file-archive', 'rar': 'fa-file-archive', '7z': 'fa-file-archive',
+                        'txt': 'fa-file-alt',
+                        'csv': 'fa-file-csv'
+                    };
+                    if (iconMap[ext]) {
+                        fileIcon = iconMap[ext];
+                    }
+                    
+                    mediaHtml = `
+                        <div class="message-file" style="margin-top: 0.5rem;">
+                            <a href="${url}" download="${fileName}" target="_blank" 
+                               style="display: inline-flex; align-items: center; gap: 0.5rem; 
+                                      background: transparent; border: 2px solid var(--accent); 
+                                      color: var(--accent); padding: 0.75rem 1.25rem; 
+                                      text-decoration: none; transition: all 0.3s; border-radius: 4px;"
+                               onmouseover="this.style.background='var(--accent)'; this.style.color='#000000';"
+                               onmouseout="this.style.background='transparent'; this.style.color='var(--accent)';">
+                                <i class="fas ${fileIcon}" style="font-size: 1rem;"></i>
+                                <span>${fileName}</span>
+                                <i class="fas fa-download"></i>
+                            </a>
+                        </div>
+                    `;
+                }
+                // ========== KẾT THÚC XỬ LÝ DOCUMENTS ==========
+                // Default to image
+                else {
+                    mediaHtml = `<img src="${url}" alt="Image" class="message-image" onclick="openImageViewer('${url}')">`;
+                }
             }
 
             messageDiv.innerHTML = `
@@ -2298,8 +2690,8 @@
                 </div>
                 <div class="message-content ${message.deleted ? 'deleted-content' : ''}">
                     ${message.deleted ? contentHtml : `
-                        ${contentHtml ? `<div class="message-text" style="white-space: pre-line; margin-bottom: ${imageHtml ? '0.5rem' : '0'};">${contentHtml}</div>` : ''}
-                        ${imageHtml}
+                        ${contentHtml ? `<div class="message-text" style="white-space: pre-line; margin-bottom: ${mediaHtml ? '0.5rem' : '0'};">${contentHtml}</div>` : ''}
+                        ${mediaHtml}
                         ${!isBotMessage ? `
                         <div class="message-actions">
                             <button class="react-btn" onclick="toggleReactionPicker(${message.id})"><i class="fas fa-heart"></i></button>
@@ -2737,10 +3129,14 @@
                 presences.forEach(presence => {
                     if (presence.username) {
                         const userDiv = document.createElement('div');
-                        userDiv.className = 'online-user';
+                        userDiv.className = 'online-user-item';
+                        
+                        const roomName = presence.room_name || 'Chính';
+                        
                         userDiv.innerHTML = `
-                            <div class="online-dot"></div>
-                            <span>${escapeHtml(presence.username)}</span>
+                            <div class="online-user-indicator"></div>
+                            <span class="online-user-name">${escapeHtml(presence.username)}</span>
+                            <span class="online-user-room">(${escapeHtml(roomName)})</span>
                         `;
                         container.appendChild(userDiv);
                     }
@@ -2906,6 +3302,169 @@
             }
         });
 
+        // Toggle media menu
+        function toggleMediaMenu() {
+            const menu = document.getElementById('mediaMenu');
+            menu.classList.toggle('active');
+            
+            // Close menu when clicking outside
+            if (menu.classList.contains('active')) {
+                setTimeout(() => {
+                    document.addEventListener('click', closeMediaMenuOnClickOutside);
+                }, 0);
+            }
+        }
+
+        function closeMediaMenuOnClickOutside(event) {
+            const menu = document.getElementById('mediaMenu');
+            const button = event.target.closest('.media-button');
+            const menuItem = event.target.closest('.media-menu-item');
+            
+            if (!button && !menuItem) {
+                menu.classList.remove('active');
+                document.removeEventListener('click', closeMediaMenuOnClickOutside);
+            }
+        }
+
+        function selectMediaType(type) {
+            const menu = document.getElementById('mediaMenu');
+            menu.classList.remove('active');
+            document.removeEventListener('click', closeMediaMenuOnClickOutside);
+            
+            switch(type) {
+                case 'image':
+                    document.getElementById('imageInput').click();
+                    break;
+                case 'video':
+                    document.getElementById('videoInput').click();
+                    break;
+                case 'audio':
+                    document.getElementById('audioInput').click();
+                    break;
+                // THÊM CASE DOCUMENT
+                case 'document':
+                    document.getElementById('documentInput').click();
+                    break;
+            }
+        }
+
+        // Handle video selection
+        function handleVideoSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            // Check if file is a video
+            if (!file.type.startsWith('video/')) {
+                showError('Vui lòng chọn file video');
+                return;
+            }
+
+            // Check file size (max 50MB)
+            if (file.size > 50 * 1024 * 1024) {
+                showError('Video quá lớn. Vui lòng chọn video nhỏ hơn 50MB');
+                return;
+            }
+
+            selectedImage = file; // Reuse selectedImage variable for media files
+
+            // Show preview
+            const previewContainer = document.getElementById('previewContainer');
+            previewContainer.innerHTML = `
+                <div class="image-preview">
+                    <div style="padding: 1rem; border: 2px solid var(--accent); border-radius: 4px; background: var(--bg-secondary);">
+                        <i class="fas fa-video" style="font-size: 2rem; color: var(--accent);"></i>
+                        <p style="margin-top: 0.5rem; font-size: 0.85rem;">${file.name}</p>
+                        <p style="font-size: 0.75rem; color: var(--text-dim);">${(file.size / (1024 * 1024)).toFixed(2)} MB</p>
+                    </div>
+                    <button class="remove-image" onclick="removeImage()">×</button>
+                </div>
+            `;
+            previewContainer.classList.add('active');
+        }
+
+        // Handle audio selection
+        function handleAudioSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            // Check if file is audio
+            if (!file.type.startsWith('audio/')) {
+                showError('Vui lòng chọn file audio');
+                return;
+            }
+
+            // Check file size (max 20MB)
+            if (file.size > 20 * 1024 * 1024) {
+                showError('Audio quá lớn. Vui lòng chọn audio nhỏ hơn 20MB');
+                return;
+            }
+
+            selectedImage = file; // Reuse selectedImage variable for media files
+
+            // Show preview
+            const previewContainer = document.getElementById('previewContainer');
+            previewContainer.innerHTML = `
+                <div class="image-preview">
+                    <div style="padding: 1rem; border: 2px solid var(--accent); border-radius: 4px; background: var(--bg-secondary);">
+                        <i class="fas fa-microphone" style="font-size: 2rem; color: var(--accent);"></i>
+                        <p style="margin-top: 0.5rem; font-size: 0.85rem;">${file.name}</p>
+                        <p style="font-size: 0.75rem; color: var(--text-dim);">${(file.size / (1024 * 1024)).toFixed(2)} MB</p>
+                    </div>
+                    <button class="remove-image" onclick="removeImage()">×</button>
+                </div>
+            `;
+            previewContainer.classList.add('active');
+        }
+
+        // ========== THÊM HÀM XỬ LÝ FILE DOCUMENTS ==========
+        // Handle document selection (pdf, docx, xlsx, zip, etc.)
+        function handleDocumentSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            // Check file size (max 10MB)
+            if (file.size > 10 * 1024 * 1024) {
+                showError('File quá lớn. Vui lòng chọn file nhỏ hơn 10MB');
+                return;
+            }
+
+            selectedImage = file; // Reuse selectedImage variable for all file types
+
+            // Get file icon based on extension
+            const fileName = file.name;
+            const ext = fileName.split('.').pop().toLowerCase();
+            let fileIcon = 'fa-file';
+            
+            const iconMap = {
+                'pdf': 'fa-file-pdf',
+                'doc': 'fa-file-word', 'docx': 'fa-file-word',
+                'xls': 'fa-file-excel', 'xlsx': 'fa-file-excel',
+                'ppt': 'fa-file-powerpoint', 'pptx': 'fa-file-powerpoint',
+                'zip': 'fa-file-archive', 'rar': 'fa-file-archive', '7z': 'fa-file-archive',
+                'txt': 'fa-file-alt',
+                'csv': 'fa-file-csv'
+            };
+            
+            if (iconMap[ext]) {
+                fileIcon = iconMap[ext];
+            }
+
+            // Show preview
+            const previewContainer = document.getElementById('previewContainer');
+            previewContainer.innerHTML = `
+                <div class="image-preview">
+                    <div style="padding: 1rem; border: 2px solid var(--accent); border-radius: 4px; background: var(--bg-secondary); text-align: center;">
+                        <i class="fas ${fileIcon}" style="font-size: 2rem; color: var(--accent);"></i>
+                        <p style="margin-top: 0.5rem; font-size: 0.85rem;">${file.name}</p>
+                        <p style="font-size: 0.75rem; color: var(--text-dim);">${(file.size / (1024 * 1024)).toFixed(2)} MB</p>
+                    </div>
+                    <button class="remove-image" onclick="removeImage()">×</button>
+                </div>
+            `;
+            previewContainer.classList.add('active');
+        }
+        // ========== KẾT THÚC HÀM XỬ LÝ DOCUMENTS ==========
+
         // Handle image selection
         function handleImageSelect(event) {
             const file = event.target.files[0];
@@ -2946,6 +3505,8 @@
             document.getElementById('previewContainer').innerHTML = '';
             document.getElementById('previewContainer').classList.remove('active');
             document.getElementById('imageInput').value = '';
+            document.getElementById('videoInput').value = '';
+            document.getElementById('audioInput').value = '';
         }
 
         // Handle key press
@@ -3225,6 +3786,19 @@
                 }
 
                 currentRoom = room;
+                currentRoomId = room.id;
+                currentRoomName = room.name;
+
+                // Update presence với room mới
+                if (presenceChannel) {
+                    await presenceChannel.track({
+                        user_id: currentUser.id,
+                        username: currentUser.username,
+                        online_at: new Date().toISOString(),
+                        room_id: currentRoomId,
+                        room_name: currentRoomName
+                    });
+                }
 
                 // Update chat header with room name
                 document.querySelector('.chat-header h2').innerHTML = `<i class="fas fa-circle" style="color: var(--accent);"></i> ${room.name}`;
