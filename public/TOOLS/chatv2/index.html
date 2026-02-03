@@ -6,6 +6,7 @@
     <title>ntdChat v2</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Archivo+Black&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
         :root {
             --bg-main: #000000;
@@ -599,6 +600,91 @@
             opacity: 1;
         }
 
+        /* Kick notification styles */
+        .system-message {
+            background: rgba(0, 255, 65, 0.1);
+            border-left: 3px solid var(--accent);
+            padding: 0.8rem;
+            margin: 0.5rem 0;
+            font-style: italic;
+            color: var(--text-dim);
+            animation: slideInMessage 0.3s ease;
+        }
+
+        .system-message.kick-message {
+            background: rgba(255, 51, 102, 0.1);
+            border-left: 3px solid var(--danger);
+            color: var(--danger);
+            font-weight: 600;
+        }
+
+        /* Bot message style */
+        .message.bot-message {
+            background: rgba(0, 255, 65, 0.05);
+            border-left: 3px solid var(--accent);
+        }
+
+        .message.bot-message .message-sender {
+            color: var(--accent);
+            font-weight: 700;
+        }
+
+        .kick-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--bg-main);
+            border: 3px solid var(--danger);
+            padding: 2rem;
+            max-width: 500px;
+            width: 90%;
+            z-index: 10000;
+            box-shadow: 0 0 50px rgba(255, 51, 102, 0.5);
+            animation: kickPopupSlide 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        @keyframes kickPopupSlide {
+            from {
+                opacity: 0;
+                transform: translate(-50%, -60%) scale(0.8);
+            }
+            to {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1);
+            }
+        }
+
+        .kick-popup h2 {
+            color: var(--danger);
+            font-family: 'Archivo Black', sans-serif;
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px rgba(255, 51, 102, 0.5);
+        }
+
+        .kick-popup .kick-info {
+            margin-bottom: 1rem;
+        }
+
+        .kick-popup .kick-reason {
+            background: rgba(255, 51, 102, 0.1);
+            border: 1px solid var(--danger);
+            padding: 1rem;
+            margin: 1rem 0;
+            color: var(--text);
+            word-wrap: break-word;
+        }
+
+        .kick-popup .kick-timer {
+            color: var(--text-dim);
+            font-size: 0.9rem;
+            text-align: center;
+            margin-top: 1rem;
+        }
+
         .typing-dots {
             display: inline-flex;
             gap: 4px;
@@ -1161,6 +1247,71 @@
                 justify-content: space-between;
             }
         }
+
+        .modal {
+    display: none;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.9);
+    z-index: 10000;
+    align-items: center;
+    justify-content: center;
+}
+.modal.active { display: flex; }
+.modal-content {
+    background: var(--bg-main);
+    border: 2px solid var(--accent);
+    padding: 2rem;
+    max-width: 500px;
+    width: 90%;
+}
+.room-item {
+    padding: 1rem;
+    border: 1px solid var(--border-subtle);
+    margin: 0.5rem 0;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+}
+.room-item:hover { border-color: var(--accent); }
+.room-locked::after { content: ''; font-family: 'Font Awesome 6 Free'; font-weight: 900; }
+
+/* System notification styles */
+.system-notification {
+    text-align: center;
+    padding: 0.5rem 1rem;
+    margin: 1rem auto;
+    background: rgba(0, 255, 65, 0.1);
+    border: 1px solid var(--accent);
+    border-radius: 20px;
+    color: var(--accent);
+    font-size: 0.85rem;
+    max-width: 400px;
+    animation: notificationSlide 0.4s ease-out;
+}
+
+@keyframes notificationSlide {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.system-notification.join {
+    border-color: var(--accent);
+    background: rgba(0, 255, 65, 0.1);
+}
+
+.system-notification.leave {
+    border-color: var(--text-dim);
+    background: rgba(153, 153, 153, 0.1);
+    color: var(--text-dim);
+}
     </style>
 </head>
 <body>
@@ -1171,7 +1322,7 @@
             <p>Trò chuyện không giới hạn</p>
             
             <div class="admin-notice" id="adminNotice">
-                🔐 Chế độ Admin được kích hoạt
+                <i class="fas fa-shield-alt"></i> Chế độ Admin được kích hoạt
             </div>
             
             <input 
@@ -1197,19 +1348,19 @@
 
     <!-- Chat Screen -->
     <div class="online-users">
-        <span class="online-users-label">⚡ ONLINE USERS</span>
+        <span class="online-users-label"><i class="fas fa-bolt"></i> ONLINE USERS</span>
         <div id="onlineUsersList"></div>
     </div>
 
     <div id="chatScreen">
         <div class="chat-header">
-            <h2>🟢 ntdChat v2</h2>
+            <h2><i class="fas fa-circle" style="color: var(--accent);"></i> ntdChat v2</h2>
             <div class="admin-controls" id="adminControls">
                 <button class="admin-control-btn danger" onclick="showKickModal()">
-                    ⚠️ Kick User
+                    <i class="fas fa-exclamation-triangle"></i> Kick User
                 </button>
                 <button class="admin-control-btn" onclick="showUnbanModal()">
-                    ✅ Unban
+                    <i class="fas fa-check-circle"></i> Unban
                 </button>
             </div>
             <div class="user-info">
@@ -1220,11 +1371,31 @@
                     <span>Đăng xuất</span>
                 </button>
             </div>
+            <!-- Room Selection Modal -->
+            <div id="roomModal" class="modal">
+                <div class="modal-content">
+                    <div class="modal-header"><i class="fas fa-door-open"></i> CHỌN/TẠO PHÒNG CHAT</div>
+                    <div class="modal-body">
+                        <label>Danh sách phòng:</label>
+                        <div id="roomsList" style="max-height: 300px; overflow-y: auto; margin-bottom: 2rem;">
+                            <p style="color: var(--text-dim); text-align: center;">Đang tải...</p>
+                        </div>
+                        
+                        <label>Tạo phòng mới:</label>
+                        <input type="text" id="newRoomName" placeholder="Tên phòng...">
+                        <input type="password" id="newRoomPassword" placeholder="Mật khẩu (để trống = công khai)">
+                    </div>
+                    <div class="modal-actions">
+                        <button class="modal-btn" onclick="document.getElementById('roomModal').classList.remove('active')">Đóng</button>
+                        <button class="modal-btn primary" onclick="createRoom()">Tạo Phòng</button>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div class="messages-container" id="messagesContainer">
             <div style="text-align: center; color: var(--text-dim); padding: 2rem;">
-                Chưa có tin nhắn nào. Hãy bắt đầu cuộc trò chuyện! 🚀
+                Chưa có tin nhắn nào. Hãy bắt đầu cuộc trò chuyện! <i class="fas fa-rocket"></i>
             </div>
         </div>
 
@@ -1241,7 +1412,7 @@
             <div class="preview-container" id="previewContainer"></div>
             <div class="input-wrapper">
                 <button class="image-button" onclick="document.getElementById('imageInput').click()" title="Gửi ảnh">
-                    📷
+                    <i class="fas fa-camera"></i>
                 </button>
                 <input type="file" id="imageInput" accept="image/*" onchange="handleImageSelect(event)" style="display: none;">
                 <input 
@@ -1253,7 +1424,7 @@
                     autocomplete="off"
                 >
                 <button class="send-btn" onclick="sendMessage()">
-                    <span>Gửi ➤</span>
+                    <span>Gửi <i class="fas fa-arrow-right"></i></span>
                 </button>
             </div>
         </div>
@@ -1262,7 +1433,7 @@
     <!-- Delete Message Modal -->
     <div class="modal" id="deleteMessageModal">
         <div class="modal-content danger">
-            <div class="modal-header">🗑️ Xóa tin nhắn</div>
+            <div class="modal-header"><i class="fas fa-trash-alt"></i> Xóa tin nhắn</div>
             <div class="modal-body">
                 <label>Lý do xóa tin nhắn:</label>
                 <textarea id="deleteReasonInput" placeholder="Nhập lý do xóa tin nhắn này..."></textarea>
@@ -1277,7 +1448,7 @@
     <!-- Kick User Modal -->
     <div class="modal" id="kickUserModal">
         <div class="modal-content danger">
-            <div class="modal-header">⚠️ Kick người dùng</div>
+            <div class="modal-header"><i class="fas fa-exclamation-triangle"></i> Kick người dùng</div>
             <div class="modal-body">
                 <label>Chọn người dùng:</label>
                 <select id="kickUserSelect">
@@ -1297,7 +1468,7 @@
     <!-- Unban User Modal -->
     <div class="modal" id="unbanUserModal">
         <div class="modal-content">
-            <div class="modal-header">✅ Unban người dùng</div>
+            <div class="modal-header"><i class="fas fa-check-circle"></i> Unban người dùng</div>
             <div class="modal-body">
                 <label>Danh sách người dùng bị kick:</label>
                 <div id="bannedUsersList" style="max-height: 300px; overflow-y: auto;">
@@ -1316,7 +1487,7 @@
     <div class="image-viewer-modal" id="imageViewerModal">
         <div class="image-viewer-container">
             <div class="image-viewer-header">
-                <div class="image-viewer-title">🖼️ Image Viewer</div>
+                <div class="image-viewer-title"><i class="fas fa-image"></i> Image Viewer</div>
                 <button class="image-viewer-close" onclick="closeImageViewer()">×</button>
             </div>
             
@@ -1328,10 +1499,10 @@
                 <button class="viewer-control-btn" onclick="zoomOut()" title="Thu nhỏ">-</button>
                 <div class="zoom-level" id="zoomLevel">100%</div>
                 <button class="viewer-control-btn" onclick="zoomIn()" title="Phóng to">+</button>
-                <button class="viewer-control-btn" onclick="rotateLeft()" title="Xoay trái">↶</button>
-                <button class="viewer-control-btn" onclick="rotateRight()" title="Xoay phải">↷</button>
-                <button class="viewer-control-btn" onclick="resetImage()" title="Reset">⟲</button>
-                <button class="viewer-control-btn" onclick="downloadImage()" title="Tải xuống">⬇</button>
+                <button class="viewer-control-btn" onclick="rotateLeft()" title="Xoay trái"><i class="fas fa-undo"></i></button>
+                <button class="viewer-control-btn" onclick="rotateRight()" title="Xoay phải"><i class="fas fa-redo"></i></button>
+                <button class="viewer-control-btn" onclick="resetImage()" title="Reset"><i class="fas fa-sync-alt"></i></button>
+                <button class="viewer-control-btn" onclick="downloadImage()" title="Tải xuống"><i class="fas fa-download"></i></button>
             </div>
         </div>
     </div>
@@ -1597,6 +1768,20 @@
                             updateKickUserList(state);
                         }
                     })
+                    .on('presence', { event: 'join' }, ({ key, newPresences }) => {
+                        // Show join notification when someone logs in
+                        const joinedUser = newPresences[0];
+                        if (joinedUser && joinedUser.username !== currentUser.username) {
+                            showSystemNotification(`👋 ${joinedUser.username} đã tham gia chat`, 'join');
+                        }
+                    })
+                    .on('presence', { event: 'leave' }, ({ key, leftPresences }) => {
+                        // Show leave notification when someone logs out
+                        const leftUser = leftPresences[0];
+                        if (leftUser && leftUser.username !== currentUser.username) {
+                            showSystemNotification(`👋 ${leftUser.username} đã rời chat`, 'leave');
+                        }
+                    })
                     .on('broadcast', { event: 'typing' }, ({ payload }) => {
                         if (payload.userId !== currentUser.id) {
                             showTypingIndicator(payload.username);
@@ -1605,9 +1790,8 @@
                     .on('broadcast', { event: 'user-kicked' }, ({ payload }) => {
                         console.log('Kick event received:', payload);
                         if (payload.userId === currentUser.id) {
-                            // Show alert and immediately logout
-                            alert(`⚠️ BẠN ĐÃ BỊ KICK KHỎI CHAT!\n\nLý do: ${payload.reason}\n\nBạn sẽ bị đăng xuất ngay lập tức.`);
-                            handleLogout();
+                            // Show kick popup with countdown
+                            showKickPopup(payload.reason, payload.kickedBy);
                         }
                     })
                     .subscribe(async (status) => {
@@ -1656,6 +1840,12 @@
                     })
                     .subscribe();
 
+                // Subscribe to rooms changes
+                subscribeToRooms();
+
+                // Add room button to header
+                addRoomButton();
+
                 scrollToBottom();
             } catch (error) {
                 console.error('Error initializing chat:', error);
@@ -1666,11 +1856,21 @@
         // Load messages
         async function loadMessages() {
             try {
-                const { data, error } = await supabaseClient
+                let query = supabaseClient
                     .from('messages')
                     .select('*')
                     .order('created_at', { ascending: true })
                     .limit(100);
+
+                // Filter by room if in a room
+                if (currentRoom) {
+                    query = query.eq('room_id', currentRoom.id);
+                } else {
+                    // Load messages without room (legacy/default chat)
+                    query = query.is('room_id', null);
+                }
+
+                const { data, error } = await query;
 
                 if (error) throw error;
 
@@ -1682,7 +1882,7 @@
                 } else {
                     container.innerHTML = `
                         <div style="text-align: center; color: var(--text-dim); padding: 2rem;">
-                            Chưa có tin nhắn nào. Hãy bắt đầu cuộc trò chuyện! 🚀
+                            Chưa có tin nhắn nào. Hãy bắt đầu cuộc trò chuyện! <i class="fas fa-rocket"></i>
                         </div>
                     `;
                 }
@@ -1732,10 +1932,99 @@
                         username: currentUser.username,
                         content: content || '',
                         image_url: imageUrl,
-                        reactions: {}
+                        reactions: {},
+                        room_id: currentRoom ? currentRoom.id : null
                     }]);
 
                 if (error) throw error;
+
+                // Bot command handler
+                if (content.startsWith('/')) {
+                    const command = content.toLowerCase().trim();
+                    
+                    setTimeout(async () => {
+                        let botResponse = '';
+                        let shouldSendResponse = true;
+                        
+                        if (command === '/time') {
+                            // /time command - show current time
+                            const now = new Date();
+                            const vietnamTime = now.toLocaleString('vi-VN', {
+                                timeZone: 'Asia/Ho_Chi_Minh',
+                                weekday: 'long',
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                second: '2-digit'
+                            });
+                            botResponse = `⏰ Thời gian hiện tại:\n${vietnamTime}`;
+                            
+                        } else if (command === '/help') {
+                            // /help command - show available commands
+                            const adminCommands = isAdmin ? `🗑️ /clear - Xóa tất cả tin nhắn (chỉ admin, chỉ chat chung)\n` : '';
+                            botResponse = `📚 DANH SÁCH LỆNH:\n\n` +
+                                `⏰ /time - Hiển thị thời gian hiện tại (giờ Việt Nam)\n` +
+                                `📚 /help - Hiển thị danh sách lệnh này\n` +
+                                adminCommands +
+                                `\n💡 Cách dùng: Gõ lệnh bắt đầu bằng dấu / và gửi tin nhắn`;
+                            
+                        } else if (command === '/clear') {
+                            // /clear command - clear all messages (admin only, main chat only)
+                            shouldSendResponse = false;
+                            
+                            if (!isAdmin) {
+                                botResponse = `❌ Bạn không có quyền sử dụng lệnh này!\n\nChỉ admin mới có thể xóa tin nhắn.`;
+                                shouldSendResponse = true;
+                            } else if (currentRoom) {
+                                botResponse = `❌ Lệnh /clear chỉ hoạt động trên chat chung!\n\nKhông thể xóa tin nhắn trong phòng chat riêng.`;
+                                shouldSendResponse = true;
+                            } else {
+                                // Admin và đang ở chat chung - thực hiện xóa
+                                try {
+                                    // Delete all messages in main chat (room_id is null)
+                                    const { error: deleteError } = await supabaseClient
+                                        .from('messages')
+                                        .delete()
+                                        .is('room_id', null);
+                                    
+                                    if (deleteError) throw deleteError;
+                                    
+                                    // Send success notification
+                                    botResponse = `✅ Đã xóa tất cả tin nhắn trong chat chung!\n\n🧹 Chat đã được làm sạch bởi ${currentUser.username}`;
+                                    shouldSendResponse = true;
+                                    
+                                    // Clear messages container
+                                    document.getElementById('messagesContainer').innerHTML = '';
+                                } catch (error) {
+                                    console.error('Error clearing messages:', error);
+                                    botResponse = `❌ Lỗi khi xóa tin nhắn!\n\nVui lòng thử lại.`;
+                                    shouldSendResponse = true;
+                                }
+                            }
+                            
+                        } else if (command === '/botngu') {
+                            botResponse = `Ngu bà nội mày, chém chết giờ!`
+                        } else {
+                            // Unknown command
+                            botResponse = `❌ Lệnh không tồn tại!\n\nNhập /help để xem các lệnh có sẵn.`;
+                        }
+                        
+                        // Send bot response
+                        if (shouldSendResponse && botResponse) {
+                            await supabaseClient
+                                .from('messages')
+                                .insert([{
+                                    user_id: 'bot-system',
+                                    username: '🤖 BOT',
+                                    content: botResponse,
+                                    reactions: {},
+                                    room_id: currentRoom ? currentRoom.id : null
+                                }]);
+                        }
+                    }, 500); // Delay 500ms để bot reply tự nhiên hơn
+                }
 
                 input.value = '';
                 selectedImage = null;
@@ -1782,11 +2071,25 @@
         // Display message
         function displayMessage(message) {
             const container = document.getElementById('messagesContainer');
+            
+            // Handle system kick notification messages (identified by special user_id)
+            if (message.user_id === 'system-kick-notification') {
+                const systemDiv = document.createElement('div');
+                systemDiv.className = 'system-message kick-message';
+                systemDiv.innerHTML = `
+                    <i class="fas fa-exclamation-triangle"></i> ${escapeHtml(message.content)}
+                `;
+                container.appendChild(systemDiv);
+                return;
+            }
+            
             const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${message.user_id === currentUser.id ? 'own' : ''} ${message.deleted ? 'deleted' : ''}`;
+            const isBotMessage = message.user_id === 'bot-system';
+            messageDiv.className = `message ${message.user_id === currentUser.id ? 'own' : ''} ${message.deleted ? 'deleted' : ''} ${isBotMessage ? 'bot-message' : ''}`;
             messageDiv.setAttribute('data-message-id', message.id);
 
             const time = new Date(message.created_at).toLocaleTimeString('vi-VN', {
+                timeZone: 'Asia/Ho_Chi_Minh',
                 hour: '2-digit',
                 minute: '2-digit'
             });
@@ -1814,29 +2117,31 @@
                 </div>
                 <div class="message-content ${message.deleted ? 'deleted-content' : ''}">
                     ${message.deleted ? contentHtml : `
-                        ${contentHtml ? `<span class="message-text">${contentHtml}</span>` : ''}
+                        ${contentHtml ? `<span class="message-text" style="white-space: pre-line;">${contentHtml}</span>` : ''}
                         ${imageHtml}
+                        ${!isBotMessage ? `
                         <div class="message-actions">
-                            <button class="react-btn" onclick="toggleReactionPicker(${message.id})">❤️</button>
-                            <button class="delete-msg-btn ${isAdmin && message.user_id !== currentUser.id ? 'visible' : ''}" onclick="showDeleteModal(${message.id})">🗑️</button>
+                            <button class="react-btn" onclick="toggleReactionPicker(${message.id})"><i class="fas fa-heart"></i></button>
+                            <button class="delete-msg-btn ${isAdmin && message.user_id !== currentUser.id ? 'visible' : ''}" onclick="showDeleteModal(${message.id})"><i class="fas fa-trash"></i></button>
                         </div>
+                        ` : ''}
                     `}
-                    ${!message.deleted ? `
+                    ${!message.deleted && !isBotMessage ? `
                     <div class="reaction-picker" id="picker-${message.id}">
-                        <span class="reaction-option" onclick="addReaction(${message.id}, '❤️')">❤️</span>
-                        <span class="reaction-option" onclick="addReaction(${message.id}, '👍')">👍</span>
-                        <span class="reaction-option" onclick="addReaction(${message.id}, '😂')">😂</span>
-                        <span class="reaction-option" onclick="addReaction(${message.id}, '🔥')">🔥</span>
-                        <span class="reaction-option" onclick="addReaction(${message.id}, '✨')">✨</span>
+                        <span class="reaction-option" onclick="addReaction(${message.id}, '❤️')"><i class="fas fa-heart"></i></span>
+                        <span class="reaction-option" onclick="addReaction(${message.id}, '👍')"><i class="fas fa-thumbs-up"></i></span>
+                        <span class="reaction-option" onclick="addReaction(${message.id}, '😂')"><i class="fas fa-laugh"></i></span>
+                        <span class="reaction-option" onclick="addReaction(${message.id}, '🔥')"><i class="fas fa-fire"></i></span>
+                        <span class="reaction-option" onclick="addReaction(${message.id}, '✨')"><i class="fas fa-sparkles"></i></span>
                     </div>
                     ` : ''}
                 </div>
-                <div class="message-reactions" id="reactions-${message.id}"></div>
+                ${!isBotMessage ? `<div class="message-reactions" id="reactions-${message.id}"></div>` : ''}
             `;
 
             container.appendChild(messageDiv);
             
-            if (message.reactions && !message.deleted) {
+            if (message.reactions && !message.deleted && !isBotMessage) {
                 updateMessageReactions(messageDiv, message.reactions);
             }
         }
@@ -1931,6 +2236,10 @@
             }
 
             try {
+                // Get username of kicked user
+                const select = document.getElementById('kickUserSelect');
+                const kickedUsername = select.options[select.selectedIndex].text;
+
                 // Record kick in database with active = true
                 const { error: kickError } = await supabaseClient
                     .from('kicks')
@@ -1943,6 +2252,18 @@
 
                 if (kickError) throw kickError;
 
+                // Send kick notification message to chat
+                const { error: msgError } = await supabaseClient
+                    .from('messages')
+                    .insert([{
+                        username: 'SYSTEM',
+                        content: `⚠️ ${kickedUsername} đã bị kick bởi ${currentUser.username}. Lý do: ${reason}`,
+                        user_id: 'system-kick-notification',
+                        room_id: currentRoom ? currentRoom.id : null
+                    }]);
+
+                if (msgError) console.error('Error sending kick notification:', msgError);
+
                 // Send broadcast to kick user
                 if (presenceChannel) {
                     console.log('Broadcasting kick event to user:', userId);
@@ -1951,7 +2272,8 @@
                         event: 'user-kicked',
                         payload: { 
                             userId: userId,
-                            reason: reason
+                            reason: reason,
+                            kickedBy: currentUser.username
                         }
                     });
                     console.log('Kick broadcast sent successfully');
@@ -2017,9 +2339,11 @@
                                 <div class="user-list-name">${escapeHtml(user?.username || 'Unknown User')}</div>
                                 <div class="user-list-reason">Lý do: ${escapeHtml(kick.reason)}</div>
                             </div>
-                            <button class="unban-btn" onclick="unbanUser('${kick.id}', '${kick.user_id}')">
-                                Unban
-                            </button>
+                            <div>
+                                <button class="unban-btn" onclick="unbanUser('${kick.id}', '${kick.user_id}')">
+                                    Unban
+                                </button>
+                            </div>
                         `;
                         container.appendChild(item);
                     } catch (userError) {
@@ -2164,6 +2488,17 @@
         }
 
         // Update message reactions
+        function emojiToIcon(emoji) {
+            const emojiMap = {
+                '❤️': '<i class="fas fa-heart"></i>',
+                '👍': '<i class="fas fa-thumbs-up"></i>',
+                '😂': '<i class="fas fa-laugh"></i>',
+                '🔥': '<i class="fas fa-fire"></i>',
+                '✨': '<i class="fas fa-sparkles"></i>'
+            };
+            return emojiMap[emoji] || emoji;
+        }
+
         function updateMessageReactions(messageElement, reactions) {
             const reactionsContainer = messageElement.querySelector('.message-reactions');
             reactionsContainer.innerHTML = '';
@@ -2174,7 +2509,7 @@
                 if (userIds.length > 0) {
                     const reactionDiv = document.createElement('div');
                     reactionDiv.className = `reaction ${userIds.includes(currentUser.id) ? 'active' : ''}`;
-                    reactionDiv.innerHTML = `${emoji} <span>${userIds.length}</span>`;
+                    reactionDiv.innerHTML = `${emojiToIcon(emoji)} <span>${userIds.length}</span>`;
                     reactionDiv.onclick = () => {
                         const messageId = messageElement.getAttribute('data-message-id');
                         addReaction(parseInt(messageId), emoji);
@@ -2440,6 +2775,44 @@
         }
 
         // Logout
+        // Show kick popup with countdown
+        function showKickPopup(reason, kickedBy) {
+            // Create popup element
+            const popup = document.createElement('div');
+            popup.className = 'kick-popup';
+            popup.innerHTML = `
+                <h2><i class="fas fa-exclamation-triangle"></i> BẠN ĐÃ BỊ KICK!</h2>
+                <div class="kick-info">
+                    <strong>Bị kick bởi:</strong> ${escapeHtml(kickedBy)}
+                </div>
+                <div class="kick-reason">
+                    <strong>Lý do:</strong><br>
+                    ${escapeHtml(reason)}
+                </div>
+                <div class="kick-timer">
+                    Bạn sẽ bị đăng xuất trong <span id="kickCountdown">5</span> giây...
+                </div>
+            `;
+            
+            document.body.appendChild(popup);
+            
+            // Countdown timer
+            let countdown = 5;
+            const countdownElement = document.getElementById('kickCountdown');
+            
+            const timer = setInterval(() => {
+                countdown--;
+                if (countdownElement) {
+                    countdownElement.textContent = countdown;
+                }
+                
+                if (countdown <= 0) {
+                    clearInterval(timer);
+                    handleLogout();
+                }
+            }, 1000);
+        }
+
         async function handleLogout() {
             // Prevent logout in locked mode
             if (isLockedMode) {
@@ -2493,6 +2866,323 @@
                 errorDiv.classList.remove('active');
             }, 4000);
         }
+
+        // Show system notification
+        function showSystemNotification(message, type = 'join') {
+            const container = document.getElementById('messagesContainer');
+            const notification = document.createElement('div');
+            notification.className = `system-notification ${type}`;
+            notification.textContent = message;
+            container.appendChild(notification);
+            scrollToBottom();
+        }
+
+        // ========== ROOM CHAT FUNCTIONALITY ==========
+        let currentRoom = null;
+        let roomsSubscription = null;
+
+        // Show room modal
+        function showRoomModal() {
+            document.getElementById('roomModal').classList.add('active');
+            loadRooms();
+        }
+
+        // Load rooms list
+        async function loadRooms() {
+            try {
+                const { data: rooms, error } = await supabaseClient
+                    .from('chat_rooms')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                const roomsList = document.getElementById('roomsList');
+                if (!rooms || rooms.length === 0) {
+                    roomsList.innerHTML = '<p style="color: var(--text-dim); padding: 1rem; text-align: center;">Chưa có phòng nào. Hãy tạo phòng đầu tiên!</p>';
+                    return;
+                }
+
+                roomsList.innerHTML = rooms.map(room => {
+                    // Check if current user can delete this room
+                    const canDelete = isAdmin || room.created_by === currentUser.username;
+                    
+                    return `
+                        <div class="room-item ${room.password ? 'room-locked' : ''}" style="display: flex; align-items: center; gap: 1rem;">
+                            <div onclick="selectRoom('${room.id}', ${room.password ? 'true' : 'false'})" style="flex: 1; cursor: pointer;">
+                                <div>
+                                    <strong>${escapeHtml(room.name)}</strong>
+                                    <div style="font-size: 0.85rem; color: var(--text-dim);">Tạo bởi: ${escapeHtml(room.created_by)}</div>
+                                </div>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                ${room.password ? '<span><i class="fas fa-lock"></i></span>' : ''}
+                                ${canDelete ? `
+                                    <button 
+                                        onclick="event.stopPropagation(); confirmDeleteRoom('${room.id}', '${escapeHtml(room.name).replace(/'/g, "\\'")}');" 
+                                        style="
+                                            padding: 0.3rem 0.6rem;
+                                            background: var(--danger);
+                                            border: 1px solid var(--danger);
+                                            color: white;
+                                            cursor: pointer;
+                                            font-size: 0.8rem;
+                                            font-family: 'Space Mono', monospace;
+                                            transition: all 0.3s;
+                                            border-radius: 10px;
+                                        "
+                                        onmouseover="this.style.opacity='0.8'"
+                                        onmouseout="this.style.opacity='1'"
+                                    >
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                ` : ''}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } catch (error) {
+                console.error('Error loading rooms:', error);
+                showError('Lỗi khi tải danh sách phòng');
+            }
+        }
+
+        // Create new room
+        async function createRoom() {
+            const roomName = document.getElementById('newRoomName').value.trim();
+            const roomPassword = document.getElementById('newRoomPassword').value.trim();
+
+            if (!roomName) {
+                showError('Vui lòng nhập tên phòng');
+                return;
+            }
+
+            try {
+                const { data: newRoom, error } = await supabaseClient
+                    .from('chat_rooms')
+                    .insert([{
+                        name: roomName,
+                        password: roomPassword || null,
+                        created_by: currentUser.username
+                    }])
+                    .select()
+                    .single();
+
+                if (error) throw error;
+
+                showError('Tạo phòng thành công!', false);
+                document.getElementById('newRoomName').value = '';
+                document.getElementById('newRoomPassword').value = '';
+
+                // Auto join the new room
+                joinRoom(newRoom.id, roomPassword);
+            } catch (error) {
+                console.error('Error creating room:', error);
+                showError('Lỗi khi tạo phòng');
+            }
+        }
+
+        // Select room (check password if needed)
+        async function selectRoom(roomId, hasPassword) {
+            try {
+                const { data: room, error } = await supabaseClient
+                    .from('chat_rooms')
+                    .select('*')
+                    .eq('id', roomId)
+                    .single();
+
+                if (error) throw error;
+
+                if (hasPassword) {
+                    const enteredPassword = prompt('Nhập mật khẩu phòng:');
+                    if (!enteredPassword) return;
+
+                    if (enteredPassword !== room.password) {
+                        showError('Mật khẩu không đúng!');
+                        return;
+                    }
+                }
+
+                joinRoom(roomId, room.password);
+            } catch (error) {
+                console.error('Error selecting room:', error);
+                showError('Lỗi khi vào phòng');
+            }
+        }
+
+        // Join room
+        async function joinRoom(roomId, password) {
+            try {
+                // Get room info
+                const { data: room, error } = await supabaseClient
+                    .from('chat_rooms')
+                    .select('*')
+                    .eq('id', roomId)
+                    .single();
+
+                if (error) throw error;
+
+                // Unsubscribe from old messages subscription
+                if (messagesSubscription) {
+                    messagesSubscription.unsubscribe();
+                    // Small delay to ensure cleanup
+                    await new Promise(resolve => setTimeout(resolve, 200));
+                }
+
+                currentRoom = room;
+
+                // Update chat header with room name
+                document.querySelector('.chat-header h2').innerHTML = `<i class="fas fa-circle" style="color: var(--accent);"></i> ${room.name}`;
+
+                // Close modal
+                document.getElementById('roomModal').classList.remove('active');
+
+                // Reload messages for this room
+                document.getElementById('messagesContainer').innerHTML = '';
+                await loadMessages();
+
+                // Subscribe to messages for this room
+                subscribeToMessagesForRoom();
+                
+                // Small delay to ensure subscription is ready
+                await new Promise(resolve => setTimeout(resolve, 200));
+
+                showError(`Đã vào phòng: ${room.name}`, false);
+                scrollToBottom();
+            } catch (error) {
+                console.error('Error joining room:', error);
+                showError('Lỗi khi vào phòng');
+            }
+        }
+
+        // Confirm delete room
+        function confirmDeleteRoom(roomId, roomName) {
+            if (confirm(`Bạn có chắc muốn xóa phòng "${roomName}"?\n\nTất cả tin nhắn trong phòng cũng sẽ bị xóa!`)) {
+                deleteRoom(roomId);
+            }
+        }
+
+        // Delete room
+        async function deleteRoom(roomId) {
+            try {
+                const { error } = await supabaseClient
+                    .from('chat_rooms')
+                    .delete()
+                    .eq('id', roomId);
+
+                if (error) throw error;
+
+                showError('Đã xóa phòng thành công!', false);
+
+                // If user is currently in this room, redirect to default chat
+                if (currentRoom && currentRoom.id === roomId) {
+                    currentRoom = null;
+                    document.querySelector('.chat-header h2').innerHTML = '<i class="fas fa-circle" style="color: var(--accent);"></i> ntdChat v2';
+                    document.getElementById('messagesContainer').innerHTML = '';
+                    await loadMessages();
+                    subscribeToMessagesForRoom();
+                }
+
+                // Reload rooms list
+                loadRooms();
+            } catch (error) {
+                console.error('Error deleting room:', error);
+                showError('Lỗi khi xóa phòng');
+            }
+        }
+
+        // Subscribe to messages for specific room
+        async function subscribeToMessagesForRoom() {
+            // Unsubscribe first if already subscribed
+            if (messagesSubscription) {
+                messagesSubscription.unsubscribe();
+                // Small delay to ensure cleanup
+                await new Promise(resolve => setTimeout(resolve, 100));
+            }
+
+            const channelName = currentRoom ? `messages-room-${currentRoom.id}` : 'messages-default';
+            messagesSubscription = supabaseClient
+                .channel(channelName)
+                .on('postgres_changes', {
+                    event: 'INSERT',
+                    schema: 'public',
+                    table: 'messages',
+                    filter: currentRoom ? `room_id=eq.${currentRoom.id}` : 'room_id=is.null'
+                }, (payload) => {
+                    handleNewMessage(payload);
+                })
+                .on('postgres_changes', {
+                    event: 'UPDATE',
+                    schema: 'public',
+                    table: 'messages',
+                    filter: currentRoom ? `room_id=eq.${currentRoom.id}` : 'room_id=is.null'
+                }, (payload) => {
+                    handleMessageUpdate(payload);
+                })
+                .subscribe();
+        }
+
+        // Subscribe to rooms changes
+        function subscribeToRooms() {
+            roomsSubscription = supabaseClient
+                .channel('rooms_channel')
+                .on('postgres_changes', 
+                    { 
+                        event: '*', 
+                        schema: 'public', 
+                        table: 'chat_rooms'
+                    }, 
+                    () => {
+                        // Reload rooms if modal is open
+                        const modal = document.getElementById('roomModal');
+                        if (modal && modal.classList.contains('active')) {
+                            loadRooms();
+                        }
+                    }
+                )
+                .subscribe();
+        }
+
+        // Add button to show room modal in chat header
+        function addRoomButton() {
+            const chatHeader = document.querySelector('.chat-header');
+            const h2 = chatHeader.querySelector('h2');
+            
+            // Create room button
+            const roomBtn = document.createElement('button');
+            roomBtn.className = 'admin-control-btn';
+            roomBtn.innerHTML = '<i class="fas fa-door-open"></i> Phòng Chat';
+            roomBtn.onclick = showRoomModal;
+            roomBtn.style.display = 'inline-block';
+            roomBtn.style.marginLeft = '1rem';
+            
+            // Create "Back to main" button
+            const backBtn = document.createElement('button');
+            backBtn.className = 'admin-control-btn';
+            backBtn.innerHTML = '<i class="fas fa-home"></i> Phòng Chính';
+            backBtn.onclick = backToMainRoom;
+            backBtn.style.display = 'inline-block';
+            backBtn.style.marginLeft = '0.5rem';
+            backBtn.id = 'backToMainBtn';
+            
+            // Insert after h2
+            h2.after(roomBtn);
+            roomBtn.after(backBtn);
+        }
+
+        // Back to main room (default chat without room)
+        async function backToMainRoom() {
+            try {
+                // Simply reload the page - this will keep the username in localStorage
+                // and automatically go back to main chat
+                window.location.reload();
+            } catch (error) {
+                console.error('Error going back to main room:', error);
+                showError('Lỗi khi quay về phòng chính');
+            }
+        }
+
+        // ========== END ROOM CHAT FUNCTIONALITY ==========
 
         // Initialize on page load
         window.addEventListener('DOMContentLoaded', () => {
