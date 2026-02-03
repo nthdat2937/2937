@@ -2358,9 +2358,11 @@
                                 <div class="user-list-name">${escapeHtml(user?.username || 'Unknown User')}</div>
                                 <div class="user-list-reason">Lý do: ${escapeHtml(kick.reason)}</div>
                             </div>
+                            <div>
                             <button class="unban-btn" onclick="unbanUser('${kick.id}', '${kick.user_id}')">
                                 Unban
                             </button>
+                            </div>
                         `;
                         container.appendChild(item);
                     } catch (userError) {
