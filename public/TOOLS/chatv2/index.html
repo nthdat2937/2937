@@ -80,6 +80,18 @@
             animation: slideIn 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
         }
 
+        @media (max-width: 768px) {
+            .login-container {
+                padding: 2rem 1.5rem;
+                width: 95%;
+            }
+
+            .login-container h1 {
+                font-size: 2rem;
+                letter-spacing: 2px;
+            }
+        }
+
         .login-container.admin-mode {
             border-color: var(--admin);
             box-shadow: 0 0 30px rgba(255, 0, 255, 0.3);
@@ -223,6 +235,24 @@
             justify-content: space-between;
             align-items: center;
             gap: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .chat-header {
+                padding: 1rem;
+                flex-wrap: wrap;
+                gap: 0.5rem;
+            }
+
+            .chat-header h2 {
+                font-size: 1.2rem;
+                letter-spacing: 1px;
+            }
+
+            .chat-header .header-controls {
+                flex-wrap: wrap;
+                gap: 0.5rem;
+            }
         }
 
         .chat-header.admin-header {
@@ -474,8 +504,16 @@
             color: var(--danger);
         }
 
-        .message-actions {
+        .message-footer {
             display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 0.25rem;
+            flex-wrap: wrap;
+        }
+
+        .message-actions {
+            display: inline-flex;
             gap: 0.3rem;
             opacity: 0;
             transition: opacity 0.2s;
@@ -491,8 +529,8 @@
             background: var(--bg-main);
             border: 1px solid var(--border-subtle);
             color: var(--text);
-            padding: 0.2rem 0.4rem;
-            font-size: 0.75rem;
+            padding: 0.15rem 0.35rem;
+            font-size: 0.7rem;
             cursor: pointer;
             transition: all 0.2s;
             width: auto;
@@ -527,10 +565,10 @@
             left: 0;
             background: var(--bg-secondary);
             border: 2px solid var(--accent);
-            padding: 0.5rem;
-            gap: 0.5rem;
-            border-radius: 8px;
-            margin-bottom: 0.5rem;
+            padding: 0.3rem;
+            gap: 0.3rem;
+            border-radius: 6px;
+            margin-bottom: 0.3rem;
             z-index: 10;
         }
 
@@ -539,31 +577,32 @@
         }
 
         .reaction-option {
-            font-size: 1.5rem;
+            font-size: 1.2rem;
             cursor: pointer;
             transition: transform 0.2s;
         }
 
         .reaction-option:hover {
-            transform: scale(1.3);
+            transform: scale(1.2);
         }
 
         .message-reactions {
-            display: flex;
-            gap: 0.5rem;
+            display: inline-flex;
+            gap: 0.25rem;
             flex-wrap: wrap;
-            margin-top: 0.5rem;
+            margin-top: 0;
+            align-items: center;
         }
 
         .reaction {
             display: flex;
             align-items: center;
-            gap: 0.3rem;
-            padding: 0.2rem 0.5rem;
+            gap: 0.2rem;
+            padding: 0.15rem 0.35rem;
             background: var(--bg-main);
             border: 1px solid var(--border);
-            border-radius: 12px;
-            font-size: 0.85rem;
+            border-radius: 10px;
+            font-size: 0.75rem;
             cursor: pointer;
             transition: all 0.2s;
         }
@@ -580,25 +619,8 @@
         }
 
         .reaction span {
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             font-weight: 700;
-        }
-
-        .typing-indicator {
-            padding: 1rem 1.5rem;
-            background: var(--bg-secondary);
-            border-top: 1px solid var(--border);
-            color: var(--text-dim);
-            font-size: 0.85rem;
-            height: 50px;
-            display: flex;
-            align-items: center;
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-
-        .typing-indicator.active {
-            opacity: 1;
         }
 
         /* Kick notification styles */
@@ -701,33 +723,6 @@
             font-size: 0.9rem;
             text-align: center;
             margin-top: 1rem;
-        }
-
-        .typing-dots {
-            display: inline-flex;
-            gap: 4px;
-            margin-left: 8px;
-        }
-
-        .typing-dots span {
-            width: 6px;
-            height: 6px;
-            background: var(--accent);
-            border-radius: 50%;
-            animation: typingBounce 1.4s infinite;
-        }
-
-        .typing-dots span:nth-child(2) {
-            animation-delay: 0.2s;
-        }
-
-        .typing-dots span:nth-child(3) {
-            animation-delay: 0.4s;
-        }
-
-        @keyframes typingBounce {
-            0%, 60%, 100% { transform: translateY(0); }
-            30% { transform: translateY(-10px); }
         }
 
         .input-container {
@@ -1633,6 +1628,303 @@
 }
 
 /* ========== KẾT THÚC CSS FILE ========== */
+
+/* ========== MOBILE RESPONSIVE CSS ========== */
+@media (max-width: 768px) {
+    /* FIX CHAT SCREEN BỊ LỆCH - BỎ MARGIN LEFT */
+    #chatScreen {
+        margin-left: 0 !important;
+        width: 100% !important;
+    }
+
+    /* ẨN ONLINE USERS SIDEBAR TRÊN MOBILE */
+    .online-users {
+        display: none !important;
+    }
+
+    /* ẨN CÁC NÚT PHÒNG CHAT VÀ ADMIN CONTROLS TRÊN MOBILE */
+    .admin-control-btn,
+    #backToMainBtn {
+        display: none !important;
+    }
+
+    /* Chat header - đơn giản hơn trên mobile */
+    .chat-header {
+        padding: 1rem;
+        gap: 0.5rem;
+    }
+
+    .chat-header h2 {
+        font-size: 1.2rem;
+        letter-spacing: 1px;
+    }
+
+    /* Header controls - chỉ giữ nút logout */
+    .header-controls {
+        gap: 0.5rem;
+    }
+
+    .header-btn {
+        padding: 0.6rem 0.9rem;
+        font-size: 0.85rem;
+    }
+
+    /* Messages Container - giảm padding */
+    .messages-container {
+        padding: 1rem;
+        gap: 0.75rem;
+    }
+
+    /* Message - tối ưu kích thước */
+    .message {
+        max-width: 100%;
+        padding: 0.5rem 0.75rem;
+        font-size: 0.9rem;
+    }
+
+    .message-sender {
+        font-size: 0.85rem;
+    }
+
+    .message-time {
+        font-size: 0.7rem;
+    }
+
+    /* Input Container - giảm padding */
+    .input-container {
+        padding: 1rem;
+        gap: 0.75rem;
+    }
+
+    .input-wrapper {
+        gap: 0.5rem;
+    }
+
+    .input-container input {
+        font-size: 0.9rem;
+        padding: 0.85rem;
+    }
+
+    /* Media Buttons - nhỏ hơn trên mobile */
+    .media-button,
+    #fileAttachBtn {
+        padding: 0.75rem;
+        font-size: 1rem;
+    }
+
+    button {
+        padding: 0.85rem 1rem;
+        font-size: 0.9rem;
+        letter-spacing: 1px;
+    }
+
+    /* Modal - full width trên mobile */
+    .modal-content {
+        width: 95%;
+        max-width: 95%;
+        padding: 1.5rem;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+
+    .modal-content h3 {
+        font-size: 1.3rem;
+    }
+
+    /* Room items */
+    .room-item {
+        padding: 0.75rem;
+        gap: 0.5rem;
+    }
+
+    .room-item h4 {
+        font-size: 0.95rem;
+    }
+
+    .room-item p {
+        font-size: 0.75rem;
+    }
+
+    /* Admin controls - stack vertically */
+    .admin-controls {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    /* User Info - smaller text */
+    .user-info {
+        font-size: 0.85rem;
+    }
+
+    /* Error Popup */
+    .error-popup {
+        width: 90%;
+        max-width: 90%;
+        padding: 1rem;
+        font-size: 0.9rem;
+    }
+
+    /* Kick Popup */
+    .kick-popup {
+        width: 95%;
+        padding: 1.5rem;
+    }
+
+    .kick-popup h2 {
+        font-size: 1.5rem;
+    }
+
+    .kick-popup p {
+        font-size: 0.9rem;
+    }
+
+    /* Image previews trong message */
+    .message-image img {
+        max-width: 100%;
+        max-height: 300px;
+    }
+
+    .image-preview img {
+        max-width: 80px;
+        max-height: 80px;
+    }
+
+    /* File attachments */
+    .message-file {
+        font-size: 0.8rem;
+    }
+
+    .file-download-btn {
+        padding: 0.6rem 1rem;
+        font-size: 0.8rem;
+    }
+
+    /* Reaction picker - adjust position */
+    .reaction-picker {
+        left: 50%;
+        transform: translateX(-50%);
+        width: max-content;
+        padding: 0.25rem;
+        gap: 0.25rem;
+    }
+
+    .reaction-option {
+        font-size: 1.1rem;
+    }
+
+    /* Reactions - gọn hơn trên mobile */
+    .message-reactions {
+        gap: 0.2rem;
+        margin-top: 0.2rem;
+    }
+
+    .reaction {
+        padding: 0.1rem 0.3rem;
+        font-size: 0.7rem;
+        gap: 0.15rem;
+        border-radius: 8px;
+    }
+
+    .reaction span {
+        font-size: 0.65rem;
+    }
+
+    /* Message actions buttons */
+    .delete-msg-btn,
+    .message-actions button {
+        padding: 0.4rem 0.7rem;
+        font-size: 0.75rem;
+    }
+
+    /* Form inputs trong modal */
+    .modal-content input,
+    .modal-content textarea {
+        font-size: 0.9rem;
+        padding: 0.8rem;
+    }
+
+    .modal-content label {
+        font-size: 0.85rem;
+    }
+
+    /* Checkbox containers */
+    .checkbox-container {
+        font-size: 0.85rem;
+    }
+
+    /* Scroll behavior */
+    .messages-container {
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Touch targets - larger for better mobile UX */
+    button,
+    .header-btn {
+        min-height: 44px;
+        min-width: 44px;
+    }
+
+    /* Notification badges */
+    .notification-badge {
+        font-size: 0.7rem;
+        padding: 0.15rem 0.4rem;
+    }
+
+    /* Online users list in modal */
+    .online-users-list {
+        max-height: 200px;
+    }
+
+    .online-user-item {
+        font-size: 0.8rem;
+        padding: 0.4rem;
+    }
+}
+
+/* ========== SMALL MOBILE (width < 400px) ========== */
+@media (max-width: 400px) {
+    .chat-header h2 {
+        font-size: 1rem;
+    }
+
+    .messages-container {
+        padding: 0.75rem;
+    }
+
+    .message {
+        padding: 0.4rem 0.6rem;
+        font-size: 0.85rem;
+    }
+
+    .input-container {
+        padding: 0.75rem;
+    }
+
+    .input-container input {
+        font-size: 0.85rem;
+        padding: 0.75rem;
+    }
+
+    .media-button,
+    #fileAttachBtn {
+        padding: 0.65rem;
+        font-size: 0.9rem;
+    }
+
+    button {
+        font-size: 0.85rem;
+        padding: 0.75rem;
+    }
+
+    .modal-content {
+        padding: 1rem;
+    }
+
+    .header-btn {
+        padding: 0.5rem 0.7rem;
+        font-size: 0.8rem;
+    }
+}
     </style>
 </head>
 <body>
@@ -1723,15 +2015,6 @@
             </div>
         </div>
 
-        <div class="typing-indicator" id="typingIndicator">
-            <span id="typingUserName"></span> đang nhập
-            <div class="typing-dots">
-                <span></span>
-                <span></span>
-                <span></span>
-            </div>
-        </div>
-
         <div class="input-container">
             <div class="preview-container" id="previewContainer"></div>
             <div class="input-wrapper">
@@ -1765,7 +2048,6 @@
                     id="messageInput" 
                     placeholder="Nhập tin nhắn..."
                     onkeypress="handleKeyPress(event)"
-                    oninput="handleTyping()"
                     autocomplete="off"
                 >
                 <button class="send-btn" onclick="sendMessage()">
@@ -1898,7 +2180,6 @@
         let presenceChannel = null;
         let messagesSubscription = null;
         let kicksSubscription = null;
-        let typingTimeout = null;
         let currentDeleteMessageId = null;
         let selectedImage = null;
         let isLockedMode = false; // True khi login qua URL parameter
@@ -2121,11 +2402,6 @@
                     .on('presence', { event: 'leave' }, ({ key, leftPresences }) => {
                         // Tắt thông báo leave - chỉ theo dõi qua online users list
                     })
-                    .on('broadcast', { event: 'typing' }, ({ payload }) => {
-                        if (payload.userId !== currentUser.id) {
-                            showTypingIndicator(payload.username);
-                        }
-                    })
                     .on('broadcast', { event: 'user-kicked' }, ({ payload }) => {
                         console.log('Kick event received:', payload);
                         if (payload.userId === currentUser.id) {
@@ -2155,20 +2431,8 @@
                 // Load messages
                 await loadMessages();
 
-                // Subscribe to new messages
-                messagesSubscription = supabaseClient
-                    .channel('messages-channel')
-                    .on('postgres_changes', {
-                        event: 'INSERT',
-                        schema: 'public',
-                        table: 'messages'
-                    }, handleNewMessage)
-                    .on('postgres_changes', {
-                        event: 'UPDATE',
-                        schema: 'public',
-                        table: 'messages'
-                    }, handleMessageUpdate)
-                    .subscribe();
+                // Subscribe to messages for current room (or main chat)
+                await subscribeToMessagesForRoom();
 
                 // Subscribe to kicks table for realtime kick detection
                 kicksSubscription = supabaseClient
@@ -2549,31 +2813,71 @@
 
         // Handle new message
         function handleNewMessage(payload) {
+            console.log('handleNewMessage called with payload:', payload);
+            console.log('Current room:', currentRoom);
+            
+            const newMessage = payload.new;
+            
+            // Filter: only show message if it belongs to current room
+            if (currentRoom) {
+                // In a room: only show messages with matching room_id
+                if (newMessage.room_id !== currentRoom.id) {
+                    console.log('Ignoring message - wrong room_id');
+                    return;
+                }
+            } else {
+                // In main chat: only show messages with null room_id
+                if (newMessage.room_id !== null) {
+                    console.log('Ignoring message - has room_id but we are in main chat');
+                    return;
+                }
+            }
+            
             const container = document.getElementById('messagesContainer');
             
             if (container.innerHTML.includes('Chưa có tin nhắn')) {
                 container.innerHTML = '';
             }
             
-            displayMessage(payload.new);
+            displayMessage(newMessage);
             scrollToBottom();
         }
 
         // Handle message update
         function handleMessageUpdate(payload) {
-            const messageElement = document.querySelector(`[data-message-id="${payload.new.id}"]`);
+            console.log('handleMessageUpdate called with payload:', payload);
+            console.log('Current room:', currentRoom);
+            
+            const updatedMessage = payload.new;
+            
+            // Filter: only update message if it belongs to current room
+            if (currentRoom) {
+                // In a room: only update messages with matching room_id
+                if (updatedMessage.room_id !== currentRoom.id) {
+                    console.log('Ignoring update - wrong room_id');
+                    return;
+                }
+            } else {
+                // In main chat: only update messages with null room_id
+                if (updatedMessage.room_id !== null) {
+                    console.log('Ignoring update - has room_id but we are in main chat');
+                    return;
+                }
+            }
+            
+            const messageElement = document.querySelector(`[data-message-id="${updatedMessage.id}"]`);
             if (messageElement) {
-                if (payload.new.deleted) {
+                if (updatedMessage.deleted) {
                     // Update deleted message
                     messageElement.classList.add('deleted');
                     const contentDiv = messageElement.querySelector('.message-content');
                     contentDiv.classList.add('deleted-content');
                     contentDiv.innerHTML = `
                         <em>Tin nhắn đã bị xóa bởi admin</em>
-                        ${payload.new.delete_reason ? `<div class="delete-reason">Lý do: ${escapeHtml(payload.new.delete_reason)}</div>` : ''}
+                        ${updatedMessage.delete_reason ? `<div class="delete-reason">Lý do: ${escapeHtml(updatedMessage.delete_reason)}</div>` : ''}
                     `;
                 } else {
-                    updateMessageReactions(messageElement, payload.new.reactions);
+                    updateMessageReactions(messageElement, updatedMessage.reactions);
                 }
             }
         }
@@ -2692,12 +2996,6 @@
                     ${message.deleted ? contentHtml : `
                         ${contentHtml ? `<div class="message-text" style="white-space: pre-line; margin-bottom: ${mediaHtml ? '0.5rem' : '0'};">${contentHtml}</div>` : ''}
                         ${mediaHtml}
-                        ${!isBotMessage ? `
-                        <div class="message-actions">
-                            <button class="react-btn" onclick="toggleReactionPicker(${message.id})"><i class="fas fa-heart"></i></button>
-                            <button class="delete-msg-btn ${isAdmin && message.user_id !== currentUser.id ? 'visible' : ''}" onclick="showDeleteModal(${message.id})"><i class="fas fa-trash"></i></button>
-                        </div>
-                        ` : ''}
                     `}
                     ${!message.deleted && !isBotMessage ? `
                     <div class="reaction-picker" id="picker-${message.id}">
@@ -2709,7 +3007,17 @@
                     </div>
                     ` : ''}
                 </div>
-                ${!isBotMessage ? `<div class="message-reactions" id="reactions-${message.id}"></div>` : ''}
+                ${!isBotMessage ? `
+                <div class="message-footer">
+                    <div class="message-reactions" id="reactions-${message.id}"></div>
+                    ${!message.deleted ? `
+                    <div class="message-actions">
+                        <button class="react-btn" onclick="toggleReactionPicker(${message.id})"><i class="fas fa-heart"></i></button>
+                        <button class="delete-msg-btn ${isAdmin && message.user_id !== currentUser.id ? 'visible' : ''}" onclick="showDeleteModal(${message.id})"><i class="fas fa-trash"></i></button>
+                    </div>
+                    ` : ''}
+                </div>
+                ` : ''}
             `;
 
             container.appendChild(messageDiv);
@@ -3090,34 +3398,6 @@
                     reactionsContainer.appendChild(reactionDiv);
                 }
             });
-        }
-
-        // Handle typing
-        function handleTyping() {
-            if (presenceChannel) {
-                presenceChannel.send({
-                    type: 'broadcast',
-                    event: 'typing',
-                    payload: { 
-                        userId: currentUser.id,
-                        username: currentUser.username 
-                    }
-                });
-            }
-        }
-
-        // Show typing indicator
-        function showTypingIndicator(username) {
-            const indicator = document.getElementById('typingIndicator');
-            const usernameSpan = document.getElementById('typingUserName');
-            
-            usernameSpan.textContent = username;
-            indicator.classList.add('active');
-
-            clearTimeout(typingTimeout);
-            typingTimeout = setTimeout(() => {
-                indicator.classList.remove('active');
-            }, 2000);
         }
 
         // Update online users
@@ -3864,31 +4144,38 @@
         async function subscribeToMessagesForRoom() {
             // Unsubscribe first if already subscribed
             if (messagesSubscription) {
-                messagesSubscription.unsubscribe();
+                await messagesSubscription.unsubscribe();
                 // Small delay to ensure cleanup
                 await new Promise(resolve => setTimeout(resolve, 100));
             }
 
             const channelName = currentRoom ? `messages-room-${currentRoom.id}` : 'messages-default';
+            console.log('Subscribing to channel:', channelName, 'currentRoom:', currentRoom);
+            
+            // Subscribe to ALL messages, filter on client side in handleNewMessage
             messagesSubscription = supabaseClient
                 .channel(channelName)
                 .on('postgres_changes', {
                     event: 'INSERT',
                     schema: 'public',
-                    table: 'messages',
-                    filter: currentRoom ? `room_id=eq.${currentRoom.id}` : 'room_id=is.null'
+                    table: 'messages'
+                    // Remove filter - we'll filter in handleNewMessage instead
                 }, (payload) => {
+                    console.log('New message received:', payload);
                     handleNewMessage(payload);
                 })
                 .on('postgres_changes', {
                     event: 'UPDATE',
                     schema: 'public',
-                    table: 'messages',
-                    filter: currentRoom ? `room_id=eq.${currentRoom.id}` : 'room_id=is.null'
+                    table: 'messages'
+                    // Remove filter - we'll filter in handleMessageUpdate instead
                 }, (payload) => {
+                    console.log('Message updated:', payload);
                     handleMessageUpdate(payload);
                 })
-                .subscribe();
+                .subscribe((status) => {
+                    console.log('Subscription status:', status);
+                });
         }
 
         // Subscribe to rooms changes

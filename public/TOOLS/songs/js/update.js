@@ -10,7 +10,7 @@ const UPDATES = [
     version: "1.20",
     date: "2026-01-29",
     type: "important",
-    title: "Đây là trang web tổng hợp nhạc KHÔNG PHẢI TRANG WEB LƯU TRỮ NHẠC."
+    title: ""
   },
   {
     version: "1.20",
