@@ -454,8 +454,9 @@
         }
 
         .message-text {
-            flex: 1;
-            min-width: 0;
+            display: block;
+            width: 100%;
+            word-wrap: break-word;
         }
 
         .message-content.deleted-content {
@@ -1813,6 +1814,13 @@
                             showKickPopup(payload.reason, payload.kickedBy);
                         }
                     })
+                    .on('broadcast', { event: 'chat-cleared' }, ({ payload }) => {
+                        console.log('Chat cleared by admin:', payload.clearedBy);
+                        // Reload page for all users when admin clears chat
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 500);
+                    })
                     .subscribe(async (status) => {
                         if (status === 'SUBSCRIBED') {
                             await presenceChannel.track({
@@ -1919,6 +1927,11 @@
             if (!content && !selectedImage) return;
 
             try {
+                // Check if this is a private command that shouldn't be shown in chat
+                const isPrivateCommand = content.toLowerCase().startsWith('/createroom') || 
+                                        content.toLowerCase().startsWith('/join') ||
+                                        content.toLowerCase().startsWith('/exitroom');
+                
                 let imageUrl = null;
                 
                 // Upload image if selected
@@ -1944,18 +1957,21 @@
                     imageUrl = urlData.publicUrl;
                 }
 
-                const { error } = await supabaseClient
-                    .from('messages')
-                    .insert([{
-                        user_id: currentUser.id,
-                        username: currentUser.username,
-                        content: content || '',
-                        image_url: imageUrl,
-                        reactions: {},
-                        room_id: currentRoom ? currentRoom.id : null
-                    }]);
+                // Only send message to database if it's not a private command
+                if (!isPrivateCommand) {
+                    const { error } = await supabaseClient
+                        .from('messages')
+                        .insert([{
+                            user_id: currentUser.id,
+                            username: currentUser.username,
+                            content: content || '',
+                            image_url: imageUrl,
+                            reactions: {},
+                            room_id: currentRoom ? currentRoom.id : null
+                        }]);
 
-                if (error) throw error;
+                    if (error) throw error;
+                }
 
                 // Bot command handler
                 if (content.startsWith('/')) {
@@ -1986,6 +2002,10 @@
                             botResponse = `📚 DANH SÁCH LỆNH:\n\n` +
                                 `⏰ /time - Hiển thị thời gian hiện tại (giờ Việt Nam)\n` +
                                 `📚 /help - Hiển thị danh sách lệnh này\n` +
+                                `🚪 /createroom <tên> <mật khẩu> - Tạo phòng chat mới (mật khẩu tùy chọn)\n` +
+                                `📋 /room - Xem danh sách phòng chat hiện có\n` +
+                                `🔑 /join <số> <mật khẩu> - Vào phòng nhanh (mật khẩu nếu có)\n` +
+                                `🚶 /exitroom - Thoát khỏi phòng và quay về phòng chính\n` +
                                 adminCommands +
                                 `\n💡 Cách dùng: Gõ lệnh bắt đầu bằng dấu / và gửi tin nhắn`;
                             
@@ -2010,12 +2030,21 @@
                                     
                                     if (deleteError) throw deleteError;
                                     
-                                    // Send success notification
-                                    botResponse = `✅ Đã xóa tất cả tin nhắn trong chat chung!\n\n🧹 Chat đã được làm sạch bởi ${currentUser.username}`;
-                                    shouldSendResponse = true;
+                                    // Broadcast reload signal to all users
+                                    if (presenceChannel) {
+                                        await presenceChannel.send({
+                                            type: 'broadcast',
+                                            event: 'chat-cleared',
+                                            payload: { 
+                                                clearedBy: currentUser.username 
+                                            }
+                                        });
+                                    }
                                     
-                                    // Clear messages container
-                                    document.getElementById('messagesContainer').innerHTML = '';
+                                    // Reload page after a short delay
+                                    setTimeout(() => {
+                                        window.location.reload();
+                                    }, 500);
                                 } catch (error) {
                                     console.error('Error clearing messages:', error);
                                     botResponse = `❌ Lỗi khi xóa tin nhắn!\n\nVui lòng thử lại.`;
@@ -2025,6 +2054,138 @@
                             
                         } else if (command === '/botngu') {
                             botResponse = `Ngu bà nội mày, chém chết giờ!`
+                        } else if (content.toLowerCase().startsWith('/createroom')) {
+                            // /createroom command - tạo phòng chat nhanh
+                            shouldSendResponse = false;
+                            const parts = content.slice(11).trim().split(/\s+/);
+                            const roomName = parts[0] || currentUser.username;
+                            const roomPassword = parts[1] || null;
+                            
+                            try {
+                                // Check if room name already exists
+                                const { data: existingRoom, error: checkError } = await supabaseClient
+                                    .from('chat_rooms')
+                                    .select('name')
+                                    .eq('name', roomName)
+                                    .single();
+
+                                if (existingRoom) {
+                                    botResponse = `❌ Tên phòng "${roomName}" đã tồn tại!\n\n💡 Vui lòng chọn tên khác.`;
+                                    shouldSendResponse = true;
+                                } else {
+                                    // Create new room
+                                    const { data: newRoom, error } = await supabaseClient
+                                        .from('chat_rooms')
+                                        .insert([{
+                                            name: roomName,
+                                            password: roomPassword,
+                                            created_by: currentUser.id
+                                        }])
+                                        .select()
+                                        .single();
+                                    
+                                    if (error) throw error;
+                                    
+                                    // Auto join the new room
+                                    await joinRoom(newRoom.id, roomPassword);
+                                    
+                                    // Don't send bot response, joinRoom already shows notification
+                                    shouldSendResponse = false;
+                                }
+                            } catch (error) {
+                                console.error('Error creating room:', error);
+                                botResponse = `❌ Lỗi khi tạo phòng!\n\n${error.message}`;
+                                shouldSendResponse = true;
+                            }
+                        } else if (command === '/room') {
+                            // /room command - hiển thị danh sách phòng
+                            shouldSendResponse = false;
+                            
+                            try {
+                                const { data: rooms, error } = await supabaseClient
+                                    .from('chat_rooms')
+                                    .select('*')
+                                    .order('created_at', { ascending: false });
+                                
+                                if (error) throw error;
+                                
+                                if (!rooms || rooms.length === 0) {
+                                    botResponse = `📋 DANH SÁCH PHÒNG CHAT\n\n` +
+                                        `Chưa có phòng chat nào.\n\n` +
+                                        `💡 Dùng /createroom để tạo phòng mới!`;
+                                } else {
+                                    botResponse = `📋 DANH SÁCH PHÒNG CHAT (${rooms.length} phòng)\n\n`;
+                                    rooms.forEach((room, index) => {
+                                        const lockIcon = room.password ? '🔒' : '🔓';
+                                        botResponse += `${index + 1}. ${lockIcon} ${room.name}\n`;
+                                    });
+                                    botResponse += `\n💡 Dùng /join <số> để vào phòng nhanh!`;
+                                }
+                                shouldSendResponse = true;
+                            } catch (error) {
+                                console.error('Error loading rooms:', error);
+                                botResponse = `❌ Lỗi khi tải danh sách phòng!\n\n${error.message}`;
+                                shouldSendResponse = true;
+                            }
+                        } else if (content.toLowerCase().startsWith('/join')) {
+                            // /join command - vào phòng nhanh
+                            shouldSendResponse = false;
+                            const parts = content.slice(5).trim().split(/\s+/);
+                            const roomNumber = parseInt(parts[0]);
+                            const enteredPassword = parts[1] || null;
+                            
+                            if (!roomNumber || isNaN(roomNumber)) {
+                                botResponse = `❌ Vui lòng nhập số thứ tự phòng!\n\n💡 Ví dụ: /join 1 hoặc /join 1 matkhau`;
+                                shouldSendResponse = true;
+                            } else {
+                                try {
+                                    // Get all rooms
+                                    const { data: rooms, error } = await supabaseClient
+                                        .from('chat_rooms')
+                                        .select('*')
+                                        .order('created_at', { ascending: false });
+                                    
+                                    if (error) throw error;
+                                    
+                                    if (!rooms || rooms.length === 0) {
+                                        botResponse = `❌ Không có phòng chat nào!\n\n💡 Dùng /createroom để tạo phòng mới!`;
+                                        shouldSendResponse = true;
+                                    } else if (roomNumber < 1 || roomNumber > rooms.length) {
+                                        botResponse = `❌ Số thứ tự không hợp lệ!\n\n📋 Hiện có ${rooms.length} phòng. Dùng /room để xem danh sách.`;
+                                        shouldSendResponse = true;
+                                    } else {
+                                        const selectedRoom = rooms[roomNumber - 1];
+                                        
+                                        // Check password
+                                        if (selectedRoom.password && selectedRoom.password !== enteredPassword) {
+                                            botResponse = `❌ Mật khẩu không đúng!\n\n🔒 Phòng "${selectedRoom.name}" có mật khẩu.\n💡 Dùng: /join ${roomNumber} <mật khẩu>`;
+                                            shouldSendResponse = true;
+                                        } else {
+                                            // Join room
+                                            await joinRoom(selectedRoom.id, selectedRoom.password);
+                                            // Don't send bot response, joinRoom already shows notification
+                                            shouldSendResponse = false;
+                                        }
+                                    }
+                                } catch (error) {
+                                    console.error('Error joining room:', error);
+                                    botResponse = `❌ Lỗi khi vào phòng!\n\n${error.message}`;
+                                    shouldSendResponse = true;
+                                }
+                            }
+                        } else if (command === '/exitroom') {
+                            // /exitroom command - thoát khỏi phòng và quay về phòng chính (reload page)
+                            shouldSendResponse = false;
+                            
+                            if (!currentRoom) {
+                                botResponse = `❌ Bạn đang ở phòng chính rồi!\n\n💡 Dùng /join để vào phòng chat khác.`;
+                                shouldSendResponse = true;
+                            } else {
+                                // Just reload the page to exit room
+                                setTimeout(() => {
+                                    window.location.reload();
+                                }, 500); // Small delay to let the command message send
+                            }
                         } else {
                             // Unknown command
                             botResponse = `❌ Lệnh không tồn tại!\n\nNhập /help để xem các lệnh có sẵn.`;
@@ -2136,7 +2297,7 @@
                 </div>
                 <div class="message-content ${message.deleted ? 'deleted-content' : ''}">
                     ${message.deleted ? contentHtml : `
-                        ${contentHtml ? `<span class="message-text" style="white-space: pre-line;">${contentHtml}</span>` : ''}
+                        ${contentHtml ? `<div class="message-text" style="white-space: pre-line; margin-bottom: ${imageHtml ? '0.5rem' : '0'};">${contentHtml}</div>` : ''}
                         ${imageHtml}
                         ${!isBotMessage ? `
                         <div class="message-actions">
@@ -2978,6 +3139,19 @@
             }
 
             try {
+                // Check if room name already exists
+                const { data: existingRoom, error: checkError } = await supabaseClient
+                    .from('chat_rooms')
+                    .select('name')
+                    .eq('name', roomName)
+                    .single();
+
+                if (existingRoom) {
+                    showError('Tên phòng đã tồn tại! Vui lòng chọn tên khác.');
+                    return;
+                }
+
+                // Create new room
                 const { data: newRoom, error } = await supabaseClient
                     .from('chat_rooms')
                     .insert([{
@@ -3200,6 +3374,11 @@
                 console.error('Error going back to main room:', error);
                 showError('Lỗi khi quay về phòng chính');
             }
+        }
+
+        // Exit current room and return to main chat (reload page)
+        async function exitCurrentRoom() {
+            window.location.reload();
         }
 
         // ========== END ROOM CHAT FUNCTIONALITY ==========
