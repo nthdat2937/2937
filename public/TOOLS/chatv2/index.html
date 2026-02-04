@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ntdChat v2</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Archivo+Black&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Archivo+Black&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
         :root {
@@ -54,19 +56,22 @@
             left: -50%;
             width: 200%;
             height: 200%;
-            background: repeating-linear-gradient(
-                0deg,
-                transparent,
-                transparent 2px,
-                rgba(0, 255, 65, 0.03) 2px,
-                rgba(0, 255, 65, 0.03) 4px
-            );
+            background: repeating-linear-gradient(0deg,
+                    transparent,
+                    transparent 2px,
+                    rgba(0, 255, 65, 0.03) 2px,
+                    rgba(0, 255, 65, 0.03) 4px);
             animation: scanlines 8s linear infinite;
         }
 
         @keyframes scanlines {
-            0% { transform: translateY(0); }
-            100% { transform: translateY(50px); }
+            0% {
+                transform: translateY(0);
+            }
+
+            100% {
+                transform: translateY(50px);
+            }
         }
 
         .login-container {
@@ -102,9 +107,20 @@
                 opacity: 0;
                 transform: translateY(-30px) scale(0.9);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0) scale(1);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
             }
         }
 
@@ -306,8 +322,17 @@
         }
 
         @keyframes pulse {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.5; transform: scale(1.2); }
+
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: 0.5;
+                transform: scale(1.2);
+            }
         }
 
         .logout-btn {
@@ -436,6 +461,7 @@
                 opacity: 0;
                 transform: translateX(-20px);
             }
+
             to {
                 opacity: 1;
                 transform: translateX(0);
@@ -525,16 +551,21 @@
             opacity: 1;
         }
 
-        .react-btn, .delete-msg-btn {
+        .react-btn,
+        .delete-msg-btn {
             background: var(--bg-main);
             border: 1px solid var(--border-subtle);
             color: var(--text);
-            padding: 0.15rem 0.35rem;
-            font-size: 0.7rem;
+            padding: 0.3rem 0.6rem;
+            font-size: 0.75rem;
             cursor: pointer;
             transition: all 0.2s;
             width: auto;
+            min-width: 32px;
             border-radius: 4px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .react-btn:hover {
@@ -667,7 +698,7 @@
             box-shadow: 0 0 50px rgba(255, 51, 102, 0.5);
             animation: kickPopupSlide 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
         }
-        
+
         /* Overlay để che toàn bộ nội dung khi bị kick */
         .kick-overlay {
             position: fixed;
@@ -679,7 +710,7 @@
             z-index: 9999;
             display: none;
         }
-        
+
         .kick-overlay.active {
             display: block;
         }
@@ -689,6 +720,7 @@
                 opacity: 0;
                 transform: translate(-50%, -60%) scale(0.8);
             }
+
             to {
                 opacity: 1;
                 transform: translate(-50%, -50%) scale(1);
@@ -859,7 +891,9 @@
             display: inline-block;
         }
 
-        #imageInput, #videoInput, #audioInput {
+        #imageInput,
+        #videoInput,
+        #audioInput {
             display: none;
         }
 
@@ -877,7 +911,8 @@
             border-color: var(--accent);
         }
 
-        .message-video, .message-audio {
+        .message-video,
+        .message-audio {
             min-width: 400px;
             max-width: 400px;
             width: 100%;
@@ -904,7 +939,8 @@
             height: 50px;
         }
 
-        .message-video:hover, .message-audio:hover {
+        .message-video:hover,
+        .message-audio:hover {
             border-color: var(--accent);
         }
 
@@ -1124,6 +1160,7 @@
                 opacity: 0;
                 transform: translateY(-50px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -1323,7 +1360,7 @@
             .message {
                 max-width: 500px;
             }
-            
+
             .login-container {
                 padding: 2rem;
             }
@@ -1345,617 +1382,802 @@
         }
 
         .modal {
-    display: none;
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: rgba(0,0,0,0.9);
-    z-index: 10000;
-    align-items: center;
-    justify-content: center;
-}
-.modal.active { display: flex; }
-.modal-content {
-    background: var(--bg-main);
-    border: 2px solid var(--accent);
-    padding: 2rem;
-    max-width: 500px;
-    width: 90%;
-}
-.room-item {
-    padding: 1rem;
-    border: 1px solid var(--border-subtle);
-    margin: 0.5rem 0;
-    cursor: pointer;
-    display: flex;
-    justify-content: space-between;
-}
-.room-item:hover { border-color: var(--accent); }
-.room-locked::after { content: ''; font-family: 'Font Awesome 6 Free'; font-weight: 900; }
-
-/* System notification styles */
-.system-notification {
-    text-align: center;
-    padding: 0.5rem 1rem;
-    margin: 1rem auto;
-    background: rgba(0, 255, 65, 0.1);
-    border: 1px solid var(--accent);
-    border-radius: 20px;
-    color: var(--accent);
-    font-size: 0.85rem;
-    max-width: 400px;
-    animation: notificationSlide 0.4s ease-out;
-}
-
-@keyframes notificationSlide {
-    from {
-        opacity: 0;
-        transform: scale(0.9);
-    }
-    to {
-        opacity: 1;
-        transform: scale(1);
-    }
-}
-
-.system-notification.join {
-    border-color: var(--accent);
-    background: rgba(0, 255, 65, 0.1);
-}
-
-.system-notification.leave {
-    border-color: var(--text-dim);
-    background: rgba(153, 153, 153, 0.1);
-    color: var(--text-dim);
-}
-
-/* Online Users List */
-.online-users-section {
-    margin-top: 1rem;
-    border-top: 1px solid var(--border-subtle);
-    padding-top: 1rem;
-}
-
-.online-users-title {
-    color: var(--accent);
-    font-size: 0.9rem;
-    font-weight: 700;
-    margin-bottom: 0.5rem;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.online-users-list {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    max-height: 300px;
-    overflow-y: auto;
-}
-
-.online-user-item {
-    background: var(--bg-main);
-    padding: 0.5rem;
-    border-left: 2px solid var(--accent);
-    font-size: 0.85rem;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    transition: all 0.3s;
-}
-
-.online-user-item:hover {
-    background: var(--bg-message);
-    transform: translateX(3px);
-}
-
-.online-user-indicator {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: var(--accent);
-    animation: pulse 2s infinite;
-}
-
-.online-user-name {
-    flex: 1;
-    color: var(--text);
-    font-weight: 500;
-}
-
-.online-user-room {
-    color: var(--text-dim);
-    font-size: 0.75rem;
-}
-
-/* ========== TÍNH NĂNG GỬI FILE - CSS BỔ SUNG ========== */
-
-/* File attachment button */
-#fileAttachBtn {
-    background: transparent;
-    border: 2px solid var(--accent);
-    color: var(--accent);
-    padding: 0.85rem 1.25rem;
-    cursor: pointer;
-    transition: all 0.3s;
-    width: auto;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-#fileAttachBtn:hover {
-    background: var(--accent);
-    color: #000000;
-}
-
-#fileAttachBtn i {
-    font-size: 1.1rem;
-}
-
-#fileInput {
-    display: none;
-}
-
-/* File preview trong input area */
-.file-preview {
-    margin-bottom: 0.5rem;
-    padding: 0.75rem;
-    background: rgba(0, 255, 65, 0.05);
-    border: 1px solid var(--accent);
-    border-radius: 4px;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-}
-
-.file-preview-icon {
-    font-size: 1.5rem;
-    color: var(--accent);
-}
-
-.file-preview-info {
-    flex: 1;
-}
-
-.file-preview-name {
-    font-size: 0.85rem;
-    color: var(--text);
-    margin-bottom: 0.25rem;
-}
-
-.file-preview-size {
-    font-size: 0.75rem;
-    color: var(--text-dim);
-}
-
-.file-preview-remove {
-    background: transparent;
-    border: 1px solid var(--danger);
-    color: var(--danger);
-    padding: 0.3rem 0.6rem;
-    font-size: 0.75rem;
-    cursor: pointer;
-    transition: all 0.3s;
-    width: auto;
-}
-
-.file-preview-remove:hover {
-    background: var(--danger);
-    color: #000000;
-}
-
-/* File attachments trong messages */
-.message-file {
-    margin-top: 0.75rem;
-}
-
-.message-file img {
-    max-width: 100%;
-    max-height: 400px;
-    border: 2px solid var(--accent);
-    border-radius: 4px;
-    cursor: pointer;
-    transition: all 0.3s;
-}
-
-.message-file img:hover {
-    box-shadow: 0 0 20px rgba(0, 255, 65, 0.3);
-    transform: scale(1.02);
-}
-
-.message-file audio,
-.message-file video {
-    width: 100%;
-    max-width: 500px;
-    margin-top: 0.5rem;
-    border: 2px solid var(--accent);
-    border-radius: 4px;
-}
-
-.file-download-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    background: transparent;
-    border: 2px solid var(--accent);
-    color: var(--accent);
-    padding: 0.75rem 1.25rem;
-    font-size: 0.85rem;
-    cursor: pointer;
-    transition: all 0.3s;
-    width: auto;
-    text-decoration: none;
-    margin-top: 0.5rem;
-}
-
-.file-download-btn:hover {
-    background: var(--accent);
-    color: #000000;
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(0, 255, 65, 0.3);
-}
-
-.file-download-btn i {
-    font-size: 1rem;
-}
-
-/* Upload progress */
-.upload-progress {
-    margin-bottom: 0.5rem;
-    padding: 0.5rem;
-    background: rgba(0, 255, 65, 0.1);
-    border: 1px solid var(--accent);
-    border-radius: 4px;
-    text-align: center;
-    font-size: 0.85rem;
-}
-
-.upload-progress-bar {
-    width: 100%;
-    height: 4px;
-    background: var(--bg-main);
-    border-radius: 2px;
-    overflow: hidden;
-    margin-top: 0.5rem;
-}
-
-.upload-progress-fill {
-    height: 100%;
-    background: var(--accent);
-    transition: width 0.3s;
-}
-
-/* ========== KẾT THÚC CSS FILE ========== */
-
-/* ========== MOBILE RESPONSIVE CSS ========== */
-@media (max-width: 768px) {
-    /* FIX CHAT SCREEN BỊ LỆCH - BỎ MARGIN LEFT */
-    #chatScreen {
-        margin-left: 0 !important;
-        width: 100% !important;
-    }
-
-    /* ẨN ONLINE USERS SIDEBAR TRÊN MOBILE */
-    .online-users {
-        display: none !important;
-    }
-
-    /* ẨN CÁC NÚT PHÒNG CHAT VÀ ADMIN CONTROLS TRÊN MOBILE */
-    .admin-control-btn,
-    #backToMainBtn {
-        display: none !important;
-    }
-
-    /* Chat header - đơn giản hơn trên mobile */
-    .chat-header {
-        padding: 1rem;
-        gap: 0.5rem;
-    }
-
-    .chat-header h2 {
-        font-size: 1.2rem;
-        letter-spacing: 1px;
-    }
-
-    /* Header controls - chỉ giữ nút logout */
-    .header-controls {
-        gap: 0.5rem;
-    }
-
-    .header-btn {
-        padding: 0.6rem 0.9rem;
-        font-size: 0.85rem;
-    }
-
-    /* Messages Container - giảm padding */
-    .messages-container {
-        padding: 1rem;
-        gap: 0.75rem;
-    }
-
-    /* Message - tối ưu kích thước */
-    .message {
-        max-width: 100%;
-        padding: 0.5rem 0.75rem;
-        font-size: 0.9rem;
-    }
-
-    .message-sender {
-        font-size: 0.85rem;
-    }
-
-    .message-time {
-        font-size: 0.7rem;
-    }
-
-    /* Input Container - giảm padding */
-    .input-container {
-        padding: 1rem;
-        gap: 0.75rem;
-    }
-
-    .input-wrapper {
-        gap: 0.5rem;
-    }
-
-    .input-container input {
-        font-size: 0.9rem;
-        padding: 0.85rem;
-    }
-
-    /* Media Buttons - nhỏ hơn trên mobile */
-    .media-button,
-    #fileAttachBtn {
-        padding: 0.75rem;
-        font-size: 1rem;
-    }
-
-    button {
-        padding: 0.85rem 1rem;
-        font-size: 0.9rem;
-        letter-spacing: 1px;
-    }
-
-    /* Modal - full width trên mobile */
-    .modal-content {
-        width: 95%;
-        max-width: 95%;
-        padding: 1.5rem;
-        max-height: 90vh;
-        overflow-y: auto;
-    }
-
-    .modal-content h3 {
-        font-size: 1.3rem;
-    }
-
-    /* Room items */
-    .room-item {
-        padding: 0.75rem;
-        gap: 0.5rem;
-    }
-
-    .room-item h4 {
-        font-size: 0.95rem;
-    }
-
-    .room-item p {
-        font-size: 0.75rem;
-    }
-
-    /* Admin controls - stack vertically */
-    .admin-controls {
-        flex-direction: column;
-        gap: 0.5rem;
-    }
-
-    /* User Info - smaller text */
-    .user-info {
-        font-size: 0.85rem;
-    }
-
-    /* Error Popup */
-    .error-popup {
-        width: 90%;
-        max-width: 90%;
-        padding: 1rem;
-        font-size: 0.9rem;
-    }
-
-    /* Kick Popup */
-    .kick-popup {
-        width: 95%;
-        padding: 1.5rem;
-    }
-
-    .kick-popup h2 {
-        font-size: 1.5rem;
-    }
-
-    .kick-popup p {
-        font-size: 0.9rem;
-    }
-
-    /* Image previews trong message */
-    .message-image img {
-        max-width: 100%;
-        max-height: 300px;
-    }
-
-    .image-preview img {
-        max-width: 80px;
-        max-height: 80px;
-    }
-
-    /* File attachments */
-    .message-file {
-        font-size: 0.8rem;
-    }
-
-    .file-download-btn {
-        padding: 0.6rem 1rem;
-        font-size: 0.8rem;
-    }
-
-    /* Reaction picker - adjust position */
-    .reaction-picker {
-        left: 50%;
-        transform: translateX(-50%);
-        width: max-content;
-        padding: 0.25rem;
-        gap: 0.25rem;
-    }
-
-    .reaction-option {
-        font-size: 1.1rem;
-    }
-
-    /* Reactions - gọn hơn trên mobile */
-    .message-reactions {
-        gap: 0.2rem;
-        margin-top: 0.2rem;
-    }
-
-    .reaction {
-        padding: 0.1rem 0.3rem;
-        font-size: 0.7rem;
-        gap: 0.15rem;
-        border-radius: 8px;
-    }
-
-    .reaction span {
-        font-size: 0.65rem;
-    }
-
-    /* Message actions buttons */
-    .delete-msg-btn,
-    .message-actions button {
-        padding: 0.4rem 0.7rem;
-        font-size: 0.75rem;
-    }
-
-    /* Form inputs trong modal */
-    .modal-content input,
-    .modal-content textarea {
-        font-size: 0.9rem;
-        padding: 0.8rem;
-    }
-
-    .modal-content label {
-        font-size: 0.85rem;
-    }
-
-    /* Checkbox containers */
-    .checkbox-container {
-        font-size: 0.85rem;
-    }
-
-    /* Scroll behavior */
-    .messages-container {
-        -webkit-overflow-scrolling: touch;
-    }
-
-    /* Touch targets - larger for better mobile UX */
-    button,
-    .header-btn {
-        min-height: 44px;
-        min-width: 44px;
-    }
-
-    /* Notification badges */
-    .notification-badge {
-        font-size: 0.7rem;
-        padding: 0.15rem 0.4rem;
-    }
-
-    /* Online users list in modal */
-    .online-users-list {
-        max-height: 200px;
-    }
-
-    .online-user-item {
-        font-size: 0.8rem;
-        padding: 0.4rem;
-    }
-}
-
-/* ========== SMALL MOBILE (width < 400px) ========== */
-@media (max-width: 400px) {
-    .chat-header h2 {
-        font-size: 1rem;
-    }
-
-    .messages-container {
-        padding: 0.75rem;
-    }
-
-    .message {
-        padding: 0.4rem 0.6rem;
-        font-size: 0.85rem;
-    }
-
-    .input-container {
-        padding: 0.75rem;
-    }
-
-    .input-container input {
-        font-size: 0.85rem;
-        padding: 0.75rem;
-    }
-
-    .media-button,
-    #fileAttachBtn {
-        padding: 0.65rem;
-        font-size: 0.9rem;
-    }
-
-    button {
-        font-size: 0.85rem;
-        padding: 0.75rem;
-    }
-
-    .modal-content {
-        padding: 1rem;
-    }
-
-    .header-btn {
-        padding: 0.5rem 0.7rem;
-        font-size: 0.8rem;
-    }
-}
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--bg-main);
+            border: 2px solid var(--accent);
+            padding: 2rem;
+            max-width: 500px;
+            width: 90%;
+        }
+
+        .room-item {
+            padding: 1rem;
+            border: 1px solid var(--border-subtle);
+            margin: 0.5rem 0;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .room-item:hover {
+            border-color: var(--accent);
+        }
+
+        .room-locked::after {
+            content: '';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+        }
+
+        /* System notification styles */
+        .system-notification {
+            text-align: center;
+            padding: 0.5rem 1rem;
+            margin: 1rem auto;
+            background: rgba(0, 255, 65, 0.1);
+            border: 1px solid var(--accent);
+            border-radius: 20px;
+            color: var(--accent);
+            font-size: 0.85rem;
+            max-width: 400px;
+            animation: notificationSlide 0.4s ease-out;
+        }
+
+        @keyframes notificationSlide {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .system-notification.join {
+            border-color: var(--accent);
+            background: rgba(0, 255, 65, 0.1);
+        }
+
+        .system-notification.leave {
+            border-color: var(--text-dim);
+            background: rgba(153, 153, 153, 0.1);
+            color: var(--text-dim);
+        }
+
+        /* Online Users List */
+        .online-users-section {
+            margin-top: 1rem;
+            border-top: 1px solid var(--border-subtle);
+            padding-top: 1rem;
+        }
+
+        .online-users-title {
+            color: var(--accent);
+            font-size: 0.9rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .online-users-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .online-user-item {
+            background: var(--bg-main);
+            padding: 0.5rem;
+            border-left: 2px solid var(--accent);
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s;
+        }
+
+        .online-user-item:hover {
+            background: var(--bg-message);
+            transform: translateX(3px);
+        }
+
+        .online-user-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--accent);
+            animation: pulse 2s infinite;
+        }
+
+        .online-user-name {
+            flex: 1;
+            color: var(--text);
+            font-weight: 500;
+        }
+
+        .online-user-room {
+            color: var(--text-dim);
+            font-size: 0.75rem;
+        }
+
+        /* ========== TÍNH NĂNG GỬI FILE - CSS BỔ SUNG ========== */
+
+        /* File attachment button */
+        #fileAttachBtn {
+            background: transparent;
+            border: 2px solid var(--accent);
+            color: var(--accent);
+            padding: 0.85rem 1.25rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: auto;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        #fileAttachBtn:hover {
+            background: var(--accent);
+            color: #000000;
+        }
+
+        #fileAttachBtn i {
+            font-size: 1.1rem;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        /* File preview trong input area */
+        .file-preview {
+            margin-bottom: 0.5rem;
+            padding: 0.75rem;
+            background: rgba(0, 255, 65, 0.05);
+            border: 1px solid var(--accent);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .file-preview-icon {
+            font-size: 1.5rem;
+            color: var(--accent);
+        }
+
+        .file-preview-info {
+            flex: 1;
+        }
+
+        .file-preview-name {
+            font-size: 0.85rem;
+            color: var(--text);
+            margin-bottom: 0.25rem;
+        }
+
+        .file-preview-size {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+        }
+
+        .file-preview-remove {
+            background: transparent;
+            border: 1px solid var(--danger);
+            color: var(--danger);
+            padding: 0.3rem 0.6rem;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: auto;
+        }
+
+        .file-preview-remove:hover {
+            background: var(--danger);
+            color: #000000;
+        }
+
+        /* File attachments trong messages */
+        .message-file {
+            margin-top: 0.75rem;
+        }
+
+        .message-file img {
+            max-width: 100%;
+            max-height: 400px;
+            border: 2px solid var(--accent);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .message-file img:hover {
+            box-shadow: 0 0 20px rgba(0, 255, 65, 0.3);
+            transform: scale(1.02);
+        }
+
+        .message-file audio,
+        .message-file video {
+            width: 100%;
+            max-width: 500px;
+            margin-top: 0.5rem;
+            border: 2px solid var(--accent);
+            border-radius: 4px;
+        }
+
+        .file-download-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: transparent;
+            border: 2px solid var(--accent);
+            color: var(--accent);
+            padding: 0.75rem 1.25rem;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: auto;
+            text-decoration: none;
+            margin-top: 0.5rem;
+        }
+
+        .file-download-btn:hover {
+            background: var(--accent);
+            color: #000000;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 255, 65, 0.3);
+        }
+
+        .file-download-btn i {
+            font-size: 1rem;
+        }
+
+        /* Upload progress */
+        .upload-progress {
+            margin-bottom: 0.5rem;
+            padding: 0.5rem;
+            background: rgba(0, 255, 65, 0.1);
+            border: 1px solid var(--accent);
+            border-radius: 4px;
+            text-align: center;
+            font-size: 0.85rem;
+        }
+
+        .upload-progress-bar {
+            width: 100%;
+            height: 4px;
+            background: var(--bg-main);
+            border-radius: 2px;
+            overflow: hidden;
+            margin-top: 0.5rem;
+        }
+
+        .upload-progress-fill {
+            height: 100%;
+            background: var(--accent);
+            transition: width 0.3s;
+        }
+
+        /* ========== KẾT THÚC CSS FILE ========== */
+
+        /* ========== MOBILE RESPONSIVE CSS ========== */
+        @media (max-width: 768px) {
+
+            /* FIX CHAT SCREEN BỊ LỆCH - BỎ MARGIN LEFT */
+            #chatScreen {
+                margin-left: 0 !important;
+                width: 100% !important;
+            }
+
+            /* ẨN ONLINE USERS SIDEBAR TRÊN MOBILE */
+            .online-users {
+                display: none !important;
+            }
+
+            /* ẨN CÁC NÚT PHÒNG CHAT VÀ ADMIN CONTROLS TRÊN MOBILE */
+            .admin-control-btn,
+            #backToMainBtn {
+                display: none !important;
+            }
+
+            /* Chat header - đơn giản hơn trên mobile */
+            .chat-header {
+                padding: 1rem;
+                gap: 0.5rem;
+            }
+
+            .chat-header h2 {
+                font-size: 1.2rem;
+                letter-spacing: 1px;
+            }
+
+            /* Header controls - chỉ giữ nút logout */
+            .header-controls {
+                gap: 0.5rem;
+            }
+
+            .header-btn {
+                padding: 0.6rem 0.9rem;
+                font-size: 0.85rem;
+            }
+
+            /* Messages Container - giảm padding */
+            .messages-container {
+                padding: 1rem;
+                gap: 0.75rem;
+            }
+
+            /* Message - tối ưu kích thước */
+            .message {
+                max-width: 100%;
+                padding: 0.5rem 0.75rem;
+                font-size: 0.9rem;
+            }
+
+            .message-sender {
+                font-size: 0.85rem;
+            }
+
+            .message-time {
+                font-size: 0.7rem;
+            }
+
+            /* Input Container - giảm padding */
+            .input-container {
+                padding: 1rem;
+                gap: 0.75rem;
+            }
+
+            .input-wrapper {
+                gap: 0.5rem;
+            }
+
+            .input-container input {
+                font-size: 0.9rem;
+                padding: 0.85rem;
+            }
+
+            /* Media Buttons - nhỏ hơn trên mobile */
+            .media-button,
+            #fileAttachBtn {
+                padding: 0.75rem;
+                font-size: 1rem;
+            }
+
+            button {
+                padding: 0.85rem 1rem;
+                font-size: 0.9rem;
+                letter-spacing: 1px;
+            }
+
+            /* Modal - full width trên mobile */
+            .modal-content {
+                width: 95%;
+                max-width: 95%;
+                padding: 1.5rem;
+                max-height: 90vh;
+                overflow-y: auto;
+            }
+
+            .modal-content h3 {
+                font-size: 1.3rem;
+            }
+
+            /* Room items */
+            .room-item {
+                padding: 0.75rem;
+                gap: 0.5rem;
+            }
+
+            .room-item h4 {
+                font-size: 0.95rem;
+            }
+
+            .room-item p {
+                font-size: 0.75rem;
+            }
+
+            /* Admin controls - stack vertically */
+            .admin-controls {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            /* User Info - smaller text */
+            .user-info {
+                font-size: 0.85rem;
+            }
+
+            /* Error Popup */
+            .error-popup {
+                width: 90%;
+                max-width: 90%;
+                padding: 1rem;
+                font-size: 0.9rem;
+            }
+
+            /* Kick Popup */
+            .kick-popup {
+                width: 95%;
+                padding: 1.5rem;
+            }
+
+            .kick-popup h2 {
+                font-size: 1.5rem;
+            }
+
+            .kick-popup p {
+                font-size: 0.9rem;
+            }
+
+            /* Image previews trong message */
+            .message-image img {
+                max-width: 100%;
+                max-height: 300px;
+            }
+
+            .image-preview img {
+                max-width: 80px;
+                max-height: 80px;
+            }
+
+            /* File attachments */
+            .message-file {
+                font-size: 0.8rem;
+            }
+
+            .file-download-btn {
+                padding: 0.6rem 1rem;
+                font-size: 0.8rem;
+            }
+
+            /* Reaction picker - adjust position */
+            .reaction-picker {
+                left: 50%;
+                transform: translateX(-50%);
+                width: max-content;
+                padding: 0.25rem;
+                gap: 0.25rem;
+            }
+
+            .reaction-option {
+                font-size: 1.1rem;
+            }
+
+            /* Reactions - gọn hơn trên mobile */
+            .message-reactions {
+                gap: 0.2rem;
+                margin-top: 0.2rem;
+            }
+
+            .reaction {
+                padding: 0.1rem 0.3rem;
+                font-size: 0.7rem;
+                gap: 0.15rem;
+                border-radius: 8px;
+            }
+
+            .reaction span {
+                font-size: 0.65rem;
+            }
+
+            /* Message actions buttons */
+            .delete-msg-btn,
+            .message-actions button {
+                padding: 0.4rem 0.7rem;
+                font-size: 0.75rem;
+            }
+
+            /* Form inputs trong modal */
+            .modal-content input,
+            .modal-content textarea {
+                font-size: 0.9rem;
+                padding: 0.8rem;
+            }
+
+            .modal-content label {
+                font-size: 0.85rem;
+            }
+
+            /* Checkbox containers */
+            .checkbox-container {
+                font-size: 0.85rem;
+            }
+
+            /* Scroll behavior */
+            .messages-container {
+                -webkit-overflow-scrolling: touch;
+            }
+
+            /* Touch targets - larger for better mobile UX */
+            button,
+            .header-btn {
+                min-height: 44px;
+                min-width: 44px;
+            }
+
+            /* Notification badges */
+            .notification-badge {
+                font-size: 0.7rem;
+                padding: 0.15rem 0.4rem;
+            }
+
+            /* Online users list in modal */
+            .online-users-list {
+                max-height: 200px;
+            }
+
+            .online-user-item {
+                font-size: 0.8rem;
+                padding: 0.4rem;
+            }
+        }
+
+        /* ========== SMALL MOBILE (width < 400px) ========== */
+        @media (max-width: 400px) {
+            .chat-header h2 {
+                font-size: 1rem;
+            }
+
+            .messages-container {
+                padding: 0.75rem;
+            }
+
+            .message {
+                padding: 0.4rem 0.6rem;
+                font-size: 0.85rem;
+            }
+
+            .input-container {
+                padding: 0.75rem;
+            }
+
+            .input-container input {
+                font-size: 0.85rem;
+                padding: 0.75rem;
+            }
+
+            .media-button,
+            #fileAttachBtn {
+                padding: 0.65rem;
+                font-size: 0.9rem;
+            }
+
+            button {
+                font-size: 0.85rem;
+                padding: 0.75rem;
+            }
+
+            .modal-content {
+                padding: 1rem;
+            }
+
+            .header-btn {
+                padding: 0.5rem 0.7rem;
+                font-size: 0.8rem;
+            }
+        }
+
+        /* ========== REPLY & EDIT STYLES ========== */
+
+        /* Reply indicator */
+        .reply-indicator {
+            display: none;
+            padding: 0.75rem 1rem;
+            background: rgba(0, 255, 65, 0.1);
+            border-left: 3px solid var(--accent);
+            margin: 0 1rem 0.5rem 1rem;
+            position: relative;
+            animation: slideDown 0.3s ease;
+        }
+
+        .reply-indicator.active {
+            display: block;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .reply-indicator .reply-to {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            margin-bottom: 0.25rem;
+        }
+
+        .reply-indicator .reply-content {
+            font-size: 0.9rem;
+            color: var(--text);
+            font-style: italic;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .reply-indicator .cancel-reply {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background: transparent;
+            border: none;
+            color: var(--text-dim);
+            cursor: pointer;
+            padding: 0.2rem 0.5rem;
+            font-size: 1rem;
+        }
+
+        .reply-indicator .cancel-reply:hover {
+            color: var(--danger);
+        }
+
+        /* Replied message display in message */
+        .replied-message {
+            padding: 0.5rem;
+            margin-bottom: 0.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-left: 2px solid var(--accent);
+            font-size: 0.85rem;
+            font-style: italic;
+        }
+
+        .replied-message .replied-user {
+            color: var(--accent);
+            font-weight: 700;
+        }
+
+        .replied-message .replied-content {
+            color: var(--text-dim);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Edit mode */
+        .message.editing .message-text {
+            display: none !important;
+        }
+
+        .message.editing .edit-input {
+            display: block !important;
+        }
+
+        .edit-input {
+            display: none;
+            width: 100%;
+            padding: 0.5rem;
+            background: var(--bg-main);
+            border: 2px solid var(--accent);
+            color: var(--text);
+            font-family: 'Space Mono', monospace;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            resize: vertical;
+            min-height: 60px;
+        }
+
+        .edit-actions {
+            display: none;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .message.editing .edit-actions {
+            display: flex;
+        }
+
+        .edit-actions button {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.8rem;
+            background: transparent;
+            border: 2px solid var(--accent);
+            color: var(--accent);
+            cursor: pointer;
+            font-family: 'Space Mono', monospace;
+            transition: all 0.3s;
+            font-weight: 700;
+        }
+
+        .edit-actions button:hover {
+            background: var(--accent);
+            color: #000;
+        }
+
+        .edit-actions button:last-child {
+            border-color: var(--danger);
+            color: var(--danger);
+        }
+
+        .edit-actions button:last-child:hover {
+            background: var(--danger);
+            color: #fff;
+        }
+
+        /* Edited label */
+        .edited-label {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            font-style: italic;
+            margin-left: 0.5rem;
+        }
+
+        /* Reply/Edit buttons in message actions */
+        .message-actions .reply-btn,
+        .message-actions .edit-btn {
+            background: transparent;
+            border: 1px solid var(--border-subtle);
+            color: var(--text);
+            padding: 0.3rem 0.6rem;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            border-radius: 4px;
+            min-width: 32px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .message-actions .reply-btn:hover {
+            border-color: var(--accent);
+            background: rgba(0, 255, 65, 0.1);
+            color: var(--accent);
+        }
+
+        .message-actions .edit-btn:hover {
+            border-color: var(--warning);
+            background: rgba(255, 170, 0, 0.1);
+            color: var(--warning);
+        }
     </style>
 </head>
+
 <body>
     <!-- Kick Overlay - Che toàn bộ màn hình khi bị kick -->
     <div class="kick-overlay" id="kickOverlay"></div>
-    
+
     <!-- Login Screen -->
     <div id="loginScreen">
         <div class="login-container">
             <h1>ntdChat v2</h1>
             <p>Trò chuyện không giới hạn</p>
-            
+
             <div class="admin-notice" id="adminNotice">
                 <i class="fas fa-shield-alt"></i> Chế độ Admin được kích hoạt
             </div>
-            
-            <input 
-                type="text" 
-                id="usernameInput" 
-                placeholder="Nhập tên của bạn..."
-                maxlength="20"
-                autocomplete="off"
-            >
-            
-            <input 
-                type="password" 
-                id="adminPasswordInput" 
-                placeholder="Mật khẩu admin..."
-                autocomplete="off"
-            >
-            
+
+            <input type="text" id="usernameInput" placeholder="Nhập tên của bạn..." maxlength="20" autocomplete="off">
+
+            <input type="password" id="adminPasswordInput" placeholder="Mật khẩu admin..." autocomplete="off">
+
             <button onclick="handleLogin()">
                 <span>Tham gia ngay</span>
             </button>
@@ -1996,13 +2218,14 @@
                         <div id="roomsList" style="max-height: 300px; overflow-y: auto; margin-bottom: 2rem;">
                             <p style="color: var(--text-dim); text-align: center;">Đang tải...</p>
                         </div>
-                        
+
                         <label>Tạo phòng mới:</label>
                         <input type="text" id="newRoomName" placeholder="Tên phòng...">
                         <input type="password" id="newRoomPassword" placeholder="Mật khẩu (để trống = công khai)">
                     </div>
                     <div class="modal-actions">
-                        <button class="modal-btn" onclick="document.getElementById('roomModal').classList.remove('active')">Đóng</button>
+                        <button class="modal-btn"
+                            onclick="document.getElementById('roomModal').classList.remove('active')">Đóng</button>
                         <button class="modal-btn primary" onclick="createRoom()">Tạo Phòng</button>
                     </div>
                 </div>
@@ -2017,6 +2240,16 @@
 
         <div class="input-container">
             <div class="preview-container" id="previewContainer"></div>
+
+            <!-- Reply Indicator -->
+            <div class="reply-indicator" id="replyIndicator">
+                <div class="reply-to">Đang trả lời:</div>
+                <div class="reply-content" id="replyContent"></div>
+                <button class="cancel-reply" onclick="cancelReply()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
             <div class="input-wrapper">
                 <div class="media-btn-container">
                     <button class="media-button" onclick="toggleMediaMenu()" title="Gửi media">
@@ -2038,18 +2271,17 @@
                         </button>
                     </div>
                 </div>
-                <input type="file" id="imageInput" accept="image/*" onchange="handleImageSelect(event)" style="display: none;">
-                <input type="file" id="videoInput" accept="video/*" onchange="handleVideoSelect(event)" style="display: none;">
-                <input type="file" id="audioInput" accept="audio/*" onchange="handleAudioSelect(event)" style="display: none;">
+                <input type="file" id="imageInput" accept="image/*" onchange="handleImageSelect(event)"
+                    style="display: none;">
+                <input type="file" id="videoInput" accept="video/*" onchange="handleVideoSelect(event)"
+                    style="display: none;">
+                <input type="file" id="audioInput" accept="audio/*" onchange="handleAudioSelect(event)"
+                    style="display: none;">
                 <!-- THÊM INPUT CHO CÁC FILE KHÁC -->
-                <input type="file" id="documentInput" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.zip,.rar,.7z" onchange="handleDocumentSelect(event)" style="display: none;">
-                <input 
-                    type="text" 
-                    id="messageInput" 
-                    placeholder="Nhập tin nhắn..."
-                    onkeypress="handleKeyPress(event)"
-                    autocomplete="off"
-                >
+                <input type="file" id="documentInput" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.zip,.rar,.7z"
+                    onchange="handleDocumentSelect(event)" style="display: none;">
+                <input type="text" id="messageInput" placeholder="Nhập tin nhắn..." onkeypress="handleKeyPress(event)"
+                    autocomplete="off">
                 <button class="send-btn" onclick="sendMessage()">
                     <span>Gửi <i class="fas fa-arrow-right"></i></span>
                 </button>
@@ -2081,7 +2313,7 @@
                 <select id="kickUserSelect">
                     <option value="">-- Chọn người dùng --</option>
                 </select>
-                
+
                 <label>Lý do kick:</label>
                 <textarea id="kickReasonInput" placeholder="Nhập lý do kick người dùng này..."></textarea>
             </div>
@@ -2117,19 +2349,23 @@
                 <div class="image-viewer-title"><i class="fas fa-image"></i> Image Viewer</div>
                 <button class="image-viewer-close" onclick="closeImageViewer()">×</button>
             </div>
-            
+
             <div class="image-viewer-content" id="imageViewerContent">
                 <img id="viewerImage" class="image-viewer-image" src="" alt="Viewing image">
             </div>
-            
+
             <div class="image-viewer-controls">
                 <button class="viewer-control-btn" onclick="zoomOut()" title="Thu nhỏ">-</button>
                 <div class="zoom-level" id="zoomLevel">100%</div>
                 <button class="viewer-control-btn" onclick="zoomIn()" title="Phóng to">+</button>
-                <button class="viewer-control-btn" onclick="rotateLeft()" title="Xoay trái"><i class="fas fa-undo"></i></button>
-                <button class="viewer-control-btn" onclick="rotateRight()" title="Xoay phải"><i class="fas fa-redo"></i></button>
-                <button class="viewer-control-btn" onclick="resetImage()" title="Reset"><i class="fas fa-sync-alt"></i></button>
-                <button class="viewer-control-btn" onclick="downloadImage()" title="Tải xuống"><i class="fas fa-download"></i></button>
+                <button class="viewer-control-btn" onclick="rotateLeft()" title="Xoay trái"><i
+                        class="fas fa-undo"></i></button>
+                <button class="viewer-control-btn" onclick="rotateRight()" title="Xoay phải"><i
+                        class="fas fa-redo"></i></button>
+                <button class="viewer-control-btn" onclick="resetImage()" title="Reset"><i
+                        class="fas fa-sync-alt"></i></button>
+                <button class="viewer-control-btn" onclick="downloadImage()" title="Tải xuống"><i
+                        class="fas fa-download"></i></button>
             </div>
         </div>
     </div>
@@ -2185,7 +2421,17 @@
         let isLockedMode = false; // True khi login qua URL parameter
         let currentRoomId = null; // ID của phòng hiện tại
         let currentRoomName = null; // Tên của phòng hiện tại
-        
+
+        // Reply and Edit state
+        let replyToMessage = null;
+        let editingMessageId = null;
+
+        // Spam detection variables
+        let userMessageHistory = new Map(); // Map<user_id, Array<{content, timestamp}>>
+        let userSpamCount = new Map(); // Map<user_id, number>
+        const SPAM_CHECK_LIMIT = 5; // Số tin nhắn gần nhất để kiểm tra
+        const MAX_SPAM_COUNT = 10; // Số lần spam tối đa trước khi bị kick
+
         // Image viewer state
         let currentZoom = 1;
         let currentRotation = 0;
@@ -2205,22 +2451,22 @@
         // Check and auto-login from URL
         function checkAutoLogin() {
             const nameFromUrl = getUrlParameter('q');
-            
+
             if (nameFromUrl) {
                 const usernameInput = document.getElementById('usernameInput');
                 usernameInput.value = nameFromUrl;
-                
+
                 // Check if it's admin username - don't auto-login, show password field
                 if (nameFromUrl === 'nthdat2937') {
                     // Show admin password field but don't lock or auto-login
                     const passwordInput = document.getElementById('adminPasswordInput');
                     const adminNotice = document.getElementById('adminNotice');
                     const container = document.querySelector('.login-container');
-                    
+
                     passwordInput.classList.add('active');
                     adminNotice.classList.add('active');
                     container.classList.add('admin-mode');
-                    
+
                     // Don't disable input, allow password entry
                     usernameInput.disabled = false;
                     isLockedMode = false;
@@ -2241,12 +2487,12 @@
         }
 
         // Check admin username
-        document.getElementById('usernameInput').addEventListener('input', function(e) {
+        document.getElementById('usernameInput').addEventListener('input', function (e) {
             const username = e.target.value.trim();
             const passwordInput = document.getElementById('adminPasswordInput');
             const adminNotice = document.getElementById('adminNotice');
             const container = document.querySelector('.login-container');
-            
+
             if (username === 'nthdat2937') {
                 passwordInput.classList.add('active');
                 adminNotice.classList.add('active');
@@ -2263,7 +2509,7 @@
         async function handleLogin() {
             const username = document.getElementById('usernameInput').value.trim();
             const adminPassword = document.getElementById('adminPasswordInput').value.trim();
-            
+
             if (!username) {
                 showError('Vui lòng nhập tên của bạn');
                 return;
@@ -2316,9 +2562,9 @@
                 } else {
                     const { data: newUser, error: insertError } = await supabaseClient
                         .from('users')
-                        .insert([{ 
-                            username, 
-                            is_admin: isAdmin 
+                        .insert([{
+                            username,
+                            is_admin: isAdmin
                         }])
                         .select()
                         .single();
@@ -2390,7 +2636,7 @@
                     .on('presence', { event: 'sync' }, () => {
                         const state = presenceChannel.presenceState();
                         updateOnlineUsers(state);
-                        
+
                         // Update kick user list if admin
                         if (isAdmin) {
                             updateKickUserList(state);
@@ -2504,6 +2750,184 @@
             }
         }
 
+        // Check spam function
+        function checkSpam(userId, content) {
+            console.log('🔍 Checking spam for user:', userId, 'content:', content);
+
+            // Khởi tạo lịch sử nếu chưa có
+            if (!userMessageHistory.has(userId)) {
+                userMessageHistory.set(userId, []);
+                userSpamCount.set(userId, 0);
+                console.log('📝 Initialized history for user:', userId);
+            }
+
+            const history = userMessageHistory.get(userId);
+            const trimmedContent = content.trim();
+
+            console.log('📋 Current history length:', history.length);
+            console.log('📋 History:', history.map(h => h.content));
+
+            // Thêm tin nhắn mới vào lịch sử TRƯỚC
+            history.push({ content: trimmedContent, timestamp: Date.now() });
+
+            // Giữ lại chỉ 5 tin nhắn gần nhất
+            while (history.length > SPAM_CHECK_LIMIT) {
+                history.shift();
+            }
+
+            console.log('📋 Updated history:', history.map(h => h.content));
+
+            // Kiểm tra spam nếu đã có đủ 5 tin nhắn
+            if (history.length >= SPAM_CHECK_LIMIT) {
+                // Lấy 5 tin nhắn gần nhất
+                const last5 = history.slice(-SPAM_CHECK_LIMIT);
+
+                // Kiểm tra xem tất cả 5 tin có giống nhau không
+                const firstContent = last5[0].content;
+                const allSame = last5.every(h => h.content === firstContent) && firstContent !== '';
+
+                console.log('🔍 Checking if all 5 messages are same:', allSame);
+                console.log('🔍 Messages:', last5.map(h => h.content));
+
+                if (allSame) {
+                    const spamCount = userSpamCount.get(userId) + 1;
+                    userSpamCount.set(userId, spamCount);
+
+                    console.log(`⚠️ SPAM DETECTED! Count: ${spamCount}/${MAX_SPAM_COUNT}`);
+
+                    // Nếu spam >= 10 lần thì kick ngay lập tức
+                    if (spamCount >= MAX_SPAM_COUNT) {
+                        console.log('🚨 SPAM LIMIT REACHED! Kicking user...');
+                        kickUserForSpam(userId);
+                        return true; // Blocked - đã bị kick
+                    }
+
+                    // Hiển thị cảnh báo
+                    showSpamWarning(spamCount);
+                }
+            }
+
+            return false; // Không block
+        }
+
+        // Show spam warning dialog
+        function showSpamWarning(count) {
+            const warningMsg = `⚠️ CẢNH BÁO SPAM!\n\nBạn đã spam ${count}/${MAX_SPAM_COUNT} lần.\nNếu tiếp tục spam, bạn sẽ bị kick khỏi chat!`;
+
+            // Tạo dialog cảnh báo
+            const overlay = document.createElement('div');
+            overlay.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.9);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 10000;
+                animation: fadeIn 0.3s;
+            `;
+
+            const dialog = document.createElement('div');
+            dialog.style.cssText = `
+                background: var(--bg-main);
+                border: 3px solid var(--warning);
+                padding: 2rem;
+                max-width: 400px;
+                text-align: center;
+                box-shadow: 0 0 50px rgba(255, 170, 0, 0.5);
+            `;
+
+            dialog.innerHTML = `
+                <div style="font-size: 3rem; margin-bottom: 1rem;">⚠️</div>
+                <div style="font-size: 1.2rem; font-weight: 700; color: var(--warning); margin-bottom: 1rem;">
+                    CẢNH BÁO SPAM!
+                </div>
+                <div style="color: var(--text); margin-bottom: 1.5rem; white-space: pre-line;">
+                    Bạn đã spam ${count}/${MAX_SPAM_COUNT} lần.
+                    
+                    Nếu tiếp tục spam, bạn sẽ bị kick khỏi chat!
+                </div>
+                <button onclick="this.parentElement.parentElement.remove()" style="
+                    background: var(--warning);
+                    color: #000;
+                    border: none;
+                    padding: 0.75rem 2rem;
+                    font-weight: 700;
+                    cursor: pointer;
+                    font-family: 'Space Mono', monospace;
+                ">
+                    TÔI ĐÃ HIỂU
+                </button>
+            `;
+
+            overlay.appendChild(dialog);
+            document.body.appendChild(overlay);
+
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                if (overlay.parentElement) {
+                    overlay.remove();
+                }
+            }, 5000);
+        }
+
+        // Kick user for spam
+        async function kickUserForSpam(userId) {
+            console.log('🚨 KICKING USER FOR SPAM:', userId);
+
+            try {
+                // Tạo kick record trong database
+                // kicked_by là UUID nên để null (hệ thống tự động kick)
+                const { data: kickData, error: kickError } = await supabaseClient
+                    .from('kicks')
+                    .insert([{
+                        user_id: userId,
+                        reason: 'Spam tin nhắn (tự động)',
+                        active: true
+                        // Bỏ kicked_by vì là UUID, để null = hệ thống tự động
+                    }])
+                    .select();
+
+                if (kickError) {
+                    console.error('❌ Error inserting kick:', kickError);
+                } else {
+                    console.log('✅ Kick record created:', kickData);
+                }
+
+                // Hiển thị overlay kick
+                showKickOverlay('Spam tin nhắn (tự động)');
+
+            } catch (error) {
+                console.error('❌ Error in kickUserForSpam:', error);
+                // Nếu có lỗi vẫn hiển thị kick overlay
+                showKickOverlay('Spam tin nhắn (tự động)');
+            }
+        }
+
+        // Show kick overlay (tái sử dụng từ admin kick)
+        function showKickOverlay(reason) {
+            const overlay = document.getElementById('kickOverlay');
+            overlay.innerHTML = `
+                <div class="kick-message">
+                    <div class="kick-icon">🚫</div>
+                    <h2>BẠN ĐÃ BỊ KICK</h2>
+                    <p>Lý do: ${reason}</p>
+                    <p style="margin-top: 1rem; color: var(--text-dim); font-size: 0.9rem;">
+                        Trang sẽ tự động tải lại sau 3 giây...
+                    </p>
+                </div>
+            `;
+            overlay.classList.add('active');
+
+            // Reload page sau 3 giây
+            setTimeout(() => {
+                window.location.reload();
+            }, 3000);
+        }
+
         // Send message
         async function sendMessage() {
             const input = document.getElementById('messageInput');
@@ -2511,14 +2935,35 @@
 
             if (!content && !selectedImage) return;
 
+            // Kiểm tra spam (chỉ kiểm tra tin nhắn văn bản, không kiểm tra ảnh)
+            if (content && !content.startsWith('/')) {
+                const isSpam = checkSpam(currentUser.id, content);
+                if (isSpam) {
+                    // Bị kick vì spam, không gửi tin nhắn
+                    input.value = '';
+                    return;
+                }
+            }
+
+            // Disable button before starting async operations
+            const sendBtn = document.querySelector('.send-btn');
+            const originalBtnContent = sendBtn.innerHTML;
+
+            if (sendBtn) {
+                sendBtn.disabled = true;
+                sendBtn.innerHTML = '<span>Đang gửi... <i class="fas fa-spinner fa-spin"></i></span>';
+                sendBtn.style.opacity = '0.7';
+                sendBtn.style.cursor = 'not-allowed';
+            }
+
             try {
                 // Check if this is a private command that shouldn't be shown in chat
-                const isPrivateCommand = content.toLowerCase().startsWith('/createroom') || 
-                                        content.toLowerCase().startsWith('/join') ||
-                                        content.toLowerCase().startsWith('/exitroom');
-                
+                const isPrivateCommand = content.toLowerCase().startsWith('/createroom') ||
+                    content.toLowerCase().startsWith('/join') ||
+                    content.toLowerCase().startsWith('/exitroom');
+
                 let imageUrl = null;
-                
+
                 // Upload image if selected
                 if (selectedImage) {
                     const fileExt = selectedImage.name.split('.').pop();
@@ -2539,6 +2984,7 @@
                     if (uploadError) {
                         console.error('Upload error:', uploadError);
                         showError('Không thể tải file lên');
+                        // Nếu lỗi upload, return sớm (finally sẽ chạy để enable lại nút)
                         return;
                     }
 
@@ -2551,16 +2997,25 @@
 
                 // Only send message to database if it's not a private command
                 if (!isPrivateCommand) {
+                    const messageData = {
+                        user_id: currentUser.id,
+                        username: currentUser.username,
+                        content: content || '',
+                        image_url: imageUrl,
+                        reactions: {},
+                        room_id: currentRoom ? currentRoom.id : null
+                    };
+
+                    // Add reply information if replying
+                    if (replyToMessage) {
+                        messageData.reply_to = replyToMessage.id;
+                        messageData.reply_to_username = replyToMessage.username;
+                        messageData.reply_to_content = replyToMessage.content;
+                    }
+
                     const { error } = await supabaseClient
                         .from('messages')
-                        .insert([{
-                            user_id: currentUser.id,
-                            username: currentUser.username,
-                            content: content || '',
-                            image_url: imageUrl,
-                            reactions: {},
-                            room_id: currentRoom ? currentRoom.id : null
-                        }]);
+                        .insert([messageData]);
 
                     if (error) throw error;
                 }
@@ -2568,11 +3023,11 @@
                 // Bot command handler
                 if (content.startsWith('/')) {
                     const command = content.toLowerCase().trim();
-                    
+
                     setTimeout(async () => {
                         let botResponse = '';
                         let shouldSendResponse = true;
-                        
+
                         if (command === '/time') {
                             // /time command - show current time
                             const now = new Date();
@@ -2587,7 +3042,7 @@
                                 second: '2-digit'
                             });
                             botResponse = `⏰ Thời gian hiện tại:\n${vietnamTime}`;
-                            
+
                         } else if (command === '/help') {
                             // /help command - show available commands
                             const adminCommands = isAdmin ? `🗑️ /clear - Xóa tất cả tin nhắn (chỉ admin, chỉ chat chung)\n` : '';
@@ -2600,11 +3055,11 @@
                                 `🚶 /exitroom - Thoát khỏi phòng và quay về phòng chính\n` +
                                 adminCommands +
                                 `\n💡 Cách dùng: Gõ lệnh bắt đầu bằng dấu / và gửi tin nhắn`;
-                            
+
                         } else if (command === '/clear') {
                             // /clear command - clear all messages (admin only, main chat only)
                             shouldSendResponse = false;
-                            
+
                             if (!isAdmin) {
                                 botResponse = `❌ Bạn không có quyền sử dụng lệnh này!\n\nChỉ admin mới có thể xóa tin nhắn.`;
                                 shouldSendResponse = true;
@@ -2619,20 +3074,20 @@
                                         .from('messages')
                                         .delete()
                                         .is('room_id', null);
-                                    
+
                                     if (deleteError) throw deleteError;
-                                    
+
                                     // Broadcast reload signal to all users
                                     if (presenceChannel) {
                                         await presenceChannel.send({
                                             type: 'broadcast',
                                             event: 'chat-cleared',
-                                            payload: { 
-                                                clearedBy: currentUser.username 
+                                            payload: {
+                                                clearedBy: currentUser.username
                                             }
                                         });
                                     }
-                                    
+
                                     // Reload page after a short delay
                                     setTimeout(() => {
                                         window.location.reload();
@@ -2643,7 +3098,7 @@
                                     shouldSendResponse = true;
                                 }
                             }
-                            
+
                         } else if (command === '/botngu') {
                             botResponse = `Ngu bà nội mày, chém chết giờ!`
                         } else if (content.toLowerCase().startsWith('/createroom')) {
@@ -2652,7 +3107,7 @@
                             const parts = content.slice(11).trim().split(/\s+/);
                             const roomName = parts[0] || currentUser.username;
                             const roomPassword = parts[1] || null;
-                            
+
                             try {
                                 // Check if room name already exists
                                 const { data: existingRoom, error: checkError } = await supabaseClient
@@ -2675,12 +3130,12 @@
                                         }])
                                         .select()
                                         .single();
-                                    
+
                                     if (error) throw error;
-                                    
+
                                     // Auto join the new room
                                     await joinRoom(newRoom.id, roomPassword);
-                                    
+
                                     // Don't send bot response, joinRoom already shows notification
                                     shouldSendResponse = false;
                                 }
@@ -2692,15 +3147,15 @@
                         } else if (command === '/room') {
                             // /room command - hiển thị danh sách phòng
                             shouldSendResponse = false;
-                            
+
                             try {
                                 const { data: rooms, error } = await supabaseClient
                                     .from('chat_rooms')
                                     .select('*')
                                     .order('created_at', { ascending: false });
-                                
+
                                 if (error) throw error;
-                                
+
                                 if (!rooms || rooms.length === 0) {
                                     botResponse = `📋 DANH SÁCH PHÒNG CHAT\n\n` +
                                         `Chưa có phòng chat nào.\n\n` +
@@ -2725,7 +3180,7 @@
                             const parts = content.slice(5).trim().split(/\s+/);
                             const roomNumber = parseInt(parts[0]);
                             const enteredPassword = parts[1] || null;
-                            
+
                             if (!roomNumber || isNaN(roomNumber)) {
                                 botResponse = `❌ Vui lòng nhập số thứ tự phòng!\n\n💡 Ví dụ: /join 1 hoặc /join 1 matkhau`;
                                 shouldSendResponse = true;
@@ -2736,9 +3191,9 @@
                                         .from('chat_rooms')
                                         .select('*')
                                         .order('created_at', { ascending: false });
-                                    
+
                                     if (error) throw error;
-                                    
+
                                     if (!rooms || rooms.length === 0) {
                                         botResponse = `❌ Không có phòng chat nào!\n\n💡 Dùng /createroom để tạo phòng mới!`;
                                         shouldSendResponse = true;
@@ -2747,7 +3202,7 @@
                                         shouldSendResponse = true;
                                     } else {
                                         const selectedRoom = rooms[roomNumber - 1];
-                                        
+
                                         // Check password
                                         if (selectedRoom.password && selectedRoom.password !== enteredPassword) {
                                             botResponse = `❌ Mật khẩu không đúng!\n\n🔒 Phòng "${selectedRoom.name}" có mật khẩu.\n💡 Dùng: /join ${roomNumber} <mật khẩu>`;
@@ -2768,7 +3223,7 @@
                         } else if (command === '/exitroom') {
                             // /exitroom command - thoát khỏi phòng và quay về phòng chính (reload page)
                             shouldSendResponse = false;
-                            
+
                             if (!currentRoom) {
                                 botResponse = `❌ Bạn đang ở phòng chính rồi!\n\n💡 Dùng /join để vào phòng chat khác.`;
                                 shouldSendResponse = true;
@@ -2782,7 +3237,7 @@
                             // Unknown command
                             botResponse = `❌ Lệnh không tồn tại!\n\nNhập /help để xem các lệnh có sẵn.`;
                         }
-                        
+
                         // Send bot response
                         if (shouldSendResponse && botResponse) {
                             await supabaseClient
@@ -2799,6 +3254,7 @@
                 }
 
                 input.value = '';
+                cancelReply(); // Clear reply state after sending
                 selectedImage = null;
                 document.getElementById('previewContainer').innerHTML = '';
                 document.getElementById('previewContainer').classList.remove('active');
@@ -2808,6 +3264,17 @@
             } catch (error) {
                 console.error('Error sending message:', error);
                 showError('Không thể gửi tin nhắn');
+            } finally {
+                // Re-enable button
+                if (sendBtn) {
+                    sendBtn.disabled = false;
+                    sendBtn.innerHTML = originalBtnContent;
+                    sendBtn.style.opacity = '1';
+                    sendBtn.style.cursor = 'pointer';
+                }
+
+                // Focus back to input
+                input.focus();
             }
         }
 
@@ -2815,9 +3282,9 @@
         function handleNewMessage(payload) {
             console.log('handleNewMessage called with payload:', payload);
             console.log('Current room:', currentRoom);
-            
+
             const newMessage = payload.new;
-            
+
             // Filter: only show message if it belongs to current room
             if (currentRoom) {
                 // In a room: only show messages with matching room_id
@@ -2832,13 +3299,13 @@
                     return;
                 }
             }
-            
+
             const container = document.getElementById('messagesContainer');
-            
+
             if (container.innerHTML.includes('Chưa có tin nhắn')) {
                 container.innerHTML = '';
             }
-            
+
             displayMessage(newMessage);
             scrollToBottom();
         }
@@ -2847,9 +3314,9 @@
         function handleMessageUpdate(payload) {
             console.log('handleMessageUpdate called with payload:', payload);
             console.log('Current room:', currentRoom);
-            
+
             const updatedMessage = payload.new;
-            
+
             // Filter: only update message if it belongs to current room
             if (currentRoom) {
                 // In a room: only update messages with matching room_id
@@ -2864,7 +3331,7 @@
                     return;
                 }
             }
-            
+
             const messageElement = document.querySelector(`[data-message-id="${updatedMessage.id}"]`);
             if (messageElement) {
                 if (updatedMessage.deleted) {
@@ -2876,6 +3343,12 @@
                         <em>Tin nhắn đã bị xóa bởi admin</em>
                         ${updatedMessage.delete_reason ? `<div class="delete-reason">Lý do: ${escapeHtml(updatedMessage.delete_reason)}</div>` : ''}
                     `;
+                } else if (updatedMessage.edited) {
+                    // CẬP NHẬT TIN NHẮN ĐÃ CHỈNH SỬA
+                    updateMessageDisplayAfterEdit(updatedMessage.id, updatedMessage.content);
+                    
+                    // CẬP NHẬT CÁC TIN NHẮN TRẢ LỜI THAM CHIẾU ĐẾN TIN NHẮN NÀY
+                    updateRepliedMessages(updatedMessage.id, updatedMessage.username, updatedMessage.content);
                 } else {
                     updateMessageReactions(messageElement, updatedMessage.reactions);
                 }
@@ -2885,7 +3358,7 @@
         // Display message
         function displayMessage(message) {
             const container = document.getElementById('messagesContainer');
-            
+
             // Handle system kick notification messages (identified by special user_id)
             if (message.user_id === 'system-kick-notification') {
                 const systemDiv = document.createElement('div');
@@ -2896,11 +3369,16 @@
                 container.appendChild(systemDiv);
                 return;
             }
-            
+
             const messageDiv = document.createElement('div');
             const isBotMessage = message.user_id === 'bot-system';
             messageDiv.className = `message ${message.user_id === currentUser.id ? 'own' : ''} ${message.deleted ? 'deleted' : ''} ${isBotMessage ? 'bot-message' : ''}`;
             messageDiv.setAttribute('data-message-id', message.id);
+            
+            // Thêm data-reply-to để tracking tin nhắn reply
+            if (message.reply_to) {
+                messageDiv.setAttribute('data-reply-to', message.reply_to);
+            }
 
             const time = new Date(message.created_at).toLocaleTimeString('vi-VN', {
                 timeZone: 'Asia/Ho_Chi_Minh',
@@ -2924,31 +3402,31 @@
                 const url = message.image_url;
                 // Xác định loại media dựa vào extension
                 const urlLower = url.toLowerCase();
-                
+
                 // Check for video
-                if (urlLower.includes('.mp4') || urlLower.includes('.webm') || 
+                if (urlLower.includes('.mp4') || urlLower.includes('.webm') ||
                     urlLower.includes('.mov') || urlLower.includes('.avi') ||
                     urlLower.includes('video')) {
                     mediaHtml = `<video src="${url}" controls class="message-video" preload="metadata" controlsList="nodownload"></video>`;
                 }
                 // Check for audio - bổ sung thêm nhiều định dạng
-                else if (urlLower.includes('.mp3') || urlLower.includes('.wav') || 
-                         urlLower.includes('.ogg') || urlLower.includes('.m4a') ||
-                         urlLower.includes('.aac') || urlLower.includes('.flac') ||
-                         urlLower.includes('audio')) {
+                else if (urlLower.includes('.mp3') || urlLower.includes('.wav') ||
+                    urlLower.includes('.ogg') || urlLower.includes('.m4a') ||
+                    urlLower.includes('.aac') || urlLower.includes('.flac') ||
+                    urlLower.includes('audio')) {
                     mediaHtml = `<audio src="${url}" controls class="message-audio" preload="metadata" controlsList="nodownload"></audio>`;
                 }
                 // ========== THÊM XỬ LÝ CHO FILE DOCUMENTS ==========
                 // Check for documents (pdf, docx, xlsx, zip, etc.)
-                else if (urlLower.includes('.pdf') || urlLower.includes('.doc') || 
-                         urlLower.includes('.xls') || urlLower.includes('.ppt') ||
-                         urlLower.includes('.zip') || urlLower.includes('.rar') ||
-                         urlLower.includes('.txt') || urlLower.includes('.csv') ||
-                         urlLower.includes('.7z')) {
+                else if (urlLower.includes('.pdf') || urlLower.includes('.doc') ||
+                    urlLower.includes('.xls') || urlLower.includes('.ppt') ||
+                    urlLower.includes('.zip') || urlLower.includes('.rar') ||
+                    urlLower.includes('.txt') || urlLower.includes('.csv') ||
+                    urlLower.includes('.7z')) {
                     // Extract file name from URL
                     const fileName = url.split('/').pop().split('?')[0];
                     const ext = fileName.split('.').pop().toLowerCase();
-                    
+
                     // Get icon based on file type
                     let fileIcon = 'fa-file';
                     const iconMap = {
@@ -2963,7 +3441,7 @@
                     if (iconMap[ext]) {
                         fileIcon = iconMap[ext];
                     }
-                    
+
                     mediaHtml = `
                         <div class="message-file" style="margin-top: 0.5rem;">
                             <a href="${url}" download="${fileName}" target="_blank" 
@@ -2990,8 +3468,14 @@
             messageDiv.innerHTML = `
                 <div class="message-header">
                     <span class="message-sender">${escapeHtml(message.username)}</span>
-                    <span class="message-time">${time}</span>
+                    <span class="message-time">${time}${message.edited ? '<span class="edited-label">(đã chỉnh sửa)</span>' : ''}</span>
                 </div>
+                ${message.reply_to ? `
+                    <div class="replied-message">
+                        <span class="replied-user">${escapeHtml(message.reply_to_username || 'User')}:</span>
+                        <span class="replied-content">${escapeHtml(message.reply_to_content || '')}</span>
+                    </div>
+                ` : ''}
                 <div class="message-content ${message.deleted ? 'deleted-content' : ''}">
                     ${message.deleted ? contentHtml : `
                         ${contentHtml ? `<div class="message-text" style="white-space: pre-line; margin-bottom: ${mediaHtml ? '0.5rem' : '0'};">${contentHtml}</div>` : ''}
@@ -3007,11 +3491,28 @@
                     </div>
                     ` : ''}
                 </div>
+                ${!message.deleted && !isBotMessage ? `
+                    <textarea class="edit-input" id="edit-input-${message.id}">${escapeHtml(message.content || '')}</textarea>
+                    <div class="edit-actions">
+                        <button onclick="saveEdit(${message.id})"><i class="fas fa-check"></i> Lưu</button>
+                        <button onclick="cancelEdit(${message.id})"><i class="fas fa-times"></i> Hủy</button>
+                    </div>
+                ` : ''}
                 ${!isBotMessage ? `
                 <div class="message-footer">
                     <div class="message-reactions" id="reactions-${message.id}"></div>
                     ${!message.deleted ? `
                     <div class="message-actions">
+                        ${message.user_id !== currentUser.id ? `
+                            <button class="reply-btn" onclick="replyToFromButton(${message.id})">
+                                <i class="fas fa-reply"></i>
+                            </button>
+                        ` : ''}
+                        ${message.user_id === currentUser.id || isAdmin ? `
+                            <button class="edit-btn" onclick="editMessage(${message.id})">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                        ` : ''}
                         <button class="react-btn" onclick="toggleReactionPicker(${message.id})"><i class="fas fa-heart"></i></button>
                         <button class="delete-msg-btn ${isAdmin && message.user_id !== currentUser.id ? 'visible' : ''}" onclick="showDeleteModal(${message.id})"><i class="fas fa-trash"></i></button>
                     </div>
@@ -3021,7 +3522,7 @@
             `;
 
             container.appendChild(messageDiv);
-            
+
             if (message.reactions && !message.deleted && !isBotMessage) {
                 updateMessageReactions(messageDiv, message.reactions);
             }
@@ -3043,7 +3544,7 @@
         // Confirm delete message
         async function confirmDeleteMessage() {
             const reason = document.getElementById('deleteReasonInput').value.trim();
-            
+
             if (!reason) {
                 showError('Vui lòng nhập lý do xóa tin nhắn');
                 return;
@@ -3054,7 +3555,7 @@
             try {
                 const { error } = await supabaseClient
                     .from('messages')
-                    .update({ 
+                    .update({
                         deleted: true,
                         delete_reason: reason,
                         deleted_by: currentUser.id,
@@ -3105,7 +3606,7 @@
         async function confirmKickUser() {
             const userId = document.getElementById('kickUserSelect').value;
             const reason = document.getElementById('kickReasonInput').value.trim();
-            
+
             if (!userId) {
                 showError('Vui lòng chọn người dùng');
                 return;
@@ -3151,7 +3652,7 @@
                     await presenceChannel.send({
                         type: 'broadcast',
                         event: 'user-kicked',
-                        payload: { 
+                        payload: {
                             userId: userId,
                             reason: reason,
                             kickedBy: currentUser.username
@@ -3192,7 +3693,7 @@
                 if (error) throw error;
 
                 const container = document.getElementById('bannedUsersList');
-                
+
                 if (!kicks || kicks.length === 0) {
                     container.innerHTML = `
                         <div style="text-align: center; color: var(--text-dim); padding: 1rem;">
@@ -3203,7 +3704,7 @@
                 }
 
                 container.innerHTML = '';
-                
+
                 // Fetch user details for each kick
                 for (const kick of kicks) {
                     try {
@@ -3243,10 +3744,10 @@
         }
 
         // Unban user - Global function
-        window.unbanUser = async function(kickId, userId) {
+        window.unbanUser = async function (kickId, userId) {
             try {
                 console.log('Attempting to unban:', { kickId, userId, type: typeof kickId });
-                
+
                 // First, check if the record exists
                 const { data: existingKick, error: fetchError } = await supabaseClient
                     .from('kicks')
@@ -3284,7 +3785,7 @@
 
                 // If update returns empty array (RLS policy issue), try delete
                 console.log('Update returned empty, trying delete instead...');
-                
+
                 const { data: deleteData, error: deleteError } = await supabaseClient
                     .from('kicks')
                     .delete()
@@ -3306,7 +3807,7 @@
 
                 // If both failed, it's likely an RLS policy issue
                 showError('Không thể unban: Vui lòng kiểm tra RLS policies trong Supabase cho bảng kicks (cần cho phép UPDATE hoặc DELETE)');
-                
+
             } catch (error) {
                 console.error('Error unbanning user:', error);
                 showError('Lỗi khi unban: ' + error.message);
@@ -3317,13 +3818,13 @@
         function toggleReactionPicker(messageId) {
             const picker = document.getElementById(`picker-${messageId}`);
             const allPickers = document.querySelectorAll('.reaction-picker');
-            
+
             allPickers.forEach(p => {
                 if (p.id !== `picker-${messageId}`) {
                     p.classList.remove('active');
                 }
             });
-            
+
             picker.classList.toggle('active');
         }
 
@@ -3339,7 +3840,7 @@
                 if (fetchError) throw fetchError;
 
                 const reactions = message.reactions || {};
-                
+
                 if (!reactions[emoji]) {
                     reactions[emoji] = [];
                 }
@@ -3410,9 +3911,9 @@
                     if (presence.username) {
                         const userDiv = document.createElement('div');
                         userDiv.className = 'online-user-item';
-                        
+
                         const roomName = presence.room_name || 'Chính';
-                        
+
                         userDiv.innerHTML = `
                             <div class="online-user-indicator"></div>
                             <span class="online-user-name">${escapeHtml(presence.username)}</span>
@@ -3431,16 +3932,16 @@
             currentRotation = 0;
             translateX = 0;
             translateY = 0;
-            
+
             const modal = document.getElementById('imageViewerModal');
             const img = document.getElementById('viewerImage');
-            
+
             img.src = imageUrl;
             modal.classList.add('active');
-            
+
             updateImageTransform();
             updateZoomLevel();
-            
+
             // Add drag functionality
             setupDragListeners();
         }
@@ -3504,11 +4005,11 @@
         // Drag functionality
         function setupDragListeners() {
             const img = document.getElementById('viewerImage');
-            
+
             img.addEventListener('mousedown', startDrag);
             document.addEventListener('mousemove', drag);
             document.addEventListener('mouseup', endDrag);
-            
+
             // Touch support
             img.addEventListener('touchstart', startDragTouch);
             document.addEventListener('touchmove', dragTouch);
@@ -3517,11 +4018,11 @@
 
         function removeDragListeners() {
             const img = document.getElementById('viewerImage');
-            
+
             img.removeEventListener('mousedown', startDrag);
             document.removeEventListener('mousemove', drag);
             document.removeEventListener('mouseup', endDrag);
-            
+
             img.removeEventListener('touchstart', startDragTouch);
             document.removeEventListener('touchmove', dragTouch);
             document.removeEventListener('touchend', endDrag);
@@ -3564,16 +4065,16 @@
         }
 
         // Close viewer on ESC key
-        document.addEventListener('keydown', function(e) {
+        document.addEventListener('keydown', function (e) {
             if (e.key === 'Escape') {
                 closeImageViewer();
             }
         });
 
         // Mouse wheel zoom
-        document.getElementById('imageViewerModal').addEventListener('wheel', function(e) {
+        document.getElementById('imageViewerModal').addEventListener('wheel', function (e) {
             if (!document.getElementById('imageViewerModal').classList.contains('active')) return;
-            
+
             e.preventDefault();
             if (e.deltaY < 0) {
                 zoomIn();
@@ -3586,7 +4087,7 @@
         function toggleMediaMenu() {
             const menu = document.getElementById('mediaMenu');
             menu.classList.toggle('active');
-            
+
             // Close menu when clicking outside
             if (menu.classList.contains('active')) {
                 setTimeout(() => {
@@ -3599,7 +4100,7 @@
             const menu = document.getElementById('mediaMenu');
             const button = event.target.closest('.media-button');
             const menuItem = event.target.closest('.media-menu-item');
-            
+
             if (!button && !menuItem) {
                 menu.classList.remove('active');
                 document.removeEventListener('click', closeMediaMenuOnClickOutside);
@@ -3610,8 +4111,8 @@
             const menu = document.getElementById('mediaMenu');
             menu.classList.remove('active');
             document.removeEventListener('click', closeMediaMenuOnClickOutside);
-            
-            switch(type) {
+
+            switch (type) {
                 case 'image':
                     document.getElementById('imageInput').click();
                     break;
@@ -3724,7 +4225,7 @@
             const fileName = file.name;
             const ext = fileName.split('.').pop().toLowerCase();
             let fileIcon = 'fa-file';
-            
+
             const iconMap = {
                 'pdf': 'fa-file-pdf',
                 'doc': 'fa-file-word', 'docx': 'fa-file-word',
@@ -3734,7 +4235,7 @@
                 'txt': 'fa-file-alt',
                 'csv': 'fa-file-csv'
             };
-            
+
             if (iconMap[ext]) {
                 fileIcon = iconMap[ext];
             }
@@ -3781,7 +4282,7 @@
 
             // Show preview
             const reader = new FileReader();
-            reader.onload = function(e) {
+            reader.onload = function (e) {
                 const previewContainer = document.getElementById('previewContainer');
                 previewContainer.innerHTML = `
                     <div class="image-preview">
@@ -3824,13 +4325,13 @@
             if (chatScreen) {
                 chatScreen.style.display = 'none';
             }
-            
+
             // Hiện overlay để che toàn bộ nội dung
             const overlay = document.getElementById('kickOverlay');
             if (overlay) {
                 overlay.classList.add('active');
             }
-            
+
             // Create popup element
             const popup = document.createElement('div');
             popup.className = 'kick-popup';
@@ -3852,7 +4353,7 @@
                     </button>
                 </div>
             `;
-            
+
             document.body.appendChild(popup);
         }
 
@@ -3904,7 +4405,7 @@
             errorDiv.textContent = message;
             errorDiv.style.background = isError ? 'var(--danger)' : 'var(--accent)';
             errorDiv.classList.add('active');
-            
+
             setTimeout(() => {
                 errorDiv.classList.remove('active');
             }, 4000);
@@ -3949,7 +4450,7 @@
                 roomsList.innerHTML = rooms.map(room => {
                     // Check if current user can delete this room
                     const canDelete = isAdmin || room.created_by === currentUser.username;
-                    
+
                     return `
                         <div class="room-item ${room.password ? 'room-locked' : ''}" style="display: flex; align-items: center; gap: 1rem;">
                             <div onclick="selectRoom('${room.id}', ${room.password ? 'true' : 'false'})" style="flex: 1; cursor: pointer;">
@@ -4112,7 +4613,7 @@
 
                 // Subscribe to messages for this room
                 subscribeToMessagesForRoom();
-                
+
                 // Small delay to ensure subscription is ready
                 await new Promise(resolve => setTimeout(resolve, 200));
 
@@ -4171,7 +4672,7 @@
 
             const channelName = currentRoom ? `messages-room-${currentRoom.id}` : 'messages-default';
             console.log('Subscribing to channel:', channelName, 'currentRoom:', currentRoom);
-            
+
             // Subscribe to ALL messages, filter on client side in handleNewMessage
             messagesSubscription = supabaseClient
                 .channel(channelName)
@@ -4202,12 +4703,12 @@
         function subscribeToRooms() {
             roomsSubscription = supabaseClient
                 .channel('rooms_channel')
-                .on('postgres_changes', 
-                    { 
-                        event: '*', 
-                        schema: 'public', 
+                .on('postgres_changes',
+                    {
+                        event: '*',
+                        schema: 'public',
                         table: 'chat_rooms'
-                    }, 
+                    },
                     () => {
                         // Reload rooms if modal is open
                         const modal = document.getElementById('roomModal');
@@ -4223,7 +4724,7 @@
         function addRoomButton() {
             const chatHeader = document.querySelector('.chat-header');
             const h2 = chatHeader.querySelector('h2');
-            
+
             // Create room button
             const roomBtn = document.createElement('button');
             roomBtn.className = 'admin-control-btn';
@@ -4231,7 +4732,7 @@
             roomBtn.onclick = showRoomModal;
             roomBtn.style.display = 'inline-block';
             roomBtn.style.marginLeft = '1rem';
-            
+
             // Create "Back to main" button
             const backBtn = document.createElement('button');
             backBtn.className = 'admin-control-btn';
@@ -4240,7 +4741,7 @@
             backBtn.style.display = 'inline-block';
             backBtn.style.marginLeft = '0.5rem';
             backBtn.id = 'backToMainBtn';
-            
+
             // Insert after h2
             h2.after(roomBtn);
             roomBtn.after(backBtn);
@@ -4265,20 +4766,213 @@
 
         // ========== END ROOM CHAT FUNCTIONALITY ==========
 
+        // ========== REPLY FUNCTIONS ==========
+
+        // Reply to message
+        function replyTo(messageId, username, content) {
+            replyToMessage = {
+                id: messageId,
+                username: username,
+                content: content
+            };
+
+            // Show reply indicator
+            document.getElementById('replyIndicator').classList.add('active');
+            document.getElementById('replyContent').textContent = `${username}: ${content}`;
+
+            // Focus input
+            document.getElementById('messageInput').focus();
+        }
+
+        // Reply to message from button - gets current content from DOM
+        function replyToFromButton(messageId) {
+            const messageDiv = document.querySelector(`[data-message-id="${messageId}"]`);
+            if (!messageDiv) return;
+            
+            // Lấy username từ header
+            const usernameEl = messageDiv.querySelector('.message-sender');
+            const username = usernameEl ? usernameEl.textContent : 'User';
+            
+            // Lấy content hiện tại từ DOM (đã được cập nhật nếu có chỉnh sửa)
+            const contentDiv = messageDiv.querySelector('.message-content');
+            let content = '';
+            
+            if (contentDiv) {
+                // Lấy text từ .message-text nếu có (khi có ảnh)
+                const textDiv = contentDiv.querySelector('.message-text');
+                if (textDiv) {
+                    content = textDiv.textContent;
+                } else {
+                    // Nếu không có .message-text, lấy toàn bộ textContent
+                    content = contentDiv.textContent.trim();
+                }
+            }
+            
+            // Gọi function replyTo với content hiện tại
+            replyTo(messageId, username, content);
+        }
+
+        // Cancel reply
+        function cancelReply() {
+            replyToMessage = null;
+            document.getElementById('replyIndicator').classList.remove('active');
+        }
+
+        // ========== EDIT FUNCTIONS ==========
+
+        // Edit message
+        function editMessage(messageId) {
+            const messageDiv = document.querySelector(`[data-message-id="${messageId}"]`);
+            if (!messageDiv) return;
+            
+            messageDiv.classList.add('editing');
+            
+            const editInput = document.getElementById(`edit-input-${messageId}`);
+            if (editInput) {
+                editInput.focus();
+                editInput.select();
+            }
+        }
+
+        // Save edit
+        async function saveEdit(messageId) {
+            const editInput = document.getElementById(`edit-input-${messageId}`);
+            if (!editInput) return;
+            
+            const newContent = editInput.value.trim();
+
+            if (!newContent) {
+                showError('Tin nhắn không được để trống!');
+                return;
+            }
+
+            try {
+                const { data, error } = await supabaseClient
+                    .from('messages')
+                    .update({ 
+                        content: newContent,
+                        edited: true,
+                        edited_at: new Date().toISOString()
+                    })
+                    .eq('id', messageId)
+                    .select()
+                    .single();
+
+                if (error) throw error;
+
+                // CẬP NHẬT UI NGAY LẬP TỨC
+                updateMessageDisplayAfterEdit(messageId, newContent);
+
+                cancelEdit(messageId);
+                showError('Đã cập nhật tin nhắn!', false);
+            } catch (error) {
+                console.error('Error updating message:', error);
+                showError('Lỗi khi cập nhật tin nhắn!');
+            }
+        }
+
+        // Update message display immediately after edit
+        function updateMessageDisplayAfterEdit(messageId, newContent) {
+            const messageDiv = document.querySelector(`[data-message-id="${messageId}"]`);
+            if (!messageDiv) return;
+
+            // Update content
+            const contentDiv = messageDiv.querySelector('.message-content');
+            if (contentDiv) {
+                // Kiểm tra xem có ảnh không
+                const existingImage = contentDiv.querySelector('.message-image');
+                
+                if (existingImage) {
+                    // Nếu có ảnh, giữ nguyên ảnh và chỉ cập nhật text
+                    // Tìm và xóa div .message-text cũ (nếu có)
+                    const oldTextDiv = contentDiv.querySelector('.message-text');
+                    if (oldTextDiv) {
+                        oldTextDiv.remove();
+                    }
+                    
+                    // Tạo div .message-text mới và thêm vào trước ảnh
+                    if (newContent) {
+                        const newTextDiv = document.createElement('div');
+                        newTextDiv.className = 'message-text';
+                        newTextDiv.style.cssText = 'white-space: pre-line; margin-bottom: 0.5rem;';
+                        newTextDiv.textContent = newContent;
+                        contentDiv.insertBefore(newTextDiv, existingImage);
+                    }
+                } else {
+                    // Nếu không có ảnh, tìm và cập nhật .message-text
+                    const textDiv = contentDiv.querySelector('.message-text');
+                    if (textDiv) {
+                        textDiv.textContent = newContent;
+                    } else {
+                        // Fallback nếu không tìm thấy structure
+                        contentDiv.textContent = newContent;
+                    }
+                }
+            }
+
+            // Add/update edited indicator
+            let editedDiv = messageDiv.querySelector('.message-edited');
+            if (!editedDiv) {
+                editedDiv = document.createElement('div');
+                editedDiv.className = 'message-edited';
+                editedDiv.textContent = '';
+                
+                // Insert after content
+                const editContainer = messageDiv.querySelector('.edit-container');
+                if (editContainer) {
+                    editContainer.before(editedDiv);
+                } else {
+                    contentDiv.after(editedDiv);
+                }
+            }
+        }
+
+        // Cancel edit
+        function cancelEdit(messageId) {
+            const messageDiv = document.querySelector(`[data-message-id="${messageId}"]`);
+            if (messageDiv) {
+                messageDiv.classList.remove('editing');
+            }
+        }
+
+        // ========== END REPLY & EDIT FUNCTIONS ==========
+
+        // Update all messages that reply to an edited message
+        function updateRepliedMessages(originalMessageId, username, newContent) {
+            // Tìm tất cả các tin nhắn có reply_to = originalMessageId
+            const allMessages = document.querySelectorAll('.message');
+            
+            allMessages.forEach(messageDiv => {
+                const replyDiv = messageDiv.querySelector('.replied-message');
+                if (replyDiv) {
+                    // Kiểm tra xem reply này có phải reply đến tin nhắn vừa được chỉnh sửa không
+                    const replyToId = messageDiv.getAttribute('data-reply-to');
+                    
+                    if (replyToId && replyToId === originalMessageId.toString()) {
+                        // Cập nhật nội dung reply preview
+                        const replyContent = replyDiv.querySelector('.replied-content');
+                        if (replyContent) {
+                            replyContent.textContent = newContent;
+                        }
+                    }
+                }
+            });
+        }
+
         // Initialize on page load
         window.addEventListener('DOMContentLoaded', () => {
             // Check for URL parameter login first
             checkAutoLogin();
-            
+
             // If not URL login, check localStorage
             if (!isLockedMode) {
                 const savedUser = localStorage.getItem('currentUser');
                 const savedIsAdmin = localStorage.getItem('isAdmin');
-                
+
                 if (savedUser) {
                     const user = JSON.parse(savedUser);
                     document.getElementById('usernameInput').value = user.username;
-                    
+
                     // Trigger input event to show admin fields if needed
                     if (savedIsAdmin === 'true') {
                         document.getElementById('usernameInput').dispatchEvent(new Event('input'));
@@ -4288,4 +4982,5 @@
         });
     </script>
 </body>
+
 </html>
