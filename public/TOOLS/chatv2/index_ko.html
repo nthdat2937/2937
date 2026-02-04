@@ -2579,7 +2579,7 @@
                             .maybeSingle();
 
                         if (kickData) {
-                            showError(`Bạn đã bị kick khỏi chat!\nLý do: ${kickData.reason}`, true);
+                            showError(`채팅방에서 강퇴당하셨습니다!\n이유: ${kickData.reason}`, true);
                             return;
                         }
                     } catch (kickCheckError) {
@@ -2790,7 +2790,7 @@
 
         // Show spam warning dialog
         function showSpamWarning(count) {
-            const warningMsg = `⚠️ CẢNH BÁO SPAM!\n\nBạn đã spam ${count}/${MAX_SPAM_COUNT} lần.\nNếu tiếp tục spam, bạn sẽ bị kick khỏi chat!`;
+            const warningMsg = `⚠️ 스팸 경고!\n\n스팸 메일을 ${count}/${MAX_SPAM_COUNT}번 발송하셨습니다..\n계속해서 스팸 메시지를 보내시면 채팅방에서 강퇴될 것입니다!`;
 
             // Tạo dialog cảnh báo
             const overlay = document.createElement('div');
@@ -2821,12 +2821,12 @@
             dialog.innerHTML = `
                 <div style="font-size: 3rem; margin-bottom: 1rem;">⚠️</div>
                 <div style="font-size: 1.2rem; font-weight: 700; color: var(--warning); margin-bottom: 1rem;">
-                    CẢNH BÁO SPAM!
+                    스팸 경고!
                 </div>
                 <div style="color: var(--text); margin-bottom: 1.5rem; white-space: pre-line;">
-                    Bạn đã spam ${count}/${MAX_SPAM_COUNT} lần.
+                    스팸 메일을 ${count}/${MAX_SPAM_COUNT}번 발송하셨습니다.
                     
-                    Nếu tiếp tục spam, bạn sẽ bị kick khỏi chat!
+                    계속해서 스팸 메시지를 보내시면 채팅방에서 강퇴될 것입니다!
                 </div>
                 <button onclick="this.parentElement.parentElement.remove()" style="
                     background: var(--warning);
@@ -2837,7 +2837,7 @@
                     cursor: pointer;
                     font-family: 'Space Mono', monospace;
                 ">
-                    TÔI ĐÃ HIỂU
+                    이해합니다
                 </button>
             `;
 
@@ -2887,10 +2887,10 @@
             overlay.innerHTML = `
                 <div class="kick-message">
                     <div class="kick-icon">🚫</div>
-                    <h2>BẠN ĐÃ BỊ KICK</h2>
-                    <p>Lý do: ${reason}</p>
+                    <h2>당신은 발로 차였습니다</h2>
+                    <p>이유: ${reason}</p>
                     <p style="margin-top: 1rem; color: var(--text-dim); font-size: 0.9rem;">
-                        Trang sẽ tự động tải lại sau 3 giây...
+                        페이지는 3초 후에 자동으로 새로고침됩니다...
                     </p>
                 </div>
             `;
@@ -4280,20 +4280,20 @@
             const popup = document.createElement('div');
             popup.className = 'kick-popup';
             popup.innerHTML = `
-                <h2><i class="fas fa-exclamation-triangle"></i> BẠN ĐÃ BỊ KICK!</h2>
+                <h2><i class="fas fa-exclamation-triangle"></i> 너는 발로 차였어!</h2>
                 <div class="kick-info">
-                    <strong>Bị kick bởi:</strong> ${escapeHtml(kickedBy)}
+                    <strong>발로 차였다:</strong> ${escapeHtml(kickedBy)}
                 </div>
                 <div class="kick-reason">
-                    <strong>Lý do:</strong><br>
+                    <strong>이유:</strong><br>
                     ${escapeHtml(reason)}
                 </div>
                 <div class="kick-action" style="margin-top: 2rem; text-align: center;">
                     <p style="color: var(--warning); margin-bottom: 1rem;">
-                        <i class="fas fa-info-circle"></i> Bạn cần đăng xuất để tiếp tục sử dụng
+                        <i class="fas fa-info-circle"></i> 계속 사용하려면 로그아웃해야 합니다.
                     </p>
                     <button onclick="handleLogout()" style="width: auto; padding: 1rem 2rem; margin: 0 auto; display: inline-block; background: var(--danger); border-color: var(--danger);">
-                        <span><i class="fas fa-sign-out-alt"></i> Đăng xuất ngay</span>
+                        <span><i class="fas fa-sign-out-alt"></i> 로그아웃</span>
                     </button>
                 </div>
             `;
