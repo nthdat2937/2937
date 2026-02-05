@@ -1137,7 +1137,15 @@ document.getElementById('editHasAlbum').addEventListener('change', function() {
 });
 
 async function audioVisual() {
-  const songName = document.getElementById("dTitle").textContent
+  function normalizeString(input) {
+    return input
+      .normalize("NFD")                 // tách dấu tiếng Việt
+      .replace(/[\u0300-\u036f]/g, "")  // xoá dấu
+      .replace(/[^a-zA-Z0-9]/g, "")     // xoá ký tự đặc biệt, khoảng trắng
+      .toLowerCase();                   // chuyển về chữ thường
+  }
+
+  const songName = normalizeString(document.getElementById("dTitle").textContent)
 
   window.open(`https://2937.vercel.app/TOOLS/music/index.html?data=${songName}`)
 }
