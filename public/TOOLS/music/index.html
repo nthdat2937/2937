@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <link rel="stylesheet" href="reset.css">
+  <link rel="stylesheet" href="index.css">
+  <link rel="stylesheet" href="widget.css">
+  <link rel="stylesheet" href="setting.css">
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600&display=swap" rel="stylesheet">
+  <!-- Google Material Icons -->
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <title>Trình Phát Nhạc</title>
+</head>
+<body>
+  <div class="container-wrap">
+    <div id="bg" class="bg">
+      <video id="bg-video" autoplay muted loop>
+        <source src="./video/background.mp4" type="video/mp4">
+      </video>
+      <div class="light-effect">
+        <div class="light"></div>
+        <div class="light"></div>
+        <div class="light"></div>
+        <div class="light"></div>
+      </div>
+    </div>
+    <div class="card-wrap">
+      <header class="card-header">
+        <div class="card-header--title">
+          <i class="iconfont icon-music"></i>
+          <span id="song-title">Trình phát nhạc</span>
+        </div>
+        <div class="card-header--options">
+          <i id="setting-menu" class="iconfont icon-menu--fill" style="display: none;"></i>
+        </div>
+      </header>
+      <main class="card-body">
+        <canvas id="music-canvas"></canvas>
+        <div class="lrc-box">
+          <section id="music-lrc"></section>
+        </div>
+      </main>
+      
+      <!-- Player Controls ở dưới -->
+      <footer class="player-controls">
+        <div class="player-top">
+          <div id="info-cover"></div>
+          <div class="player-info">
+            <div class="progress-bar" id="music-progress">
+              <div class="progress-current"></div>
+              <div class="progress-handle"></div>
+            </div>
+            <div class="time-display">
+              <span class="time-widget">
+                <span id="time-minute">00</span>:<span id="time-second">00</span>
+              </span>
+            </div>
+          </div>
+          <div class="volume-widget">
+            <div class="volume-icon" id="volumeIcon">
+              <span class="material-icons" id="volumeIconMaterial">volume_up</span>
+            </div>
+            <div class="volume-slider">
+              <input type="range" id="volumeSlider" min="0" max="100" value="100">
+            </div>
+          </div>
+        </div>
+        
+        <div class="control-widget">
+          <div class="control-btn" id="prevBtn">
+            <i class="iconfont icon-play-previous"></i>
+          </div>
+          <div class="control-btn animation" id="playBtn">
+            <i class="iconfont icon-play1"></i>
+          </div>
+          <div class="control-btn" id="nextBtn">
+            <i class="iconfont icon-play-next"></i>
+          </div>
+        </div>
+      </footer>
+    </div>
+  </div>
+  
+  <script src="DomVisual.js"></script>
+  <script src="AudioVisual.js"></script>
+  <script src="index.js"></script>
+</body>
+</html>
