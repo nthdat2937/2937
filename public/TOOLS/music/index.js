@@ -29,12 +29,19 @@ window.onload = function () {
       cover: "image/enjoycaimomentnay.png",
       lrc: "lyric/enjoycaimomentnay.lrc"
     },
+    {
+      id: "144",
+      title: "144 - Wren Evans",
+      url: "nhac/144.mp3",
+      cover: "image/144.png",
+      lrc: "lyric/144.lrc"
+    },
     // {
-      // id: "",
+      // id: "*",
       // title: "",
-      // url: "nhac/.mp3",
-      // cover: "image/.png",
-      // lrc: "lyric/.lrc"
+      // url: "nhac/*.mp3",
+      // cover: "image/*.png",
+      // lrc: "lyric/*.lrc"
     // },
     // Thêm các bài hát khác ở đây với id tương ứng
   ];

@@ -1135,3 +1135,9 @@ document.getElementById('editHasAlbum').addEventListener('change', function() {
     document.getElementById('error-editAlbum').textContent = '';
   }
 });
+
+async function audioVisual() {
+  const songName = document.getElementById("dTitle").textContent
+
+  window.open(`https://2937.vercel.app/TOOLS/music/index.html?data=`)
+}
