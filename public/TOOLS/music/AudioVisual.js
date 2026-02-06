@@ -352,4 +352,96 @@ class AudioVisual {
     }
     requestAnimationFrame(this.refreshUI.bind(this))
   }
+
+  // Thêm phương thức seek để tua nhạc
+  seek(seconds) {
+    const audioElement = document.getElementById('audio-fallback');
+    
+    if (audioElement && this.mediaSource) {
+      // Sử dụng Audio element - đơn giản hơn nhiều
+      const newTime = Math.max(0, Math.min(audioElement.currentTime + seconds, audioElement.duration));
+      audioElement.currentTime = newTime;
+    } else if (this.source && this.source.buffer && this.started) {
+      // Với AudioBufferSourceNode, cần xử lý cẩn thận
+      const currentTime = this.ac.currentTime - this.startTime;
+      const duration = this.source.buffer.duration;
+      const newTime = Math.max(0, Math.min(currentTime + seconds, duration));
+      
+      // Lưu trạng thái
+      const wasPlaying = this.ac.state === 'running';
+      const oldBuffer = this.source.buffer;
+      
+      // Dừng source cũ
+      try {
+        this.source.onended = null; // Xóa event handler cũ
+        this.source.stop();
+      } catch(e) {
+        console.log('Source đã dừng rồi');
+      }
+      
+      // Tạo source mới
+      this.source = this.ac.createBufferSource();
+      this.source.buffer = oldBuffer;
+      this.source.connect(this.analyser);
+      
+      // Set lại thời gian bắt đầu
+      this.startTime = this.ac.currentTime - newTime;
+      
+      // Đăng ký lại event onended
+      this.source.onended = () => {
+        if (this.onended) this.onended();
+      };
+      
+      // Start từ vị trí mới
+      try {
+        this.source.start(0, newTime);
+        
+        // Nếu đang pause thì suspend lại
+        if (!wasPlaying) {
+          this.ac.suspend();
+        }
+      } catch(e) {
+        console.error('Lỗi khi start source:', e);
+      }
+    }
+  }
+  
+  // Thêm phương thức điều chỉnh âm lượng
+  changeVolume(direction) {
+    const volumeSlider = document.getElementById('volumeSlider');
+    if (!volumeSlider) return;
+    
+    const currentVolume = parseInt(volumeSlider.value);
+    let newVolume;
+    
+    if (direction === 'up') {
+      newVolume = Math.min(100, currentVolume + 10); // Tăng 10%
+    } else {
+      newVolume = Math.max(0, currentVolume - 10); // Giảm 10%
+    }
+    
+    volumeSlider.value = newVolume;
+    
+    // Cập nhật âm lượng thực tế
+    this.gainNode.gain.value = newVolume / 100;
+    localStorage.setItem('musicVolume', (newVolume / 100).toString());
+    
+    // Cập nhật icon
+    const volumeIcon = document.getElementById('volumeIconMaterial');
+    if (volumeIcon) {
+      if (newVolume === 0) {
+        volumeIcon.textContent = 'volume_off';
+      } else if (newVolume < 50) {
+        volumeIcon.textContent = 'volume_down';
+      } else {
+        volumeIcon.textContent = 'volume_up';
+      }
+    }
+    
+    // Cập nhật cho audio element nếu đang dùng
+    const audioElement = document.getElementById('audio-fallback');
+    if (audioElement) {
+      audioElement.volume = newVolume / 100;
+    }
+  }
 }
