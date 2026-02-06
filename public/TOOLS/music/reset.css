@@ -245,7 +245,7 @@ i, em, dfn {
 
 /* Thêm biểu tượng tạm dừng đúng kiểu */
 .icon-pause:before {
-  content: "⏸";
-  font-family: Arial, sans-serif;
+  content: "\e034";
+  font-family: 'Material Icons';
   font-style: normal;
 }
