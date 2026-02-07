@@ -197,7 +197,7 @@
   align-items: center;
   justify-content: center;
   position: absolute;
-  width: 100px;
+  width: 150px;
   height: 60px;
   top: calc(25% + 60px);
   left: 20px;
@@ -231,18 +231,8 @@
   flex: 1;
 }
 
-.control-widget {
-  position: absolute;
-  top:5%;
-  right: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: space-evenly;
-  border-radius: 16px;
-  padding: 10px 20px;
-  transition: transform 0.3s ease;
-}
 
+/* Style .control-widget đã được định nghĩa trong index.css */
 
 .control-widget .control-btn {
   height: 50px;
@@ -325,6 +315,55 @@
 /* Căn chỉnh biểu tượng tạm dừng */
 .control-widget .control-btn i.icon-pause {
   font-size: 32px;
+}
+
+/* Style cho nút loop */
+.control-widget .control-btn#loopBtn {
+  position: relative;
+}
+
+.control-widget .control-btn#loopBtn .material-icons {
+  font-size: 28px;
+  color: rgba(255, 255, 255, 0.5);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+}
+
+/* Loop tất cả - màu trắng */
+.control-widget .control-btn#loopBtn.loop-all .material-icons {
+  color: var(--theme-color);
+}
+
+/* Loop 1 bài - màu trắng + số 1 */
+.control-widget .control-btn#loopBtn.loop-one .material-icons {
+  color: var(--theme-color);
+}
+
+.control-widget .control-btn#loopBtn.loop-one::after {
+  content: "1";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 14px;
+  font-weight: bold;
+  color: var(--theme-color);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  z-index: 3;
+  pointer-events: none;
+}
+
+/* Style cho nút shuffle */
+.control-widget .control-btn#shuffleBtn .material-icons {
+  font-size: 28px;
+  color: rgba(255, 255, 255, 0.5);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+}
+
+/* Shuffle bật - màu trắng sáng */
+.control-widget .control-btn#shuffleBtn.active .material-icons {
+  color: var(--theme-color);
 }
 
 .control-widget .control-btn.animation {

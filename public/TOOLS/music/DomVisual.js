@@ -6,6 +6,10 @@ class DomVisual {
 
     // Cache lời bài hát
     this.lyricsCache = {}
+    
+    // Tracking request hiện tại để hủy khi cần
+    this.currentLyricsUrl = null
+    this.isLoadingLyrics = false
 
     this.domTextSelector = [
       '#song-title',
@@ -50,6 +54,7 @@ class DomVisual {
     this.lrcIndex = 0
     this.lrcRowH = 30
     this.lastVolume = 1 // Lưu volume trước khi mute
+    this.dominantColor = null // Màu chủ đạo của ảnh bìa
     this.findDom('domTextSelector', 'domTextMap')
     this.findDom('domControlSelector', 'domControlMap')
     this.findDom('domContainerSelector', 'domContainerMap')
@@ -58,6 +63,161 @@ class DomVisual {
     this.loadBG()
     this.initEvents()
     this.initVolume()
+  }
+  
+  // Phân tích màu chủ đạo từ ảnh
+  extractDominantColor(imageUrl) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.crossOrigin = 'Anonymous';
+      
+      img.onload = () => {
+        try {
+          // Tạo canvas để phân tích ảnh
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          
+          // Resize ảnh xuống nhỏ để tăng tốc xử lý
+          const size = 50;
+          canvas.width = size;
+          canvas.height = size;
+          
+          ctx.drawImage(img, 0, 0, size, size);
+          const imageData = ctx.getImageData(0, 0, size, size);
+          const data = imageData.data;
+          
+          // Đếm tần suất xuất hiện của các màu
+          const colorMap = {};
+          
+          for (let i = 0; i < data.length; i += 4) {
+            const r = data[i];
+            const g = data[i + 1];
+            const b = data[i + 2];
+            const a = data[i + 3];
+            
+            // Bỏ qua pixel trong suốt hoặc quá tối/sáng
+            if (a < 125 || (r > 240 && g > 240 && b > 240) || (r < 15 && g < 15 && b < 15)) {
+              continue;
+            }
+            
+            // Làm tròn màu để giảm số lượng màu (quantization)
+            const roundedR = Math.round(r / 10) * 10;
+            const roundedG = Math.round(g / 10) * 10;
+            const roundedB = Math.round(b / 10) * 10;
+            
+            const key = `${roundedR},${roundedG},${roundedB}`;
+            colorMap[key] = (colorMap[key] || 0) + 1;
+          }
+          
+          // Tìm màu xuất hiện nhiều nhất
+          let maxCount = 0;
+          let dominantColor = { r: 255, g: 255, b: 255 };
+          
+          for (const [color, count] of Object.entries(colorMap)) {
+            if (count > maxCount) {
+              maxCount = count;
+              const [r, g, b] = color.split(',').map(Number);
+              dominantColor = { r, g, b };
+            }
+          }
+          
+          // Tăng độ bão hòa một chút để màu đẹp hơn
+          const hsl = this.rgbToHsl(dominantColor.r, dominantColor.g, dominantColor.b);
+          hsl.s = Math.min(hsl.s * 1.3, 1); // Tăng saturation 30%
+          hsl.l = Math.max(0.4, Math.min(0.7, hsl.l)); // Điều chỉnh lightness
+          
+          const rgb = this.hslToRgb(hsl.h, hsl.s, hsl.l);
+          
+          resolve({
+            r: Math.round(rgb.r),
+            g: Math.round(rgb.g),
+            b: Math.round(rgb.b)
+          });
+        } catch (error) {
+          console.error('Lỗi khi phân tích màu:', error);
+          // Màu mặc định nếu lỗi
+          resolve({ r: 255, g: 255, b: 255 });
+        }
+      };
+      
+      img.onerror = () => {
+        console.error('Không thể tải ảnh:', imageUrl);
+        resolve({ r: 255, g: 255, b: 255 });
+      };
+      
+      img.src = imageUrl;
+    });
+  }
+  
+  // Chuyển RGB sang HSL
+  rgbToHsl(r, g, b) {
+    r /= 255;
+    g /= 255;
+    b /= 255;
+    
+    const max = Math.max(r, g, b);
+    const min = Math.min(r, g, b);
+    let h, s, l = (max + min) / 2;
+    
+    if (max === min) {
+      h = s = 0;
+    } else {
+      const d = max - min;
+      s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+      
+      switch (max) {
+        case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
+        case g: h = ((b - r) / d + 2) / 6; break;
+        case b: h = ((r - g) / d + 4) / 6; break;
+      }
+    }
+    
+    return { h, s, l };
+  }
+  
+  // Chuyển HSL sang RGB
+  hslToRgb(h, s, l) {
+    let r, g, b;
+    
+    if (s === 0) {
+      r = g = b = l;
+    } else {
+      const hue2rgb = (p, q, t) => {
+        if (t < 0) t += 1;
+        if (t > 1) t -= 1;
+        if (t < 1/6) return p + (q - p) * 6 * t;
+        if (t < 1/2) return q;
+        if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+        return p;
+      };
+      
+      const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+      const p = 2 * l - q;
+      
+      r = hue2rgb(p, q, h + 1/3);
+      g = hue2rgb(p, q, h);
+      b = hue2rgb(p, q, h - 1/3);
+    }
+    
+    return {
+      r: r * 255,
+      g: g * 255,
+      b: b * 255
+    };
+  }
+  
+  // Cập nhật màu theme
+  updateThemeColor(color) {
+    this.dominantColor = color;
+    
+    // Chỉ cập nhật màu cho AudioVisual (visualizer)
+    // KHÔNG cập nhật --theme-color để giữ màu trắng cho các phần còn lại
+    if (window.av) {
+      window.av.setColor(color);
+    }
+    
+    const colorStr = `rgb(${color.r}, ${color.g}, ${color.b})`;
+    console.log('Màu chủ đạo cho visualizer:', colorStr);
   }
 
   removePlayAnimation (dom) {
@@ -87,9 +247,16 @@ class DomVisual {
       } else {
         this.setDomText('#info-duration', durationFormat)
         this.setDomText('#info-current-time', currentTimeFormat)
-        let remainTime = parseInt(duration - currentTime)
-        this.setDomText('#time-minute', this.add0(Math.max(Math.floor(remainTime / 60), 0)))
-        this.setDomText('#time-second', this.add0(Math.max(remainTime % 60, 0)))
+        
+        // Tính thời gian hiện tại và tổng thời gian
+        let currentMinute = Math.floor(currentTime / 60)
+        let currentSecond = Math.floor(currentTime % 60)
+        let totalMinute = Math.floor(duration / 60)
+        let totalSecond = Math.floor(duration % 60)
+        
+        // Hiển thị theo định dạng mm:ss/mm:ss
+        this.setDomText('#time-minute', `${this.add0(currentMinute)}:${this.add0(currentSecond)}`)
+        this.setDomText('#time-second', `${this.add0(totalMinute)}:${this.add0(totalSecond)}`)
         
         // Cập nhật thanh tiến trình
         const progressPercent = (currentTime / duration);
@@ -148,6 +315,8 @@ class DomVisual {
   }
 
   initSongInfo ({ title, cover }) {
+    // Reset trạng thái lyrics khi chuyển bài
+    this.isLoadingLyrics = false
     this.lrcList = []
     this.lrcIndex = 0
     this.setDomText('#song-title', title)
@@ -165,6 +334,11 @@ class DomVisual {
     
     // Set avatar nhỏ bên trái (GIỮ NGUYÊN)
     this.getContainerDom('#info-cover').style = `background-image: url(${cover});`;
+    
+    // Phân tích màu chủ đạo từ ảnh bìa
+    this.extractDominantColor(cover).then(color => {
+      this.updateThemeColor(color);
+    });
   }
 
   loadBG () {
@@ -173,10 +347,17 @@ class DomVisual {
   }
 
   async loadData (url) {
+    // Đánh dấu URL mới đang tải
+    const requestUrl = url;
+    this.currentLyricsUrl = requestUrl;
+    
     if (!url) {
       console.log('Không có URL cho file lời bài hát');
-      this.lrcList = [[0, 'Đang phát file nhạc local, không có lời bài hát']];
-      this.initLrcDom();
+      // Chỉ cập nhật nếu đây vẫn là request hiện tại
+      if (this.currentLyricsUrl === requestUrl) {
+        this.lrcList = [[0, 'Đang phát file nhạc local, không có lời bài hát']];
+        this.initLrcDom();
+      }
       return;
     }
     
@@ -185,10 +366,16 @@ class DomVisual {
     // Kiểm tra cache trước
     if (this.lyricsCache[url]) {
       console.log('Sử dụng lời bài hát từ cache');
-      this.lrcList = this.lyricsCache[url];
-      this.initLrcDom();
+      // Chỉ cập nhật nếu đây vẫn là request hiện tại
+      if (this.currentLyricsUrl === requestUrl) {
+        this.lrcList = this.lyricsCache[url];
+        this.initLrcDom();
+      }
       return;
     }
+    
+    // Đánh dấu đang tải
+    this.isLoadingLyrics = true;
     
     // Fix đường dẫn nếu cần thiết
     let fixedUrl = url;
@@ -337,6 +524,14 @@ class DomVisual {
       list.sort((a, b) => a[0] - b[0]);
       
       console.log('Số dòng lời bài hát đã tải:', list.length);
+      
+      // QUAN TRỌNG: Chỉ cập nhật nếu đây vẫn là request hiện tại
+      if (this.currentLyricsUrl !== requestUrl) {
+        console.log('Request lyrics đã bị hủy, bỏ qua kết quả này');
+        this.isLoadingLyrics = false;
+        return;
+      }
+      
       this.lrcList = list;
       
       // Lưu vào cache
@@ -345,11 +540,17 @@ class DomVisual {
         this.lyricsCache[url] = list;
       }
       
+      this.isLoadingLyrics = false;
       this.initLrcDom();
     } catch (error) {
       console.error('Lỗi tổng thể khi tải lời bài hát:', error);
-      this.lrcList = [[0, 'Không thể tải lời bài hát']];
-      this.initLrcDom();
+      
+      // Chỉ cập nhật nếu đây vẫn là request hiện tại
+      if (this.currentLyricsUrl === requestUrl) {
+        this.lrcList = [[0, 'Không thể tải lời bài hát']];
+        this.isLoadingLyrics = false;
+        this.initLrcDom();
+      }
     }
   }
 
@@ -387,9 +588,10 @@ class DomVisual {
 
   nextLrcTime () {
     const { lrcIndex, lrcList } = this
-    let end = lrcList.length - 1
+    let end = lrcList.length
     let nextIndex = lrcIndex + 1
-    if (nextIndex >= end || end < 0 ) return null
+    // Cho phép chuyển đến dòng cuối cùng
+    if (nextIndex >= end || end <= 0) return null
     
     // Trả về thời gian của dòng lời tiếp theo
     return lrcList[nextIndex][0]
@@ -397,7 +599,11 @@ class DomVisual {
 
   nextLrc () {
     const { lrcIndex, lrcList } = this
-    if (lrcIndex >= lrcList.length - 1) return
+    // Cho phép chuyển đến dòng cuối cùng
+    if (lrcIndex >= lrcList.length - 1) {
+      console.log('Đã đến dòng lời cuối cùng');
+      return;
+    }
     
     console.log('Đang chuyển sang dòng lời tiếp theo:', lrcIndex + 1);
     
@@ -578,8 +784,8 @@ class DomVisual {
   updateLyrics(currentTime) {
     const { lrcIndex, lrcList } = this;
     
-    // Nếu không có lời hoặc đã đến cuối
-    if (!lrcList || lrcList.length === 0 || lrcIndex >= lrcList.length - 1) {
+    // Nếu không có lời
+    if (!lrcList || lrcList.length === 0) {
       return;
     }
     
@@ -600,6 +806,11 @@ class DomVisual {
           foundIndex = i;
           break;
         }
+      }
+      
+      // Kiểm tra dòng cuối cùng
+      if (foundIndex === 0 && currentTime >= lrcList[lrcList.length - 1][0]) {
+        foundIndex = lrcList.length - 1;
       }
       
       // Nếu cần phải cập nhật lại dòng lời

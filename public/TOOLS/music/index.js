@@ -10,7 +10,7 @@ window.onload = function () {
     },
     {
       id: "exitsign", // Thêm id cho bài Exit Sign
-      title: "Exit Sign",
+      title: "Exit Sign - HIEUTHUHAI",
       url: "nhac/exitsign.mp3",
       cover: "image/exitsign.png",
       lrc: "lyric/exitsign.lrc"
@@ -56,6 +56,20 @@ window.onload = function () {
       url: "nhac/하루하루.mp3",
       cover: "image/하루하루.png",
       lrc: "lyric/하루하루.lrc"
+    },
+    {
+      id: "vuatimthaydadanhmat",
+      title: "Vừa Tìm Thấy Đã Đánh Mất - Wren Evans",
+      url: "nhac/vuatimthaydadanhmat.mp3",
+      cover: "image/vuatimthaydadanhmat.png",
+      lrc: "lyric/vuatimthaydadanhmat.lrc"
+    },
+    {
+      id: "anhlathangtoi",
+      title: "Anh Là Thằng Tồi - Phùng Khánh Linh",
+      url: "nhac/anhlathangtoi.mp3",
+      cover: "image/anhlathangtoi.png",
+      lrc: "lyric/anhlathangtoi.lrc"
     },
     // {
       // id: "*",
@@ -104,7 +118,24 @@ window.onload = function () {
   
   // Khởi tạo Audio
   av = new AudioVisual();
-  av.onended = playNext;
+  
+  // Biến quản lý chế độ lặp: 'none', 'all', 'one'
+  let loopMode = localStorage.getItem('loopMode') || 'none';
+  
+  // Biến quản lý chế độ shuffle
+  let shuffleMode = localStorage.getItem('shuffleMode') === 'true';
+  let playHistory = []; // Lịch sử các bài đã phát khi shuffle
+  
+  // Hàm xử lý khi bài hát kết thúc
+  av.onended = function() {
+    if (loopMode === 'one') {
+      // Lặp lại bài hiện tại
+      av.play(PLAY_LIST[i]);
+    } else {
+      // Chuyển bài tiếp theo (hoặc lặp lại danh sách nếu loopMode = 'all')
+      playNext();
+    }
+  };
 
   // Đăng ký sự kiện
   eventBus.on('play', () => {
@@ -132,16 +163,65 @@ window.onload = function () {
 
   // Phát bài trước
   function playPrev() {
-    i -= 1;
-    if (i < 0) i = PLAY_LIST.length - 1;
+    if (shuffleMode && playHistory.length > 0) {
+      // Nếu đang shuffle và có lịch sử, phát bài trước đó
+      i = playHistory.pop();
+    } else {
+      // Phát tuần tự bình thường
+      i -= 1;
+      if (i < 0) i = PLAY_LIST.length - 1;
+    }
     av.play(PLAY_LIST[i]);
     updatePlaylistActive();
   }
 
   // Phát bài tiếp theo
   function playNext() {
-    i += 1;
-    if (i >= PLAY_LIST.length) i = 0;
+    if (shuffleMode) {
+      // Chế độ shuffle
+      playHistory.push(i); // Lưu bài hiện tại vào lịch sử
+      
+      // Tạo danh sách bài chưa phát
+      let availableSongs = [];
+      for (let idx = 0; idx < PLAY_LIST.length; idx++) {
+        if (idx !== i) {
+          availableSongs.push(idx);
+        }
+      }
+      
+      // Nếu đã phát hết tất cả bài
+      if (availableSongs.length === 0) {
+        if (loopMode === 'all') {
+          // Reset lịch sử và chọn ngẫu nhiên
+          playHistory = [];
+          i = Math.floor(Math.random() * PLAY_LIST.length);
+        } else if (loopMode === 'none') {
+          // Dừng phát
+          i = 0;
+          av.stop();
+          return;
+        }
+      } else {
+        // Chọn ngẫu nhiên từ danh sách chưa phát
+        const randomIndex = Math.floor(Math.random() * availableSongs.length);
+        i = availableSongs[randomIndex];
+      }
+    } else {
+      // Chế độ phát tuần tự bình thường
+      i += 1;
+      if (i >= PLAY_LIST.length) {
+        if (loopMode === 'all') {
+          i = 0; // Lặp lại từ đầu
+        } else if (loopMode === 'none') {
+          i = 0; // Về đầu nhưng không tự động phát
+          av.stop();
+          return;
+        } else {
+          i = 0;
+        }
+      }
+    }
+    
     av.play(PLAY_LIST[i]);
     updatePlaylistActive();
   }
@@ -158,6 +238,80 @@ window.onload = function () {
     playlistToggle.classList.toggle('active');
     // Toggle class cho card-wrap để thu nhỏ
     cardWrap.classList.toggle('playlist-open');
+  });
+  
+  // Xử lý nút loop
+  const loopBtn = document.getElementById('loopBtn');
+  
+  // Hàm cập nhật UI của nút loop
+  function updateLoopButton() {
+    loopBtn.classList.remove('loop-all', 'loop-one');
+    
+    if (loopMode === 'all') {
+      loopBtn.classList.add('loop-all');
+      loopBtn.title = 'Lặp lại tất cả';
+    } else if (loopMode === 'one') {
+      loopBtn.classList.add('loop-one');
+      loopBtn.title = 'Lặp lại một bài';
+    } else {
+      loopBtn.title = 'Không lặp lại';
+    }
+  }
+  
+  // Khởi tạo UI nút loop
+  updateLoopButton();
+  
+  // Xử lý click nút loop
+  loopBtn.addEventListener('click', () => {
+    // Chuyển đổi giữa 3 chế độ: none -> all -> one -> none
+    if (loopMode === 'none') {
+      loopMode = 'all';
+    } else if (loopMode === 'all') {
+      loopMode = 'one';
+    } else {
+      loopMode = 'none';
+    }
+    
+    // Lưu vào localStorage
+    localStorage.setItem('loopMode', loopMode);
+    
+    // Cập nhật UI
+    updateLoopButton();
+    
+    console.log('Chế độ lặp:', loopMode);
+  });
+  
+  // Xử lý nút shuffle
+  const shuffleBtn = document.getElementById('shuffleBtn');
+  
+  // Hàm cập nhật UI của nút shuffle
+  function updateShuffleButton() {
+    if (shuffleMode) {
+      shuffleBtn.classList.add('active');
+      shuffleBtn.title = 'Tắt phát ngẫu nhiên';
+    } else {
+      shuffleBtn.classList.remove('active');
+      shuffleBtn.title = 'Bật phát ngẫu nhiên';
+    }
+  }
+  
+  // Khởi tạo UI nút shuffle
+  updateShuffleButton();
+  
+  // Xử lý click nút shuffle
+  shuffleBtn.addEventListener('click', () => {
+    shuffleMode = !shuffleMode;
+    
+    // Lưu vào localStorage
+    localStorage.setItem('shuffleMode', shuffleMode);
+    
+    // Reset lịch sử khi bật/tắt shuffle
+    playHistory = [];
+    
+    // Cập nhật UI
+    updateShuffleButton();
+    
+    console.log('Chế độ shuffle:', shuffleMode);
   });
   
   // Tạo danh sách phát
@@ -225,8 +379,12 @@ window.onload = function () {
   document.body.appendChild(audioFallback);
   
   audioFallback.addEventListener('error', function(e) {
-    console.error('Lỗi phát nhạc:', e);
-    alert('Không thể phát file nhạc. Vui lòng đảm bảo các file nhạc đã được đặt vào thư mục nhac/.');
+    // Chỉ hiện lỗi nếu audio element có src (đang cố tải file)
+    // Không hiện lỗi khi src bị xóa (đang dọn dẹp)
+    if (audioFallback.src && audioFallback.src !== '' && audioFallback.src !== window.location.href) {
+      console.error('Lỗi phát nhạc:', e);
+      alert('Không thể phát file nhạc. Vui lòng đảm bảo các file nhạc đã được đặt vào thư mục nhac/.');
+    }
   });
 
   // Thêm điều khiển bằng phím tắt
