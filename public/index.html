@@ -1,2678 +1,1903 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ntd2937 Marketplace</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>ntdWeb</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* ========== CSS VARIABLES - DARK THEME ========== */
-        :root {
-            --bg-primary: #030014;
-            --bg-secondary: #0a0a1a;
-            --bg-card: rgba(17, 17, 39, 0.7);
-            --bg-overlay: rgba(0, 0, 0, 0.8);
-            --accent-primary: #6366f1;
-            --accent-secondary: #8b5cf6;
-            --accent-success: #10b981;
-            --accent-warning: #f59e0b;
-            --accent-pink: #ec4899;
-            --accent-cyan: #06b6d4;
-            --glow-primary: rgba(99, 102, 241, 0.5);
-            --glow-secondary: rgba(139, 92, 246, 0.5);
-            --text-primary: #f1f5f9;
-            --text-secondary: #94a3b8;
-            --text-muted: #64748b;
-            --border-color: rgba(255, 255, 255, 0.06);
-            --glass-bg: rgba(255, 255, 255, 0.02);
-            --glass-border: rgba(255, 255, 255, 0.08);
-            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
-            --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
-            --shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.5);
-            --radius-sm: 8px;
-            --radius-md: 12px;
-            --radius-lg: 16px;
-            --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        /* ========== RESET ========== */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-        }
-
-        html {
-            scroll-behavior: smooth;
+            user-select: none;
+            -webkit-user-select: none;
         }
 
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: var(--bg-primary);
-            color: var(--text-primary);
-            line-height: 1.6;
-            overflow-x: hidden;
-            min-height: 100vh;
-        }
-
-        /* Background gradient effect */
-        body::before {
-            content: '';
-            position: fixed;
-            inset: 0;
-            background: 
-                radial-gradient(ellipse 80% 50% at 20% -20%, rgba(99, 102, 241, 0.25), transparent),
-                radial-gradient(ellipse 60% 40% at 80% 0%, rgba(139, 92, 246, 0.2), transparent),
-                radial-gradient(ellipse 50% 30% at 10% 60%, rgba(236, 72, 153, 0.15), transparent);
-            pointer-events: none;
-            z-index: -1;
-        }
-
-        ::selection {
-            background: var(--accent-primary);
-            color: white;
-        }
-
-        ::-webkit-scrollbar {
-            width: 10px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: var(--bg-primary);
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: linear-gradient(180deg, var(--accent-primary), var(--accent-secondary));
-            border-radius: 10px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: var(--accent-secondary);
-        }
-
-        /* ========== HEADER ========== */
-        .header {
-            background: rgba(3, 0, 20, 0.8);
-            backdrop-filter: blur(20px);
-            border-bottom: 1px solid var(--glass-border);
-            padding: 16px 40px;
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-            box-shadow: var(--shadow-sm);
-        }
-
-        .header-content {
-            max-width: 1600px;
-            margin: 0 auto;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 40px;
-        }
-
-        .header-left {
-            display: flex;
-            align-items: center;
-            gap: 30px;
-        }
-
-        .logo {
-            font-size: 24px;
-            font-weight: 800;
-            letter-spacing: -1px;
-            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary), var(--accent-pink));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 6px 18px;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: all 0.4s;
-            position: relative;
-        }
-
-        .logo::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            border-radius: 12px;
-            padding: 2px;
-            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary), var(--accent-pink));
-            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-            -webkit-mask-composite: xor;
-            mask-composite: exclude;
-            opacity: 0.8;
-        }
-
-        .logo:hover {
-            transform: scale(1.05);
-            filter: drop-shadow(0 0 30px var(--glow-primary));
-        }
-
-        .nav-tabs {
-            display: flex;
-            gap: 8px;
-        }
-
-        .nav-tab {
-            padding: 8px 20px;
-            background: transparent;
-            border: 1px solid var(--glass-border);
-            border-radius: var(--radius-sm);
-            font-size: 14px;
-            font-weight: 500;
-            color: var(--text-secondary);
-            cursor: pointer;
-            transition: var(--transition);
-        }
-
-        .nav-tab:hover {
-            background: var(--glass-bg);
-            border-color: var(--accent-primary);
-            color: var(--text-primary);
-            box-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
-        }
-
-        .nav-tab.active {
-            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
-            border-color: transparent;
-            color: white;
-            box-shadow: 0 4px 20px rgba(99, 102, 241, 0.4);
-        }
-
-        .search-box {
-            flex: 1;
-            max-width: 500px;
-            position: relative;
-        }
-
-        .search-box input {
-            width: 100%;
-            padding: 14px 40px 14px 24px;
-            border: 1px solid var(--glass-border);
-            border-radius: var(--radius-md);
-            background: var(--glass-bg);
-            backdrop-filter: blur(10px);
-            color: var(--text-primary);
-            font-family: inherit;
-            font-size: 14px;
-            transition: var(--transition);
-        }
-
-        .search-box input::placeholder {
-            color: var(--text-muted);
-        }
-
-        .search-box input:focus {
-            outline: none;
-            border-color: var(--accent-primary);
-            box-shadow: 0 0 30px rgba(99, 102, 241, 0.3);
-        }
-
-        .search-box i {
-            position: absolute;
-            right: 20px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--text-muted);
-            pointer-events: none;
-        }
-
-        /* ========== AUTH BUTTONS ========== */
-        .auth-section {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .auth-btn {
-            padding: 10px 24px;
-            border: 1px solid var(--glass-border);
-            border-radius: var(--radius-md);
-            background: var(--glass-bg);
-            color: var(--text-primary);
-            font-family: inherit;
-            font-size: 14px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: var(--transition);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .auth-btn:hover {
-            background: var(--accent-primary);
-            border-color: var(--accent-primary);
-            box-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
-            transform: translateY(-2px);
-        }
-
-        .auth-btn.primary {
-            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
-            border-color: transparent;
-        }
-
-        .user-info {
-            display: none;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .user-info.active {
-            display: flex;
-        }
-
-        .user-name {
-            font-size: 16px;
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-
-        /* ========== CONTAINER ========== */
-        .container {
-            max-width: 1600px;
-            margin: 0 auto;
-            padding: 60px 40px;
-        }
-
-        /* ========== FILTER SECTION ========== */
-        .filter-section {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 40px;
-            padding: 24px;
-            background: var(--bg-card);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border);
-            border-radius: var(--radius-lg);
-        }
-
-        .filter-buttons {
-            display: flex;
-            gap: 12px;
-        }
-
-        .filter-btn {
-            padding: 12px 28px;
-            border: 1px solid var(--glass-border);
-            border-radius: var(--radius-md);
-            background: var(--glass-bg);
-            color: var(--text-secondary);
-            font-family: inherit;
-            font-size: 14px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: var(--transition);
-        }
-
-        .filter-btn:hover {
-            background: var(--glass-bg);
-            border-color: var(--accent-primary);
-            color: var(--text-primary);
-            box-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
-        }
-
-        .filter-btn.active {
-            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
-            border-color: transparent;
-            color: white;
-            box-shadow: 0 4px 20px rgba(99, 102, 241, 0.4);
-        }
-
-        /* ========== PRODUCTS GRID ========== */
-        .products-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-            gap: 30px;
-            margin-bottom: 60px;
-        }
-
-        .product-card {
-            background: var(--bg-card);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border);
-            border-radius: var(--radius-lg);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             overflow: hidden;
-            transition: var(--transition);
-            cursor: pointer;
+            height: 100vh;
+            width: 100vw;
+            background: url('https://4kwallpapers.com/images/wallpapers/windows-11-dark-mode-blue-stock-official-3840x2160-5630.jpg') no-repeat center center/cover;
+            color: white;
         }
 
-        .product-card:hover {
-            transform: translateY(-10px);
-            border-color: var(--accent-primary);
-            box-shadow: 0 20px 60px rgba(99, 102, 241, 0.3);
-        }
-
-        .product-image {
-            position: relative;
+        /* Desktop Icons */
+        .desktop {
+            height: calc(100vh - 48px);
             width: 100%;
-            height: 240px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            flex-wrap: wrap;
+            align-content: flex-start;
+            gap: 10px;
+        }
+
+        .desktop-icon {
+            width: 86px;
+            height: 100px;
+            border-radius: 4px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: default;
+            transition: background 0.1s;
+            border: 1px solid transparent;
+        }
+
+        .desktop-icon:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .desktop-icon.selected {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .desktop-icon img {
+            width: 48px;
+            height: 48px;
+            margin-bottom: 8px;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+        }
+
+        .desktop-icon span {
+            font-size: 13px;
+            text-align: center;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+            line-height: 1.3;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        /* Taskbar */
+        .taskbar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 48px;
+            background: rgba(32, 32, 32, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            z-index: 1000;
+        }
+
+        .taskbar-center {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 6px;
+            height: 100%;
+            align-items: center;
+        }
+
+        .taskbar-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 4px;
             display: flex;
             align-items: center;
             justify-content: center;
-            overflow: hidden;
-            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.1));
+            transition: all 0.2s;
+            cursor: pointer;
+            position: relative;
         }
 
-        .product-image img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transition: var(--transition);
+        .taskbar-icon:hover {
+            background: rgba(255, 255, 255, 0.1);
         }
 
-        .product-card:hover .product-image img {
+        .taskbar-icon:active {
+            background: rgba(255, 255, 255, 0.15);
+            transform: scale(0.95);
+        }
+
+        .taskbar-icon img {
+            width: 26px;
+            height: 26px;
+            transition: transform 0.3s;
+        }
+
+        .taskbar-icon:hover img {
             transform: scale(1.1);
         }
 
-        .product-badge {
+        /* Running app indicator - thanh dưới icon */
+        .taskbar-icon.running::after {
+            content: '';
             position: absolute;
-            top: 12px;
-            right: 12px;
-            padding: 6px 12px;
-            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
-            border-radius: var(--radius-sm);
-            font-size: 11px;
-            font-weight: 700;
-            text-transform: uppercase;
-            color: white;
-        }
-
-        .product-info {
-            padding: 24px;
-        }
-
-        .product-title {
-            font-size: 18px;
-            font-weight: 700;
-            color: var(--text-primary);
-            margin-bottom: 8px;
-            line-height: 1.4;
-        }
-
-        .product-date {
-            font-size: 13px;
-            color: var(--text-muted);
-            margin-bottom: 16px;
-        }
-
-        .product-pricing {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .price-main {
-            font-size: 20px;
-            font-weight: 700;
-            background: linear-gradient(135deg, var(--accent-primary), var(--accent-pink));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .product-stats {
-            display: flex;
-            gap: 16px;
-            font-size: 13px;
-            color: var(--text-muted);
-        }
-
-        /* ========== PAGINATION ========== */
-        .pagination {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 12px;
-            margin-top: 60px;
-        }
-
-        .page-btn {
-            padding: 12px 20px;
-            border: 1px solid var(--glass-border);
-            border-radius: var(--radius-md);
-            background: var(--glass-bg);
-            color: var(--text-primary);
-            font-family: inherit;
-            font-size: 14px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: var(--transition);
-        }
-
-        .page-btn:hover:not(:disabled) {
-            background: var(--accent-primary);
-            border-color: var(--accent-primary);
-            box-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
-        }
-
-        .page-btn.active {
-            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
-            border-color: transparent;
-            color: white;
-        }
-
-        .page-btn:disabled {
-            opacity: 0.3;
-            cursor: not-allowed;
-        }
-
-        /* ========== DIALOG STYLES ========== */
-        dialog {
-            border: none;
-            border-radius: var(--radius-lg);
-            background: var(--bg-card);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border);
-            padding: 0;
-            max-width: 500px;
-            width: 90%;
-            box-shadow: var(--shadow-lg);
-            position: fixed;
-            top: 50%;
+            bottom: 2px;
             left: 50%;
-            transform: translate(-50%, -50%);
-            margin: 0;
+            transform: translateX(-50%);
+            width: 4px;
+            height: 3px;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 2px;
         }
 
-        dialog::backdrop {
-            background: var(--bg-overlay);
-            backdrop-filter: blur(8px);
+        /* Active app indicator - thanh dưới rộng hơn */
+        .taskbar-icon.active::after {
+            width: 20px;
+            background: #0078d4;
         }
 
-        .dialog-header {
-            padding: 24px;
-            border-bottom: 1px solid var(--glass-border);
+        /* Start Button Animation */
+        .taskbar-icon.start-btn:hover img {
+            filter: brightness(1.1);
+        }
+
+        /* Taskbar Running Apps Section */
+        .taskbar-running {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            margin-left: 140px;
+            /* Offset from center to make room for pinned apps */
             display: flex;
-            justify-content: space-between;
+            gap: 6px;
+            height: 100%;
             align-items: center;
         }
 
-        .dialog-title {
-            font-size: 24px;
-            font-weight: 700;
-            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .close-btn {
-            width: 36px;
-            height: 36px;
-            border: none;
-            background: var(--glass-bg);
-            border: 1px solid var(--glass-border);
-            border-radius: 50%;
-            color: var(--text-secondary);
-            font-size: 20px;
-            cursor: pointer;
-            transition: var(--transition);
+        /* Taskbar Right (System Tray) */
+        .taskbar-right {
             display: flex;
             align-items: center;
-            justify-content: center;
+            height: 100%;
+            padding-right: 12px;
+            gap: 4px;
         }
 
-        .close-btn:hover {
-            background: var(--accent-primary);
-            color: white;
-            transform: rotate(90deg);
+        /* Mobile Responsive Taskbar tweaks */
+        @media (max-width: 768px) {
+            .taskbar-right {
+                padding-right: 6px;
+                gap: 2px;
+            }
+
+            .tray-group {
+                display: none;
+            }
+
+            .system-date {
+                display: none;
+            }
+
+            .taskbar-icon {
+                width: 32px;
+                height: 32px;
+                margin: 0 2px;
+            }
+
+            .taskbar-icon img {
+                width: 20px;
+                height: 20px;
+            }
+
+            .taskbar-center {
+                gap: 2px;
+            }
+
+            .taskbar-running {
+                margin-left: 80px;
+            }
         }
 
-        .dialog-content {
-            padding: 24px;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-label {
-            display: block;
-            margin-bottom: 8px;
-            font-size: 14px;
-            font-weight: 500;
-            color: var(--text-secondary);
-        }
-
-        .form-input {
-            width: 100%;
-            padding: 14px 16px;
-            border: 1px solid var(--glass-border);
-            border-radius: var(--radius-md);
-            background: var(--glass-bg);
-            color: var(--text-primary);
-            font-family: inherit;
-            font-size: 14px;
-            transition: var(--transition);
-        }
-
-        .form-input:focus {
-            outline: none;
-            border-color: var(--accent-primary);
-            box-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
-        }
-
-        .form-input::placeholder {
-            color: var(--text-muted);
-        }
-
-        .submit-btn {
-            width: 100%;
-            padding: 14px;
-            border: none;
-            border-radius: var(--radius-md);
-            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
-            color: white;
-            font-family: inherit;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: var(--transition);
-            margin-top: 12px;
-        }
-
-        .submit-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 30px rgba(99, 102, 241, 0.4);
-        }
-
-        .form-footer {
-            margin-top: 20px;
-            text-align: center;
-            color: var(--text-muted);
-            font-size: 14px;
-        }
-
-        .form-footer a {
-            color: var(--accent-primary);
-            text-decoration: none;
-            font-weight: 600;
-            cursor: pointer;
-        }
-
-        .form-footer a:hover {
-            text-decoration: underline;
-        }
-
-        .profile-info {
+        /* --- Window System CSS --- */
+        .window {
+            position: absolute;
+            background: rgba(32, 32, 32, 0.85);
+            /* Mica-like transparency */
+            backdrop-filter: blur(20px) saturate(125%);
+            -webkit-backdrop-filter: blur(20px) saturate(125%);
+            border-radius: 8px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.1);
             display: flex;
             flex-direction: column;
-            gap: 16px;
-        }
-
-        .info-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px;
-            background: var(--glass-bg);
-            border-radius: var(--radius-sm);
-        }
-
-        .info-label {
-            color: var(--text-muted);
-            font-size: 14px;
-        }
-
-        .info-value {
-            color: var(--text-primary);
-            font-weight: 600;
-        }
-
-        /* ========== PRODUCT DETAIL DIALOG ========== */
-        #productDialog {
-            max-width: 700px;
-        }
-
-        .product-detail {
-            display: flex;
-            flex-direction: column;
-            gap: 24px;
-        }
-
-        .product-detail-image {
-            position: relative;
-            width: 100%;
-            height: 350px;
-            border-radius: var(--radius-md);
             overflow: hidden;
-            background: var(--glass-bg);
-            cursor: pointer;
-            transition: var(--transition);
+            min-width: 300px;
+            min-height: 200px;
+            animation: windowOpen 0.25s cubic-bezier(0.1, 0.9, 0.2, 1);
+            resize: both;
+            transition: opacity 0.2s, transform 0.2s, width 0.2s, height 0.2s, top 0.2s, left 0.2s;
         }
 
-        .product-detail-image::after {
-            content: '\f00e';
-            font-family: 'Font Awesome 6 Free';
-            font-weight: 900;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 48px;
-            color: white;
+        .window.minimized {
             opacity: 0;
-            transition: var(--transition);
-            text-shadow: 0 4px 20px rgba(0, 0, 0, 0.8);
+            transform: scale(0.9) translateY(100vh);
             pointer-events: none;
         }
 
-        .product-detail-image:hover::after {
-            opacity: 0.9;
+        .window.maximized {
+            top: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
+            height: calc(100vh - 48px) !important;
+            border-radius: 0;
+            resize: none;
         }
 
-        .product-detail-image:hover {
-            transform: scale(1.02);
-            box-shadow: 0 8px 30px rgba(99, 102, 241, 0.3);
+        @keyframes windowOpen {
+            from {
+                transform: scale(0.95);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
         }
 
-        .product-detail-image img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transition: var(--transition);
-        }
-
-        .product-detail-image:hover img {
-            filter: brightness(0.7);
-        }
-
-        .product-detail-badge {
-            position: absolute;
-            top: 16px;
-            right: 16px;
-            padding: 8px 16px;
-            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
-            color: white;
-            font-size: 12px;
-            font-weight: 700;
-            border-radius: 20px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .product-detail-info {
+        .window-header {
+            height: 40px;
+            /* Taller header */
+            background: rgba(255, 255, 255, 0.0);
+            /* Transparent to show Mica */
             display: flex;
-            flex-direction: column;
-            gap: 16px;
+            align-items: center;
+            justify-content: space-between;
+            padding-left: 16px;
+            cursor: move;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
         }
 
-        .product-detail-title {
-            font-size: 24px;
-            font-weight: 700;
-            color: var(--text-primary);
-            line-height: 1.3;
+        .window.dragging .iframe-overlay {
+            display: block;
         }
 
-        .product-detail-date {
+        .window-title {
             display: flex;
             align-items: center;
             gap: 8px;
-            color: var(--text-secondary);
-            font-size: 14px;
+            font-size: 13px;
         }
 
-        .product-detail-date i {
-            color: var(--accent-primary);
+        .window-title img {
+            width: 16px;
+            height: 16px;
         }
 
-        .product-detail-price {
+        .window-controls {
             display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 16px;
-            background: var(--glass-bg);
-            border: 1px solid var(--glass-border);
-            border-radius: var(--radius-md);
+            height: 100%;
         }
 
-        .product-detail-price i {
-            font-size: 20px;
-            color: var(--accent-success);
-        }
-
-        .product-detail-price span {
-            font-size: 22px;
-            font-weight: 700;
-            background: linear-gradient(135deg, var(--accent-success), var(--accent-cyan));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .product-detail-description {
-            padding: 16px;
-            background: var(--glass-bg);
-            border: 1px solid var(--glass-border);
-            border-radius: var(--radius-md);
-            color: var(--text-secondary);
-            line-height: 1.8;
-        }
-
-        .product-detail-actions {
-            display: flex;
-            gap: 12px;
-            margin-top: 8px;
-        }
-
-        .product-action-btn {
-            flex: 1;
-            padding: 16px 24px;
-            border: none;
-            border-radius: var(--radius-md);
-            font-family: inherit;
-            font-size: 15px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: var(--transition);
+        .control-btn {
+            width: 46px;
+            height: 100%;
             display: flex;
             align-items: center;
             justify-content: center;
+            cursor: pointer;
+            transition: background 0.1s;
+            font-size: 14px;
+            color: #fff;
+        }
+
+        .control-btn:hover {
+            background: rgba(255, 255, 255, 0.06);
+        }
+
+        .control-btn.close-btn:hover {
+            background: #c42b1c;
+            /* Windows 11 Red */
+            color: white;
+        }
+
+        .window-content {
+            flex: 1;
+            background: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .window-content iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: white;
+        }
+
+        .iframe-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            z-index: 10;
+        }
+
+        /* Start Menu */
+        .start-menu {
+            position: fixed;
+            bottom: -650px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 640px;
+            min-height: 600px;
+            background: rgba(32, 32, 32, 0.85);
+            backdrop-filter: blur(25px) saturate(150%);
+            -webkit-backdrop-filter: blur(25px) saturate(150%);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.05);
+            transition: bottom 0.3s cubic-bezier(0.1, 0.9, 0.2, 1);
+            z-index: 999;
+            display: flex;
+            flex-direction: column;
+            padding: 24px 0 0 0;
+            color: #fff;
+            max-height: 85vh;
+            /* Limit height */
+        }
+
+        .start-menu.active {
+            bottom: 60px;
+        }
+
+        .search-bar-container {
+            padding: 0 32px;
+            margin-bottom: 24px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 10px 16px;
+            padding-left: 40px;
+            border-radius: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            background: rgba(0, 0, 0, 0.2);
+            color: white;
+            font-size: 14px;
+            outline: none;
+            border-bottom: 2px solid #0078d4;
+            position: relative;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 44px;
+            top: 38px;
+            color: #fff;
+            opacity: 0.6;
+            font-size: 14px;
+        }
+
+        .pinned-section {
+            padding: 0 32px;
+            flex-grow: 1;
+            overflow-y: auto;
+            /* Enable scrolling */
+            min-height: 0;
+            /* Important for flex child scrolling */
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .section-title {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .all-apps-btn {
+            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.05);
+            cursor: pointer;
+        }
+
+        .apps-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 20px;
+            padding-bottom: 20px;
+        }
+
+        .app-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
             gap: 8px;
+            cursor: pointer;
+            padding: 10px;
+            border-radius: 4px;
+            transition: background 0.2s;
         }
 
-        .product-action-btn.primary {
-            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
-            color: white;
-            box-shadow: 0 4px 20px rgba(99, 102, 241, 0.4);
+        .app-item:hover {
+            background: rgba(255, 255, 255, 0.05);
         }
 
-        .product-action-btn.primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 30px rgba(99, 102, 241, 0.5);
+        .app-item:active {
+            background: rgba(255, 255, 255, 0.1);
+            transform: scale(0.98);
         }
 
-        .product-action-btn.secondary {
-            background: var(--glass-bg);
-            border: 1px solid var(--glass-border);
-            color: var(--text-primary);
+        .app-item img {
+            width: 32px;
+            height: 32px;
         }
 
-        .product-action-btn.secondary:hover {
-            background: var(--glass-border);
-            border-color: var(--accent-primary);
-            box-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
-        }
-
-        .product-action-btn.success {
-            background: linear-gradient(135deg, var(--accent-success), var(--accent-cyan));
-            color: white;
-            box-shadow: 0 4px 20px rgba(16, 185, 129, 0.4);
-        }
-
-        .product-action-btn.success:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 30px rgba(16, 185, 129, 0.5);
-        }
-
-        /* ========== CART SECTION ========== */
-        .cart-section {
+        .app-item span {
+            font-size: 12px;
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
             width: 100%;
         }
 
-        .cart-main-title {
-            font-size: 32px;
-            font-weight: 800;
-            margin-bottom: 40px;
+        .start-footer {
+            height: 64px;
+            background: rgba(0, 0, 0, 0.2);
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 0 0 8px 8px;
             display: flex;
             align-items: center;
-            gap: 16px;
-            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            justify-content: space-between;
+            padding: 0 48px;
         }
 
-        .cart-main-title i {
-            font-size: 36px;
-            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .cart-tabs {
+        .user-profile {
             display: flex;
+            align-items: center;
             gap: 12px;
-            margin-bottom: 32px;
-            border-bottom: 2px solid var(--glass-border);
-            padding-bottom: 16px;
-            flex-wrap: wrap;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 4px;
+            transition: background 0.2s;
         }
 
-        .cart-tab {
-            padding: 14px 28px;
-            background: transparent;
-            border: 1px solid var(--glass-border);
-            border-radius: var(--radius-md);
-            color: var(--text-secondary);
-            font-family: inherit;
-            font-size: 15px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: var(--transition);
+        .user-profile:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #0078d4;
             display: flex;
             align-items: center;
-            gap: 10px;
-            position: relative;
+            justify-content: center;
+            font-weight: bold;
         }
 
-        .cart-tab i {
-            font-size: 18px;
+        .power-btn {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.2s;
         }
 
-        .cart-tab:hover {
-            background: var(--glass-bg);
-            border-color: var(--accent-primary);
-            color: var(--text-primary);
-            box-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
+        .power-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
         }
 
-        .cart-tab.active {
-            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
-            border-color: transparent;
-            color: white;
-            box-shadow: 0 4px 20px rgba(99, 102, 241, 0.4);
-        }
-
-        .cart-count {
-            background: rgba(255, 255, 255, 0.2);
-            padding: 4px 10px;
-            border-radius: 12px;
-            font-size: 12px;
-            font-weight: 700;
-            min-width: 24px;
-            text-align: center;
-        }
-
-        .cart-tab.active .cart-count {
-            background: rgba(255, 255, 255, 0.3);
-        }
-
-        .cart-content {
-            position: relative;
-            min-height: 400px;
-        }
-
-        .cart-tab-content {
+        /* User Switcher Screen */
+        .user-switcher {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('https://4kwallpapers.com/images/wallpapers/windows-11-dark-mode-blue-stock-official-3840x2160-5630.jpg') no-repeat center center/cover;
+            z-index: 2000;
             display: none;
-            animation: fadeIn 0.3s ease-in-out;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s ease;
         }
 
-        .cart-tab-content.active {
-            display: block;
+        .user-switcher.active {
+            display: flex;
         }
 
         @keyframes fadeIn {
             from {
                 opacity: 0;
-                transform: translateY(10px);
             }
+
             to {
                 opacity: 1;
-                transform: translateY(0);
             }
         }
 
-        .empty-cart {
+        .login-user-card {
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            padding: 80px 20px;
-            text-align: center;
-            background: var(--glass-bg);
-            border: 2px dashed var(--glass-border);
-            border-radius: var(--radius-lg);
-        }
-
-        .empty-cart i {
-            font-size: 80px;
-            color: var(--text-muted);
-            margin-bottom: 24px;
-            opacity: 0.5;
-        }
-
-        .empty-cart h3 {
-            font-size: 22px;
-            font-weight: 700;
-            color: var(--text-primary);
-            margin-bottom: 12px;
-        }
-
-        .empty-cart p {
-            font-size: 15px;
-            color: var(--text-secondary);
-            max-width: 400px;
-        }
-
-        .order-card {
-            background: var(--bg-card);
-            border: 1px solid var(--glass-border);
-            border-radius: var(--radius-lg);
-            padding: 24px;
-            margin-bottom: 16px;
-            transition: var(--transition);
-        }
-
-        .order-card:hover {
-            border-color: var(--accent-primary);
-            box-shadow: 0 8px 30px rgba(99, 102, 241, 0.2);
-            transform: translateY(-2px);
-        }
-
-        .order-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 16px;
-            padding-bottom: 16px;
-            border-bottom: 1px solid var(--glass-border);
-        }
-
-        .order-id {
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--text-secondary);
-        }
-
-        .order-date {
-            font-size: 13px;
-            color: var(--text-muted);
-        }
-
-        .order-items {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .order-item {
-            display: flex;
-            gap: 16px;
-            align-items: center;
-        }
-
-        .order-item-image {
-            width: 80px;
-            height: 80px;
-            border-radius: var(--radius-sm);
-            overflow: hidden;
-            background: var(--glass-bg);
-        }
-
-        .order-item-image img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .order-item-info {
-            flex: 1;
-        }
-
-        .order-item-title {
-            font-size: 16px;
-            font-weight: 600;
-            color: var(--text-primary);
-            margin-bottom: 4px;
-        }
-
-        .order-item-price {
-            font-size: 15px;
-            font-weight: 700;
-            color: var(--accent-success);
-        }
-
-        .order-footer {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 16px;
-            padding-top: 16px;
-            border-top: 1px solid var(--glass-border);
-        }
-
-        .order-total {
-            font-size: 18px;
-            font-weight: 700;
-            color: var(--text-primary);
-        }
-
-        .order-total span {
-            background: linear-gradient(135deg, var(--accent-success), var(--accent-cyan));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        /* ========== PAYMENT DIALOG ========== */
-        #paymentDialog {
-            max-width: 600px;
-        }
-
-        .payment-container {
-            display: flex;
-            flex-direction: column;
-            gap: 24px;
-        }
-
-        .payment-product-info {
-            display: flex;
-            gap: 16px;
-            padding: 16px;
-            background: var(--glass-bg);
-            border: 1px solid var(--glass-border);
-            border-radius: var(--radius-md);
-            align-items: center;
-        }
-
-        .payment-product-info img {
-            width: 80px;
-            height: 80px;
-            border-radius: var(--radius-sm);
-            object-fit: cover;
-        }
-
-        .payment-product-info h4 {
-            font-size: 16px;
-            font-weight: 600;
-            color: var(--text-primary);
-            margin-bottom: 8px;
-        }
-
-        .payment-product-price {
-            font-size: 18px;
-            font-weight: 700;
-            background: linear-gradient(135deg, var(--accent-success), var(--accent-cyan));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .payment-bank-info,
-        .payment-qr-container,
-        .payment-contact-info {
-            padding: 20px;
-            background: var(--glass-bg);
-            border: 1px solid var(--glass-border);
-            border-radius: var(--radius-md);
-        }
-
-        .payment-bank-info h3,
-        .payment-qr-container h3,
-        .payment-contact-info h3 {
-            font-size: 16px;
-            font-weight: 600;
-            color: var(--text-primary);
-            margin-bottom: 16px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .payment-bank-info h3 i,
-        .payment-qr-container h3 i,
-        .payment-contact-info h3 i {
-            color: var(--accent-primary);
-        }
-
-        .bank-details {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .bank-detail-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px;
-            background: rgba(255, 255, 255, 0.02);
-            border-radius: var(--radius-sm);
-        }
-
-        .bank-detail-row .label {
-            color: var(--text-secondary);
-            font-size: 14px;
-        }
-
-        .bank-detail-row .value {
-            color: var(--text-primary);
-            font-weight: 600;
-            font-size: 14px;
-        }
-
-        .bank-detail-row .value.highlight {
-            font-size: 18px;
-            background: linear-gradient(135deg, var(--accent-success), var(--accent-cyan));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .qr-code-wrapper {
-            display: flex;
-            justify-content: center;
-            padding: 20px;
-            background: white;
-            border-radius: var(--radius-md);
-            margin-bottom: 16px;
-        }
-
-        .qr-code-wrapper img {
-            max-width: 100%;
-            height: auto;
-            border-radius: var(--radius-sm);
-        }
-
-        .payment-note {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 12px;
-            background: rgba(99, 102, 241, 0.1);
-            border: 1px solid rgba(99, 102, 241, 0.3);
-            border-radius: var(--radius-sm);
-            color: var(--text-secondary);
-            font-size: 13px;
-            line-height: 1.6;
-        }
-
-        .payment-note i {
-            color: var(--accent-primary);
-            font-size: 16px;
-        }
-
-        .input-with-button {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-
-        .input-with-button .form-input {
-            flex: 1;
-        }
-
-        .facebook-link-btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 52px;
-            height: 52px;
-            background: linear-gradient(135deg, #1877f2, #0a5cc6);
-            border-radius: var(--radius-md);
-            color: white;
-            font-size: 22px;
-            text-decoration: none;
-            transition: var(--transition);
-            flex-shrink: 0;
-            box-shadow: 0 4px 12px rgba(24, 119, 242, 0.3);
-        }
-
-        .facebook-link-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(24, 119, 242, 0.5);
-            background: linear-gradient(135deg, #0a5cc6, #1877f2);
-        }
-
-        .facebook-link-btn i {
-            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
-        }
-
-        .payment-actions {
-            display: flex;
-            gap: 12px;
-            margin-top: 8px;
-        }
-
-        .payment-btn {
-            flex: 1;
-            padding: 16px 24px;
-            border: none;
-            border-radius: var(--radius-md);
-            font-family: inherit;
-            font-size: 15px;
-            font-weight: 600;
+            gap: 20px;
             cursor: pointer;
-            transition: var(--transition);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
+            transition: transform 0.2s;
         }
 
-        .payment-btn.cancel {
-            background: var(--glass-bg);
-            border: 1px solid var(--glass-border);
-            color: var(--text-primary);
+        .login-user-card:hover {
+            transform: scale(1.05);
         }
 
-        .payment-btn.cancel:hover {
-            background: rgba(239, 68, 68, 0.1);
-            border-color: #ef4444;
-            color: #ef4444;
-        }
-
-        .payment-btn.confirm {
-            background: linear-gradient(135deg, var(--accent-success), var(--accent-cyan));
-            color: white;
-            box-shadow: 0 4px 20px rgba(16, 185, 129, 0.4);
-        }
-
-        .payment-btn.confirm:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 30px rgba(16, 185, 129, 0.5);
-        }
-
-        /* ========== IMAGE PREVIEW DIALOG ========== */
-        #imagePreviewDialog {
-            max-width: 95vw;
-            max-height: 95vh;
-            width: auto;
-            height: auto;
-            padding: 0;
-            background: transparent;
-            border: none;
-            overflow: visible;
-        }
-
-        #imagePreviewDialog::backdrop {
-            background: rgba(0, 0, 0, 0.95);
-            backdrop-filter: blur(10px);
-        }
-
-        .image-preview-container {
-            position: relative;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            max-width: 95vw;
-            max-height: 95vh;
-        }
-
-        .image-preview-container img {
-            max-width: 100%;
-            max-height: 95vh;
-            width: auto;
-            height: auto;
-            object-fit: contain;
-            border-radius: var(--radius-lg);
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
-            animation: zoomIn 0.3s ease-out;
-        }
-
-        @keyframes zoomIn {
-            from {
-                opacity: 0;
-                transform: scale(0.8);
-            }
-            to {
-                opacity: 1;
-                transform: scale(1);
-            }
-        }
-
-        .image-preview-close {
-            position: absolute;
-            top: -50px;
-            right: 0;
-            width: 44px;
-            height: 44px;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            background: rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(10px);
+        .login-avatar {
+            width: 120px;
+            height: 120px;
             border-radius: 50%;
-            color: white;
-            font-size: 20px;
-            cursor: pointer;
-            transition: var(--transition);
+            background: rgba(255, 255, 255, 0.9);
             display: flex;
             align-items: center;
             justify-content: center;
-            z-index: 10;
+            font-size: 48px;
+            font-weight: bold;
+            color: #333;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            border: 4px solid rgba(255, 255, 255, 0.3);
         }
 
-        .image-preview-close:hover {
-            background: var(--accent-primary);
-            border-color: var(--accent-primary);
-            transform: rotate(90deg);
-            box-shadow: 0 0 30px rgba(99, 102, 241, 0.6);
+        .login-username {
+            font-size: 28px;
+            font-weight: 300;
+            color: white;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
         }
 
-        /* ========== RESPONSIVE ========== */
-        @media (max-width: 1024px) {
-            .header-content {
-                flex-wrap: wrap;
-                gap: 20px;
+        .power-bottom-right {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+        }
+
+        .power-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .power-icon:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.1);
+        }
+
+        .power-icon i {
+            font-size: 18px;
+            color: white;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .start-menu {
+                width: 95%;
+                bottom: -100%;
+                min-height: 70vh;
             }
 
-            .search-box {
-                order: 3;
-                flex-basis: 100%;
-                max-width: 100%;
+            .start-menu.active {
+                bottom: 56px;
             }
 
-            .products-grid {
-                grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-                gap: 20px;
+            .apps-grid {
+                grid-template-columns: repeat(4, 1fr);
             }
+
+            .hide-on-mobile {
+                display: none !important;
+            }
+        }
+
+        /* Tray Icons */
+        .tray-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 0 12px;
+            height: 100%;
+        }
+
+        .tray-icon {
+            font-size: 14px;
+            padding: 8px;
+            border-radius: 4px;
+            transition: background 0.15s;
+            cursor: pointer;
+        }
+
+        .tray-icon:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .system-clock {
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.15s;
+            text-align: right;
+        }
+
+        .system-clock:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .system-time {
+            font-size: 12px;
+            line-height: 1.2;
+        }
+
+        .system-date {
+            font-size: 11px;
+            opacity: 0.8;
+        }
+
+        /* Weather Widget */
+        .taskbar-left {
+            display: flex;
+            align-items: center;
+            height: 100%;
+            padding-left: 12px;
+        }
+
+        .weather-widget {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .weather-widget:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .weather-icon {
+            font-size: 18px;
+        }
+
+        .weather-info {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.2;
+        }
+
+        .weather-temp {
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .weather-desc {
+            font-size: 11px;
+            opacity: 0.8;
+        }
+
+        /* Tray Pill Group */
+        .tray-pill {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 6px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .tray-pill:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .tray-pill .tray-icon {
+            padding: 0;
+            font-size: 14px;
         }
 
         @media (max-width: 768px) {
-            .header {
-                padding: 12px 20px;
+            .taskbar-left {
+                display: none;
+            }
+        }
+
+        /* Mobile Tweaks for Start Menu */
+        @media (max-width: 768px) {
+            .start-menu {
+                width: 95%;
+                max-height: 80vh;
+                padding: 20px;
             }
 
-            .container {
-                padding: 40px 20px;
-            }
-
-            .nav-tabs {
-                flex-wrap: wrap;
-            }
-
-            .filter-section {
-                flex-direction: column;
-                gap: 16px;
-                align-items: stretch;
-            }
-
-            .filter-buttons {
-                flex-wrap: wrap;
-            }
-
-            .products-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .logo {
-                font-size: 20px;
-            }
-
-            .product-detail-image {
-                height: 250px;
-            }
-
-            .product-detail-title {
-                font-size: 20px;
-            }
-
-            .product-detail-price span {
-                font-size: 18px;
-            }
-
-            .product-detail-actions {
-                flex-direction: column;
-            }
-
-            .product-action-btn {
-                width: 100%;
-            }
-
-            .image-preview-close {
-                top: 10px;
-                right: 10px;
-                width: 40px;
-                height: 40px;
-                font-size: 18px;
-            }
-
-            .image-preview-container img {
-                max-width: 100vw;
-                max-height: 90vh;
-                border-radius: 0;
-            }
-
-            .cart-main-title {
-                font-size: 24px;
-            }
-
-            .cart-main-title i {
-                font-size: 28px;
-            }
-
-            .cart-tabs {
+            .app-grid {
+                grid-template-columns: repeat(4, 1fr);
                 gap: 8px;
             }
 
-            .cart-tab {
-                padding: 12px 16px;
-                font-size: 14px;
-                flex: 1;
-                justify-content: center;
+            .app-item {
+                padding: 8px;
             }
 
-            .cart-tab i {
-                display: none;
+            .app-item img {
+                width: 28px;
+                height: 28px;
             }
 
-            .empty-cart {
-                padding: 60px 20px;
+            .app-item span {
+                font-size: 10px;
             }
+        }
 
-            .empty-cart i {
-                font-size: 60px;
-            }
+        /* Calendar Flyout */
+        .calendar-flyout {
+            position: fixed;
+            bottom: -650px;
+            /* Hidden state */
+            right: 12px;
+            width: 360px;
+            background: rgba(32, 32, 32, 0.95);
+            backdrop-filter: blur(25px) saturate(150%);
+            -webkit-backdrop-filter: blur(25px) saturate(150%);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.05);
+            transition: bottom 0.3s cubic-bezier(0.1, 0.9, 0.2, 1);
+            z-index: 998;
+            /* Below taskbar (1000) but above desktop */
+            padding: 24px;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
 
-            .empty-cart h3 {
-                font-size: 18px;
-            }
+        .calendar-flyout.active {
+            bottom: 60px;
+        }
 
-            .order-card {
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .current-date-large {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .calendar-nav {
+            display: flex;
+            gap: 8px;
+        }
+
+        .nav-btn {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .nav-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+            text-align: center;
+        }
+
+        .calendar-day-name {
+            font-size: 12px;
+            font-weight: 600;
+            opacity: 0.8;
+            padding-bottom: 8px;
+        }
+
+        .calendar-date {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 14px;
+            border: 2px solid transparent;
+            /* Prevent layout shift */
+        }
+
+        .calendar-date:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .calendar-date.current-month {
+            color: white;
+        }
+
+        .calendar-date.other-month {
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        .calendar-date.today {
+            background: #0078d4;
+            color: white;
+            font-weight: 600;
+        }
+
+        .calendar-date.selected {
+            border-color: #0078d4;
+            /* Ring border */
+        }
+
+        /* Mobile Flyout */
+        @media (max-width: 768px) {
+            .calendar-flyout {
+                width: 95%;
+                right: 50%;
+                transform: translateX(50%);
                 padding: 16px;
             }
 
-            .order-header {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 8px;
-            }
-
-            .order-item {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-
-            .order-item-image {
-                width: 100%;
-                height: 200px;
-            }
-
-            .order-footer {
-                flex-direction: column;
-                gap: 12px;
-                align-items: flex-start;
-            }
-
-            .payment-product-info {
-                flex-direction: column;
-                text-align: center;
-            }
-
-            .bank-detail-row {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 4px;
-            }
-
-            .payment-actions {
-                flex-direction: column;
-            }
-
-            .payment-btn {
-                width: 100%;
+            .calendar-flyout.active {
+                bottom: 56px;
+                transform: translateX(50%);
             }
         }
     </style>
 </head>
+
 <body>
-    <!-- Header -->
-    <header class="header">
-        <div class="header-content">
-            <div class="header-left">
-                <div class="logo" onclick="location.reload()">
-                    <i class="fas fa-store"></i>
-                    <span>ntd2937</span>
-                </div>
-                <div class="nav-tabs">
-                    <button class="nav-tab active" onclick="switchTab('marketplace')">Marketplace</button>
-                    <button class="nav-tab" onclick="switchTab('cart')">
-                        <i class="fas fa-shopping-cart"></i> Giỏ hàng
-                    </button>
-                </div>
-            </div>
-            
-            <div class="search-box">
-                <input type="text" id="searchInput" placeholder="Tìm kiếm sản phẩm...">
-                <i class="fas fa-search"></i>
-            </div>
+    <div class="desktop" id="desktop"></div>
 
-            <!-- Auth Buttons (for guests) -->
-            <div class="auth-section" id="authButtons">
-                <button class="auth-btn" onclick="loginDialog.showModal()">
-                    <i class="fas fa-sign-in-alt"></i>
-                    Đăng nhập
-                </button>
-            </div>
+    <div id="windowContainer"></div>
 
-            <!-- User Info (when logged in) -->
-            <div class="user-info" id="userInfo">
-                <span class="user-name" id="userDisplayName"></span>
-                <button class="auth-btn" onclick="showProfile()" title="Thông tin tài khoản">
-                    <i class="fas fa-user"></i>
-                </button>
-                <button class="auth-btn" onclick="handleLogout()" title="Đăng xuất">
-                    <i class="fas fa-sign-out-alt"></i>
-                </button>
-            </div>
+    <!-- Start Menu -->
+    <div class="start-menu" id="startMenu">
+        <i class="fas fa-search search-icon"></i>
+        <div class="search-bar-container">
+            <input type="text" class="search-input" placeholder="Type here to search" id="searchInput">
         </div>
-    </header>
 
-    <!-- Main Container - Marketplace -->
-    <div class="container" id="marketplaceContainer">
-        <!-- Filter Section -->
-        <div class="filter-section">
-            <div class="filter-buttons">
-                <button class="filter-btn active">All</button>
-                <button class="filter-btn">Free</button>
-                <button class="filter-btn">Paid</button>
+        <div class="pinned-section">
+            <div class="section-header">
+                <span class="section-title">Pinned</span>
+                <div class="all-apps-btn">All apps <i class="fas fa-chevron-right"></i></div>
+            </div>
+            <div class="apps-grid" id="startMenuGrid">
+                <!-- Apps rendered via JS -->
             </div>
         </div>
 
-        <!-- Products Grid -->
-        <div class="products-grid" id="productsGrid"></div>
-
-        <!-- Pagination -->
-        <div class="pagination"></div>
-    </div>
-
-    <!-- Cart Container -->
-    <div class="container" id="cartContainer" style="display: none;">
-        <div class="cart-section">
-            <h2 class="cart-main-title">
-                <i class="fas fa-shopping-cart"></i>
-                Giỏ hàng của bạn
-            </h2>
-            
-            <!-- Cart Tabs -->
-            <div class="cart-tabs">
-                <button class="cart-tab active" onclick="switchCartTab('pending')">
-                    <i class="fas fa-clock"></i>
-                    Chờ xác nhận
-                    <span class="cart-count" id="pendingCount">0</span>
-                </button>
-                <button class="cart-tab" onclick="switchCartTab('purchased')">
-                    <i class="fas fa-box"></i>
-                    Đã mua
-                    <span class="cart-count" id="purchasedCount">0</span>
-                </button>
+        <div class="start-footer">
+            <div class="user-profile">
+                <div class="user-avatar">AD</div>
+                <span class="user-name">Admin</span>
             </div>
-
-            <!-- Cart Content -->
-            <div class="cart-content">
-                <!-- Pending Orders -->
-                <div class="cart-tab-content active" id="pendingContent">
-                    <div class="empty-cart">
-                        <i class="fas fa-clock"></i>
-                        <h3>Chưa có đơn hàng nào chờ xác nhận</h3>
-                        <p>Các đơn hàng đang chờ xác nhận sẽ hiển thị tại đây</p>
-                    </div>
-                </div>
-
-                <!-- Purchased Orders -->
-                <div class="cart-tab-content" id="purchasedContent">
-                    <div class="empty-cart">
-                        <i class="fas fa-box"></i>
-                        <h3>Chưa có sản phẩm đã mua</h3>
-                        <p>Các sản phẩm bạn đã mua sẽ hiển thị tại đây</p>
-                    </div>
-                </div>
+            <div class="power-btn" id="switchUserBtn">
+                <i class="fas fa-user-friends"></i>
             </div>
         </div>
     </div>
 
-    <!-- Login Dialog -->
-    <dialog id="loginDialog">
-        <div class="dialog-header">
-            <h2 class="dialog-title">Đăng nhập</h2>
-            <button class="close-btn" onclick="loginDialog.close()">×</button>
-        </div>
-        <div class="dialog-content">
-            <form id="loginForm" onsubmit="handleLogin(event)">
-                <div class="form-group">
-                    <label class="form-label">Email</label>
-                    <input type="email" class="form-input" id="loginUsername" placeholder="Nhập email" required>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Mật khẩu</label>
-                    <input type="password" class="form-input" id="loginPassword" placeholder="Nhập mật khẩu" required>
-                </div>
-                <button type="submit" class="submit-btn">
-                    <i class="fas fa-sign-in-alt"></i> Đăng nhập
-                </button>
-            </form>
-            <div class="form-footer">
-                Chưa có tài khoản? <a onclick="switchToRegister()">Đăng ký ngay</a>
+    <!-- Lock Screen & Login Screen Container -->
+    <div id="lockScreenContainer" class="lock-screen-container">
+        <!-- Lock Screen -->
+        <div id="lockScreen" class="lock-screen" onclick="showLoginScreen()">
+            <div class="lock-clock-container">
+                <div class="lock-time" id="lockTime">12:00</div>
+                <div class="lock-date" id="lockDate">Monday, January 1</div>
+            </div>
+            <div class="lock-status-icons">
+                <i class="fas fa-wifi"></i>
+                <i class="fas fa-battery-three-quarters"></i>
             </div>
         </div>
-    </dialog>
 
-    <!-- Register Dialog -->
-    <dialog id="registerDialog">
-        <div class="dialog-header">
-            <h2 class="dialog-title">Đăng ký tài khoản</h2>
-            <button class="close-btn" onclick="registerDialog.close()">×</button>
-        </div>
-        <div class="dialog-content">
-            <form id="registerForm" onsubmit="handleRegister(event)">
-                <div class="form-group">
-                    <label class="form-label">Tên hiển thị</label>
-                    <input type="text" class="form-input" id="regUsername" placeholder="Nhập tên hiển thị" required>
+        <!-- Login Screen -->
+        <div id="loginScreen" class="login-screen">
+            <div class="login-content">
+                <div class="login-avatar">
+                    <img src="https://www.elevenforum.com/attachments/accounts_banner-png.103628/" alt="User Avatar">
                 </div>
-                <div class="form-group">
-                    <label class="form-label">Email</label>
-                    <input type="email" class="form-input" id="regEmail" placeholder="Nhập email" required>
+                <div class="login-username">ntdWeb</div>
+
+                <div class="login-input-group">
+                    <input type="password" class="login-password" placeholder="Password" id="loginPassword">
+                    <div class="login-submit" onclick="attemptLogin()">
+                        <i class="fas fa-arrow-right"></i>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label class="form-label">Mật khẩu</label>
-                    <input type="password" class="form-input" id="regPassword" placeholder="Nhập mật khẩu (tối thiểu 6 ký tự)" required minlength="6">
+
+                <div class="login-options">
+                    <div class="login-option">
+                        <i class="fas fa-key"></i>
+                        <span>Password is 123456</span>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label class="form-label">Xác nhận mật khẩu</label>
-                    <input type="password" class="form-input" id="regConfirmPassword" placeholder="Nhập lại mật khẩu" required>
-                </div>
-                <button type="submit" class="submit-btn">
-                    <i class="fas fa-user-plus"></i> Đăng ký
-                </button>
-            </form>
-            <div class="form-footer">
-                Đã có tài khoản? <a onclick="switchToLogin()">Đăng nhập</a>
             </div>
-        </div>
-    </dialog>
 
-    <!-- Profile Dialog -->
-    <dialog id="profileDialog">
-        <div class="dialog-header">
-            <h2 class="dialog-title">Thông tin tài khoản</h2>
-            <button class="close-btn" onclick="profileDialog.close()">×</button>
-        </div>
-        <div class="dialog-content">
-            <div class="profile-info">
-                <div class="info-row">
-                    <span class="info-label">Tên hiển thị:</span>
-                    <span class="info-value" id="profileUsername">---</span>
+            <div class="login-footer">
+                <div class="footer-icon" title="Network">
+                    <i class="fas fa-wifi"></i>
                 </div>
-                <div class="info-row">
-                    <span class="info-label">Email:</span>
-                    <span class="info-value" id="profileEmail">---</span>
+                <div class="footer-icon" title="Accessibility">
+                    <i class="fas fa-universal-access"></i>
                 </div>
-                <div class="info-row">
-                    <span class="info-label">Số điện thoại:</span>
-                    <span class="info-value" id="profilePhone">---</span>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">Ngày tạo:</span>
-                    <span class="info-value" id="profileCreatedAt">---</span>
+                <div class="footer-icon" title="Power" id="shutdownBtn">
+                    <i class="fas fa-power-off"></i>
                 </div>
             </div>
         </div>
-    </dialog>
 
-    <!-- Product Detail Dialog -->
-    <dialog id="productDialog">
-        <div class="dialog-header">
-            <h2 class="dialog-title" id="productDialogTitle">Chi tiết sản phẩm</h2>
-            <button class="close-btn" onclick="productDialog.close()">×</button>
+        <!-- Loading Screen -->
+        <div id="loadingScreen" class="loading-screen">
+            <div class="loader">
+                <div class="circle"></div>
+                <div class="circle"></div>
+                <div class="circle"></div>
+                <div class="circle"></div>
+                <div class="circle"></div>
+            </div>
+            <div class="loading-text">Welcome to ntdWeb</div>
         </div>
-        <div class="dialog-content">
-            <div class="product-detail">
-                <div class="product-detail-image">
-                    <img id="productDetailImage" src="" alt="Product Image">
-                    <span class="product-detail-badge" id="productDetailBadge"></span>
-                </div>
-                <div class="product-detail-info">
-                    <h3 class="product-detail-title" id="productDetailName"></h3>
-                    <p class="product-detail-date">
-                        <i class="fas fa-calendar-alt"></i>
-                        <span id="productDetailDate"></span>
-                    </p>
-                    <div class="product-detail-price">
-                        <i class="fas fa-tag"></i>
-                        <span id="productDetailPrice"></span>
-                    </div>
-                    <div class="product-detail-description">
-                        <p id="productDetailDescription">Mô tả chi tiết về sản phẩm sẽ được hiển thị tại đây.</p>
-                    </div>
-                </div>
-                <div class="product-detail-actions" id="productActions">
-                    <!-- Buttons will be dynamically added here -->
+    </div>
+
+    <style>
+        /* Lock Screen & Login Container */
+        .lock-screen-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 2000;
+            display: none;
+            /* Initially hidden, shown via JS */
+            overflow: hidden;
+            font-family: 'Segoe UI Variable Display', 'Segoe UI', sans-serif;
+        }
+
+        .lock-screen-container.active {
+            display: block;
+        }
+
+        /* Background for both */
+        .lock-screen-container::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('https://4kwallpapers.com/images/wallpapers/windows-11-dark-mode-blue-stock-official-3840x2160-5630.jpg') no-repeat center center/cover;
+            z-index: -1;
+            transition: transform 0.5s ease, filter 0.5s ease;
+        }
+
+        /* Initial Lock State Background */
+        .lock-screen-container.locked::before {
+            transform: scale(1);
+            filter: blur(0);
+        }
+
+        /* Login State Background (Blurred/Zoomed) */
+        .lock-screen-container.logging-in::before {
+            transform: scale(1.1);
+            filter: blur(15px) brightness(0.8);
+        }
+
+        /* Loading State Background (Same as Login) */
+        .lock-screen-container.loading::before {
+            transform: scale(1.1);
+            filter: blur(15px) brightness(0.8);
+        }
+
+        /* Lock Screen Content */
+        .lock-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding-top: 10vh;
+            color: white;
+            transition: transform 0.4s cubic-bezier(0.1, 0.9, 0.2, 1), opacity 0.4s;
+            cursor: default;
+        }
+
+        .lock-screen-container.logging-in .lock-screen,
+        .lock-screen-container.loading .lock-screen {
+            transform: translateY(-100%);
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .lock-clock-container {
+            text-align: center;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .lock-time {
+            font-size: 96px;
+            font-weight: 200;
+            /* Thin font */
+            line-height: 1;
+            letter-spacing: -2px;
+        }
+
+        .lock-date {
+            font-size: 24px;
+            font-weight: 400;
+            margin-top: 8px;
+        }
+
+        .lock-status-icons {
+            position: absolute;
+            bottom: 30px;
+            right: 30px;
+            display: flex;
+            gap: 15px;
+            font-size: 20px;
+        }
+
+        /* Login Screen Content */
+        .login-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transform: scale(0.95);
+            transition: opacity 0.4s ease 0.2s, transform 0.4s cubic-bezier(0.1, 0.9, 0.2, 1) 0.2s;
+            pointer-events: none;
+        }
+
+        .lock-screen-container.logging-in .login-screen {
+            opacity: 1;
+            transform: scale(1);
+            pointer-events: all;
+        }
+
+        .lock-screen-container.loading .login-screen {
+            opacity: 0;
+            pointer-events: none;
+            transform: scale(0.95);
+        }
+
+        .login-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+            width: 100%;
+            max-width: 300px;
+        }
+
+        .login-avatar {
+            width: 120px;
+            height: 120px;
+            margin-bottom: 8px;
+        }
+
+        .login-avatar img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        .login-username {
+            font-size: 28px;
+            font-weight: 600;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+            margin-bottom: 12px;
+        }
+
+        .login-input-group {
+            position: relative;
+            width: 100%;
+            display: flex;
+        }
+
+        .login-password {
+            width: 100%;
+            padding: 10px 40px 10px 12px;
+            border-radius: 4px;
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            /* Default border */
+            background: rgba(0, 0, 0, 0.3);
+            color: white;
+            font-size: 14px;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .login-password::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .login-password:focus {
+            background: rgba(255, 255, 255, 1);
+            color: black;
+            border-color: white;
+        }
+
+        .login-password:focus::placeholder {
+            color: rgba(0, 0, 0, 0.5);
+        }
+
+        .login-submit {
+            position: absolute;
+            right: 4px;
+            top: 4px;
+            bottom: 4px;
+            width: 32px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .login-submit:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .login-password:focus~.login-submit {
+            background: rgba(0, 0, 0, 0.1);
+            color: black;
+        }
+
+        .login-password:focus~.login-submit:hover {
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+
+        .login-options {
+            margin-top: 20px;
+            cursor: pointer;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 13px;
+        }
+
+        .login-option:hover {
+            color: white;
+            text-decoration: underline;
+        }
+
+        .login-footer {
+            position: absolute;
+            bottom: 30px;
+            right: 30px;
+            display: flex;
+            gap: 20px;
+        }
+
+        .footer-icon {
+            font-size: 24px;
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+
+        .footer-icon:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Loading Screen */
+        .loading-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s;
+            z-index: 10;
+        }
+
+        .lock-screen-container.loading .loading-screen {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .loading-text {
+            font-size: 24px;
+            font-weight: 600;
+            margin-top: 24px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Windows 11 Loader Animation */
+        .loader {
+            position: relative;
+            width: 60px;
+            height: 60px;
+        }
+
+        .circle {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            animation: rotate 4s infinite cubic-bezier(0.1, 0.5, 0.9, 0.5);
+        }
+
+        .circle::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 27px;
+            /* (60 - 6) / 2 */
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: white;
+        }
+
+        .circle:nth-child(1) {
+            animation-delay: 0.1s;
+        }
+
+        .circle:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .circle:nth-child(3) {
+            animation-delay: 0.3s;
+        }
+
+        .circle:nth-child(4) {
+            animation-delay: 0.4s;
+        }
+
+        .circle:nth-child(5) {
+            animation-delay: 0.5s;
+        }
+
+        @keyframes rotate {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+
+    <!-- Calendar Flyout -->
+    <div class="calendar-flyout" id="calendarFlyout">
+        <div class="calendar-header">
+            <span class="current-date-large" id="calendarCurrentDate">January 2024</span>
+            <div class="calendar-nav">
+                <div class="nav-btn" onclick="changeMonth(-1)"><i class="fas fa-chevron-up"></i></div>
+                <div class="nav-btn" onclick="changeMonth(1)"><i class="fas fa-chevron-down"></i></div>
+            </div>
+        </div>
+        <div class="calendar-grid" id="calendarGrid">
+            <!-- JS Generated -->
+        </div>
+    </div>
+
+    <!-- Taskbar -->
+    <div class="taskbar">
+        <!-- Left: Widgets -->
+        <div class="taskbar-left">
+            <div class="weather-widget" title="Weather">
+                <i class="fas fa-cloud-sun weather-icon"></i>
+                <div class="weather-info">
+                    <span class="weather-temp">25°C</span>
+                    <span class="weather-desc">Partly Sunny</span>
                 </div>
             </div>
         </div>
-    </dialog>
 
-    <!-- Image Preview Dialog -->
-    <dialog id="imagePreviewDialog">
-        <div class="image-preview-container">
-            <button class="image-preview-close" onclick="imagePreviewDialog.close()">
-                <i class="fas fa-times"></i>
-            </button>
-            <img id="imagePreviewImg" src="" alt="Preview">
-        </div>
-    </dialog>
-
-    <!-- Payment Dialog -->
-    <dialog id="paymentDialog">
-        <div class="dialog-header">
-            <h2 class="dialog-title">Thanh toán</h2>
-            <button class="close-btn" onclick="paymentDialog.close()">×</button>
-        </div>
-        <div class="dialog-content">
-            <div class="payment-container">
-                <!-- Product Info -->
-                <div class="payment-product-info">
-                    <img id="paymentProductImage" src="" alt="Product">
-                    <div>
-                        <h4 id="paymentProductName"></h4>
-                        <p class="payment-product-price" id="paymentProductPrice"></p>
-                    </div>
-                </div>
-
-                <!-- Bank Info -->
-                <div class="payment-bank-info">
-                    <h3><i class="fas fa-university"></i> Thông tin chuyển khoản</h3>
-                    <div class="bank-details">
-                        <div class="bank-detail-row">
-                            <span class="label">Ngân hàng:</span>
-                            <span class="value">Techcombank (970407)</span>
-                        </div>
-                        <div class="bank-detail-row">
-                            <span class="label">Số tài khoản:</span>
-                            <span class="value">10934537548</span>
-                        </div>
-                        <div class="bank-detail-row">
-                            <span class="label">Chủ tài khoản:</span>
-                            <span class="value">NGUYEN THANH DAT</span>
-                        </div>
-                        <div class="bank-detail-row">
-                            <span class="label">Số tiền:</span>
-                            <span class="value highlight" id="paymentAmount"></span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- QR Code -->
-                <div class="payment-qr-container">
-                    <h3><i class="fas fa-qrcode"></i> Quét mã QR để thanh toán</h3>
-                    <div class="qr-code-wrapper">
-                        <img id="paymentQRCode" src="" alt="VietQR Code">
-                    </div>
-                    <p class="payment-note">
-                        <i class="fas fa-info-circle"></i>
-                        Vui lòng chuyển khoản đúng nội dung để đơn hàng được xác nhận tự động
-                    </p>
-                </div>
-
-                <!-- Customer Contact Info -->
-                <div class="payment-contact-info">
-                    <h3><i class="fas fa-user"></i> Thông tin liên hệ</h3>
-                    <div class="form-group">
-                        <label class="form-label">Link Facebook</label>
-                        <div class="input-with-button">
-                            <input type="url" class="form-input" id="paymentFacebook" placeholder="https://facebook.com/..." required>
-                            <a href="https://www.facebook.com/profile.php" target="_blank" class="facebook-link-btn" title="Mở Facebook để lấy link">
-                                <i class="fab fa-facebook"></i>
-                            </a>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Số điện thoại</label>
-                        <input type="tel" class="form-input" id="paymentPhone" placeholder="Xác nhận số điện thoại" required>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Email</label>
-                        <input type="email" class="form-input" id="paymentEmail" placeholder="Xác nhận email" required>
-                    </div>
-                </div>
-
-                <!-- Action Buttons -->
-                <div class="payment-actions">
-                    <button class="payment-btn cancel" onclick="paymentDialog.close()">
-                        <i class="fas fa-times"></i> Huỷ
-                    </button>
-                    <button class="payment-btn confirm" onclick="confirmPurchase()">
-                        <i class="fas fa-check"></i> Đã thanh toán
-                    </button>
-                </div>
+        <!-- Center: Start + Pinned Apps -->
+        <div class="taskbar-center">
+            <div class="taskbar-icon start-btn" id="startBtn" onclick="toggleStartMenu()">
+                <img src="https://img.icons8.com/fluency/48/windows-11.png" alt="Start">
+            </div>
+            <div class="taskbar-icon" onclick="openWindow('search')">
+                <img src="https://img.icons8.com/fluency/48/search--v1.png" alt="Search">
+            </div>
+            <div class="taskbar-icon" onclick="openWindow('edge')">
+                <img src="https://img.icons8.com/fluency/48/ms-edge-new.png" alt="Edge">
             </div>
         </div>
-    </dialog>
 
-    <!-- Supabase CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+        <!-- Running Apps Section -->
+        <div class="taskbar-running" id="taskbarRunning"></div>
+
+        <!-- Right: System Tray -->
+        <div class="taskbar-right">
+            <div class="tray-pill" title="Quick Settings">
+                <i class="fas fa-wifi tray-icon"></i>
+                <i class="fas fa-volume-up tray-icon"></i>
+                <i class="fas fa-battery-three-quarters tray-icon"></i>
+            </div>
+            <div class="system-clock" onclick="toggleCalendar()">
+                <div class="system-time" id="clockTime">12:00 PM</div>
+                <div class="system-date" id="clockDate">1/1/2024</div>
+            </div>
+        </div>
+    </div>
 
     <script>
-        // ========== SUPABASE SETUP ==========
-        const SUPABASE_URL = 'https://ktqdzlhvdkerjajffgfi.supabase.co';
-        const SUPABASE_KEY = 'sb_publishable_1wm-eXETyu07vl61sY4mBQ_xwYZVOCj';
-        const { createClient } = supabase;
-        const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
-
-        // Global variables
-        let currentUser = null;
-        let currentProfile = null;
-
-        // ========== AUTH FUNCTIONS ==========
-        
-        // Check if user is logged in
-        async function checkAuth() {
-            const { data: { session } } = await supabaseClient.auth.getSession();
-            
-            if (session) {
-                currentUser = session.user;
-                
-                // Load profile from database
-                const { data: profile } = await supabaseClient
-                    .from('profiles')
-                    .select('id, display_name, email, created_at, phone')
-                    .eq('id', currentUser.id)
-                    .single();
-                
-                if (profile) {
-                    currentProfile = profile;
-                    updateUIAfterLogin();
-                }
-            }
-        }
-
-        // Handle Login
-        async function handleLogin(e) {
-            e.preventDefault();
-            
-            const email = document.getElementById('loginUsername').value.trim();
-            const password = document.getElementById('loginPassword').value;
-
-            if (!email || !password) {
-                alert('⚠️ Vui lòng nhập đầy đủ thông tin!');
-                return;
-            }
-
-            try {
-                const { data, error } = await supabaseClient.auth.signInWithPassword({
-                    email: email,
-                    password: password
-                });
-
-                if (error) throw error;
-
-                if (data.user) {
-                    currentUser = data.user;
-                    
-                    // Load profile
-                    const { data: profile } = await supabaseClient
-                        .from('profiles')
-                        .select('id, display_name, email, created_at, phone')
-                        .eq('id', currentUser.id)
-                        .single();
-                    
-                    if (profile) {
-                        currentProfile = profile;
-                        loginDialog.close();
-                        updateUIAfterLogin();
-                        alert('✅ Đăng nhập thành công!');
-                    }
-                }
-            } catch (error) {
-                console.error('Login error:', error);
-                alert('❌ Sai email hoặc mật khẩu!');
-            }
-        }
-
-        // Handle Register
-        async function handleRegister(e) {
-            e.preventDefault();
-            
-            const displayName = document.getElementById('regUsername').value.trim();
-            const email = document.getElementById('regEmail').value.trim();
-            const password = document.getElementById('regPassword').value;
-            const confirmPassword = document.getElementById('regConfirmPassword').value;
-
-            if (!displayName || !email || !password || !confirmPassword) {
-                alert('⚠️ Vui lòng nhập đầy đủ thông tin!');
-                return;
-            }
-
-            if (password !== confirmPassword) {
-                alert('⚠️ Mật khẩu xác nhận không khớp!');
-                return;
-            }
-
-            if (password.length < 6) {
-                alert('⚠️ Mật khẩu phải có ít nhất 6 ký tự!');
-                return;
-            }
-
-            try {
-                // Check if display_name exists
-                const { data: existingProfiles } = await supabaseClient
-                    .from('profiles')
-                    .select('display_name')
-                    .eq('display_name', displayName);
-
-                if (existingProfiles && existingProfiles.length > 0) {
-                    alert('❌ Tên hiển thị đã tồn tại!');
-                    return;
-                }
-
-                // Sign up with Supabase Auth
-                const { data: authData, error: authError } = await supabaseClient.auth.signUp({
-                    email: email,
-                    password: password
-                });
-
-                if (authError) throw authError;
-
-                if (authData.user) {
-                    // Create profile
-                    const { error: profileError } = await supabaseClient
-                        .from('profiles')
-                        .insert([
-                            {
-                                id: authData.user.id,
-                                display_name: displayName,
-                                email: email,
-                                phone: null
-                            }
-                        ]);
-
-                    if (profileError) throw profileError;
-
-                    alert('✅ Đăng ký thành công! Vui lòng kiểm tra email để xác thực tài khoản.');
-                    switchToLogin();
-                    
-                    // Auto-fill login form
-                    document.getElementById('loginUsername').value = email;
-                }
-
-            } catch (error) {
-                console.error('Register error:', error);
-                alert('❌ Có lỗi xảy ra: ' + error.message);
-            }
-        }
-
-        // Handle Logout
-        async function handleLogout() {
-            if (confirm('Bạn có chắc muốn đăng xuất?')) {
-                await supabaseClient.auth.signOut();
-                currentUser = null;
-                currentProfile = null;
-                
-                // Update UI
-                document.getElementById('authButtons').style.display = 'flex';
-                document.getElementById('userInfo').classList.remove('active');
-                
-                alert('✅ Đã đăng xuất!');
-            }
-        }
-
-        // Update UI after login
-        function updateUIAfterLogin() {
-            document.getElementById('authButtons').style.display = 'none';
-            document.getElementById('userInfo').classList.add('active');
-            document.getElementById('userDisplayName').textContent = currentProfile.display_name;
-            
-            // Load user orders
-            loadUserOrders();
-        }
-
-        // Show Profile
-        function showProfile() {
-            if (!currentProfile) return;
-
-            document.getElementById('profileUsername').textContent = currentProfile.display_name;
-            document.getElementById('profileEmail').textContent = currentProfile.email;
-            document.getElementById('profilePhone').textContent = currentProfile.phone || 'Chưa cập nhật';
-            
-            const createdDate = currentProfile.created_at 
-                ? new Date(currentProfile.created_at).toLocaleDateString('vi-VN')
-                : 'Không rõ';
-            document.getElementById('profileCreatedAt').textContent = createdDate;
-
-            profileDialog.showModal();
-        }
-
-        // Switch dialogs
-        function switchToRegister() {
-            loginDialog.close();
-            registerDialog.showModal();
-        }
-
-        function switchToLogin() {
-            registerDialog.close();
-            loginDialog.showModal();
-        }
-
-        // ========== PRODUCTS DATA ==========
-        const products = [
-            {
-                id: "PROD001",
-                title: "Chat V1 (chat chung)",
-                date: "2026-02-04",
-                price: "Miễn phí",
-                image: "https://gdbtjzebjwnbwbvktcue.supabase.co/storage/v1/object/public/images/chat-images/1770284374832-sdksb8.png",
-                gradient: "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)",
-                badge: "CHAT",
-                demo_url: ""
-            },
-            {
-                id: "PROD002",
-                title: "Chat V2 (chat chung)",
-                date: "2026-02-04",
-                price: "Miễn phí",
-                image: "https://gdbtjzebjwnbwbvktcue.supabase.co/storage/v1/object/public/images/chat-images/1770284227075-iex758.png",
-                gradient: "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)",
-                badge: "CHAT",
-                demo_url: ""
-            },
-            {
-                id: "PROD003",
-                title: "Chat V1 (chat riêng)",
-                date: "2026-02-04",
-                price: "20.000 VND",
-                image: "https://gdbtjzebjwnbwbvktcue.supabase.co/storage/v1/object/public/images/chat-images/1770284374832-sdksb8.png",
-                gradient: "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)",
-                badge: "CHAT",
-                demo_url: "https://chat-zkjh.onrender.com/"
-            },
-            {
-                id: "PROD004",
-                title: "Chat V2 (chat riêng)",
-                date: "2026-02-04",
-                price: "20.000 VND",
-                image: "https://gdbtjzebjwnbwbvktcue.supabase.co/storage/v1/object/public/images/chat-images/1770284227075-iex758.png",
-                gradient: "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)",
-                badge: "CHAT",
-                demo_url: "TOOLS/chatv2"
-            },
-            {
-                id: "PROD005",
-                title: "Merry Christmast (custom Message)",
-                date: "2026-02-04",
-                price: "15.000 VND",
-                image: "https://gdbtjzebjwnbwbvktcue.supabase.co/storage/v1/object/public/images/chat-images/1770284553449-frtwgc.png",
-                badge: "EVENT",
-                demo_url: ""
-            },
-            {
-                id: "PROD006",
-                title: "Happy Birthday (custom Name & Date)",
-                date: "2026-02-04",
-                price: "30.000 VND",
-                image: "https://gdbtjzebjwnbwbvktcue.supabase.co/storage/v1/object/public/images/chat-images/1770284804699-umcdjf.png",
-                badge: "EVENT",
-                demo_url: ""
-            },
-            {
-                id: "PROD007",
-                title: "Music Library",
-                date: "2026-02-04",
-                price: "136.000 VND",
-                image: "https://gdbtjzebjwnbwbvktcue.supabase.co/storage/v1/object/public/images/chat-images/1770285134935-nyb12n.png",
-                badge: "EVENT",
-                demo_url: ""
-            },
-            {
-                id: "PROD008",
-                title: "HOME 1 (for bussiness, bao edit 1 week)",
-                date: "2026-02-04",
-                price: "50.000 VND",
-                image: "https://gdbtjzebjwnbwbvktcue.supabase.co/storage/v1/object/public/images/chat-images/1770289686558-877p5.png",
-                badge: "HOME",
-                demo_url: ""
-            },
-            {
-                id: "PROD009",
-                title: "HOME 2 (for personal, bao edit 1 day)",
-                date: "2026-02-04",
-                price: "10.000 VND",
-                image: "https://gdbtjzebjwnbwbvktcue.supabase.co/storage/v1/object/public/images/chat-images/1770289697674-juqovu.png",
-                badge: "HOME",
-                demo_url: ""
-            },
-            {
-                id: "PROD010",
-                title: "HOME 3 (for portfolio, bao edit done)",
-                date: "2026-02-04",
-                price: "12.000 VND",
-                image: "https://gdbtjzebjwnbwbvktcue.supabase.co/storage/v1/object/public/images/chat-images/1770290338703-pc89zu.png",
-                badge: "HOME",
-                demo_url: ""
-            },
-            {
-                id: "PROD011",
-                title: "HOME 4 (for portfolio developer, bao edit done)",
-                date: "2026-02-04",
-                price: "12.000 VND",
-                image: "https://gdbtjzebjwnbwbvktcue.supabase.co/storage/v1/object/public/images/chat-images/1770290555464-98p4mi.png",
-                badge: "HOME",
-                demo_url: ""
-            },
-            {
-                id: "PROD012",
-                title: "HOME 5 (for business, bao edit 1 week)",
-                date: "2026-02-04",
-                price: "10.000 VND",
-                image: "https://gdbtjzebjwnbwbvktcue.supabase.co/storage/v1/object/public/images/chat-images/1770290873405-4y3uqc.png",
-                badge: "HOME",
-                demo_url: ""
-            },
-            {
-                id: "PROD013",
-                title: "Countdown",
-                date: "2026-02-04",
-                price: "10.000 VND",
-                image: "https://gdbtjzebjwnbwbvktcue.supabase.co/storage/v1/object/public/images/chat-images/1770293273440-4jdsf1.png",
-                badge: "WIDGET",
-                demo_url: ""
-            },
-            {
-                id: "PROD014",
-                title: "Pomodoro V1 (1 work)",
-                date: "2026-02-04",
-                price: "Miễn phí",
-                image: "https://gdbtjzebjwnbwbvktcue.supabase.co/storage/v1/object/public/images/chat-images/1770293376285-0hvivb.png",
-                badge: "WIDGET",
-                demo_url: ""
-            },
-            {
-                id: "PROD015",
-                title: "Pomodoro V2 (2 or more works)",
-                date: "2026-02-04",
-                price: "Miễn phí",
-                image: "https://gdbtjzebjwnbwbvktcue.supabase.co/storage/v1/object/public/images/chat-images/1770293282591-5ekzn6.png",
-                badge: "WIDGET",
-                demo_url: ""
-            },
-            {
-                id: "PROD016",
-                title: "Music Library (add 1 song = 1k)",
-                date: "2026-02-04",
-                price: "Miễn phí",
-                image: "https://gdbtjzebjwnbwbvktcue.supabase.co/storage/v1/object/public/images/chat-images/1770293293282-g8vqg2n.png",
-                badge: "WEB",
-                demo_url: ""
-            },
-            {
-                id: "PROD017",
-                title: "Lyric Visual (theo yêu cầu, 1 song)",
-                date: "2026-02-04",
-                price: "5.000 VND",
-                image: "https://gdbtjzebjwnbwbvktcue.supabase.co/storage/v1/object/public/images/chat-images/1770294117892-k0m6oh.png",
-                badge: "WEB",
-                demo_url: ""
-            },
-            // {
-                // title: "",
-                // date: "",
-                // price: "",
-                // image: "",
-                // badge: ""
-            // },
+        // Apps Data
+        const allApps = [
+            { id: 'shop', name: 'Marketplace', icon: 'https://marketplace.canva.com/ZSZ-g/MAG5q1ZSZ-g/1/tl/canva-3d-shopping-cart-MAG5q1ZSZ-g.png', desktop: true, start: true, url: 'marketplace.html' },
+            { id: 'ntdMusic', name: 'ntdMusic', icon: 'https://www.audkit.com/wp-content/uploads/2023/05/apple-music-converter-icon.png', desktop: true, start: true, url: 'TOOLS/songs/index.html' },
+            { id: 'chat', name: 'ntdChat', icon: 'https://marketplace.canva.com/q3PYc/MAG8Z0q3PYc/1/tl/canva-blue-chat-speech-bubble-with-three-dots-icon-isolated-on-transparent-background.-MAG8Z0q3PYc.png', desktop: true, start: true, url: 'TOOLS/chatv2/index.html' },
+            { id: 'HPBD', name: 'HPBD', icon: 'https://cdn-icons-png.freepik.com/512/8611/8611770.png', desktop: true, start: true, url: 'TOOLS/happybirthday/index.html' },
+            { id: 'pc', name: 'This PC', icon: 'https://img.icons8.com/fluency/48/workstation.png', desktop: true, start: false, url: 'about:blank' },
+            { id: 'edge', name: 'Microsoft Edge', icon: 'https://img.icons8.com/fluency/48/ms-edge-new.png', desktop: true, start: true, url: 'https://www.bing.com' },
+            { id: 'search', name: 'Search', icon: 'https://img.icons8.com/fluency/48/search--v1.png', desktop: false, start: true, url: 'https://www.bing.com' },
+            { id: 'teams', name: 'Microsoft Teams', icon: 'https://img.icons8.com/fluency/48/microsoft-teams-2019.png', desktop: false, start: true, url: 'https://teams.microsoft.com' },
+            { id: 'outlook', name: 'Outlook', icon: 'https://img.icons8.com/fluency/48/microsoft-outlook-2019.png', desktop: false, start: true, url: 'https://outlook.live.com' },
+            { id: 'word', name: 'Word', icon: 'https://img.icons8.com/fluency/48/microsoft-word-2019.png', desktop: false, start: true, url: 'https://www.office.com/launch/word' },
+            { id: 'excel', name: 'Excel', icon: 'https://img.icons8.com/fluency/48/microsoft-excel-2019.png', desktop: false, start: true, url: 'https://www.office.com/launch/excel' },
+            { id: 'powerpoint', name: 'PowerPoint', icon: 'https://img.icons8.com/fluency/48/microsoft-powerpoint-2019.png', desktop: false, start: true, url: 'https://www.office.com/launch/powerpoint' },
+            { id: 'onenote', name: 'OneNote', icon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/34/Microsoft_OneNote_Icon_%282025_-_present%29.svg/960px-Microsoft_OneNote_Icon_%282025_-_present%29.svg.png', desktop: false, start: true, url: 'https://www.onenote.com/notebooks' },
+            { id: 'store', name: 'Microsoft Store', icon: 'https://img.icons8.com/fluency/48/microsoft-store.png', desktop: false, start: true, url: 'https://apps.microsoft.com' },
+            { id: 'photos', name: 'Photos', icon: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRIZLpccmw2Dj0mouCEfXK4HfVT10ZjFBQLYg&s', desktop: false, start: true, url: 'about:blank' },
+            { id: 'settings', name: 'Settings', icon: 'https://img.icons8.com/color/48/settings--v1.png', desktop: false, start: true, url: 'about:blank' },
+            { id: 'calc', name: 'Calculator', icon: 'https://img.icons8.com/fluency/48/calculator.png', desktop: false, start: true, url: 'https://www.desmos.com/scientific?lang=vi' },
+            { id: 'notepad', name: 'Notepad', icon: 'https://img.icons8.com/fluency/48/notepad.png', desktop: false, start: true, url: 'https://anotepad.com/' },
+            { id: 'explorer', name: 'File Explorer', icon: 'https://img.icons8.com/fluency/48/folder-invoices--v1.png', desktop: true, start: true, url: 'about:blank' },
+            { id: 'recycle', name: 'Recycle Bin', icon: 'https://img.icons8.com/fluency/48/full-trash.png', desktop: true, start: false, url: 'about:blank' },
+            { id: 'facebook', name: 'Facebook', icon: 'https://img.icons8.com/color/48/facebook-new.png', desktop: true, start: true, url: 'https://www.facebook.com' },
+            { id: 'messenger', name: 'Messenger', icon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/be/Facebook_Messenger_logo_2020.svg/500px-Facebook_Messenger_logo_2020.svg.png', desktop: true, start: true, url: 'https://www.messenger.com' },
+            { id: 'instagram', name: 'Instagram', icon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/95/Instagram_logo_2022.svg/1280px-Instagram_logo_2022.svg.png', desktop: true, start: true, url: 'https://www.instagram.com' },
+            { id: 'threads', name: 'Threads', icon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/01/Threads_%28app%29.svg/250px-Threads_%28app%29.svg.png', desktop: true, start: true, url: 'https://www.threads.net' },
+            { id: 'youtube', name: 'YouTube', icon: 'https://img.icons8.com/color/48/youtube-play.png', desktop: true, start: true, url: 'https://www.youtube.com/' },
+            { id: 'tiktok', name: 'TikTok', icon: 'https://img.icons8.com/color/48/tiktok.png', desktop: true, start: true, url: 'https://www.tiktok.com' },
+            { id: 'nhaccuatui', name: 'Nhaccuatui', icon: 'https://apkcombo.vn/wp-content/uploads/2023/02/nct-nhaccuatui-nghe-mp3-150x150.png', desktop: true, start: true, url: 'https://www.nhaccuatui.com' },
+            { id: 'zingmp3', name: 'Zing MP3', icon: 'https://dangcapdigital.vn/img/app/zingmp3-aszyd.png', desktop: true, start: true, url: 'https://zingmp3.vn' }
         ];
 
-        // Phân trang
-        let currentPage = 1;
-        const itemsPerPage = 8;
-        let filteredProducts = [...products];
+        // --- RENDER LOGIC ---
+        const desktopEl = document.getElementById('desktop');
+        const startMenuGrid = document.getElementById('startMenuGrid');
+        const windowContainer = document.getElementById('windowContainer');
+        const searchInput = document.getElementById('searchInput');
+        const taskbarRunning = document.getElementById('taskbarRunning');
 
-        // Load products
-        function loadProducts() {
-            const grid = document.getElementById('productsGrid');
-            const startIndex = (currentPage - 1) * itemsPerPage;
-            const endIndex = startIndex + itemsPerPage;
-            const currentProducts = filteredProducts.slice(startIndex, endIndex);
-            
-            grid.innerHTML = currentProducts.map(product => `
-                <div class="product-card" onclick="viewProduct('${product.title}')">
-                    <div class="product-image">
-                        ${product.image ? `<img src="${product.image}" alt="${product.title}">` : ''}
-                        ${product.badge ? `<span class="product-badge">${product.badge}</span>` : ''}
+        function renderApps(filterText = '') {
+            // Render Desktop
+            desktopEl.innerHTML = '';
+            allApps.filter(app => app.desktop).forEach(app => {
+                const iconDiv = document.createElement('div');
+                iconDiv.className = 'desktop-icon';
+                iconDiv.dataset.appId = app.id;
+
+                // Single click to select
+                iconDiv.onclick = (e) => {
+                    e.stopPropagation();
+                    // Remove selected class from all icons
+                    document.querySelectorAll('.desktop-icon').forEach(icon => {
+                        icon.classList.remove('selected');
+                    });
+                    // Add selected class to clicked icon
+                    iconDiv.classList.add('selected');
+                };
+
+                // Double click to open
+                iconDiv.ondblclick = () => openWindow(app.id);
+
+                iconDiv.innerHTML = `
+                    <img src="${app.icon.replace('48', '96')}" alt="${app.name}">
+                    <span>${app.name}</span>
+                 `;
+                desktopEl.appendChild(iconDiv);
+            });
+
+            // Render Start Menu
+            startMenuGrid.innerHTML = '';
+            const filteredApps = allApps.filter(app => app.start && app.name.toLowerCase().includes(filterText.toLowerCase()));
+
+            filteredApps.forEach(app => {
+                const item = document.createElement('div');
+                item.className = 'app-item';
+                item.onclick = () => {
+                    openWindow(app.id);
+                    toggleStartMenu();
+                };
+                item.innerHTML = `
+                    <img src="${app.icon}" alt="${app.name}">
+                    <span>${app.name}</span>
+                `;
+                startMenuGrid.appendChild(item);
+            });
+        }
+
+        // --- SEARCH LOGIC ---
+        searchInput.addEventListener('input', (e) => {
+            renderApps(e.target.value);
+        });
+
+        // --- WINDOW SYSTEM ---
+        let zIndex = 100;
+        let activeWindows = {};
+
+        function updateTaskbarRunningApps() {
+            taskbarRunning.innerHTML = '';
+
+            Object.keys(activeWindows).forEach(appId => {
+                const app = allApps.find(a => a.id === appId);
+                if (!app) return;
+
+                const taskbarIcon = document.createElement('div');
+                taskbarIcon.className = 'taskbar-icon running';
+                taskbarIcon.id = `taskbar-${appId}`;
+
+                const win = document.getElementById(`win-${appId}`);
+                if (win && !win.classList.contains('minimized')) {
+                    taskbarIcon.classList.add('active');
+                }
+
+                taskbarIcon.onclick = () => toggleWindowFromTaskbar(appId);
+                taskbarIcon.innerHTML = `<img src="${app.icon}" alt="${app.name}">`;
+
+                taskbarRunning.appendChild(taskbarIcon);
+            });
+        }
+
+        function toggleWindowFromTaskbar(appId) {
+            const win = document.getElementById(`win-${appId}`);
+            if (!win) return;
+
+            if (win.classList.contains('minimized')) {
+                // Restore window
+                win.classList.remove('minimized');
+                bringToFront(win);
+                updateTaskbarRunningApps();
+            } else {
+                // Minimize window nếu đang active, hoặc bring to front nếu không active
+                if (win.style.zIndex == zIndex) {
+                    minimizeWindow(appId);
+                } else {
+                    bringToFront(win);
+                    updateTaskbarRunningApps();
+                }
+            }
+        }
+
+        function openWindow(appId) {
+            const app = allApps.find(a => a.id === appId);
+            if (!app) return;
+
+            // Check if already open
+            if (activeWindows[appId]) {
+                const win = document.getElementById(`win-${appId}`);
+                bringToFront(win);
+                if (win.classList.contains('minimized')) {
+                    win.classList.remove('minimized');
+                }
+                updateTaskbarRunningApps();
+                return;
+            }
+
+            // Create Window
+            const win = document.createElement('div');
+            win.className = 'window';
+            win.id = `win-${appId}`;
+            win.style.zIndex = ++zIndex;
+            win.style.left = '100px';
+            win.style.top = '50px';
+            win.style.width = '800px';
+            win.style.height = '600px';
+
+            // Mobile check
+            if (window.innerWidth < 768) {
+                win.style.left = '0';
+                win.style.top = '0';
+                win.style.width = '100%';
+                win.style.height = 'calc(100% - 48px)';
+            }
+
+            win.innerHTML = `
+                <div class="window-header">
+                    <div class="window-title">
+                        <img src="${app.icon}" alt=""> 
+                        ${app.name}
                     </div>
-                    <div class="product-info">
-                        <h3 class="product-title">${product.title}</h3>
-                        <p class="product-date">Date: ${product.date}</p>
-                        <div class="product-pricing">
-                            <div class="product-price">
-                                <span class="price-main">${product.price}</span>
-                            </div>
-                            <div class="product-stats">
-                                <span><i class="fas fa-comment"></i> ${product.comments}</span>
-                            </div>
-                        </div>
+                    <div class="window-controls">
+                        <div class="control-btn" onclick="minimizeWindow('${appId}')"><i class="fas fa-minus"></i></div>
+                        <div class="control-btn" onclick="maximizeWindow('${appId}')"><i class="far fa-square"></i></div>
+                        <div class="control-btn close-btn" onclick="closeWindow('${appId}')"><i class="fas fa-times"></i></div>
                     </div>
                 </div>
-            `).join('');
+                <div class="window-content">
+                    <div class="iframe-overlay"></div>
+                    <iframe src="${app.url}" sandbox="allow-scripts allow-same-origin allow-forms allow-presentation"></iframe>
+                </div>
+            `;
 
-            updatePagination();
-        }
+            windowContainer.appendChild(win);
+            activeWindows[appId] = true;
+            makeDraggable(win);
 
-        // Update pagination
-        function updatePagination() {
-            const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
-            const paginationContainer = document.querySelector('.pagination');
-            
-            let paginationHTML = '';
-            
-            paginationHTML += `<button class="page-btn" onclick="changePage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>Previous</button>`;
-            
-            for (let i = 1; i <= totalPages; i++) {
-                if (
-                    i === 1 || 
-                    i === totalPages || 
-                    (i >= currentPage - 1 && i <= currentPage + 1)
-                ) {
-                    paginationHTML += `<button class="page-btn ${i === currentPage ? 'active' : ''}" onclick="changePage(${i})">${i}</button>`;
-                } else if (i === currentPage - 2 || i === currentPage + 2) {
-                    paginationHTML += `<span style="padding: 0 8px; color: var(--text-muted);">...</span>`;
-                }
-            }
-            
-            paginationHTML += `<button class="page-btn" onclick="changePage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>Next</button>`;
-            
-            paginationContainer.innerHTML = paginationHTML;
-        }
-
-        // Change page
-        function changePage(page) {
-            const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
-            if (page < 1 || page > totalPages) return;
-            
-            currentPage = page;
-            loadProducts();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-
-        // View product
-        function viewProduct(title) {
-            const product = products.find(p => p.title === title);
-            if (!product) return;
-
-            // Set product details
-            document.getElementById('productDialogTitle').textContent = product.title;
-            const productImage = document.getElementById('productDetailImage');
-            productImage.src = product.image || '';
-            
-            // Add click event to image for preview
-            productImage.onclick = function() {
-                openImagePreview(product.image);
-            };
-            
-            document.getElementById('productDetailBadge').textContent = product.badge || '';
-            document.getElementById('productDetailName').textContent = product.title;
-            document.getElementById('productDetailDate').textContent = product.date;
-            document.getElementById('productDetailPrice').textContent = product.price;
-            
-            // Set description (you can customize this based on product)
-            document.getElementById('productDetailDescription').textContent = 
-                `Đây là sản phẩm ${product.title}. Sản phẩm thuộc danh mục ${product.badge}.`;
-
-            // Create action buttons based on price
-            const actionsContainer = document.getElementById('productActions');
-            const isFree = product.price.includes('Miễn phí');
-            
-            if (isFree) {
-                // Free product: Show "Truy cập" and "Xem code" buttons
-                actionsContainer.innerHTML = `
-                    <button class="product-action-btn success" onclick="handleAccess('${product.title}')">
-                        <i class="fas fa-external-link-alt"></i>
-                        Truy cập
-                    </button>
-                    <button class="product-action-btn secondary" onclick="handleViewCode('${product.title}')">
-                        <i class="fas fa-code"></i>
-                        Xem code
-                    </button>
-                `;
-            } else {
-                // Paid product: Show "Demo" and "Mua" buttons
-                actionsContainer.innerHTML = `
-                    <button class="product-action-btn secondary" onclick="handleDemo('${product.title}')">
-                        <i class="fas fa-play-circle"></i>
-                        Demo
-                    </button>
-                    <button class="product-action-btn primary" onclick="handlePurchase('${product.title}')">
-                        <i class="fas fa-shopping-cart"></i>
-                        Mua ngay
-                    </button>
-                `;
-            }
-
-            // Show dialog
-            productDialog.showModal();
-        }
-
-        // Open image preview
-        function openImagePreview(imageSrc) {
-            if (!imageSrc) return;
-            document.getElementById('imagePreviewImg').src = imageSrc;
-            imagePreviewDialog.showModal();
-        }
-
-        // Close image preview when clicking on backdrop
-        document.addEventListener('DOMContentLoaded', function() {
-            const imagePreviewDialog = document.getElementById('imagePreviewDialog');
-            
-            imagePreviewDialog.addEventListener('click', function(event) {
-                const rect = imagePreviewDialog.getBoundingClientRect();
-                const isInDialog = (
-                    event.clientX >= rect.left &&
-                    event.clientX <= rect.right &&
-                    event.clientY >= rect.top &&
-                    event.clientY <= rect.bottom
-                );
-                
-                if (!isInDialog) {
-                    imagePreviewDialog.close();
-                }
+            win.addEventListener('mousedown', () => {
+                bringToFront(win);
+                updateTaskbarRunningApps();
             });
-        });
 
-        // Action handlers (to be developed later)
-        function handleAccess(title) {
-            alert(`Truy cập sản phẩm: ${title}\n\nChức năng đang được phát triển...`);
+            updateTaskbarRunningApps();
         }
 
-        function handleViewCode(title) {
-            alert(`Xem code của sản phẩm: ${title}\n\nChức năng đang được phát triển...`);
-        }
-
-        function handleDemo(title) {
-            const product = products.find(p => p.title === title);
-            if (!product) return;
-
-            if (product.demo_url && product.demo_url.trim() !== '') {
-                // Open demo link in new tab
-                window.open(product.demo_url, '_blank');
-            } else {
-                alert(`⚠️ Sản phẩm "${title}" chưa có link demo!\n\nVui lòng liên hệ admin để được hỗ trợ.`);
+        function closeWindow(appId) {
+            const win = document.getElementById(`win-${appId}`);
+            if (win) {
+                win.style.opacity = '0';
+                win.style.transform = 'scale(0.9)';
+                setTimeout(() => {
+                    win.remove();
+                    delete activeWindows[appId];
+                    updateTaskbarRunningApps();
+                }, 200);
             }
         }
 
-        function handlePurchase(title) {
-            // Check if user is logged in
-            if (!currentUser) {
-                alert('⚠️ Vui lòng đăng nhập để mua hàng!');
-                loginDialog.showModal();
-                return;
+        function minimizeWindow(appId) {
+            const win = document.getElementById(`win-${appId}`);
+            if (win) {
+                win.classList.add('minimized');
+                updateTaskbarRunningApps();
             }
-
-            const product = products.find(p => p.title === title);
-            if (!product) return;
-
-            // Extract price number (remove "VND" and dots)
-            const priceMatch = product.price.match(/[\d.]+/);
-            if (!priceMatch) {
-                alert('❌ Không thể xác định giá sản phẩm!');
-                return;
-            }
-            
-            const priceNumber = priceMatch[0].replace(/\./g, '');
-            const paymentInfo = `${product.id}-${currentUser.id}`;
-
-            // Set payment dialog content
-            document.getElementById('paymentProductImage').src = product.image;
-            document.getElementById('paymentProductName').textContent = product.title;
-            document.getElementById('paymentProductPrice').textContent = product.price;
-            document.getElementById('paymentAmount').textContent = product.price;
-
-            // Auto-fill contact information from profile
-            document.getElementById('paymentEmail').value = currentProfile?.email || '';
-            document.getElementById('paymentPhone').value = currentProfile?.phone || '';
-            document.getElementById('paymentFacebook').value = ''; // Clear Facebook field
-
-            // Generate VietQR URL
-            const qrUrl = `https://api.vietqr.io/image/970407-10934537548-YzNIi90.jpg?accountName=NGUYEN%20THANH%20DAT&amount=${priceNumber}&addInfo=${paymentInfo}`;
-            document.getElementById('paymentQRCode').src = qrUrl;
-
-            // Store current product for confirmation
-            window.currentPurchaseProduct = product;
-
-            // Close product dialog and show payment dialog
-            productDialog.close();
-            paymentDialog.showModal();
         }
 
-        // Confirm purchase and save to database
-        async function confirmPurchase() {
-            if (!currentUser || !window.currentPurchaseProduct) {
-                alert('❌ Có lỗi xảy ra!');
-                return;
-            }
-
-            // Get contact info from form
-            const facebookLink = document.getElementById('paymentFacebook').value.trim();
-            const phoneNumber = document.getElementById('paymentPhone').value.trim();
-            const emailAddress = document.getElementById('paymentEmail').value.trim();
-
-            // Validate inputs
-            if (!facebookLink || !phoneNumber || !emailAddress) {
-                alert('⚠️ Vui lòng điền đầy đủ thông tin liên hệ!');
-                return;
-            }
-
-            // Validate Facebook URL
-            if (!facebookLink.includes('facebook.com')) {
-                alert('⚠️ Link Facebook không hợp lệ!');
-                return;
-            }
-
-            const product = window.currentPurchaseProduct;
-            
-            // Extract price number
-            const priceMatch = product.price.match(/[\d.]+/);
-            const priceNumber = parseInt(priceMatch[0].replace(/\./g, ''));
-
-            try {
-                // Insert order into database
-                const { data, error } = await supabaseClient
-                    .from('orders')
-                    .insert([
-                        {
-                            user_id: currentUser.id,
-                            product_id: product.id,
-                            product_title: product.title,
-                            amount: priceNumber,
-                            confirmed: false,
-                            facebook_link: facebookLink,
-                            contact_phone: phoneNumber,
-                            contact_email: emailAddress,
-                            created_at: new Date().toISOString()
-                        }
-                    ]);
-
-                if (error) {
-                    console.error('Error creating order:', error);
-                    alert('❌ Có lỗi khi tạo đơn hàng! Vui lòng thử lại.');
-                    return;
+        function maximizeWindow(appId) {
+            const win = document.getElementById(`win-${appId}`);
+            if (win) {
+                win.classList.toggle('maximized');
+                // Toggle Icon
+                const maxBtn = win.querySelector('.control-btn:nth-child(2) i');
+                if (win.classList.contains('maximized')) {
+                    maxBtn.classList.remove('fa-square');
+                    maxBtn.classList.add('fa-clone'); // Restore icon
+                } else {
+                    maxBtn.classList.remove('fa-clone');
+                    maxBtn.classList.add('fa-square'); // Maximize icon
                 }
-
-                alert('✅ Đơn hàng của bạn đã được tạo!\n\nVui lòng chờ xác nhận từ người bán.');
-                paymentDialog.close();
-                
-                // Switch to cart tab to show pending order
-                switchTab('cart');
-                switchCartTab('pending');
-                
-                // Reload orders
-                loadUserOrders();
-
-            } catch (err) {
-                console.error('Error:', err);
-                alert('❌ Có lỗi xảy ra! Vui lòng thử lại.');
             }
         }
 
-        // Load user orders from database
-        async function loadUserOrders() {
-            if (!currentUser) return;
-
-            try {
-                // Fetch all orders for current user
-                const { data: orders, error } = await supabaseClient
-                    .from('orders')
-                    .select('*')
-                    .eq('user_id', currentUser.id)
-                    .order('created_at', { ascending: false });
-
-                if (error) {
-                    console.error('Error loading orders:', error);
-                    return;
-                }
-
-                // Separate orders by status
-                const pendingOrders = orders.filter(o => !o.confirmed);
-                const purchasedOrders = orders.filter(o => o.confirmed);
-
-                // Update counts
-                document.getElementById('pendingCount').textContent = pendingOrders.length;
-                document.getElementById('purchasedCount').textContent = purchasedOrders.length;
-
-                // Render pending orders
-                renderOrders(pendingOrders, 'pendingContent');
-                
-                // Render purchased orders
-                renderOrders(purchasedOrders, 'purchasedContent');
-
-            } catch (err) {
-                console.error('Error:', err);
-            }
+        function bringToFront(win) {
+            win.style.zIndex = ++zIndex;
         }
 
-        // Render orders in the UI
-        function renderOrders(orders, containerId) {
-            const container = document.getElementById(containerId);
-            
-            if (orders.length === 0) {
-                // Show empty state
-                let emptyIcon = 'fa-clock';
-                let emptyTitle = 'Chưa có đơn hàng nào chờ xác nhận';
-                let emptyDesc = 'Các đơn hàng đang chờ xác nhận sẽ hiển thị tại đây';
-                
-                if (containerId === 'purchasedContent') {
-                    emptyIcon = 'fa-box';
-                    emptyTitle = 'Chưa có sản phẩm đã mua';
-                    emptyDesc = 'Các sản phẩm bạn đã mua sẽ hiển thị tại đây';
-                }
-                
-                container.innerHTML = `
-                    <div class="empty-cart">
-                        <i class="fas ${emptyIcon}"></i>
-                        <h3>${emptyTitle}</h3>
-                        <p>${emptyDesc}</p>
-                    </div>
-                `;
-                return;
-            }
+        function makeDraggable(element) {
+            const header = element.querySelector('.window-header');
+            const overlay = element.querySelector('.iframe-overlay');
 
-            // Render orders
-            const ordersHTML = orders.map(order => {
-                const product = products.find(p => p.id === order.product_id);
-                const orderDate = new Date(order.created_at).toLocaleDateString('vi-VN', {
-                    year: 'numeric',
-                    month: '2-digit',
-                    day: '2-digit',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                });
+            let isDragging = false;
+            let startX, startY, initialLeft, initialTop;
 
-                return `
-                    <div class="order-card">
-                        <div class="order-header">
-                            <div class="order-id">Mã đơn: #${order.id}</div>
-                            <div class="order-date">${orderDate}</div>
-                        </div>
-                        <div class="order-items">
-                            <div class="order-item">
-                                <div class="order-item-image">
-                                    <img src="${product?.image || ''}" alt="${order.product_title}">
-                                </div>
-                                <div class="order-item-info">
-                                    <div class="order-item-title">${order.product_title}</div>
-                                    <div class="order-item-price">${order.amount.toLocaleString('vi-VN')} VND</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="order-footer">
-                            <div class="order-total">
-                                Tổng tiền: <span>${order.amount.toLocaleString('vi-VN')} VND</span>
-                            </div>
-                            ${!order.confirmed ? '<span style="color: var(--accent-warning);"><i class="fas fa-clock"></i> Chờ xác nhận</span>' : '<span style="color: var(--accent-success);"><i class="fas fa-check-circle"></i> Đã xác nhận</span>'}
-                        </div>
-                    </div>
-                `;
-            }).join('');
+            header.addEventListener('mousedown', (e) => {
+                if (element.classList.contains('maximized')) return;
 
-            container.innerHTML = ordersHTML;
-        }
+                isDragging = true;
+                element.classList.add('dragging');
+                bringToFront(element);
 
-        // Search functionality
-        const searchInput = document.getElementById('searchInput');
-        searchInput.addEventListener('input', (e) => {
-            const searchTerm = e.target.value.toLowerCase();
-            filteredProducts = products.filter(product => 
-                product.title.toLowerCase().includes(searchTerm)
-            );
-            currentPage = 1;
-            loadProducts();
-        });
-
-        // Filter functionality
-        const filterBtns = document.querySelectorAll('.filter-btn');
-        filterBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                filterBtns.forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                
-                const filter = btn.textContent.trim();
-                
-                if (filter === 'All') {
-                    filteredProducts = [...products];
-                } else if (filter === 'Free') {
-                    filteredProducts = products.filter(product => product.price.includes('Miễn phí'));
-                } else if (filter === 'Paid') {
-                    filteredProducts = products.filter(product => product.price.includes('VND'));
-                }
-                
-                currentPage = 1;
-                loadProducts();
+                startX = e.clientX;
+                startY = e.clientY;
+                initialLeft = element.offsetLeft;
+                initialTop = element.offsetTop;
             });
-        });
 
-        // Initialize
-        window.addEventListener('DOMContentLoaded', () => {
-            checkAuth();
-            loadProducts();
-        });
+            window.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
 
-        // ========== TAB SWITCHING ==========
-        
-        // Switch between Marketplace and Cart
-        function switchTab(tab) {
-            const navTabs = document.querySelectorAll('.nav-tab');
-            const marketplaceContainer = document.getElementById('marketplaceContainer');
-            const cartContainer = document.getElementById('cartContainer');
-            
-            navTabs.forEach(t => t.classList.remove('active'));
-            
-            if (tab === 'marketplace') {
-                navTabs[0].classList.add('active');
-                marketplaceContainer.style.display = 'block';
-                cartContainer.style.display = 'none';
-            } else if (tab === 'cart') {
-                navTabs[1].classList.add('active');
-                marketplaceContainer.style.display = 'none';
-                cartContainer.style.display = 'block';
+                const dx = e.clientX - startX;
+                const dy = e.clientY - startY;
+
+                element.style.left = `${initialLeft + dx}px`;
+                element.style.top = `${initialTop + dy}px`;
+            });
+
+            window.addEventListener('mouseup', () => {
+                isDragging = false;
+                if (element) element.classList.remove('dragging');
+            });
+        }
+
+        // Start Menu Toggle
+        const startMenu = document.getElementById('startMenu');
+
+        function toggleStartMenu() {
+            startMenu.classList.toggle('active');
+        }
+
+        // Lock Screen & Login Logic
+        const lockScreenContainer = document.getElementById('lockScreenContainer');
+        const loginPasswordInput = document.getElementById('loginPassword');
+
+        function showLockScreen() {
+            lockScreenContainer.classList.add('active');
+            lockScreenContainer.classList.add('locked');
+            lockScreenContainer.classList.remove('logging-in');
+
+            // Close start menu if open
+            if (startMenu.classList.contains('active')) {
+                startMenu.classList.remove('active');
             }
         }
 
-        // Switch between cart tabs (pending, purchased)
-        function switchCartTab(tab) {
-            const cartTabs = document.querySelectorAll('.cart-tab');
-            const cartContents = document.querySelectorAll('.cart-tab-content');
-            
-            cartTabs.forEach(t => t.classList.remove('active'));
-            cartContents.forEach(c => c.classList.remove('active'));
-            
-            if (tab === 'pending') {
-                cartTabs[0].classList.add('active');
-                document.getElementById('pendingContent').classList.add('active');
-            } else if (tab === 'purchased') {
-                cartTabs[1].classList.add('active');
-                document.getElementById('purchasedContent').classList.add('active');
+        function showLoginScreen() {
+            lockScreenContainer.classList.remove('locked');
+            lockScreenContainer.classList.add('logging-in');
+            setTimeout(() => {
+                loginPasswordInput.value = '';
+                loginPasswordInput.focus();
+            }, 300);
+        }
+
+        function attemptLogin() {
+            if (loginPasswordInput.value === '123456') {
+                // Show Loading Screen
+                lockScreenContainer.classList.add('loading');
+
+                // Wait for loading animation (5s)
+                setTimeout(() => {
+                    lockScreenContainer.classList.remove('active');
+                    lockScreenContainer.classList.remove('loading');
+                    lockScreenContainer.classList.remove('logging-in');
+                    lockScreenContainer.classList.add('locked'); // Reset to locked state for next time
+                }, 3000);
+            } else {
+                alert('Incorrect password. Please try again.');
+                loginPasswordInput.value = '';
+                loginPasswordInput.focus();
+            }
+        }
+
+        // Event Listeners for Login
+        document.getElementById('switchUserBtn').addEventListener('click', showLockScreen);
+
+        loginPasswordInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                attemptLogin();
+            }
+        });
+
+        document.getElementById('shutdownBtn').addEventListener('click', () => {
+            // Revert to lock screen as a "Shutdown" simulation or just alert
+            alert('Shutting down...');
+            location.reload(); // Reload to reset state
+        });
+
+        /* 
+           Handle pressing any key on Lock Screen to go to Login Screen 
+           We attach this to window but check if lock screen is active and locked
+        */
+        window.addEventListener('keydown', (e) => {
+            if (lockScreenContainer.classList.contains('active') &&
+                lockScreenContainer.classList.contains('locked')) {
+                showLoginScreen();
+            }
+        });
+
+        // Close Start Menu when clicking outside
+        desktopEl.addEventListener('click', () => {
+            if (startMenu.classList.contains('active')) {
+                startMenu.classList.remove('active');
+            }
+        });
+
+        // Clock Logic
+        function updateClock() {
+            const now = new Date();
+            const timeEl = document.getElementById('clockTime');
+            const dateEl = document.getElementById('clockDate');
+
+            // Lock Screen Elements
+            const lockTimeEl = document.getElementById('lockTime');
+            const lockDateEl = document.getElementById('lockDate');
+
+            let hours = now.getHours();
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12;
+            hours = hours ? hours : 12;
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+
+            // Taskbar Clock
+            timeEl.textContent = `${hours}:${minutes} ${ampm}`;
+            const month = (now.getMonth() + 1);
+            const day = now.getDate();
+            const year = now.getFullYear();
+            dateEl.textContent = `${month}/${day}/${year}`;
+
+            // Lock Screen Clock (24h format usually or same preference, using 12h for consistency but cleaner)
+            // Windows 11 Lock Screen usually shows just Time and Date
+
+            // Format: 12:00
+            lockTimeEl.textContent = `${hours}:${minutes}`;
+
+            // Format: Monday, January 1
+            const options = { weekday: 'long', month: 'long', day: 'numeric' };
+            lockDateEl.textContent = now.toLocaleDateString('en-US', options);
+        }
+
+        // Initial Render
+        renderApps();
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // Show Lock Screen on Load
+        showLockScreen();
+
+        // --- CALENDAR LOGIC ---
+        const calendarFlyout = document.getElementById('calendarFlyout');
+        const calendarGrid = document.getElementById('calendarGrid');
+        const calendarCurrentDateTitle = document.getElementById('calendarCurrentDate');
+        let currentCalendarDate = new Date();
+
+        function toggleCalendar() {
+            // Close start menu if open
+            if (startMenu.classList.contains('active')) {
+                startMenu.classList.remove('active');
+            }
+
+            calendarFlyout.classList.toggle('active');
+            if (calendarFlyout.classList.contains('active')) {
+                renderCalendar();
+            }
+        }
+
+        // Close calendar when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!calendarFlyout.contains(e.target) &&
+                !e.target.closest('.system-clock') &&
+                calendarFlyout.classList.contains('active')) {
+                calendarFlyout.classList.remove('active');
+            }
+        });
+
+        function changeMonth(delta) {
+            currentCalendarDate.setMonth(currentCalendarDate.getMonth() + delta);
+            renderCalendar();
+        }
+
+        function renderCalendar() {
+            const year = currentCalendarDate.getFullYear();
+            const month = currentCalendarDate.getMonth();
+            const today = new Date();
+
+            // Update Header
+            const options = { month: 'long', year: 'numeric' };
+            calendarCurrentDateTitle.textContent = currentCalendarDate.toLocaleDateString('en-US', options);
+
+            calendarGrid.innerHTML = '';
+
+            // Day Names
+            const dayNames = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+            dayNames.forEach(name => {
+                const el = document.createElement('div');
+                el.className = 'calendar-day-name';
+                el.textContent = name;
+                calendarGrid.appendChild(el);
+            });
+
+            // Days Calculation
+            const firstDayOfMonth = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const daysInPrevMonth = new Date(year, month, 0).getDate();
+
+            // Previous Month Padding
+            for (let i = firstDayOfMonth - 1; i >= 0; i--) {
+                const dayDiv = document.createElement('div');
+                dayDiv.className = 'calendar-date other-month';
+                dayDiv.textContent = daysInPrevMonth - i;
+                dayDiv.onclick = () => changeMonth(-1);
+                calendarGrid.appendChild(dayDiv);
+            }
+
+            // Current Month Days
+            for (let i = 1; i <= daysInMonth; i++) {
+                const dayDiv = document.createElement('div');
+                dayDiv.className = 'calendar-date current-month';
+                dayDiv.textContent = i;
+
+                if (i === today.getDate() && month === today.getMonth() && year === today.getFullYear()) {
+                    dayDiv.classList.add('today');
+                }
+
+                dayDiv.onclick = () => {
+                    document.querySelectorAll('.calendar-date').forEach(d => d.classList.remove('selected'));
+                    dayDiv.classList.add('selected');
+                };
+
+                calendarGrid.appendChild(dayDiv);
+            }
+
+            // Next Month Padding
+            const totalCells = firstDayOfMonth + daysInMonth;
+            const remainingCells = 42 - totalCells; // 6 rows * 7 cols = 42
+
+            for (let i = 1; i <= remainingCells; i++) {
+                const dayDiv = document.createElement('div');
+                dayDiv.className = 'calendar-date other-month';
+                dayDiv.textContent = i;
+                dayDiv.onclick = () => changeMonth(1);
+                calendarGrid.appendChild(dayDiv);
             }
         }
     </script>
 </body>
+
 </html>

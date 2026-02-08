@@ -76,7 +76,7 @@ function hoiAI() {
 
 const searchInput = document.getElementById("searchInput");
 
-document.addEventListener("keydown", function(e) {
+document.addEventListener("keydown", function (e) {
   if (e.key === "Tab") return;
   if (e.key === "Enter") return;
   const openDialogs = document.querySelectorAll('dialog[open]');
@@ -152,7 +152,7 @@ document.addEventListener("keydown", function(e) {
     const ttdn = document.getElementById("userDisplayName").textContent
 
     if (ttdn === "") {
-    document.getElementById("btn-login").click();
+      document.getElementById("btn-login").click();
     } else if (ttdn !== "") {
       document.getElementById("btn-logout").click();
     }
@@ -210,10 +210,10 @@ function toggleSidebar() {
   const sidebar = document.getElementById('sidebar');
   const overlay = document.getElementById('sidebar-overlay');
   const body = document.body;
-  
+
   sidebar.classList.toggle('active');
   body.classList.toggle('sidebar-open');
-  
+
   // Chỉ toggle overlay trên mobile
   if (overlay && window.innerWidth <= 768) {
     overlay.classList.toggle('active');
@@ -226,7 +226,7 @@ document.addEventListener('keydown', (e) => {
     const sidebar = document.getElementById('sidebar');
     const overlay = document.getElementById('sidebar-overlay');
     const body = document.body;
-    
+
     if (sidebar.classList.contains('active')) {
       sidebar.classList.remove('active');
       body.classList.remove('sidebar-open');
@@ -251,13 +251,13 @@ function closeNctMusicDialog() {
   if (nctDialog && nctDialog.open) {
     nctDialog.close();
   }
-  
+
   // Đóng và xóa NCT mini player
   const miniPlayer = document.getElementById('nctMiniPlayer');
   if (miniPlayer) {
     miniPlayer.remove();
   }
-  
+
   // Clear NCT iframe
   const nctIframe = document.getElementById('nctMusicIframe');
   if (nctIframe) {
@@ -272,13 +272,13 @@ function closeAllYoutubeDialogs() {
   if (youtubeDialog && youtubeDialog.open) {
     youtubeDialog.close();
   }
-  
+
   // Đóng và xóa YouTube mini player
   const miniPlayer = document.getElementById('youtubeMiniPlayer');
   if (miniPlayer) {
     miniPlayer.remove();
   }
-  
+
   // Clear YouTube iframe
   const youtubeIframe = document.getElementById('youtubeVideoIframe');
   if (youtubeIframe) {
@@ -292,17 +292,17 @@ function closeAllYoutubeDialogs() {
 async function openNctMusicDialog() {
   // Đóng tất cả YouTube dialogs trước
   closeAllYoutubeDialogs();
-  
+
   const songName = document.getElementById("dTitle").textContent;
   const artist = document.getElementById("dArtist").textContent.replace('ㅤ', '').trim();
-  
+
   const searchQuery = `${songName} ${artist}`;
-  
+
   // Reset state
   otherNctSongsData = [];
   document.getElementById('otherNctSongsContainer').style.display = 'none';
   document.getElementById('btnShowOtherNctSongs').innerHTML = '<i class="fa-solid fa-list"></i> Hiển thị các bài khác';
-  
+
   // Hiển thị loading
   document.getElementById('nctMusicIframe').innerHTML = `
     <div style="text-align: center; padding: 100px 20px; color: var(--text-muted);">
@@ -311,7 +311,7 @@ async function openNctMusicDialog() {
     </div>
   `;
   document.getElementById('nctMusicSongName').textContent = `${songName} - ${artist}`;
-  
+
   // Render nút Remix và Acoustic
   document.getElementById('nctVersionRemix').innerHTML = `<button onclick="searchNctMusic('${songName.trim()} ${artist} remix');" style="
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -360,7 +360,7 @@ onmouseup="this.style.transform='translateY(-2px)';">
 </button>`;
 
   nctMusicDialog.showModal();
-  
+
   // Load trang tìm kiếm NCT
   loadNctSearchPage(searchQuery);
 }
@@ -368,7 +368,7 @@ onmouseup="this.style.transform='translateY(-2px)';">
 // Function load trang tìm kiếm NCT Music
 function loadNctSearchPage(searchQuery) {
   const nctSearchUrl = `https://www.nhaccuatui.com/tim-kiem?q=${encodeURIComponent(searchQuery)}`;
-  
+
   const iframeHtml = `
     <iframe 
       width="100%" 
@@ -400,7 +400,7 @@ function loadNctSearchPage(searchQuery) {
       </a>
     </div>
   `;
-  
+
   document.getElementById('nctMusicIframe').innerHTML = iframeHtml;
 }
 
@@ -408,12 +408,12 @@ function loadNctSearchPage(searchQuery) {
 function searchNctMusic(query) {
   // Đóng tất cả YouTube dialogs trước
   closeAllYoutubeDialogs();
-  
+
   // Reset state
   otherNctSongsData = [];
   document.getElementById('otherNctSongsContainer').style.display = 'none';
   document.getElementById('btnShowOtherNctSongs').innerHTML = '<i class="fa-solid fa-list"></i> Hiển thị các bài khác';
-  
+
   // Hiển thị loading
   document.getElementById('nctMusicIframe').innerHTML = `
     <div style="text-align: center; padding: 100px 20px; color: var(--text-muted);">
@@ -421,10 +421,10 @@ function searchNctMusic(query) {
       <p>Đang tìm bài hát...</p>
     </div>
   `;
-  
+
   document.getElementById('nctMusicSongName').textContent = query;
   nctMusicDialog.showModal();
-  
+
   // Load trang tìm kiếm
   loadNctSearchPage(query);
 }
@@ -433,12 +433,12 @@ function searchNctMusic(query) {
 async function toggleOtherNctSongs() {
   const container = document.getElementById('otherNctSongsContainer');
   const btn = document.getElementById('btnShowOtherNctSongs');
-  
+
   if (container.style.display === 'none') {
     // Hiển thị container
     container.style.display = 'block';
     btn.innerHTML = '<i class="fa-solid fa-chevron-up"></i> Ẩn các bài khác';
-    
+
     // Nếu chưa có data, fetch từ API
     if (otherNctSongsData.length === 0) {
       await fetchOtherNctSongs();
@@ -457,7 +457,7 @@ async function toggleOtherNctSongs() {
 async function fetchOtherNctSongs() {
   const songName = document.getElementById("dTitle").textContent;
   const artist = document.getElementById("dArtist").textContent.replace('ㅤ', '').trim();
-  
+
   // Hiển thị loading
   document.getElementById('otherNctSongsList').innerHTML = `
     <div style="text-align: center; padding: 40px 20px; color: var(--text-muted);">
@@ -465,14 +465,14 @@ async function fetchOtherNctSongs() {
       <p>Đang tìm bài hát thay thế...</p>
     </div>
   `;
-  
+
   // Tạo danh sách các query khác nhau để tìm
   const queries = [
     `${songName} ${artist}`,
     `${songName} remix`,
     `${songName} lofi`,
   ];
-  
+
   // Mock data cho demo
   otherNctSongsData = queries.map((query, index) => ({
     title: query,
@@ -480,14 +480,14 @@ async function fetchOtherNctSongs() {
     url: `https://www.nhaccuatui.com/tim-kiem?q=${encodeURIComponent(query)}`,
     thumbnail: 'https://avatar-ex-swe.nixcdn.com/playlist/share/2023/08/24/3/1/5/a_1692840092851.jpg'
   }));
-  
+
   renderOtherNctSongs();
 }
 
 // Function render danh sách other NCT songs
 function renderOtherNctSongs() {
   const listContainer = document.getElementById('otherNctSongsList');
-  
+
   if (otherNctSongsData.length === 0) {
     listContainer.innerHTML = `
       <div style="text-align: center; padding: 40px 20px; color: var(--text-muted);">
@@ -496,7 +496,7 @@ function renderOtherNctSongs() {
     `;
     return;
   }
-  
+
   listContainer.innerHTML = otherNctSongsData.map((song, index) => {
     return `
       <a 
@@ -590,10 +590,10 @@ function showNctMiniPlayer() {
     `;
     document.body.appendChild(miniPlayer);
   }
-  
+
   const songName = document.getElementById('nctMusicSongName').textContent;
   document.getElementById('miniPlayerNctName').textContent = songName;
-  
+
   miniPlayer.classList.add('show');
 }
 
@@ -616,11 +616,11 @@ function stopNct() {
 async function toggleOtherVideos() {
   const container = document.getElementById('otherVideosContainer');
   const btn = document.getElementById('btnShowOtherVideos');
-  
+
   if (container.style.display === 'none') {
     container.style.display = 'block';
     btn.innerHTML = '<i class="fa-solid fa-chevron-up"></i> Ẩn các video khác';
-    
+
     if (otherVideosData.length === 0) {
       await fetchOtherVideos();
     } else {
@@ -637,20 +637,20 @@ async function fetchOtherVideos() {
   const songName = document.getElementById("dTitle").textContent;
   const artist = document.getElementById("dArtist").textContent.replace('ㅤ', '').trim();
   const searchQuery = `${songName} ${artist}`;
-  
+
   document.getElementById('otherVideosList').innerHTML = `
     <div style="text-align: center; padding: 40px 20px; color: var(--text-muted);">
       <i class="fa-solid fa-spinner fa-spin" style="font-size: 36px; margin-bottom: 16px;"></i>
       <p>Đang tìm video thay thế...</p>
     </div>
   `;
-  
+
   try {
     const searchRes = await fetch(
       `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=3&q=${encodeURIComponent(searchQuery)}&key=AIzaSyAS6c7bto_vvZ60g_FsdA60od3Fgw0y67g`
     );
     const searchData = await searchRes.json();
-    
+
     if (!searchData.items || searchData.items.length === 0) {
       document.getElementById('otherVideosList').innerHTML = `
         <div style="text-align: center; padding: 40px 20px; color: var(--text-muted);">
@@ -660,10 +660,10 @@ async function fetchOtherVideos() {
       `;
       return;
     }
-    
+
     otherVideosData = searchData.items;
     renderOtherVideos();
-    
+
   } catch (error) {
     console.error('Lỗi khi tìm other videos:', error);
     document.getElementById('otherVideosList').innerHTML = `
@@ -678,7 +678,7 @@ async function fetchOtherVideos() {
 // Function render danh sách other videos
 function renderOtherVideos() {
   const listContainer = document.getElementById('otherVideosList');
-  
+
   if (otherVideosData.length === 0) {
     listContainer.innerHTML = `
       <div style="text-align: center; padding: 40px 20px; color: var(--text-muted);">
@@ -687,13 +687,13 @@ function renderOtherVideos() {
     `;
     return;
   }
-  
+
   listContainer.innerHTML = otherVideosData.map((video, index) => {
     const videoId = video.id.videoId;
     const title = video.snippet.title;
     const channelTitle = video.snippet.channelTitle;
     const thumbnail = video.snippet.thumbnails.medium.url;
-    
+
     return `
       <div 
         class="other-video-item" 
@@ -732,7 +732,7 @@ function playOtherVideo(videoId) {
       style="border-radius: 16px;"
     ></iframe>
   `;
-  
+
   document.getElementById('youtubeVideoIframe').innerHTML = iframeHtml;
   document.querySelector('#youtubeVideoDialog > div').scrollTo({ top: 0, behavior: 'smooth' });
 }
@@ -741,19 +741,19 @@ function playOtherVideo(videoId) {
 async function openYoutubeVideoDialog() {
   // Đóng NCT dialog trước
   closeNctMusicDialog();
-  
+
   const songName = document.getElementById("dTitle").textContent;
   const artist = document.getElementById("dArtist").textContent.replace('ㅤ', '').trim();
-  
+
   const searchQuery = `${songName} ${artist}`;
-  
+
   // Reset state
   otherVideosData = [];
   allAvailableVideos = [];
   currentVideoIndex = 0;
   document.getElementById('otherVideosContainer').style.display = 'none';
   document.getElementById('btnShowOtherVideos').innerHTML = '<i class="fa-solid fa-list"></i> Hiển thị các video khác';
-  
+
   document.getElementById('youtubeVideoIframe').innerHTML = `
     <div style="text-align: center; padding: 100px 20px; color: var(--text-muted);">
       <i class="fa-solid fa-spinner fa-spin" style="font-size: 48px; margin-bottom: 20px;"></i>
@@ -761,7 +761,7 @@ async function openYoutubeVideoDialog() {
     </div>
   `;
   document.getElementById('youtubeVideoSongName').textContent = `${songName} - ${artist}`;
-  
+
   document.getElementById('ytVersionRemix').innerHTML = `<button onclick="searchYoutubeVideo('${songName.trim()} - ${artist} - remix');" style="
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
@@ -809,21 +809,21 @@ onmouseup="this.style.transform='translateY(-2px)';">
 </button>`;
 
   youtubeVideoDialog.showModal();
-  
+
   try {
     const searchRes = await fetch(
       `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=5&q=${encodeURIComponent(searchQuery)}&key=AIzaSyAS6c7bto_vvZ60g_FsdA60od3Fgw0y67g`
     );
     const searchData = await searchRes.json();
-    
+
     if (!searchData.items?.length) {
       showVideoNotAvailable(songName, artist);
       return;
     }
-    
+
     allAvailableVideos = searchData.items;
     loadVideoByIndex(0, songName, artist);
-    
+
   } catch (error) {
     console.error('Lỗi khi tìm video:', error);
     showVideoError();
@@ -835,10 +835,10 @@ function loadVideoByIndex(index, songName, artist) {
     showVideoNotAvailable(songName, artist);
     return;
   }
-  
+
   currentVideoIndex = index;
   const videoId = allAvailableVideos[index].id.videoId;
-  
+
   const iframeHtml = `
     <iframe 
       id="mainYoutubeIframe"
@@ -873,7 +873,7 @@ function loadVideoByIndex(index, songName, artist) {
       </button>
     </div>
   `;
-  
+
   document.getElementById('youtubeVideoIframe').innerHTML = iframeHtml;
 }
 
@@ -883,7 +883,7 @@ function tryNextVideo(songName, artist) {
 
 function showVideoNotAvailable(songName, artist) {
   const searchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(songName + ' ' + artist)}`;
-  
+
   document.getElementById('youtubeVideoIframe').innerHTML = `
     <div style="text-align: center; padding: 100px 20px; color: var(--text-muted);">
       <i class="fa-solid fa-ban" style="font-size: 64px; margin-bottom: 20px; color: #ef4444;"></i>
@@ -981,10 +981,10 @@ function showYoutubeMiniPlayer() {
     `;
     document.body.appendChild(miniPlayer);
   }
-  
+
   const songName = document.getElementById('youtubeVideoSongName').textContent;
   document.getElementById('miniPlayerYoutubeName').textContent = songName;
-  
+
   miniPlayer.classList.add('show');
 }
 
@@ -1003,58 +1003,58 @@ function stopYoutube() {
 function openYoutubeSearchDialog() {
   // Đóng NCT dialog trước
   closeNctMusicDialog();
-  
+
   const songName = prompt("Nhập tên bài hát:");
-  
+
   if (!songName || songName.trim() === "") {
     alert("Vui lòng nhập tên bài hát!");
     return;
   }
-  
+
   const artist = prompt("Nhập tên ca sĩ (nếu biết, bỏ trống nếu không biết):");
-  
+
   searchYoutubeVideo(songName.trim(), artist ? artist.trim() : "");
 }
 
 async function searchYoutubeVideo(songName, artist) {
   // Đóng NCT dialog trước
   closeNctMusicDialog();
-  
-  const searchQuery = artist 
-    ? `${songName} ${artist}` 
+
+  const searchQuery = artist
+    ? `${songName} ${artist}`
     : `${songName}`;
-  
+
   otherVideosData = [];
   allAvailableVideos = [];
   currentVideoIndex = 0;
   document.getElementById('otherVideosContainer').style.display = 'none';
   document.getElementById('btnShowOtherVideos').innerHTML = '<i class="fa-solid fa-list"></i> Hiển thị các video khác';
-  
+
   document.getElementById('youtubeVideoIframe').innerHTML = `
     <div style="text-align: center; padding: 100px 20px; color: var(--text-muted);">
       <i class="fa-solid fa-spinner fa-spin" style="font-size: 48px; margin-bottom: 20px;"></i>
       <p>Đang tải video! Vui lòng chờ...</p>
     </div>
   `;
-  document.getElementById('youtubeVideoSongName').textContent = artist 
-    ? `${songName} - ${artist}` 
+  document.getElementById('youtubeVideoSongName').textContent = artist
+    ? `${songName} - ${artist}`
     : songName;
   youtubeVideoDialog.showModal();
-  
+
   try {
     const searchRes = await fetch(
       `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=5&q=${encodeURIComponent(searchQuery)}&key=AIzaSyAS6c7bto_vvZ60g_FsdA60od3Fgw0y67g`
     );
     const searchData = await searchRes.json();
-    
+
     if (!searchData.items?.length) {
       showVideoNotAvailable(songName, artist);
       return;
     }
-    
+
     allAvailableVideos = searchData.items;
     loadVideoByIndex(0, songName, artist);
-    
+
   } catch (error) {
     console.error('Lỗi khi tìm video:', error);
     showVideoError();
@@ -1065,13 +1065,13 @@ async function searchYoutubeVideo(songName, artist) {
 function initTagSelector(selectorId, inputId) {
   const selector = document.getElementById(selectorId);
   const input = document.getElementById(inputId);
-  
+
   if (!selector || !input) return;
-  
+
   selector.addEventListener('click', (e) => {
     if (e.target.classList.contains('tag-option')) {
       e.target.classList.toggle('selected');
-      
+
       const selectedTags = Array.from(selector.querySelectorAll('.tag-option.selected'))
         .map(el => el.dataset.tag);
       input.value = JSON.stringify(selectedTags);
@@ -1087,13 +1087,13 @@ window.addEventListener('DOMContentLoaded', () => {
 function setSelectedTags(selectorId, tags) {
   const selector = document.getElementById(selectorId);
   if (!selector || !tags) return;
-  
+
   selector.querySelectorAll('.tag-option').forEach(el => {
     el.classList.remove('selected');
   });
-  
+
   const tagArray = typeof tags === 'string' ? JSON.parse(tags) : tags;
-  
+
   tagArray.forEach(tag => {
     const option = selector.querySelector(`[data-tag="${tag}"]`);
     if (option) option.classList.add('selected');
@@ -1120,7 +1120,7 @@ function timAlbum2() {
   }
 }
 
-document.getElementById('hasAlbum').addEventListener('change', function() {
+document.getElementById('hasAlbum').addEventListener('change', function () {
   document.getElementById('albumGroup').style.display = this.checked ? 'block' : 'none';
   if (!this.checked) {
     document.getElementById('album').value = '';
@@ -1128,7 +1128,7 @@ document.getElementById('hasAlbum').addEventListener('change', function() {
   }
 });
 
-document.getElementById('editHasAlbum').addEventListener('change', function() {
+document.getElementById('editHasAlbum').addEventListener('change', function () {
   document.getElementById('editAlbumGroup').style.display = this.checked ? 'block' : 'none';
   if (!this.checked) {
     document.getElementById('editAlbum').value = '';
@@ -1147,5 +1147,5 @@ async function audioVisual() {
 
   const songName = normalizeString(document.getElementById("dTitle").textContent)
 
-  window.open(`https://2937.vercel.app/TOOLS/music/index.html?data=${songName}`)
+  window.location.href = `https://2937.vercel.app/TOOLS/music/index.html?data=${songName}`
 }
