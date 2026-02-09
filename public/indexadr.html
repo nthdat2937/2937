@@ -1,0 +1,1114 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ntdWeb</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body {
+            font-family: 'Roboto', 'Google Sans', sans-serif;
+            background: linear-gradient(135deg, #0d1117 0%, #161b22 50%, #21262d 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        /* Samsung Galaxy Frame */
+        .android-frame {
+            position: relative;
+            width: 412px;
+            height: 915px;
+            background: #1a1a1a;
+            border-radius: 48px;
+            box-shadow:
+                inset 0 0 0 2px #2a2a2a,
+                0 0 0 3px #1a1a1a,
+                0 0 0 6px #333,
+                0 60px 120px rgba(0, 0, 0, 0.7);
+            overflow: hidden;
+        }
+
+        /* Camera Punch Hole */
+        .camera-punch {
+            position: absolute;
+            top: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 12px;
+            height: 12px;
+            background: #000;
+            border-radius: 50%;
+            z-index: 100;
+            box-shadow: 0 0 0 2px rgba(40, 40, 40, 0.8);
+        }
+
+        /* Screen */
+        .android-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 48px;
+            overflow: hidden;
+            background: #000;
+        }
+
+        /* Status Bar */
+        .status-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 24px;
+            z-index: 80;
+            color: #fff;
+            font-size: 13px;
+            font-weight: 500;
+            background: transparent;
+        }
+
+        .status-left {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .status-center {
+            width: 60px;
+        }
+
+        .status-right {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .battery-icon {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            font-size: 12px;
+        }
+
+        .battery-body {
+            width: 22px;
+            height: 10px;
+            border: 1.5px solid #fff;
+            border-radius: 2px;
+            position: relative;
+        }
+
+        .battery-body::after {
+            content: '';
+            position: absolute;
+            right: -3px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 2px;
+            height: 4px;
+            background: #fff;
+            border-radius: 0 1px 1px 0;
+        }
+
+        .battery-level {
+            position: absolute;
+            left: 1px;
+            top: 1px;
+            bottom: 1px;
+            width: 80%;
+            background: #4ade80;
+            border-radius: 1px;
+        }
+
+        /* Status Bar Dark Mode (when app is open) */
+        .status-bar.dark {
+            color: #000;
+        }
+
+        .status-bar.dark .battery-body {
+            border-color: #000;
+        }
+
+        .status-bar.dark .battery-body::after {
+            background: #000;
+        }
+
+        .status-bar.dark .battery-level {
+            background: #22c55e;
+        }
+
+        .status-bar.dark .battery-icon span {
+            color: #000;
+        }
+
+        /* Lock Screen */
+        .lock-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&q=80') no-repeat center center/cover;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 20;
+            transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s;
+        }
+
+        .lock-screen::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(180deg, rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.4) 100%);
+        }
+
+        .lock-screen.unlocked {
+            transform: translateY(-100%);
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        /* OneUI Clock Widget - Top Position */
+        .lock-clock-widget {
+            position: relative;
+            margin-top: 100px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .lock-time {
+            font-size: 88px;
+            font-weight: 100;
+            color: #fff;
+            text-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+            letter-spacing: -4px;
+            line-height: 1;
+        }
+
+        .lock-date {
+            font-size: 18px;
+            font-weight: 400;
+            color: rgba(255, 255, 255, 0.9);
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            text-transform: capitalize;
+        }
+
+        /* OneUI Notifications */
+        .lock-notifications {
+            position: absolute;
+            bottom: 180px;
+            left: 0;
+            width: 100%;
+            padding: 0 20px;
+        }
+
+        .notification-card {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border-radius: 24px;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .notification-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: #fff;
+        }
+
+        .notification-content {
+            flex: 1;
+        }
+
+        .notification-title {
+            font-size: 14px;
+            font-weight: 500;
+            color: #fff;
+            margin-bottom: 2px;
+        }
+
+        .notification-text {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        /* Lock Bottom Shortcuts */
+        .lock-bottom {
+            position: absolute;
+            bottom: 40px;
+            left: 0;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .lock-shortcuts {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            padding: 0 40px;
+        }
+
+        .lock-shortcut {
+            width: 52px;
+            height: 52px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: #fff;
+            cursor: pointer;
+            transition: transform 0.2s, background 0.2s;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .lock-shortcut:active {
+            transform: scale(0.9);
+            background: rgba(255, 255, 255, 0.35);
+        }
+
+        .swipe-hint {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .swipe-indicator {
+            width: 40px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 2px;
+        }
+
+        /* Home Screen */
+        .home-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&q=80') no-repeat center center/cover;
+            display: flex;
+            flex-direction: column;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s;
+            z-index: 10;
+        }
+
+        .home-screen.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        /* OneUI Widget */
+        .oneui-widget {
+            margin: 56px 16px 0;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(40px) saturate(180%);
+            -webkit-backdrop-filter: blur(40px) saturate(180%);
+            border-radius: 28px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .widget-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .widget-time {
+            font-size: 42px;
+            font-weight: 200;
+            color: #fff;
+            letter-spacing: -1px;
+        }
+
+        .widget-date {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.8);
+            text-align: right;
+        }
+
+        .widget-weather {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding-top: 12px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .weather-icon {
+            font-size: 28px;
+            color: #fbbf24;
+        }
+
+        .weather-info {
+            flex: 1;
+        }
+
+        .weather-temp {
+            font-size: 20px;
+            font-weight: 500;
+            color: #fff;
+        }
+
+        .weather-desc {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        /* App Grid */
+        .app-grid-container {
+            flex: 1;
+            padding: 24px 16px 16px;
+            overflow-y: auto;
+        }
+
+        .app-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px 12px;
+        }
+
+        .app-icon {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: transform 0.15s ease-out;
+        }
+
+        .app-icon:active {
+            transform: scale(0.85);
+        }
+
+        .app-icon-img {
+            width: 62px;
+            height: 62px;
+            border-radius: 16px;
+            background: transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow:
+                0 4px 12px rgba(0, 0, 0, 0.2),
+                0 2px 4px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .app-icon-img img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 16px;
+        }
+
+        .app-icon-name {
+            font-size: 11px;
+            font-weight: 400;
+            color: #fff;
+            text-align: center;
+            text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+            max-width: 70px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* Page Indicator */
+        .page-indicator {
+            display: flex;
+            justify-content: center;
+            gap: 6px;
+            padding: 12px 0;
+        }
+
+        .page-dot {
+            width: 6px;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.4);
+            border-radius: 50%;
+            transition: all 0.2s;
+        }
+
+        .page-dot.active {
+            background: #fff;
+            width: 18px;
+            border-radius: 3px;
+        }
+
+        /* OneUI Dock */
+        .dock {
+            background: rgba(40, 40, 45, 0.75);
+            backdrop-filter: blur(40px) saturate(180%);
+            -webkit-backdrop-filter: blur(40px) saturate(180%);
+            margin: 0 12px 12px;
+            padding: 14px 24px;
+            border-radius: 32px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .dock .app-icon-img {
+            width: 56px;
+            height: 56px;
+            border-radius: 14px;
+        }
+
+        /* Navigation Bar */
+        .nav-bar {
+            height: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding-bottom: 8px;
+        }
+
+        .nav-indicator {
+            width: 120px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 2px;
+        }
+
+        /* App Window */
+        .app-window {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #fff;
+            z-index: 60;
+            transform: translateY(100%);
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 48px;
+            overflow: hidden;
+        }
+
+        .app-window.active {
+            transform: translateY(0);
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .app-window iframe {
+            width: 100%;
+            height: calc(100% - 48px);
+            border: none;
+            border-radius: 0 0 48px 48px;
+            margin-top: 40px;
+            background: #fff;
+        }
+
+        /* Close App Button */
+        .close-app-btn {
+            position: absolute;
+            top: 52px;
+            right: 16px;
+            width: 40px;
+            height: 40px;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 70;
+            color: #fff;
+            font-size: 16px;
+            transition: all 0.2s;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .close-app-btn:hover {
+            background: rgba(0, 0, 0, 0.7);
+            transform: scale(1.1);
+        }
+
+        .close-app-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* Home Indicator in App */
+        .home-indicator {
+            position: absolute;
+            bottom: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px;
+            height: 4px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 2px;
+            z-index: 70;
+            cursor: pointer;
+        }
+
+        .app-window .home-indicator {
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        /* Quick Settings Panel */
+        .quick-settings {
+            position: absolute;
+            top: -400px;
+            left: 0;
+            width: 100%;
+            background: rgba(20, 20, 25, 0.95);
+            backdrop-filter: blur(40px);
+            -webkit-backdrop-filter: blur(40px);
+            border-radius: 0 0 32px 32px;
+            z-index: 90;
+            transition: top 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            padding: 48px 20px 24px;
+        }
+
+        .quick-settings.active {
+            top: 0;
+        }
+
+        .qs-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .qs-time {
+            font-size: 16px;
+            font-weight: 500;
+            color: #fff;
+        }
+
+        .qs-icons {
+            display: flex;
+            gap: 16px;
+        }
+
+        .qs-icons i {
+            font-size: 18px;
+            color: rgba(255, 255, 255, 0.8);
+            cursor: pointer;
+        }
+
+        .qs-toggles {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .qs-toggle {
+            aspect-ratio: 1;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .qs-toggle.active {
+            background: #3b82f6;
+        }
+
+        .qs-toggle i {
+            font-size: 20px;
+            color: #fff;
+        }
+
+        .qs-toggle span {
+            font-size: 10px;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .qs-brightness {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.06);
+            border-radius: 16px;
+        }
+
+        .qs-brightness i {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .brightness-slider {
+            flex: 1;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 2px;
+            position: relative;
+        }
+
+        .brightness-level {
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 70%;
+            background: #fff;
+            border-radius: 2px;
+        }
+
+        .brightness-knob {
+            position: absolute;
+            right: -8px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 16px;
+            height: 16px;
+            background: #fff;
+            border-radius: 50%;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Overlay for quick settings */
+        .qs-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 85;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+
+        .qs-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .android-frame {
+                width: 100vw;
+                height: 100vh;
+                border-radius: 0;
+                box-shadow: none;
+            }
+
+            .android-screen,
+            .lock-screen,
+            .home-screen,
+            .app-window {
+                border-radius: 0;
+            }
+
+            .app-window iframe {
+                border-radius: 0;
+                margin-top: 40px;
+                height: calc(100% - 40px);
+            }
+        }
+
+        @media (min-width: 481px) and (max-height: 950px) {
+            .android-frame {
+                transform: scale(0.85);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="android-frame">
+        <div class="android-screen">
+            <!-- Camera Punch Hole -->
+            <div class="camera-punch"></div>
+
+            <!-- Status Bar -->
+            <div class="status-bar">
+                <div class="status-left">
+                    <span id="statusTime">9:41</span>
+                </div>
+                <div class="status-center"></div>
+                <div class="status-right">
+                    <i class="fas fa-signal" style="font-size: 12px;"></i>
+                    <i class="fas fa-wifi" style="font-size: 12px;"></i>
+                    <div class="battery-icon">
+                        <div class="battery-body">
+                            <div class="battery-level"></div>
+                        </div>
+                        <span style="font-size: 11px;">85%</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Settings Panel -->
+            <div class="quick-settings" id="quickSettings">
+                <div class="qs-header">
+                    <span class="qs-time" id="qsTime">9:41 AM</span>
+                    <div class="qs-icons">
+                        <i class="fas fa-user-circle"></i>
+                        <i class="fas fa-cog"></i>
+                    </div>
+                </div>
+                <div class="qs-toggles">
+                    <div class="qs-toggle active">
+                        <i class="fas fa-wifi"></i>
+                        <span>Wi-Fi</span>
+                    </div>
+                    <div class="qs-toggle active">
+                        <i class="fab fa-bluetooth-b"></i>
+                        <span>Bluetooth</span>
+                    </div>
+                    <div class="qs-toggle">
+                        <i class="fas fa-mobile-alt"></i>
+                        <span>Data</span>
+                    </div>
+                    <div class="qs-toggle">
+                        <i class="fas fa-plane"></i>
+                        <span>Airplane</span>
+                    </div>
+                    <div class="qs-toggle active">
+                        <i class="fas fa-moon"></i>
+                        <span>Dark</span>
+                    </div>
+                    <div class="qs-toggle">
+                        <i class="fas fa-broadcast-tower"></i>
+                        <span>Hotspot</span>
+                    </div>
+                    <div class="qs-toggle">
+                        <i class="fas fa-sync-alt"></i>
+                        <span>Rotation</span>
+                    </div>
+                    <div class="qs-toggle active">
+                        <i class="fas fa-bell"></i>
+                        <span>Sound</span>
+                    </div>
+                </div>
+                <div class="qs-brightness">
+                    <i class="fas fa-sun"></i>
+                    <div class="brightness-slider">
+                        <div class="brightness-level">
+                            <div class="brightness-knob"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Settings Overlay -->
+            <div class="qs-overlay" id="qsOverlay"></div>
+
+            <!-- Lock Screen -->
+            <div class="lock-screen" id="lockScreen">
+                <div class="lock-clock-widget">
+                    <div class="lock-time" id="lockTime">9:41</div>
+                    <div class="lock-date" id="lockDate">Thứ Bảy, 8 tháng 2</div>
+                </div>
+
+                <div class="lock-notifications">
+                    <div class="notification-card">
+                        <div class="notification-icon">
+                            <i class="fas fa-comment"></i>
+                        </div>
+                        <div class="notification-content">
+                            <div class="notification-title">ntdChat</div>
+                            <div class="notification-text">Bạn có tin nhắn mới</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="lock-bottom">
+                    <div class="lock-shortcuts">
+                        <div class="lock-shortcut">
+                            <i class="fas fa-phone"></i>
+                        </div>
+                        <div class="lock-shortcut">
+                            <i class="fas fa-camera"></i>
+                        </div>
+                    </div>
+                    <div class="swipe-hint" id="swipeHint">
+                        <span>Vuốt lên để mở khóa</span>
+                        <div class="swipe-indicator"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Home Screen -->
+            <div class="home-screen" id="homeScreen">
+                <!-- OneUI Widget -->
+                <div class="oneui-widget">
+                    <div class="widget-header">
+                        <div class="widget-time" id="widgetTime">9:41</div>
+                        <div class="widget-date" id="widgetDate">
+                            Thứ Bảy<br>8 tháng 2
+                        </div>
+                    </div>
+                    <div class="widget-weather">
+                        <i class="fas fa-sun weather-icon"></i>
+                        <div class="weather-info">
+                            <div class="weather-temp">28°C</div>
+                            <div class="weather-desc">Nắng - TP. Hồ Chí Minh</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="app-grid-container">
+                    <div class="app-grid" id="appGrid">
+                        <!-- Apps rendered via JS -->
+                    </div>
+                </div>
+
+                <div class="page-indicator">
+                    <div class="page-dot active"></div>
+                    <div class="page-dot"></div>
+                    <div class="page-dot"></div>
+                </div>
+
+                <div class="dock" id="dock">
+                    <!-- Dock apps rendered via JS -->
+                </div>
+
+                <div class="nav-bar">
+                    <div class="nav-indicator"></div>
+                </div>
+            </div>
+
+            <!-- App Window -->
+            <div class="app-window" id="appWindow">
+                <div class="close-app-btn" id="closeAppBtn" title="Close App">
+                    <i class="fas fa-times"></i>
+                </div>
+                <iframe id="appFrame" src="about:blank"></iframe>
+                <div class="home-indicator" id="homeIndicatorApp"></div>
+            </div>
+
+            <!-- Home Indicator -->
+            <div class="home-indicator" id="homeIndicator"></div>
+        </div>
+    </div>
+
+    <script>
+        // Apps Data
+        const allApps = [
+            { id: 'shop', name: 'Marketplace', icon: 'https://marketplace.canva.com/ZSZ-g/MAG5q1ZSZ-g/1/tl/canva-3d-shopping-cart-MAG5q1ZSZ-g.png', dock: false, url: 'marketplace.html' },
+            { id: 'ntdMusic', name: 'ntdMusic', icon: 'https://www.audkit.com/wp-content/uploads/2023/05/apple-music-converter-icon.png', dock: false, url: 'TOOLS/songs/index.html' },
+            { id: 'chat', name: 'ntdChat', icon: 'https://marketplace.canva.com/q3PYc/MAG8Z0q3PYc/1/tl/canva-blue-chat-speech-bubble-with-three-dots-icon-isolated-on-transparent-background.-MAG8Z0q3PYc.png', dock: false, url: 'TOOLS/chatv2/index.html' },
+            { id: 'HPBD', name: 'HPBD', icon: 'https://cdn-icons-png.freepik.com/512/8611/8611770.png', dock: false, url: 'TOOLS/happybirthday/index.html' },
+            { id: 'chrome', name: 'Chrome', icon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/Google_Chrome_icon_%28February_2022%29.svg/1200px-Google_Chrome_icon_%28February_2022%29.svg.png', dock: true, url: 'https://www.google.com' },
+            { id: 'youtube', name: 'YouTube', icon: 'https://img.icons8.com/color/480/youtube-play.png', dock: false, url: 'https://www.youtube.com' },
+            { id: 'facebook', name: 'Facebook', icon: 'https://img.icons8.com/color/480/facebook-new.png', dock: false, url: 'https://www.facebook.com' },
+            { id: 'instagram', name: 'Instagram', icon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/95/Instagram_logo_2022.svg/1280px-Instagram_logo_2022.svg.png', dock: false, url: 'https://www.instagram.com' },
+            { id: 'tiktok', name: 'TikTok', icon: 'https://img.icons8.com/color/480/tiktok.png', dock: false, url: 'https://www.tiktok.com' },
+            { id: 'messenger', name: 'Messenger', icon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/be/Facebook_Messenger_logo_2020.svg/500px-Facebook_Messenger_logo_2020.svg.png', dock: false, url: 'https://www.messenger.com' },
+            { id: 'playstore', name: 'Play Store', icon: 'https://static.vecteezy.com/system/resources/previews/017/395/379/non_2x/google-play-store-mobile-apps-logo-free-png.png', dock: true, url: 'https://play.google.com' },
+            { id: 'iphone', name: 'iPhone 17', icon: 'https://24hstore.vn/images/products/2025/09/10/large/iphone-17-pro-max-cam-01.png', dock: true, url: 'indexip.html' },
+            { id: 'windows11', name: 'Windows 11', icon: 'https://preview.redd.it/sudz5o3s1vn91.png?width=1080&format=png&auto=webp&s=27107d9d26f3b82ee00f53becd873b7bef881744', dock: true, url: 'index.html' }
+        ];
+
+        // Elements
+        const lockScreen = document.getElementById('lockScreen');
+        const homeScreen = document.getElementById('homeScreen');
+        const appWindow = document.getElementById('appWindow');
+        const appFrame = document.getElementById('appFrame');
+        const appGrid = document.getElementById('appGrid');
+        const dock = document.getElementById('dock');
+        const swipeHint = document.getElementById('swipeHint');
+        const closeAppBtn = document.getElementById('closeAppBtn');
+        const homeIndicator = document.getElementById('homeIndicator');
+        const quickSettings = document.getElementById('quickSettings');
+        const qsOverlay = document.getElementById('qsOverlay');
+        const statusBar = document.querySelector('.status-bar');
+
+        // Render Apps
+        function renderApps() {
+            // Grid Apps (non-dock)
+            appGrid.innerHTML = '';
+            allApps.filter(app => !app.dock).forEach(app => {
+                const appEl = document.createElement('div');
+                appEl.className = 'app-icon';
+                appEl.onclick = () => openApp(app);
+                appEl.innerHTML = `
+                    <div class="app-icon-img">
+                        <img src="${app.icon}" alt="${app.name}">
+                    </div>
+                    <span class="app-icon-name">${app.name}</span>
+                `;
+                appGrid.appendChild(appEl);
+            });
+
+            // Dock Apps
+            dock.innerHTML = '';
+            allApps.filter(app => app.dock).forEach(app => {
+                const appEl = document.createElement('div');
+                appEl.className = 'app-icon';
+                appEl.onclick = () => openApp(app);
+                appEl.innerHTML = `
+                    <div class="app-icon-img">
+                        <img src="${app.icon}" alt="${app.name}">
+                    </div>
+                `;
+                dock.appendChild(appEl);
+            });
+        }
+
+        // Unlock
+        function unlock() {
+            lockScreen.classList.add('unlocked');
+            homeScreen.classList.add('active');
+        }
+
+        // Open App
+        function openApp(app) {
+            if (app.url === 'about:blank') {
+                alert(`${app.name} is not available.`);
+                return;
+            }
+            appFrame.src = app.url;
+            appWindow.classList.add('active');
+            document.querySelector('.status-bar').classList.add('dark');
+        }
+
+        // Close App
+        function closeApp() {
+            appWindow.classList.remove('active');
+            setTimeout(() => {
+                appFrame.src = 'about:blank';
+            }, 350);
+        }
+
+        // Toggle Quick Settings
+        function toggleQuickSettings() {
+            quickSettings.classList.toggle('active');
+            qsOverlay.classList.toggle('active');
+        }
+
+        // Toggle QS Item
+        document.querySelectorAll('.qs-toggle').forEach(toggle => {
+            toggle.addEventListener('click', () => {
+                toggle.classList.toggle('active');
+            });
+        });
+
+        // Clock
+        function updateClock() {
+            const now = new Date();
+            const hours = now.getHours();
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            const timeStr = `${hours}:${minutes}`;
+
+            document.getElementById('lockTime').textContent = timeStr;
+            document.getElementById('statusTime').textContent = timeStr;
+            document.getElementById('widgetTime').textContent = timeStr;
+            document.getElementById('qsTime').textContent = now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+
+            const options = { weekday: 'long', day: 'numeric', month: 'long' };
+            const dateStr = now.toLocaleDateString('vi-VN', options);
+            document.getElementById('lockDate').textContent = dateStr;
+
+            const shortOptions = { weekday: 'long' };
+            const dayOptions = { day: 'numeric', month: 'long' };
+            document.getElementById('widgetDate').innerHTML =
+                now.toLocaleDateString('vi-VN', shortOptions) + '<br>' +
+                now.toLocaleDateString('vi-VN', dayOptions);
+        }
+
+        // Event Listeners
+        swipeHint.addEventListener('click', unlock);
+        lockScreen.addEventListener('click', (e) => {
+            if (!e.target.closest('.lock-shortcut')) {
+                unlock();
+            }
+        });
+        closeAppBtn.addEventListener('click', closeApp);
+        document.getElementById('homeIndicatorApp').addEventListener('click', closeApp);
+        homeIndicator.addEventListener('click', () => {
+            if (appWindow.classList.contains('active')) {
+                closeApp();
+            }
+        });
+
+        statusBar.addEventListener('click', toggleQuickSettings);
+        qsOverlay.addEventListener('click', toggleQuickSettings);
+
+        // Swipe down from top for quick settings
+        let touchStartY = 0;
+        document.addEventListener('touchstart', (e) => {
+            touchStartY = e.touches[0].clientY;
+        });
+
+        document.addEventListener('touchmove', (e) => {
+            const touchY = e.touches[0].clientY;
+            if (touchStartY < 50 && touchY - touchStartY > 50) {
+                if (!quickSettings.classList.contains('active') && !lockScreen.classList.contains('unlocked') === false) {
+                    toggleQuickSettings();
+                }
+            }
+        });
+
+        // Init
+        renderApps();
+        updateClock();
+        setInterval(updateClock, 1000);
+    </script>
+</body>
+
+</html>
