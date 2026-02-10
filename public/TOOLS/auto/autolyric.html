@@ -1,0 +1,1135 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auto Download MP3 từ YouTube</title>
+    <meta name="description" content="Tìm và tải MP3 từ YouTube nhanh chóng, miễn phí">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0a0a1a;
+            --bg-secondary: #12122a;
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --glass-hover: rgba(255, 255, 255, 0.1);
+            --accent: #8b5cf6;
+            --accent-glow: rgba(139, 92, 246, 0.4);
+            --accent-secondary: #06b6d4;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --danger: #ef4444;
+            --success: #22c55e;
+            --tab-bg: #1a1a35;
+            --tab-active: #252550;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .ambient {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .ambient .blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(120px);
+            opacity: 0.3;
+            animation: float 20s ease-in-out infinite;
+        }
+
+        .ambient .blob:nth-child(1) {
+            width: 500px;
+            height: 500px;
+            background: var(--accent);
+            top: -10%;
+            left: -5%;
+        }
+
+        .ambient .blob:nth-child(2) {
+            width: 400px;
+            height: 400px;
+            background: var(--accent-secondary);
+            bottom: -10%;
+            right: -5%;
+            animation-delay: -7s;
+        }
+
+        .ambient .blob:nth-child(3) {
+            width: 300px;
+            height: 300px;
+            background: #ec4899;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            animation-delay: -14s;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translate(0, 0) scale(1);
+            }
+
+            25% {
+                transform: translate(50px, -30px) scale(1.05);
+            }
+
+            50% {
+                transform: translate(-30px, 50px) scale(0.95);
+            }
+
+            75% {
+                transform: translate(30px, 30px) scale(1.02);
+            }
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 32px;
+            animation: fadeInDown 0.8s ease;
+        }
+
+        .header .icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 24px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-secondary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 36px;
+            box-shadow: 0 8px 32px var(--accent-glow);
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--text-primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        /* ====== BROWSER TABS ====== */
+        .browser-tabs {
+            width: 100%;
+            margin-bottom: 24px;
+            animation: fadeInUp 0.8s ease 0.1s both;
+        }
+
+        .tab-bar {
+            display: flex;
+            align-items: center;
+            background: var(--tab-bg);
+            border-radius: 14px 14px 0 0;
+            padding: 6px 6px 0;
+            gap: 4px;
+            border: 1px solid var(--glass-border);
+            border-bottom: none;
+        }
+
+        .tab-item {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 16px;
+            border-radius: 10px 10px 0 0;
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            font-size: 13px;
+            font-weight: 600;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .tab-item:hover {
+            color: var(--text-secondary);
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .tab-item.active {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+        }
+
+        .tab-item.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 20%;
+            width: 60%;
+            height: 2px;
+            background: linear-gradient(90deg, var(--accent), var(--accent-secondary));
+            border-radius: 2px 2px 0 0;
+        }
+
+        .tab-item .tab-icon {
+            font-size: 16px;
+        }
+
+        .side-buttons {
+            position: fixed;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .side-btn {
+            writing-mode: vertical-lr;
+            text-decoration: none;
+            padding: 14px 10px;
+            font-size: 12px;
+            font-weight: 600;
+            font-family: 'Inter', sans-serif;
+            border-radius: 12px 0 0 12px;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            letter-spacing: 0.5px;
+        }
+
+        .side-btn:hover {
+            padding-right: 14px;
+        }
+
+        .side-btn .side-icon {
+            writing-mode: horizontal-tb;
+            font-size: 16px;
+        }
+
+        .side-btn-lrc {
+            background: linear-gradient(135deg, #ec4899, #f43f5e);
+            box-shadow: -4px 0 20px rgba(236, 72, 153, 0.3);
+        }
+
+        .side-btn-lrc:hover {
+            box-shadow: -8px 0 30px rgba(236, 72, 153, 0.5);
+        }
+
+        .side-btn-img {
+            background: linear-gradient(135deg, #f59e0b, #ef4444);
+            box-shadow: -4px 0 20px rgba(245, 158, 11, 0.3);
+        }
+
+        .side-btn-img:hover {
+            box-shadow: -8px 0 30px rgba(245, 158, 11, 0.5);
+        }
+
+        .tab-content-wrapper {
+            width: 100%;
+            border: 1px solid var(--glass-border);
+            border-top: none;
+            border-radius: 0 0 14px 14px;
+            background: rgba(10, 10, 26, 0.6);
+            backdrop-filter: blur(10px);
+            overflow: hidden;
+            min-height: 200px;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 24px;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        /* MP3 Tab content */
+        .search-box {
+            width: 100%;
+            position: relative;
+            margin-bottom: 24px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 14px 52px 14px 18px;
+            border-radius: 14px;
+            border: 1px solid var(--glass-border);
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            color: var(--text-primary);
+            font-size: 15px;
+            font-family: 'Inter', sans-serif;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .search-box input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .search-box input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-glow), 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .search-box .btn-search {
+            position: absolute;
+            right: 6px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            border: none;
+            background: linear-gradient(135deg, var(--accent), var(--accent-secondary));
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .search-box .btn-search:hover {
+            transform: translateY(-50%) scale(1.05);
+            box-shadow: 0 4px 16px var(--accent-glow);
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--glass-border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 12px;
+        }
+
+        .loading p {
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .results {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .video-card {
+            display: flex;
+            gap: 14px;
+            padding: 12px;
+            border-radius: 14px;
+            border: 1px solid var(--glass-border);
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            animation: fadeInUp 0.5s ease both;
+        }
+
+        .video-card:nth-child(1) {
+            animation-delay: 0.1s;
+        }
+
+        .video-card:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .video-card:nth-child(3) {
+            animation-delay: 0.3s;
+        }
+
+        .video-card:hover {
+            border-color: var(--accent);
+            background: var(--glass-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 0 0 0 1px var(--accent-glow);
+        }
+
+        .video-card .thumb {
+            width: 130px;
+            min-width: 130px;
+            height: 74px;
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .video-card .thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .video-card .info {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 6px;
+            overflow: hidden;
+        }
+
+        .video-card .info .title {
+            font-size: 13px;
+            font-weight: 600;
+            line-height: 1.3;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .video-card .info .channel {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .empty-state .emoji {
+            font-size: 40px;
+            margin-bottom: 12px;
+        }
+
+        .empty-state p {
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+
+        .error-msg {
+            display: none;
+            text-align: center;
+            padding: 16px;
+            border-radius: 12px;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: var(--danger);
+            font-size: 13px;
+            margin-bottom: 12px;
+            width: 100%;
+        }
+
+        .error-msg.show {
+            display: block;
+        }
+
+        /* ====== LYRICS TAB ====== */
+        .lyric-search-box {
+            width: 100%;
+            position: relative;
+            margin-bottom: 16px;
+        }
+
+        .lyric-search-box input {
+            width: 100%;
+            padding: 14px 52px 14px 18px;
+            border-radius: 14px;
+            border: 1px solid var(--glass-border);
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            color: var(--text-primary);
+            font-size: 15px;
+            font-family: 'Inter', sans-serif;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .lyric-search-box input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .lyric-search-box input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+
+        .lyric-search-box .btn-lyric-search {
+            position: absolute;
+            right: 6px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            border: none;
+            background: linear-gradient(135deg, #ec4899, #f43f5e);
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .lyric-search-box .btn-lyric-search:hover {
+            transform: translateY(-50%) scale(1.05);
+        }
+
+        .lyric-iframe-container {
+            width: 100%;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--glass-border);
+            background: white;
+        }
+
+        .lyric-iframe-container iframe {
+            width: 100%;
+            height: 500px;
+            border: none;
+        }
+
+        .lyric-empty {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .lyric-empty .emoji {
+            font-size: 40px;
+            margin-bottom: 12px;
+        }
+
+        .lyric-empty p {
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+
+        /* ====== MODAL ====== */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        .modal {
+            width: 100%;
+            max-width: 420px;
+            border-radius: 24px;
+            border: 1px solid var(--glass-border);
+            background: var(--bg-secondary);
+            overflow: hidden;
+            animation: modalIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes modalIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9) translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .modal .modal-thumb {
+            width: 100%;
+            aspect-ratio: 16/9;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .modal .modal-thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .modal .modal-thumb .overlay-gradient {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 50%;
+            background: linear-gradient(transparent, var(--bg-secondary));
+        }
+
+        .modal .modal-body {
+            padding: 20px 24px 24px;
+        }
+
+        .modal .modal-title {
+            font-size: 18px;
+            font-weight: 700;
+            line-height: 1.3;
+            margin-bottom: 6px;
+        }
+
+        .modal .modal-channel {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+        }
+
+        .modal .modal-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .modal .btn {
+            flex: 1;
+            padding: 14px;
+            border-radius: 14px;
+            border: none;
+            font-size: 15px;
+            font-weight: 600;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .modal .btn-cancel {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            color: var(--text-secondary);
+        }
+
+        .modal .btn-cancel:hover {
+            background: var(--glass-hover);
+            color: var(--text-primary);
+        }
+
+        .modal .btn-download {
+            background: linear-gradient(135deg, var(--accent), #a855f7);
+            color: white;
+            box-shadow: 0 4px 16px var(--accent-glow);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal .btn-download:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 24px var(--accent-glow);
+        }
+
+        /* ====== TOAST ====== */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            padding: 14px 24px;
+            border-radius: 14px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--glass-border);
+            color: var(--text-primary);
+            font-size: 14px;
+            font-weight: 500;
+            z-index: 2000;
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .toast.success {
+            border-color: var(--success);
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 520px) {
+            .container {
+                padding: 24px 12px;
+            }
+
+            .header h1 {
+                font-size: 22px;
+            }
+
+            .header .icon {
+                width: 64px;
+                height: 64px;
+                font-size: 28px;
+                border-radius: 18px;
+            }
+
+            .video-card {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .video-card .thumb {
+                width: 100%;
+                min-width: 100%;
+                height: auto;
+                aspect-ratio: 16/9;
+            }
+
+            .modal .modal-body {
+                padding: 16px 20px 20px;
+            }
+
+            .modal .modal-actions {
+                flex-direction: column;
+            }
+
+            .tab-item {
+                font-size: 12px;
+                padding: 10px 12px;
+                gap: 6px;
+            }
+
+            .lyric-iframe-container iframe {
+                height: 400px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="ambient">
+        <div class="blob"></div>
+        <div class="blob"></div>
+        <div class="blob"></div>
+    </div>
+
+    <!-- Side Buttons (fixed right side) -->
+    <div class="side-buttons">
+        <a href="https://lrc-maker.github.io/" target="_blank" rel="noopener noreferrer" class="side-btn side-btn-lrc"
+            title="LRC Maker">
+            <span class="side-icon">🎤</span>
+            LRC Maker
+        </a>
+        <a id="btnImageSearch" href="#" target="_blank" rel="noopener noreferrer" class="side-btn side-btn-img"
+            title="Tìm ảnh bài hát">
+            <span class="side-icon">🖼️</span>
+            Tìm Ảnh
+        </a>
+    </div>
+
+    <div class="container">
+        <!-- Browser-style Tabs -->
+        <div class="browser-tabs">
+            <div class="tab-bar">
+                <button class="tab-item active" data-tab="mp3">
+                    <span class="tab-icon">🎵</span>
+                    Tải MP3
+                </button>
+                <button class="tab-item" data-tab="lyric">
+                    <span class="tab-icon">📝</span>
+                    Tìm Lyric
+                </button>
+            </div>
+
+            <div class="tab-content-wrapper">
+                <!-- TAB 1: MP3 Download -->
+                <div class="tab-content active" id="tabMp3">
+                    <div class="search-box">
+                        <input type="text" id="searchInput" placeholder="Nhập tên bài hát hoặc video..."
+                            autocomplete="off">
+                        <button class="btn-search" id="btnSearch" title="Tìm kiếm">🔍</button>
+                    </div>
+
+                    <div class="error-msg" id="errorMsg"></div>
+                    <div class="loading" id="loading">
+                        <div class="spinner"></div>
+                        <p>Đang tìm kiếm...</p>
+                    </div>
+
+                    <div class="results" id="results"></div>
+
+                    <div class="empty-state" id="emptyState">
+                        <div class="emoji">🎧</div>
+                        <p>Nhập tên bài hát để tìm kiếm và tải MP3</p>
+                    </div>
+                </div>
+
+                <!-- TAB 2: Lyrics -->
+                <div class="tab-content" id="tabLyric">
+                    <div class="lyric-search-box">
+                        <input type="text" id="lyricInput" placeholder="Nhập tên bài hát để tìm lyric..."
+                            autocomplete="off">
+                        <button class="btn-lyric-search" id="btnLyricSearch" title="Tìm lyric">🔍</button>
+                    </div>
+
+                    <div id="lyricResult">
+                        <div class="lyric-empty" id="lyricEmpty">
+                            <div class="emoji">📝</div>
+                            <p>Nhập tên bài hát để tìm lời bài hát</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Download Modal -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal">
+            <div class="modal-thumb">
+                <img id="modalThumb" src="" alt="Thumbnail">
+                <div class="overlay-gradient"></div>
+            </div>
+            <div class="modal-body">
+                <div class="modal-title" id="modalTitle"></div>
+                <div class="modal-channel" id="modalChannel"></div>
+                <div class="modal-actions">
+                    <button class="btn btn-cancel" id="btnCancel">Hủy</button>
+                    <a class="btn btn-download" id="btnDownload" href="#" target="_blank" rel="noopener noreferrer">🎵
+                        Tải MP3</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // ======== CONFIG ========
+        const YT_API_KEY = 'AIzaSyAS6c7bto_vvZ60g_FsdA60od3Fgw0y67g';
+        const YT_SEARCH_URL = 'https://www.googleapis.com/youtube/v3/search';
+
+        let selectedVideo = null;
+
+        // ======== DOM ========
+        const searchInput = document.getElementById('searchInput');
+        const btnSearch = document.getElementById('btnSearch');
+        const loading = document.getElementById('loading');
+        const results = document.getElementById('results');
+        const errorMsg = document.getElementById('errorMsg');
+        const emptyState = document.getElementById('emptyState');
+        const modalOverlay = document.getElementById('modalOverlay');
+        const modalThumb = document.getElementById('modalThumb');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalChannel = document.getElementById('modalChannel');
+        const btnCancel = document.getElementById('btnCancel');
+        const btnDownload = document.getElementById('btnDownload');
+        const toast = document.getElementById('toast');
+
+        // Lyric DOM
+        const lyricInput = document.getElementById('lyricInput');
+        const btnLyricSearch = document.getElementById('btnLyricSearch');
+        const lyricResult = document.getElementById('lyricResult');
+        const lyricEmpty = document.getElementById('lyricEmpty');
+
+        // ======== TAB SWITCHING ========
+        const tabItems = document.querySelectorAll('.tab-item');
+        const tabContents = document.querySelectorAll('.tab-content');
+
+        tabItems.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const target = tab.dataset.tab;
+
+                tabItems.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+
+                tabContents.forEach(c => c.classList.remove('active'));
+                document.getElementById(target === 'mp3' ? 'tabMp3' : 'tabLyric').classList.add('active');
+            });
+        });
+
+        // ======== SEARCH via YouTube Data API v3 ========
+        async function searchVideos(query) {
+            showLoading(true);
+            hideError();
+            results.innerHTML = '';
+            emptyState.style.display = 'none';
+
+            const params = new URLSearchParams({
+                part: 'snippet',
+                q: query,
+                type: 'video',
+                maxResults: 3,
+                key: YT_API_KEY
+            });
+
+            try {
+                const res = await fetch(`${YT_SEARCH_URL}?${params}`);
+                const data = await res.json();
+
+                if (data.error) {
+                    throw new Error(data.error.message || 'YouTube API lỗi');
+                }
+
+                if (data.items && data.items.length > 0) {
+                    showLoading(false);
+                    const videos = data.items.map(item => ({
+                        videoId: item.id.videoId,
+                        title: item.snippet.title,
+                        author: item.snippet.channelTitle,
+                        thumbnail: item.snippet.thumbnails.medium?.url || item.snippet.thumbnails.default?.url
+                    }));
+                    renderResults(videos);
+                    return videos;
+                } else {
+                    showLoading(false);
+                    emptyState.style.display = 'block';
+                    emptyState.querySelector('.emoji').textContent = '😔';
+                    emptyState.querySelector('p').textContent = 'Không tìm thấy video nào';
+                    return [];
+                }
+            } catch (e) {
+                showLoading(false);
+                showError('Lỗi: ' + e.message);
+                return [];
+            }
+        }
+
+        // ======== RENDER ========
+        function renderResults(videos) {
+            results.innerHTML = '';
+            videos.forEach((video, index) => {
+                const card = document.createElement('div');
+                card.className = 'video-card';
+                card.innerHTML = `
+                    <div class="thumb">
+                        <img src="${video.thumbnail}" alt="${escapeHtml(video.title)}" loading="lazy">
+                    </div>
+                    <div class="info">
+                        <div class="title">${escapeHtml(video.title)}</div>
+                        <div class="channel">${escapeHtml(video.author)}</div>
+                    </div>
+                `;
+                card.addEventListener('click', () => openModal(video));
+                results.appendChild(card);
+            });
+        }
+
+        // ======== MODAL ========
+        function openModal(video) {
+            selectedVideo = video;
+            modalThumb.src = video.thumbnail;
+            modalTitle.textContent = video.title;
+            modalChannel.textContent = video.author;
+
+            const sosUrl = `https://www.sosyoutube.com/watch?v=${video.videoId}`;
+            btnDownload.href = sosUrl;
+
+            modalOverlay.classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            modalOverlay.classList.remove('show');
+            document.body.style.overflow = '';
+            selectedVideo = null;
+        }
+
+        // ======== LYRICS ========
+        function searchLyric(query) {
+            if (!query.trim()) return;
+
+            lyricEmpty.style.display = 'none';
+
+            // Remove existing iframe if any
+            const oldIframe = lyricResult.querySelector('.lyric-iframe-container');
+            if (oldIframe) oldIframe.remove();
+
+            const googleUrl = `https://www.google.com/search?q=${encodeURIComponent(query + ' lyric')}&igu=1`;
+
+            const container = document.createElement('div');
+            container.className = 'lyric-iframe-container';
+            container.innerHTML = `<iframe src="${googleUrl}" sandbox="allow-scripts allow-same-origin allow-popups" referrerpolicy="no-referrer"></iframe>`;
+            lyricResult.appendChild(container);
+        }
+
+        // ======== UTILITIES ========
+        function escapeHtml(str) {
+            const d = document.createElement('div');
+            d.textContent = str || '';
+            return d.innerHTML;
+        }
+
+        function showLoading(show) { loading.classList.toggle('show', show); }
+        function showError(msg) { errorMsg.textContent = msg; errorMsg.classList.add('show'); }
+        function hideError() { errorMsg.classList.remove('show'); }
+
+        function showToast(msg, type = 'success') {
+            toast.textContent = msg;
+            toast.className = 'toast ' + type;
+            setTimeout(() => toast.classList.add('show'), 10);
+            setTimeout(() => toast.classList.remove('show'), 3500);
+        }
+
+        // ======== SYNC INPUTS + IMAGE SEARCH ========
+        const btnImageSearch = document.getElementById('btnImageSearch');
+
+        function syncInputs(value) {
+            searchInput.value = value;
+            lyricInput.value = value;
+            if (value.trim()) {
+                btnImageSearch.href = `https://www.google.com/search?q=${encodeURIComponent(value.trim())}&udm=2`;
+            } else {
+                btnImageSearch.href = '#';
+            }
+        }
+
+        searchInput.addEventListener('input', () => syncInputs(searchInput.value));
+        lyricInput.addEventListener('input', () => syncInputs(lyricInput.value));
+
+        // ======== EVENTS ========
+        btnSearch.addEventListener('click', () => {
+            const q = searchInput.value.trim();
+            if (q) searchVideos(q);
+        });
+
+        searchInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                const q = searchInput.value.trim();
+                if (q) searchVideos(q);
+            }
+        });
+
+        btnLyricSearch.addEventListener('click', () => {
+            const q = lyricInput.value.trim();
+            if (q) searchLyric(q);
+        });
+
+        lyricInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                const q = lyricInput.value.trim();
+                if (q) searchLyric(q);
+            }
+        });
+
+        btnCancel.addEventListener('click', closeModal);
+        modalOverlay.addEventListener('click', (e) => { if (e.target === modalOverlay) closeModal(); });
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
+
+        btnDownload.addEventListener('click', () => {
+            showToast('🔗 Đang mở trang tải MP3...', 'success');
+        });
+
+        // ======== URL PARAMETER AUTO-TRIGGER ========
+        (function handleUrlParam() {
+            const params = new URLSearchParams(window.location.search);
+            const data = params.get('data');
+
+            if (data) {
+                searchInput.value = data;
+                searchVideos(data).then(videos => {
+                    if (videos && videos.length > 0) {
+                        setTimeout(() => openModal(videos[0]), 600);
+                    }
+                });
+            }
+        })();
+    </script>
+</body>
+
+</html>

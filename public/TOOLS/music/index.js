@@ -71,16 +71,23 @@ window.onload = function () {
       cover: "image/anhlathangtoi.png",
       lrc: "lyric/anhlathangtoi.lrc"
     },
+    {
+      id: "tinhminhlaki",
+      title: "Tình Mình Lạ Kì - L Zpoet",
+      url: "nhac/tinhminhlaki.mp3",
+      cover: "image/tinhminhlaki.png",
+      lrc: "lyric/tinhminhlaki.lrc"
+    },
     // {
-      // id: "*",
-      // title: "",
-      // url: "nhac/*.mp3",
-      // cover: "image/*.png",
-      // lrc: "lyric/*.lrc"
+    // id: "*",
+    // title: "",
+    // url: "nhac/*.mp3",
+    // cover: "image/*.png",
+    // lrc: "lyric/*.lrc"
     // },
     // Thêm các bài hát khác ở đây với id tương ứng
   ];
-  
+
   if (!PLAY_LIST) return alert('Không thể tải thông tin bài hát!');
 
   // Hàm lấy tham số từ URL
@@ -94,7 +101,7 @@ window.onload = function () {
   // Kiểm tra tham số 'data' trong URL
   const songId = getUrlParameter('data');
   let i = 0; // Index mặc định
-  
+
   if (songId) {
     // Tìm bài hát theo id
     const foundIndex = PLAY_LIST.findIndex(song => song.id === songId);
@@ -115,19 +122,19 @@ window.onload = function () {
 
   // Khởi tạo hình nền
   dv = new DomVisual(coverImages);
-  
+
   // Khởi tạo Audio
   av = new AudioVisual();
-  
+
   // Biến quản lý chế độ lặp: 'none', 'all', 'one'
   let loopMode = localStorage.getItem('loopMode') || 'none';
-  
+
   // Biến quản lý chế độ shuffle
   let shuffleMode = localStorage.getItem('shuffleMode') === 'true';
   let playHistory = []; // Lịch sử các bài đã phát khi shuffle
-  
+
   // Hàm xử lý khi bài hát kết thúc
-  av.onended = function() {
+  av.onended = function () {
     if (loopMode === 'one') {
       // Lặp lại bài hiện tại
       av.play(PLAY_LIST[i]);
@@ -143,7 +150,7 @@ window.onload = function () {
   });
   eventBus.on('prev', playPrev);
   eventBus.on('next', playNext);
-  
+
   // Đăng ký sự kiện cho phím tắt
   eventBus.on('seek', (seconds) => {
     console.log('Event seek nhận được:', seconds);
@@ -154,7 +161,7 @@ window.onload = function () {
       console.log('av chưa started:', av?.started);
     }
   });
-  
+
   eventBus.on('volume', (direction) => {
     if (av) {
       av.changeVolume(direction);
@@ -180,7 +187,7 @@ window.onload = function () {
     if (shuffleMode) {
       // Chế độ shuffle
       playHistory.push(i); // Lưu bài hiện tại vào lịch sử
-      
+
       // Tạo danh sách bài chưa phát
       let availableSongs = [];
       for (let idx = 0; idx < PLAY_LIST.length; idx++) {
@@ -188,7 +195,7 @@ window.onload = function () {
           availableSongs.push(idx);
         }
       }
-      
+
       // Nếu đã phát hết tất cả bài
       if (availableSongs.length === 0) {
         if (loopMode === 'all') {
@@ -221,17 +228,17 @@ window.onload = function () {
         }
       }
     }
-    
+
     av.play(PLAY_LIST[i]);
     updatePlaylistActive();
   }
-  
+
   // Xử lý playlist menu
   const playlistToggle = document.getElementById('playlistToggle');
   const playlistMenu = document.getElementById('playlistMenu');
   const playlistContent = document.getElementById('playlistContent');
   const cardWrap = document.querySelector('.card-wrap');
-  
+
   // Toggle playlist menu
   playlistToggle.addEventListener('click', () => {
     playlistMenu.classList.toggle('show');
@@ -239,14 +246,14 @@ window.onload = function () {
     // Toggle class cho card-wrap để thu nhỏ
     cardWrap.classList.toggle('playlist-open');
   });
-  
+
   // Xử lý nút loop
   const loopBtn = document.getElementById('loopBtn');
-  
+
   // Hàm cập nhật UI của nút loop
   function updateLoopButton() {
     loopBtn.classList.remove('loop-all', 'loop-one');
-    
+
     if (loopMode === 'all') {
       loopBtn.classList.add('loop-all');
       loopBtn.title = 'Lặp lại tất cả';
@@ -257,10 +264,10 @@ window.onload = function () {
       loopBtn.title = 'Không lặp lại';
     }
   }
-  
+
   // Khởi tạo UI nút loop
   updateLoopButton();
-  
+
   // Xử lý click nút loop
   loopBtn.addEventListener('click', () => {
     // Chuyển đổi giữa 3 chế độ: none -> all -> one -> none
@@ -271,19 +278,19 @@ window.onload = function () {
     } else {
       loopMode = 'none';
     }
-    
+
     // Lưu vào localStorage
     localStorage.setItem('loopMode', loopMode);
-    
+
     // Cập nhật UI
     updateLoopButton();
-    
+
     console.log('Chế độ lặp:', loopMode);
   });
-  
+
   // Xử lý nút shuffle
   const shuffleBtn = document.getElementById('shuffleBtn');
-  
+
   // Hàm cập nhật UI của nút shuffle
   function updateShuffleButton() {
     if (shuffleMode) {
@@ -294,26 +301,26 @@ window.onload = function () {
       shuffleBtn.title = 'Bật phát ngẫu nhiên';
     }
   }
-  
+
   // Khởi tạo UI nút shuffle
   updateShuffleButton();
-  
+
   // Xử lý click nút shuffle
   shuffleBtn.addEventListener('click', () => {
     shuffleMode = !shuffleMode;
-    
+
     // Lưu vào localStorage
     localStorage.setItem('shuffleMode', shuffleMode);
-    
+
     // Reset lịch sử khi bật/tắt shuffle
     playHistory = [];
-    
+
     // Cập nhật UI
     updateShuffleButton();
-    
+
     console.log('Chế độ shuffle:', shuffleMode);
   });
-  
+
   // Tạo danh sách phát
   function createPlaylist() {
     playlistContent.innerHTML = '';
@@ -323,7 +330,7 @@ window.onload = function () {
       if (index === i) {
         item.classList.add('active');
       }
-      
+
       item.innerHTML = `
         <div class="playlist-item-cover" style="background-image: url('${song.cover}')"></div>
         <div class="playlist-item-info">
@@ -332,17 +339,17 @@ window.onload = function () {
         </div>
         ${index === i ? '<div class="playlist-item-playing"><span class="material-icons">equalizer</span></div>' : ''}
       `;
-      
+
       item.addEventListener('click', () => {
         i = index;
         av.play(PLAY_LIST[i]);
         updatePlaylistActive();
       });
-      
+
       playlistContent.appendChild(item);
     });
   }
-  
+
   // Cập nhật bài đang phát trong playlist
   function updatePlaylistActive() {
     const items = playlistContent.querySelectorAll('.playlist-item');
@@ -369,16 +376,16 @@ window.onload = function () {
       }
     });
   }
-  
+
   // Khởi tạo playlist
   createPlaylist();
-  
+
   // Dự phòng sử dụng HTML5 Audio
   const audioFallback = document.createElement('audio');
   audioFallback.id = 'audio-fallback';
   document.body.appendChild(audioFallback);
-  
-  audioFallback.addEventListener('error', function(e) {
+
+  audioFallback.addEventListener('error', function (e) {
     // Chỉ hiện lỗi nếu audio element có src (đang cố tải file)
     // Không hiện lỗi khi src bị xóa (đang dọn dẹp)
     if (audioFallback.src && audioFallback.src !== '' && audioFallback.src !== window.location.href) {
@@ -388,7 +395,7 @@ window.onload = function () {
   });
 
   // Thêm điều khiển bằng phím tắt
-  document.addEventListener('keydown', function(e) {
+  document.addEventListener('keydown', function (e) {
     // Ngăn chặn hành vi mặc định của các phím
     const keyActions = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', ' '];
     if (keyActions.includes(e.key)) {
@@ -412,38 +419,38 @@ window.onload = function () {
       eventBus.emit('prev');
       return;
     }
-    
+
     if (e.ctrlKey && e.key === 'ArrowRight') {
       console.log('Emit: next');
       eventBus.emit('next');
       return;
     }
 
-    switch(e.key) {
+    switch (e.key) {
       case ' ': // Space - Phát/Tạm dừng
         console.log('Emit: play');
         eventBus.emit('play');
         break;
-        
+
       case 'ArrowLeft': // Mũi tên trái - Lùi 5 giây
         if (!e.ctrlKey) {
           console.log('Emit: seek -5');
           eventBus.emit('seek', -5);
         }
         break;
-        
+
       case 'ArrowRight': // Mũi tên phải - Tiến 5 giây
         if (!e.ctrlKey) {
           console.log('Emit: seek +5');
           eventBus.emit('seek', 5);
         }
         break;
-        
+
       case 'ArrowUp': // Mũi tên lên - Tăng âm lượng
         console.log('Emit: volume up');
         eventBus.emit('volume', 'up');
         break;
-        
+
       case 'ArrowDown': // Mũi tên xuống - Giảm âm lượng
         console.log('Emit: volume down');
         eventBus.emit('volume', 'down');
