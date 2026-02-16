@@ -1,0 +1,306 @@
+:root {
+  --color-bg: #030005;
+  --color-text: #ffffff;
+  --color-accent: #4f7eff;
+  --color-accent-2: #a658ff;
+  --font-heading: "Rajdhani", sans-serif;
+  --font-body: "Outfit", sans-serif;
+  --spacer: 1rem;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  overflow-x: hidden;
+  width: 100vw;
+  height: 100vh; /* Allow Lenis to handle scroll height */
+}
+
+/* Canvas Background */
+#webgl {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  pointer-events: none; /* Let clicks pass to UI */
+}
+
+/* Loading Screen */
+#loader {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--color-bg);
+  z-index: 9999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: opacity 0.8s ease-out;
+}
+
+.loader-content {
+  text-align: center;
+}
+
+.loader-circle {
+  width: 50px;
+  height: 50px;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-top: 2px solid var(--color-accent);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 1rem;
+}
+
+.loader-text {
+  font-family: var(--font-heading);
+  letter-spacing: 2px;
+  font-size: 0.8rem;
+  opacity: 0.7;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* HUD Navigation */
+.hud-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  padding: 2rem 4rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 100;
+  mix-blend-mode: difference;
+}
+
+.logo {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 1.5rem;
+  letter-spacing: 1px;
+}
+
+.version {
+  font-weight: 300;
+  font-size: 0.8rem;
+  opacity: 0.6;
+  margin-left: 0.5rem;
+}
+
+.nav-links {
+  display: flex;
+  gap: 2rem;
+}
+
+.nav-item {
+  color: var(--color-text);
+  text-decoration: none;
+  font-family: var(--font-heading);
+  text-transform: uppercase;
+  font-size: 0.9rem;
+  letter-spacing: 1px;
+  opacity: 0.5;
+  transition: opacity 0.3s;
+}
+
+.nav-item:hover,
+.nav-item.active {
+  opacity: 1;
+}
+
+/* Hero Section */
+.content-wrapper {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+}
+
+section {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0 10%;
+}
+
+.hero {
+  align-items: flex-start;
+}
+
+.hero-title {
+  font-family: var(--font-heading);
+  font-size: 8rem;
+  line-height: 0.9;
+  font-weight: 700;
+  text-transform: uppercase;
+  margin-bottom: 2rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.hero-subtitle {
+  font-size: 1.2rem;
+  max-width: 400px;
+  opacity: 0.8;
+  margin-bottom: 3rem;
+  line-height: 1.6;
+}
+
+.cta-button {
+  background: transparent;
+  color: var(--color-text);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 1rem 2rem;
+  font-family: var(--font-heading);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  cursor: pointer;
+  transition: all 0.3s;
+  backdrop-filter: blur(5px);
+}
+
+.cta-button:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--color-text);
+  box-shadow: 0 0 20px rgba(79, 126, 255, 0.3);
+}
+
+/* Glitch Effect placeholder */
+.glitch {
+  position: relative;
+  color: var(--color-text);
+}
+
+/* Feature Sections */
+.feature-section {
+  align-items: flex-start;
+}
+
+.right-align {
+  align-items: flex-end;
+  text-align: right;
+}
+
+.feature-content {
+  background: rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(10px);
+  padding: 3rem;
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+  max-width: 500px;
+}
+
+.right-align .feature-content {
+  border-left: none;
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.feature-content h2 {
+  font-family: var(--font-heading);
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  text-transform: uppercase;
+  background: linear-gradient(45deg, #fff, #aaa);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.feature-content p {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  opacity: 0.8;
+}
+
+/* Footer */
+.footer-section {
+  align-items: center;
+  justify-content: center;
+  min-height: 50vh;
+}
+
+.footer-gemini-logo {
+  font-size: 4rem;
+  margin-top: 2rem;
+  animation: pulse 3s infinite ease-in-out;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 0.5;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+}
+/* Grain Overlay */
+.grain {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 9998; /* Below loader, above everything else */
+    opacity: 0.05;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+}
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+    .hud-nav {
+        padding: 1rem;
+    }
+
+    .logo {
+        font-size: 1.2rem;
+    }
+
+    .nav-links {
+        display: none; /* Hide nav links on mobile for simplicity */
+    }
+
+    .hero-title {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+    }
+
+    .hero-subtitle {
+        font-size: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    section {
+        padding: 0 5%;
+    }
+
+    .feature-content {
+        padding: 1.5rem;
+        max-width: 100%;
+    }
+
+    .feature-content h2 {
+        font-size: 2rem;
+    }
+}

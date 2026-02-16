@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claude — Consciousness Beyond Code</title>
+    <meta name="description" content="Experience the next evolution of artificial intelligence. Claude by Anthropic — where consciousness meets computation.">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/style.css">
+    
+    <!-- Three.js -->
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+</head>
+<body>
+    <!-- Cursor Follower -->
+    <div id="cursor-glow"></div>
+    
+    <!-- Loading Screen -->
+    <div id="loader">
+        <div class="loader-inner">
+            <div class="loader-ring"></div>
+            <div class="loader-ring"></div>
+            <div class="loader-ring"></div>
+            <svg class="loader-logo" viewBox="0 0 100 100" width="60" height="60">
+                <circle cx="50" cy="50" r="20" fill="none" stroke="#D97757" stroke-width="2" opacity="0.6"/>
+                <circle cx="50" cy="50" r="6" fill="#D97757"/>
+            </svg>
+            <div class="loader-text">
+                <span class="loader-label">CLAUDE</span>
+                <div class="loader-bar-wrapper">
+                    <div class="loader-bar"></div>
+                </div>
+                <span class="loader-percent">0%</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- WebGL Background Canvas -->
+    <canvas id="webgl"></canvas>
+
+    <!-- Film Grain Overlay -->
+    <div class="grain-overlay"></div>
+
+    <!-- Navigation -->
+    <nav id="main-nav">
+        <div class="nav-left">
+            <a href="#" class="nav-logo">
+                <svg viewBox="0 0 100 100" width="28" height="28">
+                    <circle cx="50" cy="50" r="20" fill="none" stroke="#D97757" stroke-width="3"/>
+                    <circle cx="50" cy="50" r="6" fill="#D97757"/>
+                </svg>
+                <span>CLAUDE</span>
+            </a>
+        </div>
+        <div class="nav-center">
+            <a href="#hero" class="nav-link active" data-section="hero">Origin</a>
+            <a href="#about" class="nav-link" data-section="about">Essence</a>
+            <a href="#capabilities" class="nav-link" data-section="capabilities">Powers</a>
+            <a href="#philosophy" class="nav-link" data-section="philosophy">Philosophy</a>
+            <a href="#experience" class="nav-link" data-section="experience">Experience</a>
+        </div>
+        <div class="nav-right">
+            <button id="sound-toggle" class="nav-btn" aria-label="Toggle Sound">
+                <svg class="sound-on" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M11 5L6 9H2v6h4l5 4V5z"/>
+                    <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>
+                </svg>
+                <svg class="sound-off" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" style="display:none">
+                    <path d="M11 5L6 9H2v6h4l5 4V5z"/>
+                    <line x1="23" y1="9" x2="17" y2="15"/>
+                    <line x1="17" y1="9" x2="23" y2="15"/>
+                </svg>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main id="smooth-content">
+
+        <!-- HERO Section -->
+        <section id="hero" class="section hero-section">
+            <div class="hero-content">
+                <div class="hero-eyebrow">
+                    <div class="eyebrow-line"></div>
+                    <span>ANTHROPIC PRESENTS</span>
+                    <div class="eyebrow-line"></div>
+                </div>
+                <h1 class="hero-title">
+                    <span class="title-line" data-delay="0">
+                        <span class="title-word">Consciousness</span>
+                    </span>
+                    <span class="title-line" data-delay="0.15">
+                        <span class="title-word accent">Beyond</span>
+                    </span>
+                    <span class="title-line" data-delay="0.3">
+                        <span class="title-word">Code</span>
+                    </span>
+                </h1>
+                <p class="hero-description">
+                    An intelligence that doesn't just process — it <em>understands</em>.
+                    Built with safety at its core, designed to elevate human potential.
+                </p>
+                <div class="hero-actions">
+                    <button id="enter-btn" class="btn-primary">
+                        <span class="btn-text">Enter the Mind</span>
+                        <span class="btn-shine"></span>
+                    </button>
+                    <button class="btn-secondary">
+                        <span class="btn-icon">▶</span>
+                        <span>Watch Film</span>
+                    </button>
+                </div>
+                <div class="hero-stats">
+                    <div class="stat">
+                        <span class="stat-number" data-target="200">0</span><span class="stat-suffix">B+</span>
+                        <span class="stat-label">Parameters</span>
+                    </div>
+                    <div class="stat-divider"></div>
+                    <div class="stat">
+                        <span class="stat-number" data-target="175">0</span><span class="stat-suffix">+</span>
+                        <span class="stat-label">Languages</span>
+                    </div>
+                    <div class="stat-divider"></div>
+                    <div class="stat">
+                        <span class="stat-number" data-target="99">0</span><span class="stat-suffix">.9%</span>
+                        <span class="stat-label">Safety Score</span>
+                    </div>
+                </div>
+            </div>
+            <div class="scroll-indicator">
+                <div class="scroll-line"></div>
+                <span>SCROLL TO EXPLORE</span>
+            </div>
+        </section>
+
+        <!-- ABOUT Section -->
+        <section id="about" class="section about-section">
+            <div class="section-header">
+                <span class="section-number">01</span>
+                <h2 class="section-title">
+                    <span class="reveal-text">The Essence of</span>
+                    <span class="reveal-text accent">Understanding</span>
+                </h2>
+            </div>
+            <div class="about-grid">
+                <div class="about-text">
+                    <p class="about-paragraph reveal-up">
+                        Claude is not merely an AI model. It is a paradigm shift in how machines 
+                        interact with human thought. Built on the principles of Constitutional AI, 
+                        Claude represents a new kind of intelligence — one that is helpful, harmless, 
+                        and honest.
+                    </p>
+                    <p class="about-paragraph reveal-up">
+                        Every response is crafted with nuance. Every interaction is guided by 
+                        understanding. This is AI that thinks with you, not just for you.
+                    </p>
+                </div>
+                <div class="about-visual">
+                    <div class="dna-helix" id="dna-canvas"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CAPABILITIES Section -->
+        <section id="capabilities" class="section capabilities-section">
+            <div class="section-header">
+                <span class="section-number">02</span>
+                <h2 class="section-title">
+                    <span class="reveal-text">Limitless</span>
+                    <span class="reveal-text accent">Capabilities</span>
+                </h2>
+            </div>
+            <div class="capabilities-grid">
+                <div class="capability-card" data-index="0">
+                    <div class="card-glow"></div>
+                    <div class="card-icon">
+                        <svg viewBox="0 0 48 48" width="48" height="48" fill="none" stroke="#D97757" stroke-width="1.5">
+                            <circle cx="24" cy="24" r="20"/>
+                            <path d="M24 14v10l7 7"/>
+                            <circle cx="24" cy="24" r="4" fill="#D97757" fill-opacity="0.3"/>
+                        </svg>
+                    </div>
+                    <h3 class="card-title">Reasoning Engine</h3>
+                    <p class="card-desc">Multi-step logical reasoning that rivals human cognition. Complex problem decomposition in real-time.</p>
+                    <div class="card-footer">
+                        <span class="card-tag">COGNITION</span>
+                        <span class="card-arrow">→</span>
+                    </div>
+                </div>
+                <div class="capability-card" data-index="1">
+                    <div class="card-glow"></div>
+                    <div class="card-icon">
+                        <svg viewBox="0 0 48 48" width="48" height="48" fill="none" stroke="#D97757" stroke-width="1.5">
+                            <rect x="8" y="8" width="32" height="32" rx="4"/>
+                            <path d="M16 20h16M16 28h10"/>
+                            <circle cx="36" cy="28" r="3" fill="#D97757" fill-opacity="0.3"/>
+                        </svg>
+                    </div>
+                    <h3 class="card-title">Code Synthesis</h3>
+                    <p class="card-desc">Generate, debug, and architect entire systems. From prototype to production in a single conversation.</p>
+                    <div class="card-footer">
+                        <span class="card-tag">ENGINEERING</span>
+                        <span class="card-arrow">→</span>
+                    </div>
+                </div>
+                <div class="capability-card" data-index="2">
+                    <div class="card-glow"></div>
+                    <div class="card-icon">
+                        <svg viewBox="0 0 48 48" width="48" height="48" fill="none" stroke="#D97757" stroke-width="1.5">
+                            <path d="M12 36c0-8 6-12 12-20s12-4 12 4-6 12-12 20-12 4-12-4z"/>
+                            <circle cx="24" cy="24" r="4" fill="#D97757" fill-opacity="0.3"/>
+                        </svg>
+                    </div>
+                    <h3 class="card-title">Creative Vision</h3>
+                    <p class="card-desc">From poetry to prose, screenplays to strategy. A creative partner that amplifies your imagination.</p>
+                    <div class="card-footer">
+                        <span class="card-tag">CREATIVITY</span>
+                        <span class="card-arrow">→</span>
+                    </div>
+                </div>
+                <div class="capability-card" data-index="3">
+                    <div class="card-glow"></div>
+                    <div class="card-icon">
+                        <svg viewBox="0 0 48 48" width="48" height="48" fill="none" stroke="#D97757" stroke-width="1.5">
+                            <path d="M24 4v40M4 24h40"/>
+                            <circle cx="24" cy="24" r="16"/>
+                            <circle cx="24" cy="24" r="8" fill="#D97757" fill-opacity="0.15"/>
+                        </svg>
+                    </div>
+                    <h3 class="card-title">Multilingual Mind</h3>
+                    <p class="card-desc">Fluent across 175+ languages with cultural awareness. Communication without boundaries.</p>
+                    <div class="card-footer">
+                        <span class="card-tag">LANGUAGE</span>
+                        <span class="card-arrow">→</span>
+                    </div>
+                </div>
+                <div class="capability-card" data-index="4">
+                    <div class="card-glow"></div>
+                    <div class="card-icon">
+                        <svg viewBox="0 0 48 48" width="48" height="48" fill="none" stroke="#D97757" stroke-width="1.5">
+                            <path d="M24 4l6 12 14 2-10 10 2 14-12-6-12 6 2-14L4 18l14-2z"/>
+                            <circle cx="24" cy="24" r="4" fill="#D97757" fill-opacity="0.3"/>
+                        </svg>
+                    </div>
+                    <h3 class="card-title">Research Synthesis</h3>
+                    <p class="card-desc">Analyze vast knowledge bases. Extract insights, synthesize findings, and generate novel hypotheses.</p>
+                    <div class="card-footer">
+                        <span class="card-tag">ANALYSIS</span>
+                        <span class="card-arrow">→</span>
+                    </div>
+                </div>
+                <div class="capability-card" data-index="5">
+                    <div class="card-glow"></div>
+                    <div class="card-icon">
+                        <svg viewBox="0 0 48 48" width="48" height="48" fill="none" stroke="#D97757" stroke-width="1.5">
+                            <path d="M20 8h8v8h8v8h-8v8h-8v-8h-8v-8h8z"/>
+                            <circle cx="24" cy="24" r="20"/>
+                        </svg>
+                    </div>
+                    <h3 class="card-title">Safety First</h3>
+                    <p class="card-desc">Constitutional AI principles ensure every response is helpful, harmless, and honest. Ethics by design.</p>
+                    <div class="card-footer">
+                        <span class="card-tag">SAFETY</span>
+                        <span class="card-arrow">→</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PHILOSOPHY Section -->
+        <section id="philosophy" class="section philosophy-section">
+            <div class="section-header">
+                <span class="section-number">03</span>
+                <h2 class="section-title">
+                    <span class="reveal-text">The Philosophy</span>
+                    <span class="reveal-text accent">Within</span>
+                </h2>
+            </div>
+            <div class="philosophy-content">
+                <div class="quote-block reveal-up">
+                    <div class="quote-mark">"</div>
+                    <blockquote>
+                        The measure of intelligence is not what you know, but how gracefully 
+                        you navigate what you don't.
+                    </blockquote>
+                    <cite>— The Claude Principle</cite>
+                </div>
+                <div class="pillars-grid">
+                    <div class="pillar reveal-up" data-delay="0">
+                        <div class="pillar-number">I</div>
+                        <h4>Helpful</h4>
+                        <p>Maximizing genuine utility while respecting the depth and nuance of every query.</p>
+                    </div>
+                    <div class="pillar reveal-up" data-delay="0.1">
+                        <div class="pillar-number">II</div>
+                        <h4>Harmless</h4>
+                        <p>Constitutional AI ensures responses are safe, reducing risks without sacrificing capability.</p>
+                    </div>
+                    <div class="pillar reveal-up" data-delay="0.2">
+                        <div class="pillar-number">III</div>
+                        <h4>Honest</h4>
+                        <p>Transparent about limitations. Clear about uncertainty. Truthful in all interactions.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- EXPERIENCE Section -->
+        <section id="experience" class="section experience-section">
+            <div class="section-header">
+                <span class="section-number">04</span>
+                <h2 class="section-title">
+                    <span class="reveal-text">Experience</span>
+                    <span class="reveal-text accent">Claude</span>
+                </h2>
+            </div>
+            <div class="experience-content">
+                <div class="terminal-window reveal-up">
+                    <div class="terminal-header">
+                        <div class="terminal-dots">
+                            <span class="dot red"></span>
+                            <span class="dot yellow"></span>
+                            <span class="dot green"></span>
+                        </div>
+                        <span class="terminal-title">claude-terminal</span>
+                    </div>
+                    <div class="terminal-body" id="terminal-body">
+                        <div class="terminal-line">
+                            <span class="prompt">❯</span>
+                            <span class="typing-text" id="typing-target"></span>
+                            <span class="cursor-blink">▊</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- FOOTER Section -->
+        <section class="section footer-section">
+            <div class="footer-content">
+                <div class="footer-logo-large">
+                    <svg viewBox="0 0 100 100" width="80" height="80">
+                        <circle cx="50" cy="50" r="30" fill="none" stroke="#D97757" stroke-width="1" opacity="0.4"/>
+                        <circle cx="50" cy="50" r="20" fill="none" stroke="#D97757" stroke-width="1.5" opacity="0.6"/>
+                        <circle cx="50" cy="50" r="8" fill="#D97757" opacity="0.8"/>
+                    </svg>
+                </div>
+                <p class="footer-tagline">Built to be safe. Designed to be brilliant.</p>
+                <div class="footer-links">
+                    <a href="#">Documentation</a>
+                    <a href="#">API</a>
+                    <a href="#">Research</a>
+                    <a href="#">Safety</a>
+                </div>
+                <p class="footer-copy">© 2026 Anthropic. All rights reserved.</p>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Audio (ambient) -->
+    <audio id="ambient-audio" loop preload="none">
+        <!-- Placeholder: would load actual ambient sound -->
+    </audio>
+
+    <!-- Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollToPlugin.min.js"></script>
+    <script src="https://unpkg.com/@studio-freight/lenis@1.0.34/dist/lenis.min.js"></script>
+
+    <!-- App Logic -->
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,1087 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Exhibition Gallery</title>
+    <style>
+        :root {
+            --ui-bg: rgba(7, 13, 24, 0.82);
+            --ui-border: rgba(255, 255, 255, 0.2);
+            --ui-text: #f5f7ff;
+        }
+
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: radial-gradient(circle at 15% 20%, #1d2736 0%, #06080f 65%);
+            color: var(--ui-text);
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        #instructions {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: var(--ui-text);
+            background: var(--ui-bg);
+            border: 1px solid var(--ui-border);
+            box-shadow: 0 20px 45px rgba(0, 0, 0, 0.45);
+            backdrop-filter: blur(8px);
+            padding: 20px 24px;
+            border-radius: 12px;
+            cursor: pointer;
+            z-index: 100;
+            max-width: 420px;
+        }
+
+        #instructions h1 {
+            margin-top: 0;
+            margin-bottom: 8px;
+            font-size: 28px;
+            letter-spacing: 0.5px;
+        }
+
+        #instructions p {
+            margin: 8px 0;
+            line-height: 1.4;
+        }
+
+        #crosshair {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.75);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            z-index: 90;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.45);
+        }
+
+        #crosshair::before,
+        #crosshair::after {
+            content: "";
+            position: absolute;
+            background: rgba(255, 255, 255, 0.65);
+        }
+
+        #crosshair::before {
+            top: 50%;
+            left: -6px;
+            width: 28px;
+            height: 2px;
+            transform: translateY(-50%);
+        }
+
+        #crosshair::after {
+            left: 50%;
+            top: -6px;
+            width: 2px;
+            height: 28px;
+            transform: translateX(-50%);
+        }
+
+        #modal {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(1, 3, 9, 0.92);
+            z-index: 200;
+            color: var(--ui-text);
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            backdrop-filter: blur(6px);
+        }
+
+        #modal img {
+            max-width: min(88vw, 1100px);
+            max-height: 78vh;
+            border: 4px solid rgba(255, 255, 255, 0.92);
+            border-radius: 8px;
+            box-shadow: 0 28px 60px rgba(0, 0, 0, 0.6);
+        }
+
+        #modal-close {
+            position: absolute;
+            top: 16px;
+            right: 24px;
+            font-size: 40px;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        #art-title {
+            margin-top: 20px;
+            font-size: 24px;
+            letter-spacing: 0.4px;
+        }
+
+        #hint {
+            position: absolute;
+            left: 14px;
+            bottom: 12px;
+            z-index: 70;
+            font-size: 13px;
+            letter-spacing: 0.2px;
+            color: rgba(245, 247, 255, 0.9);
+            background: rgba(7, 13, 24, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 8px;
+            padding: 8px 10px;
+            backdrop-filter: blur(4px);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="crosshair"></div>
+    <div id="instructions">
+        <h1>Welcome to the Art Gallery</h1>
+        <p>Click to explore</p>
+        <p>W, A, S, D = Move | SPACE = Jump | Mouse = Look</p>
+        <p>Press ESC to show cursor / pause</p>
+        <p>E = View artwork</p>
+    </div>
+    <div id="hint">Tip: Press ESC to release mouse/pause. Click again to resume.</div>
+
+    <div id="modal">
+        <span id="modal-close">&times;</span>
+        <img id="modal-img" src="" alt="Artwork">
+        <div id="art-title"></div>
+    </div>
+
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+        import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+        import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+        import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+
+        let camera, scene, renderer, composer;
+        let sculpture;
+
+        const supportSurfaces = [];
+        const blockingMeshes = [];
+        const blockingBoxes = [];
+        const paintings = [];
+
+        let moveForward = false;
+        let moveBackward = false;
+        let moveLeft = false;
+        let moveRight = false;
+        let canJump = false;
+
+        let prevTime = performance.now();
+
+        const velocity = new THREE.Vector3();
+        const direction = new THREE.Vector3();
+        const forwardVector = new THREE.Vector3();
+        const rightVector = new THREE.Vector3();
+        const moveVector = new THREE.Vector3();
+        const lookEuler = new THREE.Euler(0, 0, 0, 'YXZ');
+
+        const groundRaycaster = new THREE.Raycaster(new THREE.Vector3(), new THREE.Vector3(0, -1, 0), 0, 50);
+        const interactionRaycaster = new THREE.Raycaster();
+        const playerProbeBox = new THREE.Box3();
+
+        const FLOOR_SIZE = 60;
+        const WALL_HEIGHT = 20;
+        const FLOOR_HEIGHT = 10;
+
+        const PLAYER_EYE_HEIGHT = 2;
+        const PLAYER_RADIUS = 0.45;
+        const PLAYER_BODY_HEIGHT = 1.6;
+        const STEP_HEIGHT_ALLOWANCE = 1.05;
+
+        const MOVE_SPEED = 8.8;
+        const GRAVITY = 32;
+        const JUMP_SPEED = 11.5;
+        const LOOK_SENSITIVITY = 0.0022;
+        const PITCH_LIMIT = Math.PI / 2 - 0.05;
+
+        const modal = document.getElementById('modal');
+
+        init();
+        animate();
+
+        function init() {
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(0, PLAYER_EYE_HEIGHT, 18);
+
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x05070a);
+            scene.fog = new THREE.FogExp2(0x05070a, 0.02);
+            scene.add(camera);
+
+            renderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: "high-performance" }); // Antialias handled by post-processing or browser if not using FXAA
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5)); // slight perf opt
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            renderer.toneMapping = THREE.ReinhardToneMapping;
+            renderer.toneMappingExposure = 1.2;
+            renderer.outputColorSpace = THREE.SRGBColorSpace;
+            renderer.domElement.tabIndex = 0;
+            document.body.appendChild(renderer.domElement);
+
+            // Post-Processing
+            const renderScene = new RenderPass(scene, camera);
+
+            const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
+            bloomPass.threshold = 0.7; // Lower threshold to make more things glow
+            bloomPass.strength = 0.6; // Moderate glow
+            bloomPass.radius = 0.5;
+
+            const outputPass = new OutputPass();
+
+            composer = new EffectComposer(renderer);
+            composer.addPass(renderScene);
+            composer.addPass(bloomPass);
+            composer.addPass(outputPass);
+
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.1); // Very dark ambient, rely on lights
+            scene.add(ambientLight);
+
+            const hemiLight = new THREE.HemisphereLight(0xffeeb1, 0x080820, 0.3); // Warm top, dark bottom
+            hemiLight.position.set(0, WALL_HEIGHT, 0);
+            scene.add(hemiLight);
+
+            const mainLight = new THREE.DirectionalLight(0xffaa33, 2.0); // Sun-like
+            mainLight.position.set(-10, WALL_HEIGHT + 10, -5);
+            mainLight.castShadow = true;
+            mainLight.shadow.bias = -0.0001;
+            mainLight.shadow.mapSize.width = 4096; // High res shadows
+            mainLight.shadow.mapSize.height = 4096;
+            mainLight.shadow.radius = 4; // Soft shadows
+            mainLight.shadow.camera.left = -40;
+            mainLight.shadow.camera.right = 40;
+            mainLight.shadow.camera.top = 40;
+            mainLight.shadow.camera.bottom = -40;
+            mainLight.shadow.camera.near = 1;
+            mainLight.shadow.camera.far = 80;
+            scene.add(mainLight);
+
+            const instructions = document.getElementById('instructions');
+
+            // Pointer Lock Variables
+            let isLocked = false;
+
+            const startExploring = () => {
+                if (modal.style.display === 'flex') return;
+                renderer.domElement.requestPointerLock();
+            };
+
+            const onPointerLockChange = () => {
+                if (document.pointerLockElement === renderer.domElement) {
+                    isLocked = true;
+                    instructions.style.display = 'none';
+                    prevTime = performance.now();
+                } else {
+                    isLocked = false;
+                    instructions.style.display = 'block';
+                }
+            };
+
+            document.addEventListener('pointerlockchange', onPointerLockChange);
+            instructions.addEventListener('click', startExploring);
+
+            document.addEventListener('keydown', onKeyDown);
+            document.addEventListener('keyup', onKeyUp);
+            document.addEventListener('mousemove', onPointerMove);
+            window.addEventListener('resize', onWindowResize);
+
+            // Re-lock if user clicks on the canvas while playing
+            renderer.domElement.addEventListener('click', () => {
+                if (!isLocked && instructions.style.display === 'none') {
+                    startExploring();
+                }
+            });
+
+            buildGallery();
+
+            document.getElementById('modal-close').addEventListener('click', closeModalAndResume);
+            modal.addEventListener('click', (event) => {
+                if (event.target === modal) closeModalAndResume();
+            });
+
+            // Helper to access isLocked from other functions without making it global
+            window.isPointerLocked = () => isLocked;
+        }
+
+        function onKeyDown(event) {
+            const code = event.code || '';
+            const key = (event.key || '').toLowerCase();
+
+            const forward = code === 'ArrowUp' || code === 'KeyW' || key === 'w';
+            const left = code === 'ArrowLeft' || code === 'KeyA' || key === 'a';
+            const backward = code === 'ArrowDown' || code === 'KeyS' || key === 's';
+            const right = code === 'ArrowRight' || code === 'KeyD' || key === 'd';
+            const jump = code === 'Space' || key === ' ';
+            const interact = code === 'KeyE' || key === 'e';
+
+            // Allow movement only if pointer is locked
+            if (!window.isPointerLocked()) return;
+
+            if (forward || left || backward || right || jump) event.preventDefault();
+
+            if (forward) moveForward = true;
+            if (left) moveLeft = true;
+            if (backward) moveBackward = true;
+            if (right) moveRight = true;
+
+            if (jump && canJump) {
+                velocity.y = JUMP_SPEED;
+                canJump = false;
+            }
+
+            if (interact && !event.repeat) {
+                interactWithPainting();
+            }
+        }
+
+        function onKeyUp(event) {
+            const code = event.code || '';
+            const key = (event.key || '').toLowerCase();
+
+            if (code === 'ArrowUp' || code === 'KeyW' || key === 'w') moveForward = false;
+            if (code === 'ArrowLeft' || code === 'KeyA' || key === 'a') moveLeft = false;
+            if (code === 'ArrowDown' || code === 'KeyS' || key === 's') moveBackward = false;
+            if (code === 'ArrowRight' || code === 'KeyD' || key === 'd') moveRight = false;
+        }
+
+        function applyLookDelta(deltaX, deltaY) {
+            lookEuler.setFromQuaternion(camera.quaternion);
+            lookEuler.y -= deltaX * LOOK_SENSITIVITY;
+            lookEuler.x -= deltaY * LOOK_SENSITIVITY;
+            lookEuler.x = THREE.MathUtils.clamp(lookEuler.x, -PITCH_LIMIT, PITCH_LIMIT);
+            camera.quaternion.setFromEuler(lookEuler);
+        }
+
+        function onPointerMove(event) {
+            if (!window.isPointerLocked() || modal.style.display === 'flex') return;
+
+            const movementX = event.movementX || event.mozMovementX || event.webkitMovementX || 0;
+            const movementY = event.movementY || event.mozMovementY || event.webkitMovementY || 0;
+
+            applyLookDelta(movementX, movementY);
+        }
+
+        function addSupportSurface(mesh) {
+            supportSurfaces.push(mesh);
+            return mesh;
+        }
+
+        function addBlockingMesh(mesh) {
+            blockingMeshes.push(mesh);
+            return mesh;
+        }
+
+        function refreshBlockingBoxes() {
+            blockingBoxes.length = 0;
+            for (const mesh of blockingMeshes) {
+                mesh.updateMatrixWorld(true);
+                blockingBoxes.push(new THREE.Box3().setFromObject(mesh));
+            }
+        }
+
+        function createFloorTexture() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 1024;
+            canvas.height = 1024;
+            const ctx = canvas.getContext('2d');
+
+            // Base wood color
+            ctx.fillStyle = '#3a2817';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Wood grain noise
+            for (let i = 0; i < 4000; i++) {
+                const x = Math.random() * canvas.width;
+                const y = Math.random() * canvas.height;
+                const w = Math.random() * 200 + 50;
+                const h = Math.random() * 2 + 0.5;
+                ctx.fillStyle = `rgba(30, 20, 10, ${Math.random() * 0.15})`;
+                ctx.beginPath();
+                ctx.ellipse(x, y, w, h, (Math.random() - 0.5) * 0.1, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            // Parquet pattern lines
+            ctx.strokeStyle = 'rgba(10, 5, 0, 0.4)';
+            ctx.lineWidth = 2;
+            const tileSize = 128; // Large planks
+
+            for (let y = 0; y <= canvas.height; y += tileSize) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(canvas.width, y);
+                ctx.stroke();
+            }
+
+            // Cross lines for parquet effect (staggered)
+            for (let y = 0; y < canvas.height; y += tileSize) {
+                const offset = (y / tileSize) % 2 === 0 ? 0 : tileSize / 2;
+                for (let x = offset; x <= canvas.width; x += tileSize * 2) {
+                    ctx.beginPath();
+                    ctx.moveTo(x, y);
+                    ctx.lineTo(x, y + tileSize);
+                    ctx.stroke();
+                }
+            }
+
+            const texture = new THREE.CanvasTexture(canvas);
+            texture.wrapS = THREE.RepeatWrapping;
+            texture.wrapT = THREE.RepeatWrapping;
+            texture.repeat.set(6, 6);
+            texture.colorSpace = THREE.SRGBColorSpace;
+            return texture;
+        }
+
+        function createWallTexture() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 1024;
+            canvas.height = 1024;
+            const ctx = canvas.getContext('2d');
+
+            // Base plaster color
+            const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            grad.addColorStop(0, '#e8e8e8');
+            grad.addColorStop(1, '#d0d0d0');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Noise for plaster texture
+            for (let i = 0; i < 60000; i++) {
+                const x = Math.random() * canvas.width;
+                const y = Math.random() * canvas.height;
+                const size = Math.random() * 2 + 0.5;
+                const val = Math.random();
+                ctx.fillStyle = val > 0.5 ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)';
+                ctx.fillRect(x, y, size, size);
+            }
+
+            // Subtle stains
+            for (let i = 0; i < 20; i++) {
+                const x = Math.random() * canvas.width;
+                const y = Math.random() * canvas.height;
+                const r = Math.random() * 100 + 50;
+                const grd = ctx.createRadialGradient(x, y, 0, x, y, r);
+                grd.addColorStop(0, 'rgba(0,0,0,0.03)');
+                grd.addColorStop(1, 'rgba(0,0,0,0)');
+                ctx.fillStyle = grd;
+                ctx.beginPath();
+                ctx.arc(x, y, r, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            const texture = new THREE.CanvasTexture(canvas);
+            texture.wrapS = THREE.RepeatWrapping;
+            texture.wrapT = THREE.RepeatWrapping;
+            texture.repeat.set(4, 2);
+            texture.colorSpace = THREE.SRGBColorSpace;
+            return texture;
+        }
+
+        function buildGallery() {
+            const halfSize = FLOOR_SIZE / 2;
+            const wallThickness = 1.2;
+
+            const floorTexture = createFloorTexture();
+            const floorMaterial = new THREE.MeshStandardMaterial({
+                map: floorTexture,
+                roughness: 0.15, // Polished wood
+                metalness: 0.1,
+                envMapIntensity: 1.0
+            });
+
+            const floor = new THREE.Mesh(new THREE.PlaneGeometry(FLOOR_SIZE, FLOOR_SIZE), floorMaterial);
+            floor.rotation.x = -Math.PI / 2;
+            floor.receiveShadow = true;
+            scene.add(floor);
+            addSupportSurface(floor);
+
+            const carpet = new THREE.Mesh(
+                new THREE.PlaneGeometry(8, 30),
+                new THREE.MeshStandardMaterial({ color: 0x6e1b2b, roughness: 1.0, metalness: 0 })
+            );
+            carpet.rotation.x = -Math.PI / 2;
+            carpet.position.set(0, 0.01, 4);
+            scene.add(carpet);
+
+            const ceiling = new THREE.Mesh(
+                new THREE.PlaneGeometry(FLOOR_SIZE, FLOOR_SIZE),
+                new THREE.MeshStandardMaterial({ color: 0x1a1e29, roughness: 0.9, metalness: 0.1 })
+            );
+            ceiling.rotation.x = Math.PI / 2;
+            ceiling.position.y = WALL_HEIGHT;
+            ceiling.receiveShadow = true;
+            scene.add(ceiling);
+
+            const wallMaterial = new THREE.MeshStandardMaterial({
+                map: createWallTexture(),
+                roughness: 0.85, // Matte plaster
+                metalness: 0.05
+            });
+
+            function createWall(w, h, d, x, y, z, ry = 0) {
+                const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), wallMaterial);
+                mesh.position.set(x, y, z);
+                mesh.rotation.y = ry;
+                mesh.castShadow = true;
+                mesh.receiveShadow = true;
+                scene.add(mesh);
+                addBlockingMesh(mesh);
+                return mesh;
+            }
+
+            createWall(FLOOR_SIZE, WALL_HEIGHT, wallThickness, 0, WALL_HEIGHT / 2, -halfSize, 0);
+            createWall(FLOOR_SIZE, WALL_HEIGHT, wallThickness, 0, WALL_HEIGHT / 2, halfSize, 0);
+            createWall(FLOOR_SIZE, WALL_HEIGHT, wallThickness, -halfSize, WALL_HEIGHT / 2, 0, Math.PI / 2);
+            createWall(FLOOR_SIZE, WALL_HEIGHT, wallThickness, halfSize, WALL_HEIGHT / 2, 0, Math.PI / 2);
+
+            const baseboardMat = new THREE.MeshStandardMaterial({ color: 0x2f1b0a, roughness: 0.3, metalness: 0.2 }); // Dark wood
+            const baseboardHeight = 0.35;
+            const baseboardDepth = 0.35;
+            const baseY = baseboardHeight / 2;
+
+            const boards = [
+                [FLOOR_SIZE - 2, baseboardHeight, baseboardDepth, 0, baseY, -halfSize + 0.75, 0],
+                [FLOOR_SIZE - 2, baseboardHeight, baseboardDepth, 0, baseY, halfSize - 0.75, 0],
+                [FLOOR_SIZE - 2, baseboardHeight, baseboardDepth, -halfSize + 0.75, baseY, 0, Math.PI / 2],
+                [FLOOR_SIZE - 2, baseboardHeight, baseboardDepth, halfSize - 0.75, baseY, 0, Math.PI / 2]
+            ];
+
+            for (const [w, h, d, x, y, z, ry] of boards) {
+                const board = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), baseboardMat);
+                board.position.set(x, y, z);
+                board.rotation.y = ry;
+                board.castShadow = true;
+                scene.add(board);
+            }
+
+            const floor2Thickness = 0.5;
+            const floor2 = new THREE.Mesh(
+                new THREE.BoxGeometry(FLOOR_SIZE - 2, floor2Thickness, 24),
+                new THREE.MeshStandardMaterial({ color: 0x2c3444, roughness: 0.65, metalness: 0.1 })
+            );
+            floor2.position.set(0, FLOOR_HEIGHT - (floor2Thickness / 2), -17);
+            floor2.receiveShadow = true;
+            floor2.castShadow = true;
+            scene.add(floor2);
+            addSupportSurface(floor2);
+            addBlockingMesh(floor2);
+
+            const stairWidth = 6;
+            const stairX = 10;
+            const stairStartZ = 15;
+            const stairRun = 20;
+            const stepsCount = 20;
+            const stepHeight = FLOOR_HEIGHT / stepsCount;
+            const stepDepth = stairRun / stepsCount;
+
+            const treadMaterial = floorMaterial;
+            const riserMaterial = new THREE.MeshStandardMaterial({ color: 0xeaeaea, roughness: 0.9, metalness: 0.05 });
+            const stringerMaterial = new THREE.MeshStandardMaterial({ color: 0x2f1b0a, roughness: 0.6, metalness: 0.1 }); // Dark wood
+
+            // Stringers (side supports)
+            const stringerThickness = 0.2;
+            const stringerDepth = Math.sqrt(stepHeight ** 2 + stepDepth ** 2) * stepsCount + 2;
+            const stringerAngle = Math.atan(stepHeight / stepDepth);
+
+            for (const offset of [-stairWidth / 2 + 0.2, stairWidth / 2 - 0.2]) {
+                const stringer = new THREE.Mesh(
+                    new THREE.BoxGeometry(0.3, 0.8, stringerDepth),
+                    stringerMaterial
+                );
+                stringer.position.set(stairX + offset, FLOOR_HEIGHT / 2 - 1, stairStartZ - stairRun / 2 + 0.5);
+                stringer.rotation.x = stringerAngle;
+                stringer.castShadow = true;
+                scene.add(stringer);
+            }
+
+            // Steps (Treads + Risers)
+            const treadThickness = 0.08;
+            const riserThickness = 0.05;
+            const noseOverlap = 0.04;
+
+            for (let i = 0; i < stepsCount; i++) {
+                const z = stairStartZ - (i * stepDepth) - (stepDepth / 2);
+                const y = (i * stepHeight);
+
+                // Tread
+                const tread = new THREE.Mesh(
+                    new THREE.BoxGeometry(stairWidth + 0.4, treadThickness, stepDepth + noseOverlap),
+                    treadMaterial
+                );
+                tread.position.set(stairX, y + stepHeight - (treadThickness / 2), z);
+                tread.castShadow = true;
+                tread.receiveShadow = true;
+                scene.add(tread);
+                addSupportSurface(tread);
+                addBlockingMesh(tread);
+
+                // Riser
+                const riser = new THREE.Mesh(
+                    new THREE.BoxGeometry(stairWidth, stepHeight - treadThickness, riserThickness),
+                    riserMaterial
+                );
+                riser.position.set(stairX, y + (stepHeight / 2) - (treadThickness / 2), z + (stepDepth / 2));
+                riser.castShadow = true;
+                riser.receiveShadow = true;
+                // scene.add(riser); // Optional: add if we want visible risers
+
+                // Add a block to fill the gap behind tread if needed, or just let stringers handle it.
+                // For "Open Tread" look, skip riser. For "Closed", add it.
+                // Let's go with Closed Tread for "realism" in a house.
+                scene.add(riser);
+            }
+
+            const mezzRailMaterial = new THREE.MeshStandardMaterial({ color: 0xaaaaaa, roughness: 0.3, metalness: 0.8 }); // Chrome/Steel
+            const railZ = -5.1;
+            const railY = FLOOR_HEIGHT + 0.05; // Base of rail on floor
+            const mezzTotalWidth = FLOOR_SIZE - 2;
+            const mezzMinX = -mezzTotalWidth / 2;
+            const mezzMaxX = mezzTotalWidth / 2;
+            const stairGapPadding = 1.2;
+            const gapStart = stairX - (stairWidth / 2) - stairGapPadding;
+            const gapEnd = stairX + (stairWidth / 2) + stairGapPadding;
+
+            // Helper to build railing section
+            function buildRailing(xStart, xEnd, zPos, yBase) {
+                const length = xEnd - xStart;
+                if (length < 0.1) return;
+
+                const postCount = Math.max(2, Math.floor(length / 2));
+                const postHeight = 1.1;
+                const railRadius = 0.05;
+
+                // Handrail
+                const handrail = new THREE.Mesh(
+                    new THREE.CylinderGeometry(railRadius, railRadius, length, 12),
+                    mezzRailMaterial
+                );
+                handrail.rotation.z = Math.PI / 2;
+                handrail.position.set((xStart + xEnd) / 2, yBase + postHeight, zPos);
+                handrail.castShadow = true;
+                scene.add(handrail);
+                addBlockingMesh(handrail);
+
+                // Posts
+                for (let i = 0; i <= postCount; i++) {
+                    const t = i / postCount;
+                    const posX = xStart + t * length;
+                    const post = new THREE.Mesh(
+                        new THREE.CylinderGeometry(0.04, 0.04, postHeight, 12),
+                        mezzRailMaterial
+                    );
+                    post.position.set(posX, yBase + postHeight / 2, zPos);
+                    post.castShadow = true;
+                    scene.add(post);
+                }
+
+                // Cables
+                const cables = 4;
+                for (let c = 1; c < cables; c++) {
+                    const h = (c / cables) * postHeight;
+                    const cable = new THREE.Mesh(
+                        new THREE.CylinderGeometry(0.01, 0.01, length, 8),
+                        mezzRailMaterial
+                    );
+                    cable.rotation.z = Math.PI / 2;
+                    cable.position.set((xStart + xEnd) / 2, yBase + h, zPos);
+                    scene.add(cable);
+                }
+            }
+
+            buildRailing(mezzMinX, gapStart, railZ, FLOOR_HEIGHT);
+            buildRailing(gapEnd, mezzMaxX, railZ, FLOOR_HEIGHT);
+
+            const invisibleColliderMaterial = new THREE.MeshBasicMaterial({ visible: false });
+            const sideColliderSizeZ = stairRun + 1;
+            const sideColliderY = (FLOOR_HEIGHT + 2) / 2;
+
+            const leftSideCollider = new THREE.Mesh(
+                new THREE.BoxGeometry(0.6, FLOOR_HEIGHT + 2, sideColliderSizeZ),
+                invisibleColliderMaterial
+            );
+            leftSideCollider.position.set(stairX - (stairWidth / 2) - 0.45, sideColliderY, stairStartZ - (stairRun / 2));
+            scene.add(leftSideCollider);
+            addBlockingMesh(leftSideCollider);
+
+            const rightSideCollider = new THREE.Mesh(
+                new THREE.BoxGeometry(0.6, FLOOR_HEIGHT + 2, sideColliderSizeZ),
+                invisibleColliderMaterial
+            );
+            rightSideCollider.position.set(stairX + (stairWidth / 2) + 0.45, sideColliderY, stairStartZ - (stairRun / 2));
+            scene.add(rightSideCollider);
+            addBlockingMesh(rightSideCollider);
+
+            // Detailed Stair Railings
+            const stairAngle = Math.atan(FLOOR_HEIGHT / stairRun);
+            const railLen = Math.sqrt(FLOOR_HEIGHT ** 2 + stairRun ** 2) + 1.5;
+
+            for (const side of [-1, 1]) {
+                const xPos = stairX + side * (stairWidth / 2 + 0.15);
+                const postHeight = 1.0;
+
+                // Handrail
+                const rail = new THREE.Mesh(
+                    new THREE.CylinderGeometry(0.05, 0.05, railLen, 12),
+                    mezzRailMaterial
+                );
+                rail.position.set(xPos, (FLOOR_HEIGHT / 2) + postHeight + 0.2, stairStartZ - (stairRun / 2));
+                rail.rotation.x = -Math.PI / 2 + stairAngle;
+                rail.castShadow = true;
+                scene.add(rail);
+
+                // Posts along slope
+                const posts = 6;
+                for (let i = 0; i < posts; i++) {
+                    const t = i / (posts - 1);
+                    const yBase = t * FLOOR_HEIGHT;
+                    const zBase = stairStartZ - (t * stairRun);
+
+                    const post = new THREE.Mesh(
+                        new THREE.CylinderGeometry(0.035, 0.035, postHeight + 0.4, 12),
+                        mezzRailMaterial
+                    );
+                    post.position.set(xPos, yBase + postHeight / 2 + 0.2, zBase);
+                    post.castShadow = true;
+                    scene.add(post);
+                }
+
+                // Cables along slope
+                const cables = 4;
+                for (let c = 1; c < cables; c++) {
+                    const h = (c / cables) * postHeight; // vertical offset from base
+                    // We need to rotate the cable to match slope
+                    const cable = new THREE.Mesh(
+                        new THREE.CylinderGeometry(0.01, 0.01, railLen, 8),
+                        mezzRailMaterial
+                    );
+                    // Rotate around X (slope)
+                    cable.rotation.x = -Math.PI / 2 + stairAngle;
+
+                    // Position: Center of slope + vertical offset (needs to be perpendicular to slope? Or just vertical?)
+                    // Real cables run parallel. So we just offset y and z slightly? 
+                    // Actually, just offset relative to the rail center?
+                    // The rail is at `(FLOOR_HEIGHT / 2) + postHeight + 0.2`.
+                    // The cables should be below that.
+
+                    const yOffset = - (postHeight * (1 - c / cables)); // Offset down from handrail
+                    // Adjustment for slope to keep precise spacing relative to post would require Z offset too
+                    // For visual simplicity, simple Y offset matches the vertical post spacing logic
+
+                    cable.position.set(xPos, ((FLOOR_HEIGHT / 2) + postHeight + 0.2) + yOffset, stairStartZ - (stairRun / 2));
+                    scene.add(cable);
+                }
+            }
+
+            const pedestal = new THREE.Mesh(
+                new THREE.CylinderGeometry(1.6, 1.9, 2.2, 28),
+                new THREE.MeshStandardMaterial({ color: 0xc9cfd9, roughness: 0.42, metalness: 0.2 })
+            );
+            pedestal.position.set(0, 1.1, 7.5);
+            pedestal.castShadow = true;
+            pedestal.receiveShadow = true;
+            scene.add(pedestal);
+            addBlockingMesh(pedestal);
+
+            sculpture = new THREE.Mesh(
+                new THREE.TorusKnotGeometry(0.9, 0.32, 200, 24),
+                new THREE.MeshStandardMaterial({ color: 0xffb07a, emissive: 0x20100a, metalness: 0.55, roughness: 0.2 })
+            );
+            sculpture.position.set(0, 3.15, 7.5);
+            sculpture.castShadow = true;
+            scene.add(sculpture);
+
+            const sculptureLight = new THREE.PointLight(0xffbb85, 1.3, 18, 2);
+            sculptureLight.position.set(0, 4.8, 7.5);
+            scene.add(sculptureLight);
+
+            const benchMaterial = new THREE.MeshStandardMaterial({ color: 0x5e4934, roughness: 0.65, metalness: 0.1 });
+            const benchPositions = [
+                [-12, 0.7, 6],
+                [12, 0.7, 6],
+                [-12, 0.7, -9],
+                [12, 0.7, -9]
+            ];
+
+            for (const [x, y, z] of benchPositions) {
+                const bench = new THREE.Mesh(new THREE.BoxGeometry(4.8, 1.4, 1.5), benchMaterial);
+                bench.position.set(x, y, z);
+                bench.castShadow = true;
+                bench.receiveShadow = true;
+                scene.add(bench);
+                addBlockingMesh(bench);
+            }
+
+            const ceilingLightPositions = [
+                [-16, WALL_HEIGHT - 1.2, 16],
+                [0, WALL_HEIGHT - 1.2, 16],
+                [16, WALL_HEIGHT - 1.2, 16],
+                [-16, WALL_HEIGHT - 1.2, -8],
+                [0, WALL_HEIGHT - 1.2, -8],
+                [16, WALL_HEIGHT - 1.2, -8]
+            ];
+
+            for (const [x, y, z] of ceilingLightPositions) {
+                const lamp = new THREE.PointLight(0xfff1d6, 0.85, 40, 2);
+                lamp.position.set(x, y, z);
+                scene.add(lamp);
+
+                const lampCase = new THREE.Mesh(
+                    new THREE.CylinderGeometry(0.45, 0.45, 0.25, 14),
+                    new THREE.MeshStandardMaterial({ color: 0xe9ecef, roughness: 0.25, metalness: 0.7 })
+                );
+                lampCase.position.set(x, y + 0.25, z);
+                scene.add(lampCase);
+            }
+
+            addPaintings();
+            refreshBlockingBoxes();
+        }
+
+        function addPaintings() {
+            const halfSize = FLOOR_SIZE / 2;
+            const loader = new THREE.TextureLoader();
+
+            function addPainting(imageUrl, x, y, z, ry, width, title) {
+                loader.load(imageUrl, (texture) => {
+                    texture.colorSpace = THREE.SRGBColorSpace;
+                    texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
+
+                    const aspect = texture.image.width / texture.image.height;
+                    const height = width / aspect;
+
+                    const panel = new THREE.Mesh(
+                        new THREE.PlaneGeometry(width, height),
+                        new THREE.MeshStandardMaterial({ map: texture, roughness: 0.55, metalness: 0.05 })
+                    );
+                    panel.position.set(x, y, z);
+                    panel.rotation.y = ry;
+                    scene.add(panel);
+
+                    const frame = new THREE.Mesh(
+                        new THREE.BoxGeometry(width + 0.24, height + 0.24, 0.13),
+                        new THREE.MeshStandardMaterial({ color: 0x3f2d1d, roughness: 0.5, metalness: 0.15 })
+                    );
+                    frame.position.set(0, 0, -0.08);
+                    panel.add(frame);
+
+                    const lightTarget = new THREE.Object3D();
+                    lightTarget.position.set(x, y, z);
+                    scene.add(lightTarget);
+
+                    const artLight = new THREE.SpotLight(0xfff0db, 8.0, 18, Math.PI / 7, 0.45, 1.5);
+                    const lightOffset = 2.6;
+                    artLight.position.set(
+                        x + Math.sin(ry) * lightOffset,
+                        y + 2.4,
+                        z + Math.cos(ry) * lightOffset
+                    );
+                    artLight.target = lightTarget;
+                    scene.add(artLight);
+
+                    paintings.push({ mesh: panel, title, src: imageUrl });
+                });
+            }
+
+            const images = [
+                '../music/image/12.png',
+                '../music/image/144.png',
+                '../music/image/anhlathangtoi.png',
+                '../music/image/congidephon.png',
+                '../music/image/enjoycaimomentnay.png',
+                '../music/image/exitsign.png',
+                '../music/image/mashuprockthiephong.png',
+                '../music/image/moiem.png',
+                '../music/image/tinhminhlaki.png',
+                '../music/image/vuatimthaydadanhmat.png',
+                '../music/image/하루하루.png'
+            ];
+
+            addPainting(images[0], -12, 5, -halfSize + 0.7, 0, 4.2, 'Artwork 1');
+            addPainting(images[1], 0, 5, -halfSize + 0.7, 0, 4.2, 'Artwork 2');
+            addPainting(images[2], 12, 5, -halfSize + 0.7, 0, 4.2, 'Artwork 3');
+
+            addPainting(images[3], -halfSize + 0.7, 5, -11, Math.PI / 2, 4.2, 'Artwork 4');
+            addPainting(images[4], -halfSize + 0.7, 5, 10, Math.PI / 2, 4.2, 'Artwork 5');
+
+            addPainting(images[5], halfSize - 0.7, 5, 0, -Math.PI / 2, 4.2, 'Artwork 6');
+
+            addPainting(images[6], -11, FLOOR_HEIGHT + 5, -halfSize + 0.7, 0, 4.2, 'Artwork 7');
+            addPainting(images[7], 0, FLOOR_HEIGHT + 5, -halfSize + 0.7, 0, 4.2, 'Artwork 8');
+            addPainting(images[8], -halfSize + 0.7, FLOOR_HEIGHT + 5, -15, Math.PI / 2, 4.2, 'Artwork 9');
+            addPainting(images[9], halfSize - 0.7, FLOOR_HEIGHT + 5, -15, -Math.PI / 2, 4.2, 'Artwork 10');
+        }
+
+        function interactWithPainting() {
+            if (!window.isPointerLocked || !window.isPointerLocked()) return;
+            if (modal.style.display === 'flex') return;
+
+            interactionRaycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
+
+            const paintingMeshes = paintings.map((item) => item.mesh);
+            const intersects = interactionRaycaster.intersectObjects(paintingMeshes, false);
+            if (!intersects.length) return;
+
+            if (intersects[0].distance > 8) return;
+
+            const selected = paintings.find((item) => item.mesh === intersects[0].object);
+            if (selected) showModal(selected.src, selected.title);
+        }
+
+        function showModal(src, title) {
+            document.exitPointerLock();
+            document.getElementById('modal-img').src = src;
+            document.getElementById('art-title').textContent = title;
+            modal.style.display = 'flex';
+        }
+
+        function closeModalAndResume() {
+            modal.style.display = 'none';
+            renderer.domElement.requestPointerLock();
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            composer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function isBlockedAt(x, z, y = camera.position.y) {
+            const footY = y - PLAYER_EYE_HEIGHT;
+            playerProbeBox.min.set(x - PLAYER_RADIUS, footY + 0.05, z - PLAYER_RADIUS);
+            playerProbeBox.max.set(x + PLAYER_RADIUS, footY + PLAYER_BODY_HEIGHT, z + PLAYER_RADIUS);
+
+            for (const box of blockingBoxes) {
+                if (playerProbeBox.intersectsBox(box)) {
+                    if (box.max.y <= footY + STEP_HEIGHT_ALLOWANCE) {
+                        continue;
+                    }
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function moveWithCollision(deltaX, deltaZ) {
+            const player = camera.position;
+
+            if (deltaX !== 0) {
+                const nextX = player.x + deltaX;
+                if (!isBlockedAt(nextX, player.z, player.y)) {
+                    player.x = nextX;
+                }
+            }
+
+            if (deltaZ !== 0) {
+                const nextZ = player.z + deltaZ;
+                if (!isBlockedAt(player.x, nextZ, player.y)) {
+                    player.z = nextZ;
+                }
+            }
+
+            const roomLimit = (FLOOR_SIZE / 2) - 1.3;
+            player.x = THREE.MathUtils.clamp(player.x, -roomLimit, roomLimit);
+            player.z = THREE.MathUtils.clamp(player.z, -roomLimit, roomLimit);
+        }
+
+        function getGroundY(x, y, z) {
+            groundRaycaster.ray.origin.set(x, y + 2.5, z);
+            const hits = groundRaycaster.intersectObjects(supportSurfaces, false);
+            if (!hits.length) return 0;
+            return hits[0].point.y;
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            const time = performance.now();
+            const delta = Math.min((time - prevTime) / 1000, 0.05);
+
+            if (window.isPointerLocked && window.isPointerLocked()) {
+                velocity.y -= GRAVITY * delta;
+
+                direction.set(
+                    Number(moveRight) - Number(moveLeft),
+                    0,
+                    Number(moveForward) - Number(moveBackward)
+                );
+
+                if (direction.lengthSq() > 0) {
+                    direction.normalize();
+                    camera.getWorldDirection(forwardVector);
+                    forwardVector.y = 0;
+                    forwardVector.normalize();
+
+                    rightVector.crossVectors(forwardVector, camera.up).normalize();
+
+                    moveVector
+                        .copy(rightVector)
+                        .multiplyScalar(direction.x)
+                        .addScaledVector(forwardVector, direction.z);
+                    moveWithCollision(moveVector.x * MOVE_SPEED * delta, moveVector.z * MOVE_SPEED * delta);
+                }
+
+                const player = camera.position;
+                // Vertical collision check
+                const nextY = player.y + velocity.y * delta;
+                if (!isBlockedAt(player.x, player.z, nextY)) {
+                    player.y = nextY;
+                } else {
+                    velocity.y = 0;
+                }
+
+                const groundY = getGroundY(player.x, player.y, player.z);
+                const targetY = groundY + PLAYER_EYE_HEIGHT;
+
+                if (player.y <= targetY + 0.08) {
+                    player.y = targetY;
+                    velocity.y = Math.max(0, velocity.y);
+                    canJump = true;
+                } else {
+                    canJump = false;
+                }
+
+                if (player.y < PLAYER_EYE_HEIGHT) {
+                    player.y = PLAYER_EYE_HEIGHT;
+                    velocity.y = 0;
+                    canJump = true;
+                }
+            }
+
+            if (sculpture) {
+                sculpture.rotation.y += 0.45 * delta;
+                sculpture.position.y = 3.1 + Math.sin(time * 0.0016) * 0.12;
+            }
+
+            prevTime = time;
+            renderer.render(scene, camera);
+        }
+    </script>
+</body>
+
+</html>

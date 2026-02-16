@@ -1,1 +1,4 @@
-{}
+{
+    "editor.fontLigatures": true,
+    "editor.fontFamily": "'FiraCode-Retina'"
+}

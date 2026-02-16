@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GPT - Infinite Product Engine</title>
+  <meta name="description" content="A cinematic GPT experience with realtime visuals, fluid motion, and production-grade interaction design.">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Sora:wght@300;400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="css/style.css">
+
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body>
+  <div id="loader" aria-hidden="true">
+    <div class="loader-core"></div>
+    <div class="loader-copy">Booting neural interface</div>
+    <div class="loader-bar-wrap"><div class="loader-bar" id="loader-bar"></div></div>
+    <div class="loader-percent" id="loader-percent">0%</div>
+  </div>
+
+  <canvas id="webgl"></canvas>
+  <div class="aurora"></div>
+  <div class="grid-overlay"></div>
+  <div class="grain"></div>
+  <div class="cursor-dot" id="cursor-dot"></div>
+  <div class="cursor-ring" id="cursor-ring"></div>
+
+  <nav class="site-nav" id="site-nav">
+    <a class="brand" href="#top">
+      <span class="brand-glyph">◎</span>
+      <span>GPT/EXPERIENCE</span>
+    </a>
+    <div class="nav-links">
+      <a href="#hero">Home</a>
+      <a href="#capabilities">Capabilities</a>
+      <a href="#stack">Stack</a>
+      <a href="#showcase">Showcase</a>
+    </div>
+    <button class="nav-btn magnetic" type="button">Launch Workspace</button>
+  </nav>
+
+  <main id="top">
+    <section id="hero" class="section hero">
+      <div class="hero-left" data-depth="0.2">
+        <p class="eyebrow reveal">OpenAI model surface</p>
+        <h1 class="headline split-target">
+          Build products at
+          <span>the speed of thought</span>
+        </h1>
+        <p class="hero-copy reveal">
+          A high-end concept page for GPT: fluid motion, immersive rendering,
+          bold typography, and interaction patterns built for modern launch sites.
+        </p>
+        <div class="hero-actions reveal">
+          <button class="primary-btn magnetic" type="button">Start Building</button>
+          <button class="ghost-btn" type="button">Watch Demo</button>
+        </div>
+      </div>
+
+      <div class="hero-right" data-depth="0.45">
+        <article class="floating-panel glow-hover">
+          <p class="panel-label">Realtime Inference</p>
+          <p class="panel-value">12.4k tokens/min</p>
+          <p class="panel-foot">Adaptive latency routing</p>
+        </article>
+        <article class="floating-panel glow-hover">
+          <p class="panel-label">Multimodal Fusion</p>
+          <p class="panel-value">Text + Vision + Voice</p>
+          <p class="panel-foot">Single orchestrated pipeline</p>
+        </article>
+        <article class="floating-panel glow-hover">
+          <p class="panel-label">Agent Runtime</p>
+          <p class="panel-value">Tools + Memory + Guardrails</p>
+          <p class="panel-foot">Production-safe by design</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section stats-tape">
+      <div class="tape-track">
+        <span>Reasoning Engine</span>
+        <span>Tool Calling</span>
+        <span>Low-Latency Streaming</span>
+        <span>Vision Analysis</span>
+        <span>Code Generation</span>
+        <span>Structured Output</span>
+        <span>Realtime Conversations</span>
+      </div>
+      <div class="tape-track" aria-hidden="true">
+        <span>Reasoning Engine</span>
+        <span>Tool Calling</span>
+        <span>Low-Latency Streaming</span>
+        <span>Vision Analysis</span>
+        <span>Code Generation</span>
+        <span>Structured Output</span>
+        <span>Realtime Conversations</span>
+      </div>
+    </section>
+
+    <section id="capabilities" class="section capabilities">
+      <div class="section-heading">
+        <p class="eyebrow">Core capabilities</p>
+        <h2 class="split-target">A modular intelligence layer for every team</h2>
+      </div>
+
+      <div class="bento-grid">
+        <article class="bento-card tall glow-hover tilt-card">
+          <h3>Long Horizon Reasoning</h3>
+          <p>Handle multi-step workflows, planning, and decision trees with state awareness.</p>
+          <div class="card-chip">Planning</div>
+        </article>
+
+        <article class="bento-card glow-hover tilt-card">
+          <h3>Native Coding Copilot</h3>
+          <p>Design architecture, generate code, run diagnostics, and iterate with precision.</p>
+          <div class="card-chip">Engineering</div>
+        </article>
+
+        <article class="bento-card glow-hover tilt-card">
+          <h3>Production Tooling</h3>
+          <p>Use APIs, databases, and external systems through reliable tool orchestration.</p>
+          <div class="card-chip">Automation</div>
+        </article>
+
+        <article class="bento-card wide glow-hover tilt-card">
+          <h3>Brand-Quality Writing</h3>
+          <p>Create launch copy, scripts, documentation, and messaging that keeps tone consistent.</p>
+          <div class="card-chip">Content</div>
+        </article>
+
+        <article class="bento-card glow-hover tilt-card">
+          <h3>Multilingual Reach</h3>
+          <p>Deliver context-aware communication across global markets without losing nuance.</p>
+          <div class="card-chip">Localization</div>
+        </article>
+      </div>
+    </section>
+
+    <section id="stack" class="section stack">
+      <div class="section-heading">
+        <p class="eyebrow">System architecture</p>
+        <h2 class="split-target">Built as a resilient AI product stack</h2>
+      </div>
+
+      <div class="timeline">
+        <article class="timeline-item reveal">
+          <span class="timeline-index">01</span>
+          <h3>Capture intent</h3>
+          <p>Context ingestion and routing classify the request before execution begins.</p>
+        </article>
+        <article class="timeline-item reveal">
+          <span class="timeline-index">02</span>
+          <h3>Plan intelligently</h3>
+          <p>Dynamic reasoning forms a task graph with constraints and expected outcomes.</p>
+        </article>
+        <article class="timeline-item reveal">
+          <span class="timeline-index">03</span>
+          <h3>Execute safely</h3>
+          <p>Tool calls run under guardrails with deterministic checks on each operation.</p>
+        </article>
+        <article class="timeline-item reveal">
+          <span class="timeline-index">04</span>
+          <h3>Ship output</h3>
+          <p>Results arrive as polished artifacts ready for teams, products, and customers.</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="showcase" class="section showcase">
+      <div class="showcase-grid">
+        <article class="showcase-card glow-hover">
+          <p class="showcase-label">Design systems</p>
+          <h3>Generate UI foundations in minutes</h3>
+          <p>From tone and layout to reusable components and interaction patterns.</p>
+        </article>
+        <article class="showcase-card glow-hover">
+          <p class="showcase-label">Data workflows</p>
+          <h3>Transform messy data into decisions</h3>
+          <p>Summaries, QA layers, anomaly detection, and executive-ready narratives.</p>
+        </article>
+        <article class="showcase-card glow-hover">
+          <p class="showcase-label">Operations</p>
+          <h3>Automate repetitive work at scale</h3>
+          <p>Turn recurring tasks into repeatable flows connected to your internal stack.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section cta">
+      <p class="eyebrow">Ready to deploy</p>
+      <h2 class="split-target">Your next product surface starts here</h2>
+      <div class="cta-actions reveal">
+        <button class="primary-btn magnetic" type="button">Create with GPT</button>
+        <button class="ghost-btn" type="button">View API Docs</button>
+      </div>
+    </section>
+  </main>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <script src="https://unpkg.com/lenis@1.1.16/dist/lenis.min.js"></script>
+  <script src="https://unpkg.com/split-type"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.1/vanilla-tilt.min.js"></script>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
