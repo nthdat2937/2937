@@ -1,0 +1,1445 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Chúc Mừng Năm Mới 2026 - Happy New Year 2026">
+    <title>🎆 Chúc Mừng Năm Mới 2026 🎆</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;600&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --neon-primary: #ff0000;
+            --neon-secondary: #ff6b35;
+            --neon-accent: #00d4ff;
+            --gold: #ffd700;
+            --bg-dark: #0a0a1a;
+            --bg-g1: #0f0c29;
+            --bg-g2: #302b63;
+            --bg-g3: #24243e;
+        }
+
+        *,
+        *::before,
+        *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+            scroll-snap-type: y mandatory;
+        }
+
+        html.scroll-locked,
+        body.scroll-locked {
+            overflow: hidden !important;
+            height: 100% !important;
+            touch-action: none !important;
+        }
+
+        body {
+            background: var(--bg-dark);
+            color: #fff;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        canvas.bg-layer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        #bg-canvas {
+            z-index: 0;
+        }
+
+        #particle-canvas {
+            z-index: 1;
+        }
+
+        #fireworks-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        #fireworks-container canvas {
+            display: block;
+        }
+
+        /* HERO VIEWPORT */
+        #hero-viewport {
+            position: relative;
+            z-index: 3;
+            width: 100%;
+            min-height: 100vh;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 2rem;
+            cursor: crosshair;
+            scroll-snap-align: start;
+        }
+
+        /* YEAR TEXT NEON */
+        #year-text {
+            font-family: 'Orbitron', monospace;
+            font-size: clamp(5rem, 15vw, 13rem);
+            font-weight: 900;
+            color: #fff;
+            letter-spacing: 0.05em;
+            text-shadow:
+                0 0 7px #fff, 0 0 10px #fff, 0 0 21px #fff,
+                0 0 42px var(--neon-primary), 0 0 82px var(--neon-primary),
+                0 0 92px var(--neon-primary), 0 0 102px var(--neon-primary),
+                0 0 151px var(--neon-primary);
+            animation: neonPulse 2s ease-in-out infinite alternate;
+            transition: all 0.3s;
+        }
+
+        #year-text.shake {
+            animation: microShake 0.15s ease-in-out 6, neonPulse 2s ease-in-out infinite alternate;
+        }
+
+        #year-text.bloom-strong {
+            text-shadow:
+                0 0 10px #fff, 0 0 20px #fff, 0 0 40px #fff,
+                0 0 80px var(--neon-primary), 0 0 120px var(--neon-primary),
+                0 0 160px var(--neon-primary), 0 0 200px var(--neon-primary),
+                0 0 300px var(--neon-primary);
+        }
+
+        @keyframes neonPulse {
+            from {
+                opacity: 0.92;
+                filter: brightness(0.95);
+            }
+
+            to {
+                opacity: 1;
+                filter: brightness(1.1);
+            }
+        }
+
+        @keyframes microShake {
+
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+
+            25% {
+                transform: translateX(-3px) rotate(-0.5deg);
+            }
+
+            75% {
+                transform: translateX(3px) rotate(0.5deg);
+            }
+        }
+
+        /* HERO GREETING */
+        #hero-greeting {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(1.2rem, 3vw, 2.2rem);
+            font-style: italic;
+            margin-top: 1rem;
+            opacity: 0;
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+            transition: opacity 1.5s ease;
+        }
+
+        #hero-greeting.visible {
+            opacity: 1;
+        }
+
+        /* COUNTDOWN */
+        #scene-countdown {
+            margin-top: 2rem;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.8s ease, transform 0.8s ease;
+        }
+
+        #scene-countdown.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .countdown-display {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .countdown-group {
+            text-align: center;
+        }
+
+        .countdown-value {
+            font-family: 'Orbitron', monospace;
+            font-size: clamp(2.5rem, 7vw, 6rem);
+            font-weight: 700;
+            color: #fff;
+            display: inline-block;
+            min-width: 2.2ch;
+            text-shadow:
+                0 0 7px #fff, 0 0 20px var(--neon-accent),
+                0 0 40px var(--neon-accent), 0 0 80px var(--neon-accent);
+            transition: transform 0.2s, text-shadow 0.5s;
+        }
+
+        .countdown-value.tick {
+            transform: scale(1.08);
+        }
+
+        .countdown-label {
+            display: block;
+            font-size: 0.7rem;
+            letter-spacing: 0.2em;
+            color: rgba(255, 255, 255, 0.5);
+            margin-top: 0.3rem;
+            font-weight: 300;
+        }
+
+        .countdown-sep {
+            font-family: 'Orbitron', monospace;
+            font-size: clamp(2rem, 5vw, 4rem);
+            color: var(--neon-accent);
+            opacity: 0.6;
+            text-shadow: 0 0 10px var(--neon-accent);
+            animation: sepBlink 1s ease-in-out infinite;
+        }
+
+        @keyframes sepBlink {
+
+            0%,
+            100% {
+                opacity: 0.6;
+            }
+
+            50% {
+                opacity: 0.2;
+            }
+        }
+
+        .countdown-value.intense {
+            text-shadow:
+                0 0 10px #fff, 0 0 30px var(--neon-secondary),
+                0 0 60px var(--neon-secondary), 0 0 120px var(--neon-secondary);
+            color: #ffe0c0;
+        }
+
+        /* CARD - GLASSMORPHISM */
+        #scene-card {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 5;
+            pointer-events: none;
+            /* Let scroll pass through wrapper */
+            opacity: 0;
+            transition: opacity 1s ease;
+        }
+
+        #scene-card.visible {
+            opacity: 1;
+        }
+
+        .glass-card {
+            pointer-events: auto;
+            /* Re-enable clicks on card content */
+            background: rgba(255, 255, 255, 0.07);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 28px;
+            padding: clamp(2rem, 5vw, 3.5rem);
+            max-width: 520px;
+            width: 90%;
+            text-align: center;
+            box-shadow:
+                0 8px 32px rgba(0, 0, 0, 0.4),
+                0 0 60px rgba(0, 255, 136, 0.08),
+                inset 0 0 60px rgba(255, 255, 255, 0.03);
+            transform: scale(0.85) translateY(30px);
+            transition: transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        #scene-card.visible .glass-card {
+            transform: scale(1) translateY(0);
+        }
+
+        .glass-card h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(1.5rem, 4vw, 2.2rem);
+            margin-bottom: 1rem;
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+        }
+
+        .glass-card p {
+            font-size: clamp(0.95rem, 2vw, 1.15rem);
+            line-height: 1.8;
+            opacity: 0.85;
+            margin-bottom: 2rem;
+            text-shadow: 0 0 38px black;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            backdrop-filter: blur(36px);
+            -webkit-backdrop-filter: blur(36px);
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .cta-btn {
+            padding: 12px 28px;
+            border: 2px solid var(--neon-primary);
+            background: transparent;
+            color: #fff;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 600;
+            border-radius: 50px;
+            cursor: pointer;
+            text-shadow: 0 0 8px var(--neon-primary);
+            transition: all 0.3s ease;
+            letter-spacing: 0.05em;
+        }
+
+        .cta-btn:hover {
+            background: var(--neon-primary);
+            color: #000;
+            box-shadow: 0 0 30px var(--neon-primary);
+            text-shadow: none;
+        }
+
+        .cta-btn.secondary {
+            border-color: var(--neon-accent);
+            text-shadow: 0 0 8px var(--neon-accent);
+        }
+
+        .cta-btn.secondary:hover {
+            background: var(--neon-accent);
+            box-shadow: 0 0 30px var(--neon-accent);
+        }
+
+        /* SCROLL INDICATOR */
+        #scroll-indicator {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 6;
+            opacity: 0;
+            font-size: 0.85rem;
+            letter-spacing: 0.15em;
+            color: rgba(255, 255, 255, 0.5);
+            animation: scrollBounce 2s ease-in-out infinite;
+            transition: opacity 0.8s;
+            pointer-events: none;
+        }
+
+        #scroll-indicator.visible {
+            opacity: 1;
+        }
+
+        @keyframes scrollBounce {
+
+            0%,
+            100% {
+                transform: translateX(-50%) translateY(0);
+            }
+
+            50% {
+                transform: translateX(-50%) translateY(-10px);
+            }
+        }
+
+        /* STORY FRAMES */
+        .story-frame {
+            margin: 0 auto 2rem;
+            width: 300px;
+            height: 200px;
+            position: relative;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow:
+                0 0 15px rgba(0, 255, 136, 0.15),
+                0 10px 30px rgba(0, 0, 0, 0.3);
+            transform: perspective(800px) rotateY(15deg) rotateX(5deg);
+            transition: all 0.5s ease;
+            background: #000;
+        }
+
+        .story-frame::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: 16px;
+            /* Vignette Effect + Inner Glow */
+            box-shadow:
+                inset 0 0 20px rgba(255, 255, 255, 0.1),
+                inset 0 0 50px 15px var(--bg-dark);
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        .story-frame:hover {
+            transform: perspective(800px) rotateY(0) rotateX(0) scale(1.05);
+            box-shadow:
+                0 0 30px rgba(0, 255, 136, 0.4),
+                0 20px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .story-frame img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        /* SCROLL STORY */
+        .scroll-section {
+            position: relative;
+            z-index: 3;
+            height: 100vh;
+            /* Restore full height */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 6rem 2rem;
+            text-align: center;
+            scroll-snap-align: start;
+            scroll-snap-stop: always;
+        }
+
+        .scroll-section:nth-child(even) .story-frame {
+            transform: perspective(800px) rotateY(-15deg) rotateX(5deg);
+            box-shadow:
+                0 0 15px rgba(255, 107, 53, 0.15),
+                0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .scroll-section:nth-child(even) .story-frame:hover {
+            transform: perspective(800px) rotateY(0) rotateX(0) scale(1.05);
+            box-shadow:
+                0 0 30px rgba(255, 107, 53, 0.4),
+                0 20px 40px rgba(0, 0, 0, 0.5);
+            border-color: var(--neon-secondary);
+        }
+
+        .scroll-content {
+            max-width: 600px;
+            opacity: 0;
+            transform: translateY(80px);
+            transition: opacity 1s ease, transform 1s ease;
+        }
+
+        .scroll-section.visible .scroll-content {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .scroll-content h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(1.8rem, 5vw, 3rem);
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, var(--neon-primary), var(--neon-accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .scroll-content p {
+            font-size: clamp(1rem, 2.5vw, 1.2rem);
+            line-height: 1.9;
+            opacity: 0.8;
+        }
+
+        .scroll-section:last-child .scroll-content h2 {
+            background: linear-gradient(135deg, var(--gold), var(--neon-secondary), var(--gold));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .scroll-section .parallax-deco {
+            position: absolute;
+            font-size: 4rem;
+            opacity: 0.15;
+            pointer-events: none;
+        }
+
+        .scroll-section .parallax-deco.d1 {
+            top: 10%;
+            left: 10%;
+        }
+
+        .scroll-section .parallax-deco.d2 {
+            top: 20%;
+            right: 12%;
+        }
+
+        .scroll-section .parallax-deco.d3 {
+            bottom: 15%;
+            left: 15%;
+        }
+
+        .scroll-section .parallax-deco.d3 {
+            bottom: 15%;
+            left: 15%;
+        }
+
+        /* LION DECORATION */
+        .lion-decor {
+            position: fixed;
+            top: 35%;
+            transform: translateY(-50%);
+            width: 280px;
+            z-index: 2;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 1s ease;
+            filter: drop-shadow(0 0 15px rgba(255, 107, 53, 0.3));
+        }
+
+        .lion-decor.visible {
+            opacity: 1;
+        }
+
+        #lion-left {
+            left: 50px;
+        }
+
+        #lion-right {
+            right: 50px;
+            transform: translateY(-50%) scaleX(-1);
+        }
+
+        @media (max-width: 1024px) {
+            .lion-decor {
+                display: none;
+            }
+        }
+
+        /* CMNM DECORATION */
+        .cmnm-decor {
+            position: fixed;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 280px;
+            z-index: 2;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 1s ease;
+            filter: drop-shadow(0 0 15px rgba(255, 107, 53, 0.3));
+        }
+
+        .cmnm-decor.visible {
+            opacity: 1;
+        }
+
+        #cmnm-left {
+            left: 50px;
+        }
+
+        #cmnm-right {
+            right: 50px;
+            transform: translateY(-50%) scaleX(-1);
+        }
+
+        @media (max-width: 1024px) {
+            .cmnm-decor {
+                display: none;
+            }
+        }
+
+        /* AUDIO TOGGLE */
+        #audio-toggle {
+            position: fixed;
+            top: 1.5rem;
+            right: 1.5rem;
+            z-index: 20;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(10px);
+            color: #fff;
+            font-size: 1.3rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.3s;
+        }
+
+        #audio-toggle:hover {
+            border-color: var(--neon-primary);
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.2);
+        }
+
+        /* QUALITY INDICATOR */
+        #quality-badge {
+            position: fixed;
+            bottom: 1rem;
+            right: 1rem;
+            z-index: 20;
+            font-size: 0.65rem;
+            color: rgba(255, 255, 255, 0.3);
+            font-family: 'Orbitron', monospace;
+            pointer-events: none;
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            .countdown-display {
+                gap: 0.2rem;
+            }
+
+            .glass-card {
+                padding: 1.8rem;
+                border-radius: 20px;
+            }
+
+            .cta-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .cta-btn {
+                width: 100%;
+                max-width: 260px;
+            }
+
+            #audio-toggle {
+                top: 1rem;
+                right: 1rem;
+                width: 42px;
+                height: 42px;
+                font-size: 1.1rem;
+            }
+        }
+    </style>
+</head>
+
+<body class="scroll-locked">
+
+    <!-- Background Canvases -->
+    <canvas id="bg-canvas" class="bg-layer"></canvas>
+    <canvas id="particle-canvas" class="bg-layer"></canvas>
+    <div id="fireworks-container"></div>
+
+    <!-- Hero Viewport (Scenes 1-3) -->
+    <div id="hero-viewport">
+        <h1 id="year-text">2026</h1>
+        <p id="hero-greeting">Chúc Mừng Năm Mới</p>
+        <div id="scene-countdown">
+            <div class="countdown-display">
+                <div class="countdown-group"><span class="countdown-value" id="cd-days">00</span><span
+                        class="countdown-label">NGÀY</span></div>
+                <div class="countdown-sep">:</div>
+                <div class="countdown-group"><span class="countdown-value" id="cd-hours">00</span><span
+                        class="countdown-label">GIỜ</span></div>
+                <div class="countdown-sep">:</div>
+                <div class="countdown-group"><span class="countdown-value" id="cd-minutes">00</span><span
+                        class="countdown-label">PHÚT</span></div>
+                <div class="countdown-sep">:</div>
+                <div class="countdown-group"><span class="countdown-value" id="cd-seconds">00</span><span
+                        class="countdown-label">GIÂY</span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Card (Scene 4) -->
+    <div id="scene-card">
+        <div class="glass-card">
+            <h2 id="card-title">🎊 Chúc Mừng Năm Mới 2026! 🎊</h2>
+            <p id="card-wish">Chúc bạn và gia đình năm mới an khang thịnh vượng, vạn sự như ý, sức khỏe dồi dào và luôn
+                tràn đầy niềm vui!</p>
+            <div class="cta-buttons">
+                <button class="cta-btn" onclick="shareLink()">✨ Chia sẻ</button>
+                <button class="cta-btn secondary" onclick="scrollToStory()">📜 Xem lời chúc</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scroll Indicator -->
+    <div id="scroll-indicator">▼ Cuộn xuống khám phá ▼</div>
+
+    <!-- Scroll Story (Scene 5) -->
+    <section class="scroll-section" id="scroll-1">
+        <span class="parallax-deco d1">🌟</span>
+        <span class="parallax-deco d2">✨</span>
+        <div class="scroll-content">
+            <div class="story-frame"><img
+                    src="https://bship.vn/wp-content/uploads/2025/12/stt-cuoi-nam-cap-hay-tam-biet-nam-cu.jpg"
+                    alt="Memories"></div>
+            <h2>Nhìn Lại Năm Cũ</h2>
+            <p>Mỗi khoảnh khắc trong năm qua đều là một bài học quý giá. Những thử thách đã giúp chúng ta trưởng thành
+                và mạnh mẽ hơn. Cảm ơn vì đã luôn kiên cường.</p>
+        </div>
+    </section>
+    <section class="scroll-section" id="scroll-2">
+        <span class="parallax-deco d1">🌅</span>
+        <span class="parallax-deco d3">🌸</span>
+        <div class="scroll-content">
+            <div class="story-frame"><img
+                    src="https://bizweb.dktcdn.net/100/497/384/files/banner-happy-new-year-2026-sieu-khuyen-mai-nam-moi-armanishop-vn.jpg?v=1766745430001"
+                    alt="New Beginnings"></div>
+            <h2>Khởi Đầu Mới</h2>
+            <p>Năm 2026 mở ra cánh cửa mới với bao hy vọng và cơ hội. Hãy đón nhận mỗi ngày với trái tim rộng mở và tinh
+                thần lạc quan.</p>
+        </div>
+    </section>
+    <section class="scroll-section" id="scroll-3">
+        <span class="parallax-deco d2">💫</span>
+        <span class="parallax-deco d3">🎋</span>
+        <div class="scroll-content">
+            <div class="story-frame"><img
+                    src="https://www.novelty.com.vn/public/uploads/images/WEBSITE%20DESIGN%20(POST)%20(605%20x%20340%20px)(2).png"
+                    alt="Wishes"></div>
+            <h2>Ước Nguyện Năm Mới</h2>
+            <p>Chúc cho mọi giấc mơ trở thành hiện thực, mọi khó khăn đều có lối thoát, và hạnh phúc luôn song hành bên
+                bạn mỗi ngày.</p>
+        </div>
+    </section>
+    <section class="scroll-section" id="scroll-4">
+        <span class="parallax-deco d1">🤝</span>
+        <span class="parallax-deco d2">❤️</span>
+        <div class="scroll-content">
+            <div class="story-frame"><img
+                    src="https://play-lh.googleusercontent.com/ugMRnjSF6qosPd9SJlXwm_ftFpIIORXMpWw3TkHkgj6Q1z35CksBGmij2hciJLKlNA"
+                    alt="Together"></div>
+            <h2>Cùng Nhau Tiến Lên</h2>
+            <p>Dù con đường phía trước còn nhiều thách thức, hãy nhớ rằng chúng ta không bao giờ đi một mình. Yêu thương
+                là sức mạnh lớn nhất.</p>
+        </div>
+    </section>
+    <section class="scroll-section" id="scroll-5">
+        <span class="parallax-deco d1">🎆</span>
+        <span class="parallax-deco d2">🧧</span>
+        <span class="parallax-deco d3">🎇</span>
+        <div class="scroll-content">
+            <div class="story-frame"><img
+                    src="https://igstore.in/cdn/shop/articles/Happy_new_year_2026_wishes_1942734a-0409-4249-bd37-8680b8faa1e6.jpg?v=1767090671&width=1024"
+                    alt="Success"></div>
+            <h2>Best Wishes 2026 ✨</h2>
+            <p>Năm mới an lành, vạn sự hanh thông. Chúc bạn và những người thân yêu luôn bình an, hạnh phúc và thành
+                công rực rỡ!</p>
+        </div>
+    </section>
+
+    <!-- Audio Toggle -->
+    <button id="audio-toggle" title="Bật/Tắt âm thanh">🔇</button>
+    <div id="quality-badge">--</div>
+
+    <!-- Lion Decor -->
+    <div id="lion-left" class="lion-decor">
+        <img src="https://gdbtjzebjwnbwbvktcue.supabase.co/storage/v1/object/public/images/chat-images/1770818339930-x16h5.png" alt="cmnm Dance" height="auto" width="500px">
+        <img src="https://poster.vn/wp-content/uploads/2025/11/vector-dau-lan-png-ai-5.png.webp" alt="Lion Dance" height="200px" width="auto">
+    </div>
+    <div id="lion-right" class="lion-decor">
+        <img src="https://gdbtjzebjwnbwbvktcue.supabase.co/storage/v1/object/public/images/chat-images/1770818339930-x16h5.png" alt="cmnm Dance" height="auto" width="500px" style="transform: scaleX(-1);">
+        <img src="https://poster.vn/wp-content/uploads/2025/11/vector-dau-lan-png-ai-5.png.webp" alt="Lion Dance" height="200px" width="auto">
+        
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+
+        // ============================================================
+        // CONFIG — Edit this to customize content, colors, audio, etc.
+        // ============================================================
+        const CONFIG = {
+            recipientName: "Bạn",
+            heroGreeting: "Còn Lại",
+            cardTitle: "🎊 Chúc Mừng Năm Mới 2026! 🎊",
+            longWish: "Chúc bạn và gia đình năm mới 2026 an khang thịnh vượng, vạn sự như ý, sức khỏe dồi dào và luôn tràn đầy niềm vui!",
+            targetDate: "2026-02-17T00:00:00+07:00", // Lunar New Year 2026 (Vietnam Time GMT+7)
+            demoCountdownSeconds: 25,
+            musicUrl: "", // URL to mp3/ogg background music
+            palette: {
+                neonPrimary: "#00ff88", neonSecondary: "#ff6b35",
+                neonAccent: "#00d4ff", gold: "#ffd700",
+            },
+        };
+
+        // ============================================================
+        // GLOBALS
+        // ============================================================
+        const W = () => window.innerWidth, H = () => window.innerHeight;
+        const isMobile = /Android|iPhone|iPad|iPod|webOS/i.test(navigator.userAgent);
+        let mouseX = 0.5, mouseY = 0.5;
+        document.addEventListener('mousemove', e => { mouseX = e.clientX / W(); mouseY = e.clientY / H(); });
+
+        // ============================================================
+        // PERFORMANCE MANAGER
+        // ============================================================
+        class PerformanceManager {
+            constructor() {
+                this.fps = 60; this.frames = []; this.quality = isMobile ? 0.5 : 1.0;
+                this.el = document.getElementById('quality-badge');
+            }
+            tick(now) {
+                this.frames.push(now);
+                while (this.frames.length > 0 && this.frames[0] < now - 1000) this.frames.shift();
+                this.fps = this.frames.length;
+                const target = isMobile ? 30 : 50;
+                if (this.fps < target * 0.6) this.quality = Math.max(0.2, this.quality - 0.05);
+                else if (this.fps > target && this.quality < 1) this.quality = Math.min(1, this.quality + 0.01);
+                this.el.textContent = `${this.fps}fps Q:${(this.quality * 100) | 0}%`;
+            }
+            scale(val) { return Math.max(1, Math.round(val * this.quality)); }
+        }
+        const perf = new PerformanceManager();
+
+        // ============================================================
+        // AUDIO MANAGER
+        // ============================================================
+        class AudioManager {
+            constructor() {
+                this.ctx = null; this.muted = true; this.musicGain = null;
+                this.boomBuffer = null; this.popBuffer = null; this.musicEl = null;
+                this.btn = document.getElementById('audio-toggle');
+                this.btn.addEventListener('click', () => this.toggle());
+            }
+            init() {
+                if (this.ctx) return;
+                this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                this.musicGain = this.ctx.createGain();
+                this.musicGain.gain.value = 0.3;
+                this.musicGain.connect(this.ctx.destination);
+                this.boomBuffer = this._genBoom();
+                this.popBuffer = this._genPop();
+                if (CONFIG.musicUrl) this._loadMusic();
+            }
+            toggle() {
+                this.init();
+                this.muted = !this.muted;
+                this.btn.textContent = this.muted ? '🔇' : '🔊';
+                if (this.musicEl) { this.muted ? this.musicEl.pause() : this.musicEl.play().catch(() => { }); }
+                this.musicGain.gain.value = this.muted ? 0 : 0.3;
+            }
+            _genBoom() {
+                const sr = this.ctx.sampleRate, len = sr * 0.7 | 0;
+                const buf = this.ctx.createBuffer(1, len, sr), d = buf.getChannelData(0);
+                for (let i = 0; i < len; i++) {
+                    const t = i / sr;
+                    d[i] = ((Math.random() * 2 - 1) * 0.7 + Math.sin(t * 60 * Math.PI * 2) * 0.3) * Math.exp(-t * 5);
+                }
+                return buf;
+            }
+            _genPop() {
+                const sr = this.ctx.sampleRate, len = sr * 0.12 | 0;
+                const buf = this.ctx.createBuffer(1, len, sr), d = buf.getChannelData(0);
+                for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.exp(-i / (sr * 0.02)) * 0.4;
+                return buf;
+            }
+            _loadMusic() {
+                this.musicEl = new Audio(CONFIG.musicUrl);
+                this.musicEl.loop = true; this.musicEl.volume = 0.3;
+            }
+            playBoom() {
+                if (this.muted || !this.ctx) return;
+                const src = this.ctx.createBufferSource();
+                src.buffer = this.boomBuffer;
+                src.playbackRate.value = 0.8 + Math.random() * 0.5;
+                const g = this.ctx.createGain(); g.gain.value = 0.3 + Math.random() * 0.4;
+                src.connect(g); g.connect(this.ctx.destination); src.start();
+            }
+            playPop() {
+                if (this.muted || !this.ctx) return;
+                const src = this.ctx.createBufferSource();
+                src.buffer = this.popBuffer;
+                src.playbackRate.value = 0.9 + Math.random() * 0.3;
+                const g = this.ctx.createGain(); g.gain.value = 0.15 + Math.random() * 0.2;
+                src.connect(g); g.connect(this.ctx.destination); src.start();
+            }
+        }
+        const audio = new AudioManager();
+
+        // ============================================================
+        // CINEMATIC BACKGROUND (Canvas 2D — bokeh, gradient, streaks)
+        // ============================================================
+        class CinematicBackground {
+            constructor() {
+                this.c = document.getElementById('bg-canvas');
+                this.ctx = this.c.getContext('2d');
+                this.resize();
+                this.bokeh = Array.from({ length: isMobile ? 12 : 25 }, () => ({
+                    x: Math.random(), y: Math.random(),
+                    r: 20 + Math.random() * 80, speed: 0.0002 + Math.random() * 0.0005,
+                    hue: Math.random() * 60 + 200, alpha: 0.03 + Math.random() * 0.06,
+                    phase: Math.random() * Math.PI * 2,
+                }));
+                this.streaks = Array.from({ length: isMobile ? 2 : 4 }, () => ({
+                    x: Math.random(), y: Math.random() * 0.5 + 0.25,
+                    len: 0.3 + Math.random() * 0.4, angle: Math.random() * 0.3 - 0.15,
+                    hue: Math.random() * 60 + 260, alpha: 0.015 + Math.random() * 0.02,
+                    speed: 0.0001 + Math.random() * 0.0003, phase: Math.random() * Math.PI * 2,
+                }));
+                window.addEventListener('resize', () => this.resize());
+            }
+            resize() { this.c.width = W(); this.c.height = H(); }
+            draw(t) {
+                const ctx = this.ctx, w = this.c.width, h = this.c.height;
+                // Animated gradient bg
+                const shift = Math.sin(t * 0.0002) * 0.5 + 0.5;
+                const grd = ctx.createRadialGradient(w * (0.3 + shift * 0.4), h * 0.4, 0, w * 0.5, h * 0.5, w * 0.9);
+                grd.addColorStop(0, '#1a103a'); grd.addColorStop(0.5, '#0f0c29'); grd.addColorStop(1, '#050510');
+                ctx.fillStyle = grd; ctx.fillRect(0, 0, w, h);
+                // Bokeh
+                for (const b of this.bokeh) {
+                    const px = b.x * w + Math.sin(t * b.speed + b.phase) * 60;
+                    const py = b.y * h + Math.cos(t * b.speed * 0.7 + b.phase) * 40;
+                    const grad = ctx.createRadialGradient(px, py, 0, px, py, b.r * perf.quality);
+                    grad.addColorStop(0, `hsla(${b.hue},70%,60%,${b.alpha})`);
+                    grad.addColorStop(1, `hsla(${b.hue},70%,60%,0)`);
+                    ctx.fillStyle = grad; ctx.beginPath();
+                    ctx.arc(px, py, b.r * perf.quality, 0, Math.PI * 2); ctx.fill();
+                }
+                // Light streaks / aurora
+                ctx.globalCompositeOperation = 'screen';
+                for (const s of this.streaks) {
+                    const ox = Math.sin(t * s.speed + s.phase) * 200;
+                    const sx = s.x * w + ox, sy = s.y * h;
+                    const len = s.len * w;
+                    ctx.save(); ctx.translate(sx, sy); ctx.rotate(s.angle + Math.sin(t * 0.0001) * 0.1);
+                    const sg = ctx.createLinearGradient(-len / 2, 0, len / 2, 0);
+                    sg.addColorStop(0, 'transparent');
+                    sg.addColorStop(0.5, `hsla(${s.hue},80%,60%,${s.alpha * (0.7 + Math.sin(t * 0.001) * 0.3)})`);
+                    sg.addColorStop(1, 'transparent');
+                    ctx.fillStyle = sg; ctx.fillRect(-len / 2, -15, len, 30); ctx.restore();
+                }
+                ctx.globalCompositeOperation = 'source-over';
+            }
+        }
+        const cinematicBg = new CinematicBackground();
+
+        // ============================================================
+        // 3-LAYER PARTICLE SYSTEM (Canvas 2D)
+        // snow (far) / sparkle (mid) / confetti+lì xì (near)
+        // ============================================================
+        class ParticleSystem {
+            constructor() {
+                this.c = document.getElementById('particle-canvas');
+                this.ctx = this.c.getContext('2d');
+                this.resize();
+                this.densityMult = 1;
+                this._initLayers();
+                window.addEventListener('resize', () => { this.resize(); this._initLayers(); });
+            }
+            resize() { this.c.width = W(); this.c.height = H(); }
+            _initLayers() {
+                const w = this.c.width, h = this.c.height;
+                const base = isMobile ? 0.5 : 1;
+                // Layer 1: snow (far, slow)
+                const snowCount = perf.scale(40 * base);
+                this.snow = Array.from({ length: snowCount }, () => this._mkSnow(w, h, true));
+                // Layer 2: sparkle/bokeh (mid)
+                const sparkleCount = perf.scale(25 * base);
+                this.sparkles = Array.from({ length: sparkleCount }, () => this._mkSparkle(w, h, true));
+                // Layer 3: confetti + lì xì (near)
+                const confettiCount = perf.scale(30 * base);
+                this.confetti = Array.from({ length: confettiCount }, () => this._mkConfetti(w, h, true));
+                const lixiCount = perf.scale(6 * base);
+                this.lixi = Array.from({ length: lixiCount }, () => this._mkLixi(w, h, true));
+            }
+            _mkSnow(w, h, rand) {
+                return {
+                    x: Math.random() * w, y: rand ? Math.random() * h : -10,
+                    r: 1.5 + Math.random() * 2, speed: 0.3 + Math.random() * 0.5,
+                    wind: Math.random() * 0.3 - 0.15, alpha: 0.4 + Math.random() * 0.4
+                };
+            }
+            _mkSparkle(w, h, rand) {
+                return {
+                    x: Math.random() * w, y: rand ? Math.random() * h : -20,
+                    r: 4 + Math.random() * 12, speed: 0.15 + Math.random() * 0.3,
+                    alpha: 0.04 + Math.random() * 0.08, hue: 40 + Math.random() * 40,
+                    pulse: Math.random() * Math.PI * 2
+                };
+            }
+            _mkConfetti(w, h, rand) {
+                const colors = ['#ff4081', '#ffeb3b', '#00e5ff', '#76ff03', '#ff6d00', '#e040fb', '#fff'];
+                return {
+                    x: Math.random() * w, y: rand ? Math.random() * h : -20,
+                    w: 4 + Math.random() * 6, h: 3 + Math.random() * 5,
+                    speed: 1 + Math.random() * 2, wind: Math.random() * 1 - 0.5,
+                    rot: Math.random() * Math.PI * 2, rotSpeed: (Math.random() - 0.5) * 0.1,
+                    color: colors[Math.random() * colors.length | 0], alpha: 0.7 + Math.random() * 0.3
+                };
+            }
+            _mkLixi(w, h, rand) {
+                return {
+                    x: Math.random() * w, y: rand ? Math.random() * h : -40,
+                    size: 18 + Math.random() * 12, speed: 0.5 + Math.random() * 0.8,
+                    wind: Math.random() * 0.4 - 0.2, rot: Math.random() * 0.3 - 0.15,
+                    rotSpeed: (Math.random() - 0.5) * 0.02
+                };
+            }
+            burst() {
+                const w = this.c.width, h = this.c.height;
+                for (let i = 0; i < 30; i++) this.confetti.push(this._mkConfetti(w, h, false));
+                for (let i = 0; i < 8; i++) this.snow.push(this._mkSnow(w, h, false));
+                for (let i = 0; i < 3; i++) this.lixi.push(this._mkLixi(w, h, false));
+                this.densityMult = 2;
+                setTimeout(() => { this.densityMult = 1; }, 5000);
+            }
+            draw(t) {
+                const ctx = this.ctx, w = this.c.width, h = this.c.height;
+                ctx.clearRect(0, 0, w, h);
+                const mx = (mouseX - 0.5) * 2, my = (mouseY - 0.5) * 2;
+                // Layer 1: Snow (far — small parallax)
+                const px1 = mx * 8, py1 = my * 5;
+                for (const s of this.snow) {
+                    s.y += s.speed * this.densityMult; s.x += s.wind;
+                    if (s.y > h + 10) { s.y = -10; s.x = Math.random() * w; }
+                    if (s.x < -10) s.x = w + 10; if (s.x > w + 10) s.x = -10;
+                    ctx.globalAlpha = s.alpha;
+                    ctx.fillStyle = '#fff';
+                    ctx.beginPath(); ctx.arc(s.x + px1, s.y + py1, s.r, 0, Math.PI * 2); ctx.fill();
+                }
+                // Layer 2: Sparkle/Bokeh (mid — medium parallax)
+                const px2 = mx * 18, py2 = my * 12;
+                for (const s of this.sparkles) {
+                    s.y += s.speed; s.pulse += 0.02;
+                    if (s.y > h + 30) { s.y = -30; s.x = Math.random() * w; }
+                    const a = s.alpha * (0.5 + Math.sin(s.pulse) * 0.5);
+                    const grad = ctx.createRadialGradient(s.x + px2, s.y + py2, 0, s.x + px2, s.y + py2, s.r);
+                    grad.addColorStop(0, `hsla(${s.hue},80%,70%,${a})`);
+                    grad.addColorStop(1, `hsla(${s.hue},80%,70%,0)`);
+                    ctx.globalAlpha = 1; ctx.fillStyle = grad;
+                    ctx.beginPath(); ctx.arc(s.x + px2, s.y + py2, s.r, 0, Math.PI * 2); ctx.fill();
+                }
+                // Layer 3: Confetti (near — large parallax)
+                const px3 = mx * 30, py3 = my * 20;
+                for (let i = this.confetti.length - 1; i >= 0; i--) {
+                    const c = this.confetti[i];
+                    c.y += c.speed * this.densityMult; c.x += c.wind; c.rot += c.rotSpeed;
+                    if (c.y > h + 20) {
+                        if (this.confetti.length > perf.scale(30)) { this.confetti.splice(i, 1); continue; }
+                        c.y = -20; c.x = Math.random() * w;
+                    }
+                    ctx.save(); ctx.translate(c.x + px3, c.y + py3); ctx.rotate(c.rot);
+                    ctx.globalAlpha = c.alpha; ctx.fillStyle = c.color;
+                    ctx.fillRect(-c.w / 2, -c.h / 2, c.w, c.h); ctx.restore();
+                }
+                // Lì xì (near layer)
+                for (let i = this.lixi.length - 1; i >= 0; i--) {
+                    const l = this.lixi[i];
+                    l.y += l.speed * this.densityMult; l.x += l.wind; l.rot += l.rotSpeed;
+                    if (l.y > h + 50) {
+                        if (this.lixi.length > perf.scale(6)) { this.lixi.splice(i, 1); continue; }
+                        l.y = -50; l.x = Math.random() * w;
+                    }
+                    ctx.save(); ctx.translate(l.x + px3, l.y + py3); ctx.rotate(l.rot);
+                    ctx.globalAlpha = 0.85;
+                    // Envelope body
+                    ctx.fillStyle = '#d42426'; ctx.beginPath();
+                    ctx.roundRect(-l.size / 2, -l.size * 0.6, l.size, l.size * 1.2, 3); ctx.fill();
+                    // Gold flap
+                    ctx.fillStyle = '#ffd700';
+                    ctx.beginPath();
+                    ctx.moveTo(-l.size / 2, -l.size * 0.6);
+                    ctx.lineTo(0, -l.size * 0.15);
+                    ctx.lineTo(l.size / 2, -l.size * 0.6);
+                    ctx.closePath(); ctx.fill();
+                    // Gold circle
+                    ctx.beginPath(); ctx.arc(0, l.size * 0.15, l.size * 0.18, 0, Math.PI * 2);
+                    ctx.fillStyle = '#ffd700'; ctx.fill();
+                    ctx.restore();
+                }
+                ctx.globalAlpha = 1;
+            }
+        }
+        const particles = new ParticleSystem();
+
+        // ============================================================
+        // THREE.JS FIREWORKS SYSTEM
+        // ============================================================
+        function createParticleTexture() {
+            const c = document.createElement('canvas'); c.width = c.height = 64;
+            const ctx = c.getContext('2d');
+            const g = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+            g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(0.2, 'rgba(255,255,255,0.8)');
+            g.addColorStop(0.5, 'rgba(255,255,255,0.3)'); g.addColorStop(1, 'rgba(255,255,255,0)');
+            ctx.fillStyle = g; ctx.fillRect(0, 0, 64, 64);
+            return new THREE.CanvasTexture(c);
+        }
+        const pTex = createParticleTexture();
+        const FW_COLORS = [0xff4466, 0x44ff88, 0x4488ff, 0xffff44, 0xff44ff, 0x44ffff, 0xffffff, 0xff8800, 0x00ff88, 0xffaa00, 0xff3366, 0x66ffcc];
+
+        class Firework {
+            constructor(scene, x, y, color) {
+                this.scene = scene; this.phase = 'launch'; this.age = 0;
+                this.targetY = y; this.color = color;
+                // Launch point
+                this.launchGeo = new THREE.BufferGeometry();
+                this.launchGeo.setAttribute('position', new THREE.Float32BufferAttribute([x, -35, 0], 3));
+                this.launchMat = new THREE.PointsMaterial({
+                    size: 3, color: 0xffffff, map: pTex,
+                    transparent: true, blending: THREE.AdditiveBlending, depthTest: false
+                });
+                this.launchPt = new THREE.Points(this.launchGeo, this.launchMat);
+                scene.add(this.launchPt);
+                this.lx = x; this.ly = -35;
+                this.launchSpeed = 50 + Math.random() * 20;
+                this.burstMesh = null; this.positions = null; this.velocities = null;
+                this.burstAge = 0; this.burstDuration = 1.5 + Math.random() * 1;
+                this.particleCount = 0;
+            }
+            update(dt) {
+                this.age += dt;
+                if (this.phase === 'launch') {
+                    this.ly += this.launchSpeed * dt;
+                    const pos = this.launchGeo.attributes.position.array;
+                    pos[1] = this.ly; this.launchGeo.attributes.position.needsUpdate = true;
+                    if (this.ly >= this.targetY) this._burst();
+                } else if (this.phase === 'burst') {
+                    this.burstAge += dt;
+                    const pos = this.burstMesh.geometry.attributes.position.array;
+                    for (let i = 0; i < this.particleCount; i++) {
+                        const i3 = i * 3;
+                        this.velocities[i3 + 1] -= 12 * dt;
+                        this.velocities[i3] *= 0.99; this.velocities[i3 + 2] *= 0.99;
+                        pos[i3] += this.velocities[i3] * dt;
+                        pos[i3 + 1] += this.velocities[i3 + 1] * dt;
+                        pos[i3 + 2] += this.velocities[i3 + 2] * dt;
+                    }
+                    this.burstMesh.geometry.attributes.position.needsUpdate = true;
+                    const fade = 1 - this.burstAge / this.burstDuration;
+                    this.burstMat.opacity = Math.max(0, fade);
+                    this.burstMat.size = 2.5 * Math.max(0.3, fade);
+                    if (this.burstAge > this.burstDuration) this._cleanup();
+                }
+            }
+            _burst() {
+                this.phase = 'burst';
+                this.scene.remove(this.launchPt);
+                this.launchGeo.dispose(); this.launchMat.dispose();
+                audio.playBoom();
+                const count = perf.scale(80 + Math.random() * 40 | 0);
+                this.particleCount = count;
+                const pos = new Float32Array(count * 3);
+                this.velocities = new Float32Array(count * 3);
+                for (let i = 0; i < count; i++) {
+                    const i3 = i * 3;
+                    pos[i3] = this.lx; pos[i3 + 1] = this.ly; pos[i3 + 2] = 0;
+                    const theta = Math.random() * Math.PI * 2;
+                    const phi = Math.acos(Math.random() * 2 - 1);
+                    const spd = 6 + Math.random() * 18;
+                    this.velocities[i3] = spd * Math.sin(phi) * Math.cos(theta);
+                    this.velocities[i3 + 1] = spd * Math.sin(phi) * Math.sin(theta);
+                    this.velocities[i3 + 2] = spd * Math.cos(phi) * 0.3;
+                }
+                const geo = new THREE.BufferGeometry();
+                geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+                this.positions = pos;
+                this.burstMat = new THREE.PointsMaterial({
+                    size: 2.5, color: this.color, map: pTex,
+                    transparent: true, opacity: 1,
+                    blending: THREE.AdditiveBlending, depthTest: false, sizeAttenuation: true
+                });
+                this.burstMesh = new THREE.Points(geo, this.burstMat);
+                this.scene.add(this.burstMesh);
+            }
+            _cleanup() {
+                this.phase = 'done';
+                if (this.burstMesh) {
+                    this.scene.remove(this.burstMesh);
+                    this.burstMesh.geometry.dispose(); this.burstMat.dispose();
+                }
+            }
+        }
+
+        class FireworksSystem {
+            constructor() {
+                this.container = document.getElementById('fireworks-container');
+                const w = W(), h = H();
+                this.scene = new THREE.Scene();
+                this.camera = new THREE.PerspectiveCamera(60, w / h, 0.1, 1000);
+                this.camera.position.z = 50;
+                this.renderer = new THREE.WebGLRenderer({ alpha: true, antialias: false });
+                this.renderer.setSize(w, h);
+                this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 1 : 2));
+                this.renderer.setClearColor(0x000000, 0);
+                this.container.appendChild(this.renderer.domElement);
+                this.fireworks = [];
+                this.autoMode = true; this.intensity = 'low'; this.autoTimer = 2;
+                window.addEventListener('resize', () => {
+                    const w2 = W(), h2 = H();
+                    this.camera.aspect = w2 / h2; this.camera.updateProjectionMatrix();
+                    this.renderer.setSize(w2, h2);
+                });
+            }
+            spawnAt(sx, sy) {
+                const x = (sx / W() - 0.5) * 60;
+                const y = (0.5 - sy / H()) * 35 + 5;
+                const col = FW_COLORS[Math.random() * FW_COLORS.length | 0];
+                this.fireworks.push(new Firework(this.scene, x, y, col));
+            }
+            setIntensity(level) { this.intensity = level; }
+            update(dt) {
+                if (this.autoMode) {
+                    this.autoTimer -= dt;
+                    if (this.autoTimer <= 0) {
+                        const delay = this.intensity === 'burst' ? 0.15 + Math.random() * 0.25 :
+                            this.intensity === 'medium' ? 0.8 + Math.random() * 1.5 :
+                                2.5 + Math.random() * 4;
+                        this.autoTimer = delay;
+                        this.spawnAt(Math.random() * W(), Math.random() * H() * 0.55 + H() * 0.05);
+                    }
+                }
+                for (let i = this.fireworks.length - 1; i >= 0; i--) {
+                    this.fireworks[i].update(dt);
+                    if (this.fireworks[i].phase === 'done') this.fireworks.splice(i, 1);
+                }
+                this.renderer.render(this.scene, this.camera);
+            }
+        }
+        const fireworks = new FireworksSystem();
+
+        // ============================================================
+        // COUNTDOWN ENGINE
+        // ============================================================
+        class CountdownEngine {
+            constructor(onTick, onLast10, onZero) {
+                this.onTick = onTick; this.onLast10 = onLast10; this.onZero = onZero;
+                this.started = false; this.finished = false;
+                this.elD = document.getElementById('cd-days');
+                this.elH = document.getElementById('cd-hours');
+                this.elM = document.getElementById('cd-minutes');
+                this.elS = document.getElementById('cd-seconds');
+                this.triggered10 = false;
+                if (CONFIG.targetDate) {
+                    this.endTime = new Date(CONFIG.targetDate).getTime();
+                } else {
+                    this.endTime = Date.now() + CONFIG.demoCountdownSeconds * 1000;
+                }
+            }
+            start() { this.started = true; }
+            update() {
+                if (!this.started || this.finished) return;
+                const remaining = Math.max(0, this.endTime - Date.now());
+                const totalSec = Math.ceil(remaining / 1000);
+                const d = String(totalSec / 86400 | 0).padStart(2, '0');
+                const h = String((totalSec % 86400) / 3600 | 0).padStart(2, '0');
+                const m = String((totalSec % 3600) / 60 | 0).padStart(2, '0');
+                const s = String(totalSec % 60).padStart(2, '0');
+
+                if (this.elD) this.elD.textContent = d;
+                this.elH.textContent = h; this.elM.textContent = m;
+                const changed = this.elS.textContent !== s;
+                this.elS.textContent = s;
+
+                if (changed) {
+                    this.elS.classList.add('tick');
+                    setTimeout(() => this.elS.classList.remove('tick'), 200);
+                }
+                if (totalSec <= 10 && !this.triggered10) { this.triggered10 = true; this.onLast10(); }
+                if (totalSec <= 10) {
+                    if (this.elD) this.elD.classList.add('intense');
+                    this.elH.classList.add('intense'); this.elM.classList.add('intense'); this.elS.classList.add('intense');
+                }
+                if (remaining <= 0 && !this.finished) {
+                    this.finished = true; this.onZero();
+                }
+                if (this.onTick) this.onTick(totalSec);
+            }
+        }
+
+        // ============================================================
+        // SCENE MANAGER
+        // ============================================================
+        class SceneManager {
+            constructor() {
+                this.scene = 0; // 0=hero, 1=countdown, 2=burst, 3=card
+                this.heroEl = document.getElementById('hero-viewport');
+                this.yearEl = document.getElementById('year-text');
+                this.greetEl = document.getElementById('hero-greeting');
+                this.cdEl = document.getElementById('scene-countdown');
+                this.cardEl = document.getElementById('scene-card');
+                this.scrollInd = document.getElementById('scroll-indicator');
+                this.startTime = Date.now();
+
+                // Scroll Lock Helpers
+                this.preventScroll = (e) => e.preventDefault();
+                this.preventKeys = (e) => {
+                    if (['ArrowUp', 'ArrowDown', 'Space', 'PageUp', 'PageDown', 'Home', 'End'].includes(e.code)) e.preventDefault();
+                };
+                this.lockScroll();
+
+                this.countdown = new CountdownEngine(
+                    null,
+                    () => this._onLast10(),
+                    () => this._onZero()
+                );
+            }
+
+            lockScroll() {
+                document.documentElement.classList.add('scroll-locked');
+                document.body.classList.add('scroll-locked');
+                window.addEventListener('wheel', this.preventScroll, { passive: false });
+                window.addEventListener('touchmove', this.preventScroll, { passive: false });
+                window.addEventListener('keydown', this.preventKeys, { passive: false });
+            }
+
+            unlockScroll() {
+                document.documentElement.classList.remove('scroll-locked');
+                document.body.classList.remove('scroll-locked');
+                window.removeEventListener('wheel', this.preventScroll);
+                window.removeEventListener('touchmove', this.preventScroll);
+                window.removeEventListener('keydown', this.preventKeys);
+            }
+            update() {
+                const elapsed = (Date.now() - this.startTime) / 1000;
+                // Scene 1: Hero (0-4s)
+                if (this.scene === 0) {
+                    if (elapsed > 1.5) this.greetEl.classList.add('visible');
+                    if (elapsed > 4) { this.scene = 1; this.cdEl.classList.add('visible'); this.countdown.start(); }
+                }
+                if (this.scene >= 1) this.countdown.update();
+            }
+            _onLast10() {
+                fireworks.setIntensity('medium');
+                this.yearEl.classList.add('bloom-strong');
+            }
+            _onZero() {
+                this.scene = 2; // Burst
+                this.yearEl.classList.add('shake');
+                this.greetEl.textContent = "Chúc Mừng Năm Mới"; // Change text on success
+                this.cdEl.style.display = 'none'; // Hide countdown
+                this.unlockScroll(); // Robust unlock
+                fireworks.setIntensity('burst');
+                particles.burst();
+                audio.playPop();
+                // After 6s, show card
+                setTimeout(() => {
+                    this.scene = 3;
+                    fireworks.setIntensity('low');
+                    this.yearEl.classList.remove('shake');
+                    this.cardEl.classList.add('visible');
+                    this.scrollInd.classList.add('visible');
+                }, 6000);
+            }
+        }
+        const sceneManager = new SceneManager();
+
+        // ============================================================
+        // SCROLL STORY (Intersection Observer)
+        // ============================================================
+        const scrollSections = document.querySelectorAll('.scroll-section');
+        const scrollObs = new IntersectionObserver((entries) => {
+            entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+        }, { threshold: 0.2 });
+        scrollSections.forEach(s => scrollObs.observe(s));
+
+        // Parallax on scroll
+        // Parallax on scroll
+        window.addEventListener('scroll', () => {
+            const sy = window.scrollY;
+
+            // Lion Visibility
+            const lions = document.querySelectorAll('.lion-decor');
+            if (sy > window.innerHeight * 0.8) {
+                lions.forEach(l => l.classList.add('visible'));
+            } else {
+                lions.forEach(l => l.classList.remove('visible'));
+            }
+
+            scrollSections.forEach(sec => {
+                const decos = sec.querySelectorAll('.parallax-deco');
+                decos.forEach((d, i) => {
+                    const rate = (i + 1) * 0.12;
+                    d.style.transform = `translateY(${sy * rate}px)`;
+                });
+            });
+        });
+
+        // ============================================================
+        // CLICK FIREWORKS
+        // ============================================================
+        document.getElementById('hero-viewport').addEventListener('click', (e) => {
+            fireworks.spawnAt(e.clientX, e.clientY);
+            audio.init();
+            audio.playBoom();
+        });
+
+        // ============================================================
+        // SHARE / SCROLL FUNCTIONS
+        // ============================================================
+        function shareLink() {
+            if (navigator.share) {
+                navigator.share({ title: 'Chúc Mừng Năm Mới 2026!', url: window.location.href }).catch(() => { });
+            } else {
+                navigator.clipboard.writeText(window.location.href).then(() => alert('Đã copy link!'));
+            }
+        }
+        function scrollToStory() {
+            document.getElementById('scene-card').classList.remove('visible');
+            document.getElementById('audio-toggle').click(); // Auto-unmute on scroll
+            setTimeout(() => {
+                document.getElementById('scroll-1').scrollIntoView({ behavior: 'smooth' });
+            }, 100);
+        }
+
+        // ============================================================
+        // MAIN ANIMATION LOOP
+        // ============================================================
+        let lastTime = 0; let paused = false;
+        document.addEventListener('visibilitychange', () => { paused = document.hidden; });
+
+        function animate(now) {
+            requestAnimationFrame(animate);
+            if (paused) return;
+            perf.tick(now);
+            const dt = Math.min((now - (lastTime || now)) / 1000, 0.05);
+            lastTime = now;
+            cinematicBg.draw(now);
+            particles.draw(now);
+            fireworks.update(dt);
+            sceneManager.update();
+        }
+        requestAnimationFrame(animate);
+
+        // Apply CONFIG to DOM
+        document.getElementById('hero-greeting').textContent = CONFIG.heroGreeting;
+        document.getElementById('card-title').textContent = CONFIG.cardTitle;
+        document.getElementById('card-wish').textContent = CONFIG.longWish;
+
+    </script>
+</body>
+
+</html>

@@ -996,6 +996,59 @@ window.autoFindReleaseDate = async function() {
 
 let currentUser = null;
 window.currentUser = null;
+window.currentUserProfile = null;
+
+function getProfileAvatarUrl(profileData) {
+  const profileAvatar = profileData
+    ? (profileData.avatar || '')
+    : '';
+  return profileAvatar.toString().trim();
+}
+
+function isValidAvatarUrl(url) {
+  if (!url) return false;
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+  } catch (error) {
+    return false;
+  }
+}
+
+function renderUserDisplay(profileData) {
+  const roleColors = {
+    'Admin': '#ef4444',
+    'Moderator': '#f59e0b',
+    'Member': '#3b82f6',
+    'Ủa': 'purple',
+    'Jack': 'purple',
+    'Bố con': 'purple',
+    'Skibidi': 'purple',
+    'Bồn cầu': 'purple',
+    'WTF': 'purple',
+    'Admin fake': 'purple',
+    'Phép thuật winx enchantix biến hình': 'purple',
+  };
+
+  const roleColor = roleColors[profileData.role] || '#6b7280';
+  const avatarUrl = getProfileAvatarUrl(profileData);
+  const avatarMarkup = avatarUrl && isValidAvatarUrl(avatarUrl)
+    ? `<img src="${avatarUrl}" alt="avatar" style="width: 34px; height: 34px; border-radius: 50%; object-fit: cover; border: 1px solid #2a2a33; margin-right: 8px; vertical-align: middle;" />`
+    : '';
+
+  document.getElementById('userDisplayName').innerHTML = `
+            ${avatarMarkup}${profileData.display_name} 
+            <span style="
+                background: ${roleColor}; 
+                padding: 4px 10px; 
+                border-radius: 6px; 
+                font-size: 18px; 
+                font-weight: 600;
+                margin-left: 8px;
+                color: white;
+            " id="role" onclick="roleCheck()">${profileData.role}</span>
+        `;
+}
 
 async function checkAuth() {
   const {
@@ -1026,35 +1079,8 @@ async function loadUserProfile() {
     .single();
 
   if (data) {
-    const roleColors = {
-      'Admin': '#ef4444',
-      'Moderator': '#f59e0b',
-      'Member': '#3b82f6',
-      'Ủa': 'purple',
-      'Jack': 'purple',
-      'Bố con': 'purple',
-      'Skibidi': 'purple',
-      'Bồn cầu': 'purple',
-      'WTF': 'purple',
-      'Admin fake': 'purple',
-      'Phép thuật winx enchantix biến hình': 'purple',
-    };
-
-    const roleColor = roleColors[data.role] || '#6b7280';
-
-    document.getElementById('userDisplayName').innerHTML = `
-              ${data.display_name} 
-              <span style="
-                  background: ${roleColor}; 
-                  padding: 4px 10px; 
-                  border-radius: 6px; 
-                  font-size: 18px; 
-                  font-weight: 600;
-                  margin-left: 8px;
-                  color: white;
-              " id="role" onclick="roleCheck()">${data.role}</span>
-          `;
-
+    window.currentUserProfile = data;
+    renderUserDisplay(data);
     window.currentUserRole = data.role;
     
     // Load favourites của user
@@ -1795,6 +1821,58 @@ searchInput.addEventListener('input', (e) => {
 
 checkAuth();
 
+async function updateProfileAvatarField(avatarUrl) {
+  const normalizedAvatar = avatarUrl ? avatarUrl.trim() : '';
+  const { data: updatedProfile, error: profileError } = await supabase
+    .from('profiles')
+    .update({ avatar: normalizedAvatar || null })
+    .eq('id', currentUser.id)
+    .select('*')
+    .maybeSingle();
+
+  const metadataPatch = { ...((currentUser && currentUser.user_metadata) || {}) };
+  if (normalizedAvatar) {
+    metadataPatch.avatar_url = normalizedAvatar;
+  } else {
+    delete metadataPatch.avatar_url;
+  }
+
+  const { data: authUpdateData, error: authUpdateError } = await supabase.auth.updateUser({
+    data: metadataPatch
+  });
+
+  if (authUpdateData && authUpdateData.user) {
+    currentUser = authUpdateData.user;
+    window.currentUser = authUpdateData.user;
+  }
+
+  if (authUpdateError && !updatedProfile) {
+    throw authUpdateError;
+  }
+
+  if (profileError && !updatedProfile && !authUpdateError) {
+    throw profileError;
+  }
+
+  return updatedProfile;
+}
+
+function updateViewAvatar(avatarUrl) {
+  const avatarImg = document.getElementById('viewAvatarImage');
+  const avatarText = document.getElementById('viewAvatarText');
+  if (!avatarImg || !avatarText) return;
+
+  if (avatarUrl && isValidAvatarUrl(avatarUrl)) {
+    avatarImg.src = avatarUrl;
+    avatarImg.style.display = 'inline-block';
+    avatarText.textContent = avatarUrl;
+  } else {
+    avatarImg.removeAttribute('src');
+    avatarImg.style.display = 'none';
+    avatarText.textContent = 'Chưa cập nhật';
+  }
+}
+
 
 window.viewProfileDialog.addEventListener('click', async (e) => {
   if (e.target !== viewProfileDialog) return;
@@ -1817,6 +1895,9 @@ window.showViewProfile = async function() {
     document.getElementById('viewEmail').textContent = currentUser.email;
     document.getElementById('viewPhone').textContent = data.phone || 'Chưa cập nhật';
     document.getElementById('viewRole').textContent = data.role;
+    updateViewAvatar(getProfileAvatarUrl(data));
+  } else {
+    updateViewAvatar('');
   }
 
   viewProfileDialog.showModal();
@@ -1836,6 +1917,9 @@ window.openEditProfileDialog = async function() {
   if (data) {
     document.getElementById('editDisplayName').value = data.display_name;
     document.getElementById('editPhone').value = data.phone || '';
+    document.getElementById('editAvatarUrl').value = getProfileAvatarUrl(data);
+  } else {
+    document.getElementById('editAvatarUrl').value = '';
   }
 
   document.getElementById('oldPassword').value = '';
@@ -1854,6 +1938,7 @@ document.getElementById('editProfileForm').addEventListener('submit', async (e) 
 
   const displayName = document.getElementById('editDisplayName').value.trim();
   const phone = document.getElementById('editPhone').value.trim();
+  const avatarUrl = document.getElementById('editAvatarUrl').value.trim();
   const oldPassword = document.getElementById('oldPassword').value;
   const newPassword = document.getElementById('newPassword').value;
   const confirmNewPassword = document.getElementById('confirmNewPassword').value;
@@ -1885,6 +1970,11 @@ document.getElementById('editProfileForm').addEventListener('submit', async (e) 
   const phoneRegex = /^0\d{9}$/;
   if (!phoneRegex.test(phone)) {
     document.getElementById('error-editPhone').textContent = 'Số điện thoại không hợp lệ (VD: 0912345678)';
+    isValid = false;
+  }
+
+  if (avatarUrl && !isValidAvatarUrl(avatarUrl)) {
+    document.getElementById('error-editAvatarUrl').textContent = 'Avatar phải là URL hợp lệ (http/https)';
     isValid = false;
   }
 
@@ -1920,6 +2010,8 @@ document.getElementById('editProfileForm').addEventListener('submit', async (e) 
       .eq('id', currentUser.id);
 
     if (updateError) throw updateError;
+
+    await updateProfileAvatarField(avatarUrl);
 
     if (oldPassword && newPassword) {
       const {

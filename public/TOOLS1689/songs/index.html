@@ -596,6 +596,11 @@
         <label style="flex: 0 0 100px; font-weight: 600; opacity: 0.7;">Vai trò:</label>
         <span id="viewRole"></span>
       </div>
+      <div style="display: flex; padding: 12px; border-bottom: 1px solid #2a2a33; align-items: center; gap: 12px;">
+        <label style="flex: 0 0 100px; font-weight: 600; opacity: 0.7;">Avatar:</label>
+        <img id="viewAvatarImage" src="" alt="Avatar" style="width: 44px; height: 44px; border-radius: 50%; object-fit: cover; border: 1px solid #2a2a33; display: none;">
+        <span id="viewAvatarText" style="font-size: 14px; opacity: 0.8;">Chưa cập nhật</span>
+      </div>
       <div style="display: flex; padding: 12px; border-bottom: 1px solid #2a2a33;">
         <label style="flex: 0 0 100px; font-weight: 600; opacity: 0.7;">Lời nhắn: </label>
         <span>Qr đưới đây là thông tin liên hệ! Không phải Qr chuyển tiền hay thanh toán nên đừng lo.</span>
@@ -629,6 +634,13 @@
         <label for="editPhone">Số điện thoại *</label>
         <input type="tel" id="editPhone" required placeholder="0912345678">
         <div class="error" id="error-editPhone"></div>
+      </div>
+
+      <div class="form-group">
+        <label for="editAvatarUrl">Avatar URL</label>
+        <input type="url" id="editAvatarUrl" placeholder="https://example.com/avatar.jpg">
+        <small style="color: #6b7280; display: block; margin-top: 6px;">Để trống nếu không dùng avatar.</small>
+        <div class="error" id="error-editAvatarUrl"></div>
       </div>
 
       <hr style="border: none; height: 1px; background-color: #2a2a33; margin: 24px 0;">

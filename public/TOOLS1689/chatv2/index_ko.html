@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="ko">
 
 <head>
     <meta charset="UTF-8">
@@ -513,6 +513,30 @@
             display: block;
             width: 100%;
             word-wrap: break-word;
+        }
+
+        .private-message-toggle {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px dashed var(--accent);
+            color: var(--text-dim);
+            cursor: pointer;
+            font-size: 0.9rem;
+            padding: 0.45rem 0.6rem;
+            text-align: left;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .private-message-toggle:hover {
+            color: var(--accent);
+            border-color: var(--text);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .private-message-toggle.revealed {
+            border-style: solid;
+            color: var(--text);
+            background: rgba(255, 255, 255, 0.02);
         }
 
         .message-content.deleted-content {
@@ -2162,25 +2186,25 @@
     <div id="loginScreen">
         <div class="login-container">
             <h1>ntdChat v2</h1>
-            <p>Trò chuyện không giới hạn</p>
+            <p>무제한 채팅</p>
 
             <div class="admin-notice" id="adminNotice">
-                <i class="fas fa-shield-alt"></i> Chế độ Admin được kích hoạt
+                <i class="fas fa-shield-alt"></i> 관리자 모드 활성화
             </div>
 
-            <input type="text" id="usernameInput" placeholder="Nhập tên của bạn..." maxlength="20" autocomplete="off">
+            <input type="text" id="usernameInput" placeholder="이름을 입력하세요..." maxlength="20" autocomplete="off">
 
-            <input type="password" id="adminPasswordInput" placeholder="Mật khẩu admin..." autocomplete="off">
+            <input type="password" id="adminPasswordInput" placeholder="관리자 비밀번호..." autocomplete="off">
 
             <button onclick="handleLogin()">
-                <span>Tham gia ngay</span>
+                <span>지금 참여하기</span>
             </button>
         </div>
     </div>
 
     <!-- Chat Screen -->
     <div class="online-users">
-        <span class="online-users-label"><i class="fas fa-bolt"></i> ONLINE USERS</span>
+        <span class="online-users-label"><i class="fas fa-bolt"></i> 접속 중인 사용자</span>
         <div id="onlineUsersList"></div>
     </div>
 
@@ -2189,38 +2213,38 @@
             <h2><i class="fas fa-circle" style="color: var(--accent);"></i> ntdChat v2</h2>
             <div class="admin-controls" id="adminControls">
                 <button class="admin-control-btn danger" onclick="showKickModal()">
-                    <i class="fas fa-exclamation-triangle"></i> Kick User
+                    <i class="fas fa-exclamation-triangle"></i> 사용자 차단
                 </button>
                 <button class="admin-control-btn" onclick="showUnbanModal()">
-                    <i class="fas fa-check-circle"></i> Unban
+                    <i class="fas fa-check-circle"></i> 차단 해제
                 </button>
             </div>
             <div class="user-info">
-                <span class="admin-badge" id="adminBadge">ADMIN</span>
+                <span class="admin-badge" id="adminBadge">관리자</span>
                 <span class="user-name" id="userName"></span>
                 <div class="status-indicator"></div>
                 <button class="logout-btn" onclick="handleLogout()">
-                    <span>Đăng xuất</span>
+                    <span>로그아웃</span>
                 </button>
             </div>
             <!-- Room Selection Modal -->
             <div id="roomModal" class="modal">
                 <div class="modal-content">
-                    <div class="modal-header"><i class="fas fa-door-open"></i> CHỌN/TẠO PHÒNG CHAT</div>
+                    <div class="modal-header"><i class="fas fa-door-open"></i> 채팅방 선택/생성</div>
                     <div class="modal-body">
-                        <label>Danh sách phòng:</label>
+                        <label>채팅방 목록:</label>
                         <div id="roomsList" style="max-height: 300px; overflow-y: auto; margin-bottom: 2rem;">
-                            <p style="color: var(--text-dim); text-align: center;">Đang tải...</p>
+                            <p style="color: var(--text-dim); text-align: center;">로딩 중...</p>
                         </div>
 
-                        <label>Tạo phòng mới:</label>
-                        <input type="text" id="newRoomName" placeholder="Tên phòng...">
-                        <input type="password" id="newRoomPassword" placeholder="Mật khẩu (để trống = công khai)">
+                        <label>새 채팅방 만들기:</label>
+                        <input type="text" id="newRoomName" placeholder="채팅방 이름...">
+                        <input type="password" id="newRoomPassword" placeholder="비밀번호 (비워두면 공개)">
                     </div>
                     <div class="modal-actions">
                         <button class="modal-btn"
-                            onclick="document.getElementById('roomModal').classList.remove('active')">Đóng</button>
-                        <button class="modal-btn primary" onclick="createRoom()">Tạo Phòng</button>
+                            onclick="document.getElementById('roomModal').classList.remove('active')">닫기</button>
+                        <button class="modal-btn primary" onclick="createRoom()">채팅방 만들기</button>
                     </div>
                 </div>
             </div>
@@ -2228,7 +2252,7 @@
 
         <div class="messages-container" id="messagesContainer">
             <div style="text-align: center; color: var(--text-dim); padding: 2rem;">
-                Chưa có tin nhắn nào. Hãy bắt đầu cuộc trò chuyện! <i class="fas fa-rocket"></i>
+                아직 메시지가 없습니다. 대화를 시작하세요! <i class="fas fa-rocket"></i>
             </div>
         </div>
 
@@ -2237,7 +2261,7 @@
 
             <!-- Reply Indicator -->
             <div class="reply-indicator" id="replyIndicator">
-                <div class="reply-to">Đang trả lời:</div>
+                <div class="reply-to">답장 중:</div>
                 <div class="reply-content" id="replyContent"></div>
                 <button class="cancel-reply" onclick="cancelReply()">
                     <i class="fas fa-times"></i>
@@ -2246,22 +2270,22 @@
 
             <div class="input-wrapper">
                 <div class="media-btn-container">
-                    <button class="media-button" onclick="toggleMediaMenu()" title="Gửi media">
+                    <button class="media-button" onclick="toggleMediaMenu()" title="미디어 전송">
                         <i class="fas fa-paperclip"></i>
                     </button>
                     <div class="media-menu" id="mediaMenu">
                         <button class="media-menu-item" onclick="selectMediaType('image')">
-                            <i class="fas fa-image"></i> Gửi ảnh
+                            <i class="fas fa-image"></i> 사진 전송
                         </button>
                         <button class="media-menu-item" onclick="selectMediaType('video')">
-                            <i class="fas fa-video"></i> Gửi video
+                            <i class="fas fa-video"></i> 비디오 전송
                         </button>
                         <button class="media-menu-item" onclick="selectMediaType('audio')">
-                            <i class="fas fa-microphone"></i> Gửi audio
+                            <i class="fas fa-microphone"></i> 오디오 전송
                         </button>
                         <!-- THÊM OPTION GỬI FILE KHÁC -->
                         <button class="media-menu-item" onclick="selectMediaType('document')">
-                            <i class="fas fa-file-alt"></i> Gửi file khác
+                            <i class="fas fa-file-alt"></i> 다른 파일 전송
                         </button>
                     </div>
                 </div>
@@ -2274,10 +2298,10 @@
                 <!-- THÊM INPUT CHO CÁC FILE KHÁC -->
                 <input type="file" id="documentInput" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.zip,.rar,.7z"
                     onchange="handleDocumentSelect(event)" style="display: none;">
-                <input type="text" id="messageInput" placeholder="Nhập tin nhắn..." onkeypress="handleKeyPress(event)"
+                <input type="text" id="messageInput" placeholder="메시지를 입력하세요..." onkeypress="handleKeyPress(event)"
                     autocomplete="off">
                 <button class="send-btn" onclick="sendMessage()">
-                    <span>Gửi <i class="fas fa-arrow-right"></i></span>
+                    <span>전송 <i class="fas fa-arrow-right"></i></span>
                 </button>
             </div>
         </div>
@@ -2286,14 +2310,14 @@
     <!-- Delete Message Modal -->
     <div class="modal" id="deleteMessageModal">
         <div class="modal-content danger">
-            <div class="modal-header"><i class="fas fa-trash-alt"></i> Xóa tin nhắn</div>
+            <div class="modal-header"><i class="fas fa-trash-alt"></i> 메시지 삭제</div>
             <div class="modal-body">
-                <label>Lý do xóa tin nhắn:</label>
-                <textarea id="deleteReasonInput" placeholder="Nhập lý do xóa tin nhắn này..."></textarea>
+                <label>삭제 이유:</label>
+                <textarea id="deleteReasonInput" placeholder="이 메시지를 삭제하는 이유를 입력하세요..."></textarea>
             </div>
             <div class="modal-actions">
-                <button class="modal-btn" onclick="closeDeleteModal()">Hủy</button>
-                <button class="modal-btn danger" onclick="confirmDeleteMessage()">Xóa</button>
+                <button class="modal-btn" onclick="closeDeleteModal()">취소</button>
+                <button class="modal-btn danger" onclick="confirmDeleteMessage()">삭제</button>
             </div>
         </div>
     </div>
@@ -2301,19 +2325,19 @@
     <!-- Kick User Modal -->
     <div class="modal" id="kickUserModal">
         <div class="modal-content danger">
-            <div class="modal-header"><i class="fas fa-exclamation-triangle"></i> Kick người dùng</div>
+            <div class="modal-header"><i class="fas fa-exclamation-triangle"></i> 사용자 차단</div>
             <div class="modal-body">
-                <label>Chọn người dùng:</label>
+                <label>사용자 선택:</label>
                 <select id="kickUserSelect">
-                    <option value="">-- Chọn người dùng --</option>
+                    <option value="">-- 사용자 선택 --</option>
                 </select>
 
-                <label>Lý do kick:</label>
-                <textarea id="kickReasonInput" placeholder="Nhập lý do kick người dùng này..."></textarea>
+                <label>차단 이유:</label>
+                <textarea id="kickReasonInput" placeholder="이 사용자를 차단하는 이유를 입력하세요..."></textarea>
             </div>
             <div class="modal-actions">
-                <button class="modal-btn" onclick="closeKickModal()">Hủy</button>
-                <button class="modal-btn danger" onclick="confirmKickUser()">Kick</button>
+                <button class="modal-btn" onclick="closeKickModal()">취소</button>
+                <button class="modal-btn danger" onclick="confirmKickUser()">차단</button>
             </div>
         </div>
     </div>
@@ -2321,17 +2345,17 @@
     <!-- Unban User Modal -->
     <div class="modal" id="unbanUserModal">
         <div class="modal-content">
-            <div class="modal-header"><i class="fas fa-check-circle"></i> Unban người dùng</div>
+            <div class="modal-header"><i class="fas fa-check-circle"></i> 사용자 차단 해제</div>
             <div class="modal-body">
-                <label>Danh sách người dùng bị kick:</label>
+                <label>차단된 사용자 목록:</label>
                 <div id="bannedUsersList" style="max-height: 300px; overflow-y: auto;">
                     <div style="text-align: center; color: var(--text-dim); padding: 1rem;">
-                        Đang tải...
+                        로딩 중...
                     </div>
                 </div>
             </div>
             <div class="modal-actions">
-                <button class="modal-btn" onclick="closeUnbanModal()">Đóng</button>
+                <button class="modal-btn" onclick="closeUnbanModal()">닫기</button>
             </div>
         </div>
     </div>
@@ -2340,7 +2364,7 @@
     <div class="image-viewer-modal" id="imageViewerModal">
         <div class="image-viewer-container">
             <div class="image-viewer-header">
-                <div class="image-viewer-title"><i class="fas fa-image"></i> Image Viewer</div>
+                <div class="image-viewer-title"><i class="fas fa-image"></i> 이미지 뷰어</div>
                 <button class="image-viewer-close" onclick="closeImageViewer()">×</button>
             </div>
 
@@ -2349,16 +2373,16 @@
             </div>
 
             <div class="image-viewer-controls">
-                <button class="viewer-control-btn" onclick="zoomOut()" title="Thu nhỏ">-</button>
+                <button class="viewer-control-btn" onclick="zoomOut()" title="축소">-</button>
                 <div class="zoom-level" id="zoomLevel">100%</div>
-                <button class="viewer-control-btn" onclick="zoomIn()" title="Phóng to">+</button>
-                <button class="viewer-control-btn" onclick="rotateLeft()" title="Xoay trái"><i
+                <button class="viewer-control-btn" onclick="zoomIn()" title="확대">+</button>
+                <button class="viewer-control-btn" onclick="rotateLeft()" title="왼쪽 회전"><i
                         class="fas fa-undo"></i></button>
-                <button class="viewer-control-btn" onclick="rotateRight()" title="Xoay phải"><i
+                <button class="viewer-control-btn" onclick="rotateRight()" title="오른쪽 회전"><i
                         class="fas fa-redo"></i></button>
-                <button class="viewer-control-btn" onclick="resetImage()" title="Reset"><i
+                <button class="viewer-control-btn" onclick="resetImage()" title="초기화"><i
                         class="fas fa-sync-alt"></i></button>
-                <button class="viewer-control-btn" onclick="downloadImage()" title="Tải xuống"><i
+                <button class="viewer-control-btn" onclick="downloadImage()" title="다운로드"><i
                         class="fas fa-download"></i></button>
             </div>
         </div>
@@ -2579,7 +2603,7 @@
                             .maybeSingle();
 
                         if (kickData) {
-                            showError(`Bạn đã bị kick khỏi chat!\nLý do: ${kickData.reason}`, true);
+                            showError(`채팅방에서 강퇴당하셨습니다!\n이유: ${kickData.reason}`, true);
                             return;
                         }
                     } catch (kickCheckError) {
@@ -2728,7 +2752,7 @@
                 } else {
                     container.innerHTML = `
                         <div style="text-align: center; color: var(--text-dim); padding: 2rem;">
-                            Chưa có tin nhắn nào. Hãy bắt đầu cuộc trò chuyện! <i class="fas fa-rocket"></i>
+                            아직 메시지가 없습니다. 대화를 시작해 볼까요! <i class="fas fa-rocket"></i>
                         </div>
                     `;
                 }
@@ -2790,7 +2814,7 @@
 
         // Show spam warning dialog
         function showSpamWarning(count) {
-            const warningMsg = `⚠️ CẢNH BÁO SPAM!\n\nBạn đã spam ${count}/${MAX_SPAM_COUNT} lần.\nNếu tiếp tục spam, bạn sẽ bị kick khỏi chat!`;
+            const warningMsg = `⚠️ 스팸 경고!\n\n스팸 메일을 ${count}/${MAX_SPAM_COUNT}번 발송하셨습니다..\n계속해서 스팸 메시지를 보내시면 채팅방에서 강퇴될 것입니다!`;
 
             // Tạo dialog cảnh báo
             const overlay = document.createElement('div');
@@ -2821,12 +2845,12 @@
             dialog.innerHTML = `
                 <div style="font-size: 3rem; margin-bottom: 1rem;">⚠️</div>
                 <div style="font-size: 1.2rem; font-weight: 700; color: var(--warning); margin-bottom: 1rem;">
-                    CẢNH BÁO SPAM!
+                    스팸 경고!
                 </div>
                 <div style="color: var(--text); margin-bottom: 1.5rem; white-space: pre-line;">
-                    Bạn đã spam ${count}/${MAX_SPAM_COUNT} lần.
+                    스팸 메일을 ${count}/${MAX_SPAM_COUNT}번 발송하셨습니다.
                     
-                    Nếu tiếp tục spam, bạn sẽ bị kick khỏi chat!
+                    계속해서 스팸 메시지를 보내시면 채팅방에서 강퇴될 것입니다!
                 </div>
                 <button onclick="this.parentElement.parentElement.remove()" style="
                     background: var(--warning);
@@ -2837,7 +2861,7 @@
                     cursor: pointer;
                     font-family: 'Space Mono', monospace;
                 ">
-                    TÔI ĐÃ HIỂU
+                    이해합니다
                 </button>
             `;
 
@@ -2887,10 +2911,10 @@
             overlay.innerHTML = `
                 <div class="kick-message">
                     <div class="kick-icon">🚫</div>
-                    <h2>BẠN ĐÃ BỊ KICK</h2>
-                    <p>Lý do: ${reason}</p>
+                    <h2>당신은 발로 차였습니다</h2>
+                    <p>이유: ${reason}</p>
                     <p style="margin-top: 1rem; color: var(--text-dim); font-size: 0.9rem;">
-                        Trang sẽ tự động tải lại sau 3 giây...
+                        페이지는 3초 후에 자동으로 새로고침됩니다...
                     </p>
                 </div>
             `;
@@ -2906,11 +2930,23 @@
         async function sendMessage() {
             const input = document.getElementById('messageInput');
             const content = input.value.trim();
+            const privateCommand = parsePrivateCommand(content);
 
             if (!content && !selectedImage) return;
 
+            if (privateCommand.isPrivateCommand && !privateCommand.hasMessage) {
+                showError('Vui lòng nhập nội dung sau /p hoặc /private');
+                return;
+            }
+
             // Kiểm tra spam (chỉ kiểm tra tin nhắn văn bản, không kiểm tra ảnh)
-            if (content && !content.startsWith('/')) {
+            if (privateCommand.isPrivateCommand) {
+                const isSpam = checkSpam(currentUser.id, privateCommand.privateText);
+                if (isSpam) {
+                    input.value = '';
+                    return;
+                }
+            } else if (content && !content.startsWith('/')) {
                 const isSpam = checkSpam(currentUser.id, content);
                 if (isSpam) {
                     // Bị kick vì spam, không gửi tin nhắn
@@ -2931,10 +2967,13 @@
             }
 
             try {
-                // Check if this is a private command that shouldn't be shown in chat
-                const isPrivateCommand = content.toLowerCase().startsWith('/createroom') ||
+                // Commands that should not be shown in chat
+                const isHiddenCommand = content.toLowerCase().startsWith('/createroom') ||
                     content.toLowerCase().startsWith('/join') ||
                     content.toLowerCase().startsWith('/exitroom');
+                const normalizedContent = privateCommand.isPrivateCommand
+                    ? encodePrivateContent(privateCommand.privateText)
+                    : content;
 
                 let imageUrl = null;
 
@@ -2968,12 +3007,12 @@
                     imageUrl = urlData.publicUrl;
                 }
 
-                // Only send message to database if it's not a private command
-                if (!isPrivateCommand) {
+                // Only send message to database if it's not a hidden command
+                if (!isHiddenCommand) {
                     const messageData = {
                         user_id: currentUser.id,
                         username: currentUser.username,
-                        content: content || '',
+                        content: normalizedContent || '',
                         image_url: imageUrl,
                         reactions: {},
                         room_id: currentRoom ? currentRoom.id : null
@@ -2994,7 +3033,7 @@
                 }
 
                 // Bot command handler
-                if (content.startsWith('/')) {
+                if (content.startsWith('/') && !privateCommand.isPrivateCommand) {
                     const command = content.toLowerCase().trim();
 
                     setTimeout(async () => {
@@ -3022,6 +3061,7 @@
                             botResponse = `📚 DANH SÁCH LỆNH:\n\n` +
                                 `⏰ /time - Hiển thị thời gian hiện tại (giờ Việt Nam)\n` +
                                 `📚 /help - Hiển thị danh sách lệnh này\n` +
+                                `🔒 /p <tin nhắn> hoặc /private <tin nhắn> - Gửi tin nhắn bí mật (nhấn để xem)\n` +
                                 `🚪 /createroom <tên> <mật khẩu> - Tạo phòng chat mới (mật khẩu tùy chọn)\n` +
                                 `📋 /room - Xem danh sách phòng chat hiện có\n` +
                                 `🔑 /join <số> <mật khẩu> - Vào phòng nhanh (mật khẩu nếu có)\n` +
@@ -3334,7 +3374,10 @@
             const isBotMessage = message.user_id === 'bot-system';
             messageDiv.className = `message ${message.user_id === currentUser.id ? 'own' : ''} ${message.deleted ? 'deleted' : ''} ${isBotMessage ? 'bot-message' : ''}`;
             messageDiv.setAttribute('data-message-id', message.id);
-            
+            const parsedMessageContent = parseStoredMessageContent(message.content || '');
+            const isPrivateMessage = parsedMessageContent.isPrivate;
+            messageDiv.setAttribute('data-is-private', isPrivateMessage ? 'true' : 'false');
+
             // Thêm data-reply-to để tracking tin nhắn reply
             if (message.reply_to) {
                 messageDiv.setAttribute('data-reply-to', message.reply_to);
@@ -3353,7 +3396,7 @@
                     ${message.delete_reason ? `<div class="delete-reason">Lý do: ${escapeHtml(message.delete_reason)}</div>` : ''}
                 `;
             } else {
-                contentHtml = message.content ? escapeHtml(message.content) : '';
+                contentHtml = parsedMessageContent.text || '';
             }
 
             // Add image/video/audio if exists
@@ -3425,6 +3468,10 @@
                 }
             }
 
+            const textHtml = message.deleted ? '' : buildMessageTextHtml(contentHtml, isPrivateMessage, !!mediaHtml);
+            const replyPreviewContent = getReplyPreviewFromContent(message.reply_to_content || '');
+            const editContent = parsedMessageContent.text || '';
+
             messageDiv.innerHTML = `
                 <div class="message-header">
                     <span class="message-sender">${escapeHtml(message.username)}</span>
@@ -3433,12 +3480,12 @@
                 ${message.reply_to ? `
                     <div class="replied-message">
                         <span class="replied-user">${escapeHtml(message.reply_to_username || 'User')}:</span>
-                        <span class="replied-content">${escapeHtml(message.reply_to_content || '')}</span>
+                        <span class="replied-content">${escapeHtml(replyPreviewContent || '')}</span>
                     </div>
                 ` : ''}
                 <div class="message-content ${message.deleted ? 'deleted-content' : ''}">
                     ${message.deleted ? contentHtml : `
-                        ${contentHtml ? `<div class="message-text" style="white-space: pre-line; margin-bottom: ${mediaHtml ? '0.5rem' : '0'};">${contentHtml}</div>` : ''}
+                        ${textHtml}
                         ${mediaHtml}
                     `}
                     ${!message.deleted && !isBotMessage ? `
@@ -3452,7 +3499,7 @@
                     ` : ''}
                 </div>
                 ${!message.deleted && !isBotMessage ? `
-                    <textarea class="edit-input" id="edit-input-${message.id}">${escapeHtml(message.content || '')}</textarea>
+                    <textarea class="edit-input" id="edit-input-${message.id}">${escapeHtml(editContent)}</textarea>
                     <div class="edit-actions">
                         <button onclick="saveEdit(${message.id})"><i class="fas fa-check"></i> Lưu</button>
                         <button onclick="cancelEdit(${message.id})"><i class="fas fa-times"></i> Hủy</button>
@@ -3547,7 +3594,7 @@
         // Update kick user list
         function updateKickUserList(presenceState) {
             const select = document.getElementById('kickUserSelect');
-            select.innerHTML = '<option value="">-- Chọn người dùng --</option>';
+            select.innerHTML = '<option value="">-- 사용자를 선택하세요 --</option>';
 
             Object.values(presenceState).forEach(presences => {
                 presences.forEach(presence => {
@@ -3652,7 +3699,7 @@
                 if (!kicks || kicks.length === 0) {
                     container.innerHTML = `
                         <div style="text-align: center; color: var(--text-dim); padding: 1rem;">
-                            Không có người dùng nào bị kick
+                            강퇴된 사용자는 없었습니다.
                         </div>
                     `;
                     return;
@@ -3856,7 +3903,7 @@
                         const userDiv = document.createElement('div');
                         userDiv.className = 'online-user-item';
 
-                        const roomName = presence.room_name || 'Chính';
+                        const roomName = presence.room_name || '기본';
 
                         userDiv.innerHTML = `
                             <div class="online-user-indicator"></div>
@@ -4280,20 +4327,20 @@
             const popup = document.createElement('div');
             popup.className = 'kick-popup';
             popup.innerHTML = `
-                <h2><i class="fas fa-exclamation-triangle"></i> BẠN ĐÃ BỊ KICK!</h2>
+                <h2><i class="fas fa-exclamation-triangle"></i> 너는 발로 차였어!</h2>
                 <div class="kick-info">
-                    <strong>Bị kick bởi:</strong> ${escapeHtml(kickedBy)}
+                    <strong>발로 차였다:</strong> ${escapeHtml(kickedBy)}
                 </div>
                 <div class="kick-reason">
-                    <strong>Lý do:</strong><br>
+                    <strong>이유:</strong><br>
                     ${escapeHtml(reason)}
                 </div>
                 <div class="kick-action" style="margin-top: 2rem; text-align: center;">
                     <p style="color: var(--warning); margin-bottom: 1rem;">
-                        <i class="fas fa-info-circle"></i> Bạn cần đăng xuất để tiếp tục sử dụng
+                        <i class="fas fa-info-circle"></i> 계속 사용하려면 로그아웃해야 합니다.
                     </p>
                     <button onclick="handleLogout()" style="width: auto; padding: 1rem 2rem; margin: 0 auto; display: inline-block; background: var(--danger); border-color: var(--danger);">
-                        <span><i class="fas fa-sign-out-alt"></i> Đăng xuất ngay</span>
+                        <span><i class="fas fa-sign-out-alt"></i> 로그아웃</span>
                     </button>
                 </div>
             `;
@@ -4344,6 +4391,134 @@
             return text.replace(/[&<>"']/g, m => map[m]);
         }
 
+        const PRIVATE_MESSAGE_PREFIX = '__chatv2_private__:';
+
+        function parsePrivateCommand(content) {
+            const trimmed = (content || '').trim();
+            const lower = trimmed.toLowerCase();
+
+            if (lower === '/p' || lower === '/private') {
+                return {
+                    isPrivateCommand: true,
+                    hasMessage: false,
+                    privateText: ''
+                };
+            }
+
+            if (lower.startsWith('/p ')) {
+                const privateText = trimmed.slice(3).trim();
+                return {
+                    isPrivateCommand: true,
+                    hasMessage: privateText.length > 0,
+                    privateText
+                };
+            }
+
+            if (lower.startsWith('/private ')) {
+                const privateText = trimmed.slice(9).trim();
+                return {
+                    isPrivateCommand: true,
+                    hasMessage: privateText.length > 0,
+                    privateText
+                };
+            }
+
+            return {
+                isPrivateCommand: false,
+                hasMessage: false,
+                privateText: ''
+            };
+        }
+
+        function toBase64Utf8(text) {
+            return btoa(unescape(encodeURIComponent(text)));
+        }
+
+        function fromBase64Utf8(base64Text) {
+            return decodeURIComponent(escape(atob(base64Text)));
+        }
+
+        function encodePrivateContent(plainText) {
+            try {
+                return `${PRIVATE_MESSAGE_PREFIX}${toBase64Utf8(plainText || '')}`;
+            } catch (error) {
+                return `${PRIVATE_MESSAGE_PREFIX}${btoa(plainText || '')}`;
+            }
+        }
+
+        function parseStoredMessageContent(rawContent) {
+            const content = typeof rawContent === 'string' ? rawContent : '';
+
+            if (!content.startsWith(PRIVATE_MESSAGE_PREFIX)) {
+                return {
+                    isPrivate: false,
+                    text: content
+                };
+            }
+
+            const encodedContent = content.slice(PRIVATE_MESSAGE_PREFIX.length);
+
+            try {
+                return {
+                    isPrivate: true,
+                    text: fromBase64Utf8(encodedContent)
+                };
+            } catch (error) {
+                try {
+                    return {
+                        isPrivate: true,
+                        text: atob(encodedContent)
+                    };
+                } catch (decodeError) {
+                    return {
+                        isPrivate: true,
+                        text: '[Tin nhắn bí mật bị lỗi]'
+                    };
+                }
+            }
+        }
+
+        function getReplyPreviewFromContent(rawContent) {
+            const parsed = parseStoredMessageContent(rawContent || '');
+            return parsed.isPrivate ? '[Tin nhắn bí mật]' : parsed.text;
+        }
+
+        function buildMessageTextHtml(text, isPrivate, hasMedia = false) {
+            if (!text && !isPrivate) return '';
+
+            const marginBottom = hasMedia ? '0.5rem' : '0';
+
+            if (isPrivate) {
+                return `
+                    <button type="button"
+                        class="message-text private-message-toggle"
+                        style="white-space: pre-line; margin-bottom: ${marginBottom};"
+                        data-private-content="${escapeHtml(text || '')}"
+                        data-revealed="false"
+                        onclick="togglePrivateMessage(this)">
+                        🔒 Tin nhắn bí mật - nhấn để xem
+                    </button>
+                `;
+            }
+
+            return `<div class="message-text" style="white-space: pre-line; margin-bottom: ${marginBottom};">${escapeHtml(text || '')}</div>`;
+        }
+
+        function togglePrivateMessage(button) {
+            if (!button) return;
+
+            const isRevealed = button.getAttribute('data-revealed') === 'true';
+            if (isRevealed) {
+                button.textContent = '🔒 Tin nhắn bí mật - nhấn để xem';
+                button.setAttribute('data-revealed', 'false');
+                button.classList.remove('revealed');
+            } else {
+                button.textContent = button.getAttribute('data-private-content') || '';
+                button.setAttribute('data-revealed', 'true');
+                button.classList.add('revealed');
+            }
+        }
+
         function showError(message, isError = true) {
             const errorDiv = document.getElementById('errorMessage');
             errorDiv.textContent = message;
@@ -4387,7 +4562,7 @@
 
                 const roomsList = document.getElementById('roomsList');
                 if (!rooms || rooms.length === 0) {
-                    roomsList.innerHTML = '<p style="color: var(--text-dim); padding: 1rem; text-align: center;">Chưa có phòng nào. Hãy tạo phòng đầu tiên!</p>';
+                    roomsList.innerHTML = '<p style="color: var(--text-dim); padding: 1rem; text-align: center;">아직 방이 없습니다. 첫 번째 방을 만들어 주세요!</p>';
                     return;
                 }
 
@@ -4400,7 +4575,7 @@
                             <div onclick="selectRoom('${room.id}', ${room.password ? 'true' : 'false'})" style="flex: 1; cursor: pointer;">
                                 <div>
                                     <strong>${escapeHtml(room.name)}</strong>
-                                    <div style="font-size: 0.85rem; color: var(--text-dim);">Tạo bởi: ${escapeHtml(room.created_by)}</div>
+                                    <div style="font-size: 0.85rem; color: var(--text-dim);">창조: ${escapeHtml(room.created_by)}</div>
                                 </div>
                             </div>
                             <div style="display: flex; align-items: center; gap: 0.5rem;">
@@ -4663,7 +4838,7 @@
             // Create room button
             const roomBtn = document.createElement('button');
             roomBtn.className = 'admin-control-btn';
-            roomBtn.innerHTML = '<i class="fas fa-door-open"></i> Phòng Chat';
+            roomBtn.innerHTML = '<i class="fas fa-door-open"></i> 채팅방';
             roomBtn.onclick = showRoomModal;
             roomBtn.style.display = 'inline-block';
             roomBtn.style.marginLeft = '1rem';
@@ -4671,7 +4846,7 @@
             // Create "Back to main" button
             const backBtn = document.createElement('button');
             backBtn.className = 'admin-control-btn';
-            backBtn.innerHTML = '<i class="fas fa-home"></i> Phòng Chính';
+            backBtn.innerHTML = '<i class="fas fa-home"></i> 메인룸';
             backBtn.onclick = backToMainRoom;
             backBtn.style.display = 'inline-block';
             backBtn.style.marginLeft = '0.5rem';
@@ -4689,7 +4864,7 @@
                 // and automatically go back to main chat
                 window.location.reload();
             } catch (error) {
-                showError('Lỗi khi quay về phòng chính');
+                showError('메인룸으로 돌아가는 중 오류가 발생했습니다');
             }
         }
 
@@ -4722,15 +4897,20 @@
         function replyToFromButton(messageId) {
             const messageDiv = document.querySelector(`[data-message-id="${messageId}"]`);
             if (!messageDiv) return;
-            
+
             // Lấy username từ header
             const usernameEl = messageDiv.querySelector('.message-sender');
             const username = usernameEl ? usernameEl.textContent : 'User';
-            
+
+            if (messageDiv.getAttribute('data-is-private') === 'true') {
+                replyTo(messageId, username, '[Tin nhắn bí mật]');
+                return;
+            }
+
             // Lấy content hiện tại từ DOM (đã được cập nhật nếu có chỉnh sửa)
             const contentDiv = messageDiv.querySelector('.message-content');
             let content = '';
-            
+
             if (contentDiv) {
                 // Lấy text từ .message-text nếu có (khi có ảnh)
                 const textDiv = contentDiv.querySelector('.message-text');
@@ -4772,8 +4952,11 @@
         async function saveEdit(messageId) {
             const editInput = document.getElementById(`edit-input-${messageId}`);
             if (!editInput) return;
-            
+
             const newContent = editInput.value.trim();
+            const messageDiv = document.querySelector(`[data-message-id="${messageId}"]`);
+            const isPrivateMessage = messageDiv && messageDiv.getAttribute('data-is-private') === 'true';
+            const contentToSave = isPrivateMessage ? encodePrivateContent(newContent) : newContent;
 
             if (!newContent) {
                 showError('Tin nhắn không được để trống!');
@@ -4783,8 +4966,8 @@
             try {
                 const { data, error } = await supabaseClient
                     .from('messages')
-                    .update({ 
-                        content: newContent,
+                    .update({
+                        content: contentToSave,
                         edited: true,
                         edited_at: new Date().toISOString()
                     })
@@ -4795,7 +4978,7 @@
                 if (error) throw error;
 
                 // CẬP NHẬT UI NGAY LẬP TỨC
-                updateMessageDisplayAfterEdit(messageId, newContent);
+                updateMessageDisplayAfterEdit(messageId, contentToSave);
 
                 cancelEdit(messageId);
                 showError('Đã cập nhật tin nhắn!', false);
@@ -4809,38 +4992,40 @@
             const messageDiv = document.querySelector(`[data-message-id="${messageId}"]`);
             if (!messageDiv) return;
 
-            // Update content
+            const parsedContent = parseStoredMessageContent(newContent || '');
+            const isPrivateMessage = parsedContent.isPrivate;
+            const displayText = parsedContent.text || '';
+            messageDiv.setAttribute('data-is-private', isPrivateMessage ? 'true' : 'false');
+
             const contentDiv = messageDiv.querySelector('.message-content');
             if (contentDiv) {
-                // Kiểm tra xem có ảnh không
-                const existingImage = contentDiv.querySelector('.message-image');
-                
-                if (existingImage) {
-                    // Nếu có ảnh, giữ nguyên ảnh và chỉ cập nhật text
-                    // Tìm và xóa div .message-text cũ (nếu có)
-                    const oldTextDiv = contentDiv.querySelector('.message-text');
-                    if (oldTextDiv) {
-                        oldTextDiv.remove();
-                    }
-                    
-                    // Tạo div .message-text mới và thêm vào trước ảnh
-                    if (newContent) {
-                        const newTextDiv = document.createElement('div');
-                        newTextDiv.className = 'message-text';
-                        newTextDiv.style.cssText = 'white-space: pre-line; margin-bottom: 0.5rem;';
-                        newTextDiv.textContent = newContent;
-                        contentDiv.insertBefore(newTextDiv, existingImage);
-                    }
-                } else {
-                    // Nếu không có ảnh, tìm và cập nhật .message-text
-                    const textDiv = contentDiv.querySelector('.message-text');
-                    if (textDiv) {
-                        textDiv.textContent = newContent;
-                    } else {
-                        // Fallback nếu không tìm thấy structure
-                        contentDiv.textContent = newContent;
+                const oldTextNode = contentDiv.querySelector('.message-text');
+                if (oldTextNode) {
+                    oldTextNode.remove();
+                }
+
+                const mediaNode = contentDiv.querySelector('.message-image, .message-video, .message-audio, .message-file');
+                const reactionPicker = contentDiv.querySelector('.reaction-picker');
+                const insertBeforeTarget = mediaNode || reactionPicker || null;
+                const textHtml = buildMessageTextHtml(displayText, isPrivateMessage, !!mediaNode);
+
+                if (textHtml) {
+                    const wrapper = document.createElement('div');
+                    wrapper.innerHTML = textHtml.trim();
+                    const textNode = wrapper.firstElementChild;
+                    if (textNode) {
+                        if (insertBeforeTarget) {
+                            contentDiv.insertBefore(textNode, insertBeforeTarget);
+                        } else {
+                            contentDiv.prepend(textNode);
+                        }
                     }
                 }
+            }
+
+            const editInput = document.getElementById(`edit-input-${messageId}`);
+            if (editInput) {
+                editInput.value = displayText;
             }
 
             // Add/update edited indicator
@@ -4885,7 +5070,7 @@
                         // Cập nhật nội dung reply preview
                         const replyContent = replyDiv.querySelector('.replied-content');
                         if (replyContent) {
-                            replyContent.textContent = newContent;
+                            replyContent.textContent = getReplyPreviewFromContent(newContent);
                         }
                     }
                 }
