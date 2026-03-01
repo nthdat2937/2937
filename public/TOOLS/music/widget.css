@@ -665,7 +665,7 @@
   box-shadow: -8px 0 32px rgba(0, 0, 0, 0.3);
   transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
-  z-index: 9;
+  z-index: 30;
 }
 
 .playlist-menu.show {

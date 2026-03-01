@@ -245,6 +245,30 @@ let currentVideoIndex = 0;
 // Biến global cho NCT Music
 let otherNctSongsData = [];
 
+const LYRIC_EMBED_DESKTOP_WIDTH = 1280;
+const LYRIC_EMBED_DESKTOP_HEIGHT = 720;
+
+function updateLyricEmbedScale() {
+  const lyricDialog = document.getElementById('lyricDialog');
+  const viewport = document.querySelector('#dLyricEmbed .lyric-embed-viewport');
+  const stage = document.querySelector('#dLyricEmbed .lyric-embed-stage');
+
+  if (!lyricDialog || !lyricDialog.classList.contains('lyric-embed-active') || !viewport || !stage) {
+    return;
+  }
+
+  const availableWidth = viewport.clientWidth;
+  const availableHeight = viewport.clientHeight;
+  if (!availableWidth || !availableHeight) return;
+
+  const scale = Math.min(
+    availableWidth / LYRIC_EMBED_DESKTOP_WIDTH,
+    availableHeight / LYRIC_EMBED_DESKTOP_HEIGHT
+  );
+
+  stage.style.transform = `scale(${scale})`;
+}
+
 // Function đóng NCT Music Dialog
 function closeNctMusicDialog() {
   const nctDialog = document.getElementById('nctMusicDialog');
@@ -1145,7 +1169,36 @@ async function audioVisual() {
       .toLowerCase();                   // chuyển về chữ thường
   }
 
-  const songName = normalizeString(document.getElementById("dTitle").textContent)
+  const songName = normalizeString(document.getElementById("dTitle").textContent);
+  const targetUrl = `https://2937.vercel.app/TOOLS/music/index.html?data=${songName}`;
+  const lyricText = document.getElementById('dLyric');
+  const lyricEmbed = document.getElementById('dLyricEmbed');
+  const lyricDialog = document.getElementById('lyricDialog');
 
-  window.location.href = `https://2937.vercel.app/TOOLS/music/index.html?data=${songName}`
+  if (!lyricText || !lyricEmbed) {
+    window.location.href = targetUrl;
+    return;
+  }
+
+  if (lyricDialog) {
+    lyricDialog.classList.add('lyric-embed-active');
+  }
+  lyricText.style.display = 'none';
+  lyricEmbed.style.display = 'block';
+  lyricEmbed.innerHTML = `
+    <div class="lyric-embed-viewport">
+      <div class="lyric-embed-stage">
+        <iframe
+          src="${targetUrl}"
+          title="Audio Visual"
+          loading="lazy"
+          allow="autoplay; encrypted-media; picture-in-picture"
+          referrerpolicy="strict-origin-when-cross-origin"
+        ></iframe>
+      </div>
+    </div>
+  `;
+  requestAnimationFrame(updateLyricEmbedScale);
 }
+
+window.addEventListener('resize', updateLyricEmbedScale);

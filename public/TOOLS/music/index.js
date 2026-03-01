@@ -100,6 +100,7 @@ window.onload = function () {
 
   // Kiểm tra tham số 'data' trong URL
   const songId = getUrlParameter('data');
+  const isSingleSongMode = Boolean(songId);
   let i = 0; // Index mặc định
 
   if (songId) {
@@ -127,10 +128,10 @@ window.onload = function () {
   av = new AudioVisual();
 
   // Biến quản lý chế độ lặp: 'none', 'all', 'one'
-  let loopMode = localStorage.getItem('loopMode') || 'none';
+  let loopMode = isSingleSongMode ? 'none' : (localStorage.getItem('loopMode') || 'none');
 
   // Biến quản lý chế độ shuffle
-  let shuffleMode = localStorage.getItem('shuffleMode') === 'true';
+  let shuffleMode = isSingleSongMode ? false : localStorage.getItem('shuffleMode') === 'true';
   let playHistory = []; // Lịch sử các bài đã phát khi shuffle
 
   // Hàm xử lý khi bài hát kết thúc
@@ -170,6 +171,8 @@ window.onload = function () {
 
   // Phát bài trước
   function playPrev() {
+    if (isSingleSongMode) return;
+
     if (shuffleMode && playHistory.length > 0) {
       // Nếu đang shuffle và có lịch sử, phát bài trước đó
       i = playHistory.pop();
@@ -184,6 +187,8 @@ window.onload = function () {
 
   // Phát bài tiếp theo
   function playNext() {
+    if (isSingleSongMode) return;
+
     if (shuffleMode) {
       // Chế độ shuffle
       playHistory.push(i); // Lưu bài hiện tại vào lịch sử
@@ -239,13 +244,25 @@ window.onload = function () {
   const playlistContent = document.getElementById('playlistContent');
   const cardWrap = document.querySelector('.card-wrap');
 
+  function applySingleSongMode() {
+    if (!isSingleSongMode) return;
+
+    document.body.classList.add('single-song-mode');
+    playlistMenu.classList.remove('show');
+    playlistToggle.classList.remove('active');
+    cardWrap.classList.remove('playlist-open');
+    playlistContent.innerHTML = '';
+  }
+
   // Toggle playlist menu
-  playlistToggle.addEventListener('click', () => {
-    playlistMenu.classList.toggle('show');
-    playlistToggle.classList.toggle('active');
-    // Toggle class cho card-wrap để thu nhỏ
-    cardWrap.classList.toggle('playlist-open');
-  });
+  if (!isSingleSongMode) {
+    playlistToggle.addEventListener('click', () => {
+      playlistMenu.classList.toggle('show');
+      playlistToggle.classList.toggle('active');
+      // Toggle class cho card-wrap để thu nhỏ
+      cardWrap.classList.toggle('playlist-open');
+    });
+  }
 
   // Xử lý nút loop
   const loopBtn = document.getElementById('loopBtn');
@@ -269,24 +286,26 @@ window.onload = function () {
   updateLoopButton();
 
   // Xử lý click nút loop
-  loopBtn.addEventListener('click', () => {
-    // Chuyển đổi giữa 3 chế độ: none -> all -> one -> none
-    if (loopMode === 'none') {
-      loopMode = 'all';
-    } else if (loopMode === 'all') {
-      loopMode = 'one';
-    } else {
-      loopMode = 'none';
-    }
+  if (!isSingleSongMode) {
+    loopBtn.addEventListener('click', () => {
+      // Chuyển đổi giữa 3 chế độ: none -> all -> one -> none
+      if (loopMode === 'none') {
+        loopMode = 'all';
+      } else if (loopMode === 'all') {
+        loopMode = 'one';
+      } else {
+        loopMode = 'none';
+      }
 
-    // Lưu vào localStorage
-    localStorage.setItem('loopMode', loopMode);
+      // Lưu vào localStorage
+      localStorage.setItem('loopMode', loopMode);
 
-    // Cập nhật UI
-    updateLoopButton();
+      // Cập nhật UI
+      updateLoopButton();
 
-    console.log('Chế độ lặp:', loopMode);
-  });
+      console.log('Chế độ lặp:', loopMode);
+    });
+  }
 
   // Xử lý nút shuffle
   const shuffleBtn = document.getElementById('shuffleBtn');
@@ -306,20 +325,22 @@ window.onload = function () {
   updateShuffleButton();
 
   // Xử lý click nút shuffle
-  shuffleBtn.addEventListener('click', () => {
-    shuffleMode = !shuffleMode;
+  if (!isSingleSongMode) {
+    shuffleBtn.addEventListener('click', () => {
+      shuffleMode = !shuffleMode;
 
-    // Lưu vào localStorage
-    localStorage.setItem('shuffleMode', shuffleMode);
+      // Lưu vào localStorage
+      localStorage.setItem('shuffleMode', shuffleMode);
 
-    // Reset lịch sử khi bật/tắt shuffle
-    playHistory = [];
+      // Reset lịch sử khi bật/tắt shuffle
+      playHistory = [];
 
-    // Cập nhật UI
-    updateShuffleButton();
+      // Cập nhật UI
+      updateShuffleButton();
 
-    console.log('Chế độ shuffle:', shuffleMode);
-  });
+      console.log('Chế độ shuffle:', shuffleMode);
+    });
+  }
 
   // Tạo danh sách phát
   function createPlaylist() {
@@ -378,7 +399,11 @@ window.onload = function () {
   }
 
   // Khởi tạo playlist
-  createPlaylist();
+  if (!isSingleSongMode) {
+    createPlaylist();
+  }
+
+  applySingleSongMode();
 
   // Dự phòng sử dụng HTML5 Audio
   const audioFallback = document.createElement('audio');
@@ -404,7 +429,7 @@ window.onload = function () {
     }
 
     // Shift - Toggle danh sách phát
-    if (e.key === 'Shift') {
+    if (!isSingleSongMode && e.key === 'Shift') {
       e.preventDefault();
       playlistMenu.classList.toggle('show');
       playlistToggle.classList.toggle('active');
@@ -414,13 +439,13 @@ window.onload = function () {
     }
 
     // Ctrl + mũi tên trái/phải để chuyển bài
-    if (e.ctrlKey && e.key === 'ArrowLeft') {
+    if (!isSingleSongMode && e.ctrlKey && e.key === 'ArrowLeft') {
       console.log('Emit: prev');
       eventBus.emit('prev');
       return;
     }
 
-    if (e.ctrlKey && e.key === 'ArrowRight') {
+    if (!isSingleSongMode && e.ctrlKey && e.key === 'ArrowRight') {
       console.log('Emit: next');
       eventBus.emit('next');
       return;

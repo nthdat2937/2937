@@ -277,12 +277,19 @@ window.showLyric = id => {
   
   
   requestAnimationFrame(() => {
+    lyricDialog.classList.remove('lyric-embed-active');
     dTitle.textContent = updates.title;
     dArtist.textContent = updates.artist;
     dDate.textContent = updates.date;
     dAlbum.textContent = updates.albumText;
     dAddedBy.textContent = updates.addedByText;
     dLyric.innerHTML = updates.lyric;
+    dLyric.style.display = 'block';
+    const lyricEmbed = document.getElementById('dLyricEmbed');
+    if (lyricEmbed) {
+      lyricEmbed.innerHTML = '';
+      lyricEmbed.style.display = 'none';
+    }
     dAvatar.src = updates.avatarSrc || '';
     dAvatar.style.display = updates.avatarDisplay;
     
@@ -386,6 +393,16 @@ window.deleteSong = async id => {
 lyricDialog.addEventListener('click', (e) => {
   if (e.target === lyricDialog) {
     lyricDialog.close()
+  }
+});
+
+lyricDialog.addEventListener('close', () => {
+  lyricDialog.classList.remove('lyric-embed-active');
+  dLyric.style.display = 'block';
+  const lyricEmbed = document.getElementById('dLyricEmbed');
+  if (lyricEmbed) {
+    lyricEmbed.innerHTML = '';
+    lyricEmbed.style.display = 'none';
   }
 });
 
