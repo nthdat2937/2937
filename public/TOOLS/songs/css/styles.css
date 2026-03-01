@@ -248,6 +248,20 @@ header > div:first-child > span:first-child {
   border-radius: 14px;
 }
 
+.btn-language {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 78px;
+  justify-content: center;
+}
+
+.language-code {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 1px;
+}
+
 .btncl:nth-child(1) {
   background: linear-gradient(135deg, #3b82f6, #1d4ed8);
   box-shadow: 0 4px 20px rgba(59, 130, 246, 0.35);
@@ -1796,77 +1810,20 @@ select:focus {
   background-clip: text;
 }
 
-.sidebar-item:nth-child(1) i {
-  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
+.sidebar-item:nth-child(2) i {background: blue;-webkit-background-clip: text;-webkit-text-fill-color: transparent;}
+.sidebar-item:nth-child(3) i {background: green;-webkit-background-clip: text;-webkit-text-fill-color: transparent;}
+.sidebar-item:nth-child(5) i {background: red;-webkit-background-clip: text;-webkit-text-fill-color: transparent;}
+.sidebar-item:nth-child(6) i {background: purple;-webkit-background-clip: text;-webkit-text-fill-color: transparent;}
+.sidebar-item:nth-child(7) i {background: blue;-webkit-background-clip: text;-webkit-text-fill-color: transparent;}
+.sidebar-item:nth-child(8) i {background: gray;-webkit-background-clip: text;-webkit-text-fill-color: transparent;}
+.sidebar-item:nth-child(9) i {background: rgb(198, 198, 198);-webkit-background-clip: text;-webkit-text-fill-color: transparent;}
+.sidebar-item:nth-child(10) i {background: violet;-webkit-background-clip: text;-webkit-text-fill-color: transparent;}
+.sidebar-item:nth-child(12) i {background: lightblue;-webkit-background-clip: text;-webkit-text-fill-color: transparent;}
+.sidebar-item:nth-child(14) i {background: red;-webkit-background-clip: text;-webkit-text-fill-color: transparent;}
+.sidebar-item:nth-child(15) i {background: blue;-webkit-background-clip: text;-webkit-text-fill-color: transparent;}
+.sidebar-item:nth-child(17) i {background: green;-webkit-background-clip: text;-webkit-text-fill-color: transparent;}
+.sidebar-item:nth-child(18) i {background: orange;-webkit-background-clip: text;-webkit-text-fill-color: transparent;}
 
-.sidebar-item:nth-child(2) i {
-  background: linear-gradient(135deg, #10b981, #059669);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.sidebar-item:nth-child(3) i {
-  background: red;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.sidebar-item:nth-child(4) i {
-  background: linear-gradient(135deg, #f43f5e, #e11d48);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.sidebar-item:nth-child(5) i {
-  background: linear-gradient(135deg, #f59e0b, #d97706);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.sidebar-item:nth-child(6) i {
-  background: gray;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.sidebar-item:nth-child(7) i {
-  /* background: gray; */
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.sidebar-item:nth-child(8) i {
-  background: pink;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.sidebar-item:nth-child(9) i {
-  background: yellow;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.sidebar-item:nth-child(11) i {
-  background: var(--accent-pink);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.sidebar-item:nth-child(12) i {
-  background: lightgreen;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.sidebar-item:nth-child(13) i {
-  background: gray;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
 
 .sidebar-item span {
   flex: 1;
@@ -2761,6 +2718,15 @@ body.no-glow .motLyric:hover {
 }
 
 @media screen and (max-width: 480px) {
+  .btn-language {
+    min-width: 64px;
+    padding: 12px;
+  }
+
+  .btn-language .language-code {
+    display: none;
+  }
+
   .settings-section {
     padding: 16px;
   }

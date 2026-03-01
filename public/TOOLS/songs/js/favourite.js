@@ -7,6 +7,13 @@ let userFavourites = [];
 window.userFavourites = [];
 window.currentSongId = null;
 
+function tr(key, variables = {}) {
+  if (window.getTranslatedText) {
+    return window.getTranslatedText(key, variables);
+  }
+  return key;
+}
+
 // Load favourites từ database
 async function loadUserFavourites() {
   if (!window.currentUser) {
@@ -207,9 +214,9 @@ window.openFavouriteDialog = async function() {
           <button 
             class="btn-remove-favourite" 
             onclick="event.stopPropagation(); toggleFavourite(${song.Id})"
-            title="Xóa khỏi yêu thích"
+            title="${tr('deleteTitle')}"
           >
-            <i class="fa-solid fa-heart-crack"></i> Xóa
+            <i class="fa-solid fa-heart-crack"></i> ${tr('deleteTitle')}
           </button>
         </div>
       </div>
@@ -223,5 +230,11 @@ window.openFavouriteDialog = async function() {
 favouriteDialog.addEventListener('click', (e) => {
   if (e.target === favouriteDialog) {
     favouriteDialog.close();
+  }
+});
+
+document.addEventListener('app-languagechange', () => {
+  if (favouriteDialog.open) {
+    openFavouriteDialog();
   }
 });

@@ -177,9 +177,25 @@ const UPDATE_COLORS = {
   important: "#f59e0b"
 };
 
+function tr(key, variables = {}) {
+  if (window.getTranslatedText) {
+    return window.getTranslatedText(key, variables);
+  }
+  return key;
+}
+
+function getLocale() {
+  if (window.getCurrentLanguageLocale) {
+    return window.getCurrentLanguageLocale();
+  }
+  return 'vi-VN';
+}
+
 
 function createUpdateBanner() {
   if (UPDATES.length === 0) return;
+  const existingBanner = document.getElementById('updateBanner');
+  if (existingBanner) existingBanner.remove();
   
   const latestUpdate = UPDATES[0];
   const icon = UPDATE_ICONS[latestUpdate.type] || "📢";
@@ -240,7 +256,7 @@ function createUpdateBanner() {
       font-size: 13px;
       transition: all 0.3s;
       white-space: nowrap;
-    ">Xem tất cả</button>
+    ">${tr('viewAllUpdates')}</button>
     <button id="closeBanner" style="
       background: rgba(255, 255, 255, 0.08);
       border: 1px solid var(--glass-border);
@@ -318,6 +334,10 @@ function createUpdateBanner() {
         padding: 6px 12px !important;
       }
     }
+
+    #updateBanner {
+        display: none !important;
+    }
   `;
   document.head.appendChild(style);
   
@@ -387,7 +407,7 @@ function openUpdatesDialog() {
             letter-spacing: 0.5px;
           ">v${update.version}</span>
           <span style="color: var(--text-muted); font-size: 13px;">${formatDate(update.date)}</span>
-          ${index === 0 ? '<span style="margin-left: auto; background: linear-gradient(135deg, var(--accent-primary), var(--accent-pink)); color: white; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700;">MỚI NHẤT</span>' : ''}
+          ${index === 0 ? `<span style="margin-left: auto; background: linear-gradient(135deg, var(--accent-primary), var(--accent-pink)); color: white; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700;">${tr('newestLabel')}</span>` : ''}
         </div>
         <h3 style="
           font-size: 18px;
@@ -436,7 +456,7 @@ function openUpdatesDialog() {
       padding: 28px 32px 20px 32px;
       margin: 0;
       border-bottom: 1px solid var(--border-color);
-    "><i class="fa-regular fa-note-sticky"></i> Lịch sử cập nhật</h2>
+    "><i class="fa-regular fa-note-sticky"></i> ${tr('updateHistoryTitle')}</h2>
     
     <div style="
       padding: 24px 32px 32px 32px;
@@ -461,11 +481,11 @@ function formatDate(dateString) {
   const diffTime = today - date;
   const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
   
-  if (diffDays === 0) return "Hôm nay";
-  if (diffDays === 1) return "Hôm qua";
-  if (diffDays < 7) return `${diffDays} ngày trước`;
+  if (diffDays === 0) return tr('today');
+  if (diffDays === 1) return tr('yesterday');
+  if (diffDays < 7) return tr('daysAgo', { count: String(diffDays) });
   
-  return date.toLocaleDateString('vi-VN', { 
+  return date.toLocaleDateString(getLocale(), {
     year: 'numeric', 
     month: '2-digit', 
     day: '2-digit' 
@@ -504,7 +524,7 @@ if (oldBadge) oldBadge.remove();
 if (!closedVersion || closedVersion !== latestVersion) {
   const badge = document.createElement('span');
   badge.className = 'update-badge';
-  badge.textContent = 'MỚI';
+  badge.textContent = tr('latestBadge');
   badge.style.cssText = `
     position: absolute;
     right: 16px;
@@ -528,3 +548,11 @@ updateUpdatesBadge();
 
 
 window.updateUpdatesBadge = updateUpdatesBadge;
+
+document.addEventListener('app-languagechange', () => {
+  const banner = document.getElementById('updateBanner');
+  if (banner) {
+    createUpdateBanner();
+  }
+  updateUpdatesBadge();
+});

@@ -56,6 +56,39 @@ const list = document.getElementById('list'),
 
 let currentEditId = null;
 
+function tr(key, variables = {}) {
+  if (window.getTranslatedText) {
+    return window.getTranslatedText(key, variables);
+  }
+  return key;
+}
+
+function getCurrentLocale() {
+  if (window.getCurrentLanguageLocale) {
+    return window.getCurrentLanguageLocale();
+  }
+  return 'vi-VN';
+}
+
+function getStreakValueText(count) {
+  const language = window.getCurrentLanguage ? window.getCurrentLanguage() : 'vi';
+  if (language === 'en') {
+    return `${count} ${count === 1 ? 'day' : tr('streakDaySuffix')}`;
+  }
+  return `${count} ${tr('streakDaySuffix')}`;
+}
+
+function buildLyricDialogMeta(song) {
+  return {
+    albumText: `${tr('albumPrefix')}: ${song['album'] || tr('noAlbum')}`,
+    addedByText: song['add_by'] ? `👤 ${tr('addedByPrefix')}: ${song['add_by']}` : ''
+  };
+}
+
+window.alertLyricVolumeWarning = function() {
+  alert(tr('lyricVolumeWarning'));
+};
+
 async function loadSongs() {
   const { data, error } = await supabase.from('songs').select('*').eq('Xác minh', true);
   if (error) {
@@ -136,7 +169,7 @@ function renderSongs(songs) {
   
   list.innerHTML = songs.map(song => {
     const hotLines = (song['Lyric'] || '').split('\n').filter(line => line.includes('--hot')).map(line => line.replace('--hot', '').trim());
-    const hotText = hotLines.length > 0 ? hotLines.join(' | ') : 'Không có';
+    const hotText = hotLines.length > 0 ? hotLines.join(' | ') : tr('noHot');
     const isFavourite = favourites.includes(song.Id.toString());
     
     return `<tr data-song-id="${song.Id}"><td class="song-clickable">${song.avatar?`<img src="${song.avatar}" loading="lazy" alt="avatar" style="width:60px;
@@ -150,10 +183,10 @@ function renderSongs(songs) {
                 font-size:17px">🔥 ${hotText}</span></td>
                 <td><div class="actions-cell">
   ${isAdmin ? `
-    <button class="btn btn-edit" data-action="edit" title="Chỉnh sửa">
+    <button class="btn btn-edit" data-action="edit" title="${tr('editTitle')}">
       <i class="fa-solid fa-pen-to-square"></i>
     </button>
-    <button class="btn btn-delete" data-action="delete" title="Xoá">
+    <button class="btn btn-delete" data-action="delete" title="${tr('deleteTitle')}">
       <i class="fa-solid fa-delete-left"></i>
     </button>
   ` : ''}
@@ -161,11 +194,11 @@ function renderSongs(songs) {
     class="btn btn-favourite ${isFavourite ? 'active' : ''}" 
     data-action="favourite" 
     data-song-id="${song.Id}"
-    title="Yêu thích"
+    title="${tr('favouriteTitle')}"
   >
     <i class="fa-solid fa-heart"></i>
   </button>
-  <button class="btn btn-lyric" data-action="lyric" title="Chi tiết">
+  <button class="btn btn-lyric" data-action="lyric" title="${tr('lyricTitle')}">
     <i class="fa-solid fa-music"></i>
   </button>
 </div></td>
@@ -232,13 +265,12 @@ window.showLyric = id => {
     title: s['Tên'],
     artist: `${s['Ca sĩ']}ㅤ`,
     date: `${s['Ngày phát hành']||''}`,
-    onalbum: `Album: ${s['album']||'Không có'}`,
-    addedBy: s['add_by'] ? `👤 Người thêm: ${s['add_by']}` : '',
+    ...buildLyricDialogMeta(s),
     lyric: (s['Lyric'] || '').split('\n').map(line => {
       const cleanLine = line.replace('--hot', '').trim();
       const hasHot = line.includes('--hot');
       return `<span class="motLyric">${cleanLine}${hasHot?' 🔥':''}</span>`
-    }).join('\n') || '<span>Chưa có lyric</span>',
+    }).join('\n') || `<span>${tr('noLyricsYet')}</span>`,
     avatarSrc: s.avatar,
     avatarDisplay: s.avatar ? 'block' : 'none'
   };
@@ -248,8 +280,8 @@ window.showLyric = id => {
     dTitle.textContent = updates.title;
     dArtist.textContent = updates.artist;
     dDate.textContent = updates.date;
-    dAlbum.textContent = updates.onalbum;
-    dAddedBy.textContent = updates.addedBy;
+    dAlbum.textContent = updates.albumText;
+    dAddedBy.textContent = updates.addedByText;
     dLyric.innerHTML = updates.lyric;
     dAvatar.src = updates.avatarSrc || '';
     dAvatar.style.display = updates.avatarDisplay;
@@ -1352,7 +1384,7 @@ function updateStats(songs) {
         lyricEl.textContent = lines.join('\n');
       }
     } else {
-      lyricEl.textContent = 'Chưa có lời bài hát';
+      lyricEl.textContent = tr('noLyricsYet');
     }
   } else {
     currentmfySong = null;
@@ -1685,26 +1717,27 @@ async function loadStreakCard() {
 
 
 function getStreakTitle(streak) {
-  if (streak < 0) return 'Hack';
-  if (streak === 0) return 'Con gà';
-  if (streak < 7) return 'Noob';
-  if (streak < 30) return 'Beginner';
-  if (streak < 50) return 'Amateur';
-  if (streak < 100) return 'Pro';
-  if (streak < 150) return 'Master';
-  if (streak < 200) return 'Legend';
-  if (streak < 365) return 'Mythical';
-  return 'GOD';
+  if (streak < 0) return tr('streakHack');
+  if (streak === 0) return tr('streakChicken');
+  if (streak < 7) return tr('streakNoob');
+  if (streak < 30) return tr('streakBeginner');
+  if (streak < 50) return tr('streakAmateur');
+  if (streak < 100) return tr('streakPro');
+  if (streak < 150) return tr('streakMaster');
+  if (streak < 200) return tr('streakLegend');
+  if (streak < 365) return tr('streakMythical');
+  return tr('streakGod');
 }
 
 
 function updateStreakCard(streakCount) {
   const streakLabel = document.getElementById('streakLabel');
   const streakValue = document.getElementById('streakValue');
+  window.currentStreakCount = streakCount;
   
   if (streakLabel && streakValue) {
     streakLabel.textContent = getStreakTitle(streakCount);
-    streakValue.textContent = `${streakCount}`;
+    streakValue.textContent = getStreakValueText(streakCount);
   }
 }
 
@@ -1769,12 +1802,15 @@ document.getElementById('btnClearTagFilter').addEventListener('click', () => {
 function initializeArtistFilter() {
   if (!window._songs || window._songs.length === 0) return;
   
-  // Lấy danh sách ca sĩ unique
+  const selectedValue = document.getElementById('artistFilter').value;
   const artists = [...new Set(window._songs.map(song => song['Ca sĩ']))].sort();
   
   const select = document.getElementById('artistFilter');
-  select.innerHTML = '<option value="">-- Tất cả ca sĩ --</option>' +
+  select.innerHTML = `<option value="">${tr('artistAll')}</option>` +
     artists.map(artist => `<option value="${artist}">${artist}</option>`).join('');
+  if (selectedValue && artists.includes(selectedValue)) {
+    select.value = selectedValue;
+  }
 }
 
 document.getElementById('artistFilter').addEventListener('change', applyFilters);
@@ -2131,7 +2167,7 @@ window.openHistoryDialog = async function() {
     // Render danh sách
     listEl.innerHTML = allSongs.map((song, index) => {
       const addedDate = song['Ngày thêm'] 
-        ? new Date(song['Ngày thêm']).toLocaleString('vi-VN', { 
+        ? new Date(song['Ngày thêm']).toLocaleString(getCurrentLocale(), {
             year: 'numeric', 
             month: '2-digit', 
             day: '2-digit',
@@ -2296,6 +2332,22 @@ window.openAlbumDialog = async function() {
     listEl.innerHTML = `<div style="text-align: center; padding: 60px 20px; color: #ef4444;"><p>Có lỗi xảy ra</p></div>`;
   }
 };
+
+document.addEventListener('app-languagechange', () => {
+  if (window._songs) {
+    initializeArtistFilter();
+    applyFilters();
+  }
+  if (lyricDialog.open && window.currentSongId && window._songs) {
+    const song = window._songs.find(item => item.Id === window.currentSongId);
+    if (song) {
+      const meta = buildLyricDialogMeta(song);
+      dAlbum.textContent = meta.albumText;
+      dAddedBy.textContent = meta.addedByText;
+    }
+  }
+  updateStreakCard(window.currentStreakCount || 0);
+});
 
 window.showAlbumSongs = async function(albumName) {
   const { data: songs, error } = await supabase

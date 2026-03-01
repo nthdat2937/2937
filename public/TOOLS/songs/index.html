@@ -30,6 +30,10 @@
       <button class="btn btn-add" onclick="toggleSidebar()" id="btn-menu-guest" title="Menu">
         <i class="fa-solid fa-bars"></i>
       </button>
+      <button class="btn btn-add btn-language" onclick="cycleLanguage()" id="btn-language-guest" title="Đổi ngôn ngữ">
+        <i class="fa-solid fa-language"></i>
+        <span class="language-code">VI</span>
+      </button>
     </div>
     <div id="userInfo" style="display: none; align-items: center; gap: 12px;">
       <span id="userDisplayName" style="font-size: 26px;"></span>
@@ -42,19 +46,23 @@
       <button class="btn btn-add" onclick="toggleSidebar()" id="btn-menu" title="Menu">
         <i class="fa-solid fa-bars"></i>
       </button>
+      <button class="btn btn-add btn-language" onclick="cycleLanguage()" id="btn-language-user" title="Đổi ngôn ngữ">
+        <i class="fa-solid fa-language"></i>
+        <span class="language-code">VI</span>
+      </button>
     </div>
   </header>
 
 <!-- Sidebar Menu -->
 <div id="sidebar" class="sidebar">
   <div class="sidebar-header">
-    <h3>Menu</h3>
+    <h3 id="sidebarTitle">Menu</h3>
     <button class="btn-close-sidebar" onclick="toggleSidebar()">
       <i class="fa-solid fa-xmark"></i>
     </button>
   </div>
   <div class="sidebar-content">
-    Song
+    <div class="sidebar-group-label" id="sidebarSongLabel">Song</div>
     <button class="sidebar-item" id="btn-reload-sc" onclick="location.reload(); toggleSidebar();">
       <i class="fa-solid fa-arrow-rotate-right"></i>
       <span>Làm mới</span>
@@ -63,7 +71,7 @@
       <i class="fa-solid fa-plus"></i>
       <span>Thêm bài hát</span>
     </button>
-    Feature other
+    <div class="sidebar-group-label" id="sidebarFeatureLabel">Feature other</div>
     <button class="sidebar-item" id="btn-youtube-sc" onclick="openYoutubeSearchDialog(); toggleSidebar();">
       <i class="fa-brands fa-youtube"></i>
       <span>Tìm video YouTube</span>
@@ -88,7 +96,7 @@
       <i class="fa-solid fa-compact-disc"></i>
       <span>Danh sách Album</span>
     </button>
-    Social
+    <div class="sidebar-group-label" id="sidebarSocialLabel">Social</div>
     <button class="sidebar-item" id="btn-rank-sc" onclick="openRankingDialog(); toggleSidebar();">
       <i class="fa-solid fa-ranking-star"></i>
       <span>Bảng xếp hạng</span>
@@ -105,7 +113,7 @@
       <i class="fa-solid fa-users"></i>
       <span>Danh sách người dùng</span>
     </button>
-    About
+    <div class="sidebar-group-label" id="sidebarAboutLabel">About</div>
     <button class="sidebar-item" id="btn-guide-sc" onclick="openGuideDialog(); toggleSidebar();">
       <i class="fa-solid fa-circle-info"></i>
       <span>Hướng dẫn sử dụng</span>
@@ -124,13 +132,13 @@
   <div class="tag-filter-container">
     <div class="tag-filter-label">
       <i class="fa-solid fa-filter"></i>
-      <span>Lọc theo tag:</span>
+      <span id="tagFilterLabelText">Lọc theo tag:</span>
     </div>
     <div class="tag-filter-options" id="tagFilterOptions">
       <!-- Tags sẽ được tạo động từ JS -->
     </div>
     <button class="btn-clear-filter" id="btnClearTagFilter" style="display: none;">
-      <i class="fa-solid fa-xmark"></i> Xóa bộ lọc
+      <i class="fa-solid fa-xmark"></i> <span id="btnClearTagFilterText">Xóa bộ lọc</span>
     </button>
   </div>
 </div>
@@ -140,7 +148,7 @@
       <div class="stat-card">
         <div class="stat-icon">🎵</div>
         <div class="stat-content">
-          <div class="stat-label">Tổng số bài hát</div>
+          <div class="stat-label" id="totalSongsLabel">Tổng số bài hát</div>
           <div class="stat-value" id="totalSongs">0</div>
         </div>
       </div>
@@ -157,7 +165,7 @@
       <div class="stat-card mfy-card" id="mfyCard" onclick="showmfyDetail()" style="cursor: pointer;">
         <div class="stat-icon">⭐</div>
         <div class="stat-content">
-          <div class="stat-label">Music for YOU</div>
+          <div class="stat-label" id="mfyLabel">Music for YOU</div>
           <div class="stat-value" id="mfySong">---</div>
           <div class="mfy-lyric" id="mfyLyric"></div>
         </div>
@@ -166,13 +174,13 @@
     <table>
       <thead>
         <tr>
-          <th>Avatar</th>
-          <th>Tên bài hát</th>
-          <th>Ca sĩ</th>
-          <th>Sáng tác</th>
-          <th>Ngày phát hành</th>
-          <th>Hot</th>
-          <th>Thao tác</th>
+          <th id="tableHeaderAvatar">Avatar</th>
+          <th id="tableHeaderSong">Tên bài hát</th>
+          <th id="tableHeaderArtist">Ca sĩ</th>
+          <th id="tableHeaderComposer">Sáng tác</th>
+          <th id="tableHeaderRelease">Ngày phát hành</th>
+          <th id="tableHeaderHot">Hot</th>
+          <th id="tableHeaderActions">Thao tác</th>
         </tr>
       </thead>
       <tbody id="list"></tbody>
@@ -209,12 +217,12 @@
       <div class="lyric-avatar">
         <img id="dAvatar" src="" alt="avatar" style="display: none" />
         <hr width="100%" color="white" style="border: none; height: 1px; margin: 32px 0; background-color: white; opacity: 1;">
-        <div style="font-weight: 700; text-align: center; font-style: italic;">Nghe nhạc</div>
+        <div id="lyricListenLabel" style="font-weight: 700; text-align: center; font-style: italic;">Nghe nhạc</div>
         <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/84/Spotify_icon.svg/250px-Spotify_icon.svg.png" class="iconMXH" onclick="spotifyThismusic()" />
         <img src="https://dangcapdigital.vn/img/app/zingmp3-aszyd.png" class="iconMXH" onclick="zingmp3Thismusic()" />
         <img src="https://upload.wikimedia.org/wikipedia/commons/2/2b/NhacCuaTui_2022logo.png" class="iconMXH" onclick="nctThismusic()" />
 
-        <button onclick="alert('Chú ý âm lượng khi phát nhạc!');openNctMusicDialog()" style="
+        <button id="lyricOpenWebMusicButton" onclick="alertLyricVolumeWarning();openNctMusicDialog()" style="
         width: 90%;
         padding: 12px 24px;
         background: rgb(87, 87, 255);
@@ -229,16 +237,16 @@
         transition: all 0.3s;
       " onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 8px 25px rgba(255,0,0,0.4)'" 
          onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
-        <i class="fa-solid fa-music"></i> Nghe Nhạc Trên Web
+        <i class="fa-solid fa-music"></i> <span id="lyricOpenWebMusicButtonText">Nghe Nhạc Trên Web</span>
       </button>
 
         <hr width="100%" color="white" style="border: none; height: 1px; margin: 32px 0; background-color: white; opacity: 1;">
-        <div style="font-weight: 700; text-align: center; font-style: italic;">Xem MV / Video</div>
+        <div id="lyricVideoLabel" style="font-weight: 700; text-align: center; font-style: italic;">Xem MV / Video</div>
         <img src="https://upload.wikimedia.org/wikipedia/commons/e/ef/Youtube_logo.png" class="iconMXH" onclick="youtubeThismusic()" />
         <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQiXN9xSEe8unzPBEQOeAKXd9Q55efGHGB9BA&s" class="iconMXH" onclick="facebookThismusic()" />
         <img src="https://p16-tiktokcdn-com.akamaized.net/obj/tiktok-obj/32f2ab89bf0d9acee8ff3021890559a7.png" class="iconMXH" onclick="tiktokThismusic()" />
 
-  <button onclick="openYoutubeVideoDialog()" style="
+  <button id="lyricOpenWebVideoButton" onclick="openYoutubeVideoDialog()" style="
     width: 90%;
     padding: 12px 24px;
     background: linear-gradient(135deg, #ff0000, #cc0000);
@@ -253,7 +261,7 @@
     transition: all 0.3s;
   " onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 8px 25px rgba(255,0,0,0.4)'" 
      onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
-    <i class="fa-brands fa-youtube"></i> Xem Video Trên Web
+    <i class="fa-brands fa-youtube"></i> <span id="lyricOpenWebVideoButtonText">Xem Video Trên Web</span>
   </button>
 
       </div>
@@ -261,7 +269,7 @@
         <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 8px;">
           <p id="dArtist" style="margin: 0; flex: 1;"></p>
           <button 
-            id="" 
+            id="btnAudioVisualLyric" 
             onclick="audioVisual()" 
             class="btn-favourite"
             title="Lyric"
@@ -735,7 +743,7 @@
       <span style="font-size:30px">+</span>
     </button>
   
-    <h2>🏆 Bảng xếp hạng đóng góp</h2>
+    <h2 id="rankingDialogTitle">🏆 Bảng xếp hạng đóng góp</h2>
   
     <div style="padding: 24px">
       <ul id="rankingList"></ul>
@@ -748,7 +756,7 @@
     <button class="btn close" onclick="userSongsDialog.close()">
       <span style="font-size: 30px;">+</span>
     </button>
-    <h2 id="userSongsTitle">🎵 Bài hát của <span id="userSongsName"></span></h2>
+    <h2 id="userSongsTitle">🎵 <span id="userSongsTitlePrefix">Bài hát của</span> <span id="userSongsName"></span></h2>
     
     <div style="padding: 24px;">
       <div id="userSongsStats" style="
@@ -773,7 +781,7 @@
       <span style="font-size: 30px;">+</span>
     </button>
     
-    <h2>❤️ Bài Hát Yêu Thích</h2>
+    <h2 id="favouriteDialogTitle">❤️ Bài Hát Yêu Thích</h2>
     
     <div style="padding: 24px 32px 32px 32px;">
       <div id="favouriteStats" style="
@@ -785,7 +793,7 @@
         text-align: center;
         font-weight: 600;
       ">
-        <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 8px;">
+        <div id="favouriteStatsLabel" style="font-size: 14px; color: var(--text-secondary); margin-bottom: 8px;">
           Tổng số bài yêu thích
         </div>
         <div id="favouriteCount" style="font-size: 32px; font-weight: 800; color: #ef4444;">
@@ -802,7 +810,7 @@
     <button class="btn close" onclick="guideDialog.close()">
       <span style="font-size: 30px;">+</span>
     </button>
-    <h2>📖 Hướng dẫn sử dụng</h2>
+    <h2 id="guideDialogTitle">📖 Hướng dẫn sử dụng</h2>
     
     <div style="padding: 24px 32px 32px 32px; max-height: 70vh; overflow-y: auto;">
       <div id="guideContent"></div>
@@ -976,18 +984,18 @@
       <span style="font-size: 30px;">+</span>
     </button>
     
-    <h2><i class="fa-solid fa-gear"></i> Cài đặt</h2>
+    <h2 id="settingsDialogTitle"><i class="fa-solid fa-gear"></i> Cài đặt</h2>
     
     <form id="settingsForm">
       <div style="padding: 24px 32px 32px 32px; max-height: 70vh; overflow-y: auto;">
         
         <!-- THEME SECTION -->
         <div class="settings-section">
-          <h3><i class="fa-solid fa-palette"></i> Giao diện</h3>
+          <h3 id="settingsThemeTitle"><i class="fa-solid fa-palette"></i> Giao diện</h3>
           <div class="setting-item">
             <div class="setting-label">
-              <strong>Theme</strong>
-              <small>Chọn giao diện sáng hoặc tối</small>
+              <strong id="settingThemeLabel">Theme</strong>
+              <small id="settingThemeDescription">Chọn giao diện sáng hoặc tối</small>
             </div>
             <select id="settingTheme" class="theme-select" style="width: 140px; margin-left: 16px;">
               <option value="dark">🌙 Tối</option>
@@ -995,18 +1003,33 @@
             </select>
           </div>
         </div>
+
+        <div class="settings-section">
+          <h3 id="settingsLanguageTitle">Ngôn ngữ</h3>
+          <div class="setting-item">
+            <div class="setting-label">
+              <strong id="settingLanguageLabel">Ngôn ngữ giao diện</strong>
+              <small id="settingLanguageDescription">Đồng bộ với nút đổi ngôn ngữ ở header</small>
+            </div>
+            <select id="settingLanguage" class="theme-select" style="width: 160px; margin-left: 16px;">
+              <option value="vi">Vietnamese (VI)</option>
+              <option value="ko">Korean (KO)</option>
+              <option value="en">English (EN)</option>
+            </select>
+          </div>
+        </div>
   
         <!-- PERFORMANCE SECTION -->
         <div class="settings-section">
-          <h3>
+          <h3 id="settingsPerformanceTitle">
             <i class="fa-solid fa-gauge-high"></i> Hiệu suất
-            <span class="performance-badge">Giảm lag</span>
+            <span class="performance-badge" id="settingsPerformanceBadge">Giảm lag</span>
           </h3>
           
           <div class="setting-item">
             <div class="setting-label">
-              <strong>Hiệu ứng chuyển động</strong>
-              <small>Animations và transitions (giảm lag ~15%)</small>
+              <strong id="settingAnimationsLabel">Hiệu ứng chuyển động</strong>
+              <small id="settingAnimationsDescription">Animations và transitions (giảm lag ~15%)</small>
             </div>
             <label class="toggle-switch">
               <input type="checkbox" id="settingAnimations" checked>
@@ -1016,8 +1039,8 @@
           
           <div class="setting-item">
             <div class="setting-label">
-              <strong>Hiệu ứng nền gradient</strong>
-              <small>4 lớp gradient + SVG noise (giảm lag ~25%)</small>
+              <strong id="settingBackgroundEffectsLabel">Hiệu ứng nền gradient</strong>
+              <small id="settingBackgroundEffectsDescription">4 lớp gradient + SVG noise (giảm lag ~25%)</small>
             </div>
             <label class="toggle-switch">
               <input type="checkbox" id="settingBackgroundEffects" checked>
@@ -1027,8 +1050,8 @@
           
           <div class="setting-item">
             <div class="setting-label">
-              <strong>Hiệu ứng phát sáng</strong>
-              <small>Glow effects và drop-shadows (giảm lag ~10%)</small>
+              <strong id="settingGlowEffectsLabel">Hiệu ứng phát sáng</strong>
+              <small id="settingGlowEffectsDescription">Glow effects và drop-shadows (giảm lag ~10%)</small>
             </div>
             <label class="toggle-switch">
               <input type="checkbox" id="settingGlowEffects" checked>
@@ -1038,8 +1061,8 @@
           
           <div class="setting-item">
             <div class="setting-label">
-              <strong>Backdrop Blur</strong>
-              <small>Làm mờ nền dialog/header (giảm lag ~30%)</small>
+              <strong id="settingBackdropBlurLabel">Backdrop Blur</strong>
+              <small id="settingBackdropBlurDescription">Làm mờ nền dialog/header (giảm lag ~30%)</small>
             </div>
             <label class="toggle-switch">
               <input type="checkbox" id="settingBackdropBlur" checked>
@@ -1049,8 +1072,8 @@
           
           <div class="setting-item">
             <div class="setting-label">
-              <strong>Box Shadows</strong>
-              <small>Bóng đổ các elements (giảm lag ~15%)</small>
+              <strong id="settingBoxShadowsLabel">Box Shadows</strong>
+              <small id="settingBoxShadowsDescription">Bóng đổ các elements (giảm lag ~15%)</small>
             </div>
             <label class="toggle-switch">
               <input type="checkbox" id="settingBoxShadows" checked>
@@ -1060,8 +1083,8 @@
           
           <div class="setting-item">
             <div class="setting-label">
-              <strong>Hiệu ứng hover ảnh</strong>
-              <small>Transform/scale ảnh khi hover (giảm lag ~8%)</small>
+              <strong id="settingImageHoverLabel">Hiệu ứng hover ảnh</strong>
+              <small id="settingImageHoverDescription">Transform/scale ảnh khi hover (giảm lag ~8%)</small>
             </div>
             <label class="toggle-switch">
               <input type="checkbox" id="settingImageHover" checked>
@@ -1071,8 +1094,8 @@
           
           <div class="setting-item">
             <div class="setting-label">
-              <strong>Hiệu ứng hover bảng</strong>
-              <small>Gradient/scale rows khi hover (giảm lag ~12%)</small>
+              <strong id="settingTableHoverLabel">Hiệu ứng hover bảng</strong>
+              <small id="settingTableHoverDescription">Gradient/scale rows khi hover (giảm lag ~12%)</small>
             </div>
             <label class="toggle-switch">
               <input type="checkbox" id="settingTableHover" checked>
@@ -1082,8 +1105,8 @@
           
           <div class="setting-item">
             <div class="setting-label">
-              <strong>Animation dialog</strong>
-              <small>Pop-up effect khi mở dialog (giảm lag ~5%)</small>
+              <strong id="settingDialogAnimationsLabel">Animation dialog</strong>
+              <small id="settingDialogAnimationsDescription">Pop-up effect khi mở dialog (giảm lag ~5%)</small>
             </div>
             <label class="toggle-switch">
               <input type="checkbox" id="settingDialogAnimations" checked>
@@ -1094,8 +1117,8 @@
   
         <!-- INFO SECTION -->
         <div class="settings-section" style="background: rgba(16, 185, 129, 0.05); border-color: rgba(16, 185, 129, 0.3);">
-          <h3 style="color: #10b981;"><i class="fa-solid fa-circle-info"></i> Gợi ý</h3>
-          <p style="margin: 0; font-size: 14px; color: var(--text-secondary); line-height: 1.6;">
+          <h3 id="settingsTipsTitle" style="color: #10b981;"><i class="fa-solid fa-circle-info"></i> Gợi ý</h3>
+          <p id="settingsTipsContent" style="margin: 0; font-size: 14px; color: var(--text-secondary); line-height: 1.6;">
             💡 <strong>Lag nhẹ:</strong> Tắt Backdrop Blur + Background Effects<br>
             🚀 <strong>Lag trung bình:</strong> Tắt thêm Box Shadows + Table Hover<br>
             ⚡ <strong>Lag nặng:</strong> Tắt hết tất cả (giảm lag lên đến 95%)<br>
@@ -1107,10 +1130,10 @@
       
       <div class="settings-actions" style="padding: 20px 32px 32px 32px; border-top: 1px solid var(--border-color);">
         <button type="button" class="btn btn-reset" onclick="resetSettings()">
-          <i class="fa-solid fa-rotate-left"></i> Đặt lại mặc định
+          <i class="fa-solid fa-rotate-left"></i> <span id="settingsResetButtonText">Đặt lại mặc định</span>
         </button>
         <button type="submit" class="btn btn-submit">
-          <i class="fa-solid fa-check"></i> Lưu cài đặt
+          <i class="fa-solid fa-check"></i> <span id="settingsSaveButtonText">Lưu cài đặt</span>
         </button>
       </div>
     </form>
@@ -1121,7 +1144,7 @@
       <span style="font-size: 30px;">+</span>
     </button>
     
-    <h2><i class="fa-solid fa-clock-rotate-left"></i> Lịch sử thêm bài hát</h2>
+    <h2 id="historyDialogTitle"><i class="fa-solid fa-clock-rotate-left"></i> Lịch sử thêm bài hát</h2>
     
     <div style="padding: 24px 32px 32px 32px;">
       <!-- Thống kê -->
@@ -1136,7 +1159,7 @@
     <button class="btn close" onclick="albumDialog.close()">
       <span style="font-size: 30px;">+</span>
     </button>
-    <h2><i class="fa-solid fa-compact-disc"></i> Danh sách Album</h2>
+    <h2 id="albumDialogTitle"><i class="fa-solid fa-compact-disc"></i> Danh sách Album</h2>
     
     <div style="padding: 24px 32px 32px 32px;">
       <div id="albumStats"></div>
