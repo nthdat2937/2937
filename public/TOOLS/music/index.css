@@ -189,6 +189,11 @@
 }
 
 .card-body .lrc-box {
+  --music-lyric-size-offset: 0px;
+  --music-lyric-base-size: 18px;
+  --music-lyric-current-size: 26px;
+  --music-lyric-line-height: 40px;
+  --music-lrc-side-padding: 64px;
   width: 100%;
   height: 120px;
   position: absolute;
@@ -205,16 +210,16 @@
 #music-lrc {
   width: 100%;
   transition: transform 0.5s ease;
-  padding: 80px 0;
+  padding: 80px var(--music-lrc-side-padding, 64px);
   text-align: center;
 }
 
 #music-lrc p {
-  height: 40px;
-  line-height: 40px;
+  height: calc(var(--music-lyric-line-height, 40px) + var(--music-lyric-size-offset, 0px));
+  line-height: calc(var(--music-lyric-line-height, 40px) + var(--music-lyric-size-offset, 0px));
   margin: 12px 0;
   padding: 0 15px;
-  font-size: 18px;
+  font-size: calc(var(--music-lyric-base-size, 18px) + var(--music-lyric-size-offset, 0px));
   color: rgba(255, 255, 255, 0.6);
   white-space: nowrap;
   overflow: hidden;
@@ -234,12 +239,52 @@
 }
 
 #music-lrc p.current {
-  font-size: 26px;
+  font-size: calc(var(--music-lyric-current-size, 26px) + var(--music-lyric-size-offset, 0px));
   font-weight: bold;
   color: rgba(255, 255, 255, 1);
   opacity: 1;
   transform: scale(1);
   text-shadow: 0 0 10px rgba(255, 255, 255, 0.3), 0 1px 3px rgba(0, 0, 0, 0.7);
+}
+
+.lyric-size-btn {
+  position: absolute;
+  top: 50%;
+  width: 42px;
+  height: 42px;
+  transform: translateY(-50%);
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.42);
+  color: #fff;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+  transition: background 0.2s ease, transform 0.2s ease, opacity 0.2s ease;
+  z-index: 12;
+}
+
+.lyric-size-btn:hover {
+  background: rgba(255, 255, 255, 0.16);
+  transform: translateY(-50%) scale(1.04);
+}
+
+.lyric-size-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.lyric-size-btn--decrease {
+  left: 8px;
+}
+
+.lyric-size-btn--increase {
+  right: 8px;
 }
 
 #music-lrc p.next {
@@ -699,18 +744,15 @@
   .card-body .lrc-box {
     width: 90%;
     top: 5%;
+    --music-lyric-base-size: 16px;
+    --music-lyric-current-size: 18px;
+    --music-lyric-line-height: 30px;
+    --music-lrc-side-padding: 56px;
   }
 
   #music-lrc p {
-    height: 30px;
-    line-height: 30px;
     margin: 8px 0;
     padding: 0 10px;
-    font-size: 16px;
-  }
-
-  #music-lrc p.current {
-    font-size: 18px;
   }
   
   .player-controls {
@@ -787,16 +829,18 @@
     font-size: 16px;
   }
 
-  #music-lrc p {
-    font-size: 14px;
-  }
-  
   .card-body .lrc-box {
     top: 50%;
+    --music-lyric-base-size: 14px;
+    --music-lyric-current-size: 16px;
+    --music-lyric-line-height: 30px;
+    --music-lrc-side-padding: 44px;
   }
-  
-  #music-lrc p.current {
-    font-size: 16px;
+
+  .lyric-size-btn {
+    width: 34px;
+    height: 34px;
+    font-size: 20px;
   }
   
   .player-controls {

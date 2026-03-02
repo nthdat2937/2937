@@ -180,21 +180,14 @@
         width: 90% !important;
         top: 6% !important;
         height: 96px !important;
+        --music-lyric-base-size: 15px !important;
+        --music-lyric-current-size: 18px !important;
+        --music-lyric-line-height: 30px !important;
+        --music-lrc-side-padding: 52px !important;
       }
 
       #music-lrc {
-        padding: 56px 0 !important;
-      }
-
-      #music-lrc p {
-        height: 30px !important;
-        line-height: 30px !important;
-        margin: 8px 0 !important;
-        font-size: 15px !important;
-      }
-
-      #music-lrc p.current {
-        font-size: 18px !important;
+        padding: 56px var(--music-lrc-side-padding, 52px) !important;
       }
 
       .player-controls {
@@ -283,18 +276,14 @@
         width: 92% !important;
         top: 4% !important;
         height: 88px !important;
+        --music-lyric-base-size: 13px !important;
+        --music-lyric-current-size: 16px !important;
+        --music-lyric-line-height: 30px !important;
+        --music-lrc-side-padding: 44px !important;
       }
 
       #music-lrc {
-        padding: 48px 0 !important;
-      }
-
-      #music-lrc p {
-        font-size: 13px !important;
-      }
-
-      #music-lrc p.current {
-        font-size: 16px !important;
+        padding: 48px var(--music-lrc-side-padding, 44px) !important;
       }
 
       .player-controls {
@@ -394,7 +383,9 @@
       <main class="card-body">
         <canvas id="music-canvas"></canvas>
         <div class="lrc-box">
+          <button type="button" class="lyric-size-btn lyric-size-btn--decrease" id="decreaseLyricSize" title="Giảm cỡ chữ lyric" aria-label="Giảm cỡ chữ lyric">-</button>
           <section id="music-lrc"></section>
+          <button type="button" class="lyric-size-btn lyric-size-btn--increase" id="increaseLyricSize" title="Tăng cỡ chữ lyric" aria-label="Tăng cỡ chữ lyric">+</button>
         </div>
       </main>
       

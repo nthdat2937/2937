@@ -53,6 +53,7 @@ class DomVisual {
     this.lrcList = []
     this.lrcIndex = 0
     this.lrcRowH = 30
+    this.lyricSizeOffset = this.getStoredLyricSizeOffset()
     this.lastVolume = 1 // Lưu volume trước khi mute
     this.dominantColor = null // Màu chủ đạo của ảnh bìa
     this.findDom('domTextSelector', 'domTextMap')
@@ -63,6 +64,7 @@ class DomVisual {
     this.loadBG()
     this.initEvents()
     this.initVolume()
+    this.applyLyricSizeOffset()
   }
   
   // Phân tích màu chủ đạo từ ảnh
@@ -649,6 +651,49 @@ class DomVisual {
     lrcContainer.style.transform = `translateY(-${scrollY}px)`;
   }
 
+  getStoredLyricSizeOffset () {
+    const storedValue = Number(localStorage.getItem('musicLyricSizeOffset'))
+    if (!Number.isFinite(storedValue)) {
+      return 0
+    }
+
+    return Math.max(-6, Math.min(12, storedValue))
+  }
+
+  applyLyricSizeOffset () {
+    const lrcBox = document.querySelector('.lrc-box')
+
+    if (lrcBox) {
+      lrcBox.style.setProperty('--music-lyric-size-offset', `${this.lyricSizeOffset}px`)
+    }
+
+    const decreaseBtn = document.getElementById('decreaseLyricSize')
+    const increaseBtn = document.getElementById('increaseLyricSize')
+
+    if (decreaseBtn) {
+      decreaseBtn.disabled = this.lyricSizeOffset <= -6
+    }
+
+    if (increaseBtn) {
+      increaseBtn.disabled = this.lyricSizeOffset >= 12
+    }
+  }
+
+  changeLyricSize (delta) {
+    const nextOffset = Math.max(-6, Math.min(12, this.lyricSizeOffset + delta))
+    if (nextOffset === this.lyricSizeOffset) {
+      return
+    }
+
+    this.lyricSizeOffset = nextOffset
+    localStorage.setItem('musicLyricSizeOffset', this.lyricSizeOffset)
+    this.applyLyricSizeOffset()
+
+    if (this.lrcList.length > 0) {
+      this.rollLrc()
+    }
+  }
+
   initEvents () {
     // Thêm sự kiện cho thanh tiến trình
     const progressBar = document.getElementById('music-progress');
@@ -688,7 +733,22 @@ class DomVisual {
         this.toggleMute();
       });
     }
-    
+
+    const decreaseLyricSizeBtn = document.getElementById('decreaseLyricSize')
+    const increaseLyricSizeBtn = document.getElementById('increaseLyricSize')
+
+    if (decreaseLyricSizeBtn) {
+      decreaseLyricSizeBtn.addEventListener('click', () => {
+        this.changeLyricSize(-2)
+      })
+    }
+
+    if (increaseLyricSizeBtn) {
+      increaseLyricSizeBtn.addEventListener('click', () => {
+        this.changeLyricSize(2)
+      })
+    }
+
     // Xử lý resize màn hình
     window.addEventListener('resize', () => {
       // Đảm bảo canvas được vẽ lại với kích thước phù hợp
