@@ -52,9 +52,46 @@ const list = document.getElementById('list'),
   dArtist = document.getElementById('dArtist'),
   dLyric = document.getElementById('dLyric'),
   dAvatar = document.getElementById('dAvatar'),
+  lyricCommentForm = document.getElementById('lyricCommentForm'),
+  lyricCommentInput = document.getElementById('lyricCommentInput'),
+  lyricCommentList = document.getElementById('lyricCommentList'),
+  lyricCommentTitle = document.getElementById('lyricCommentsTitle'),
+  lyricCommentLoginHint = document.getElementById('lyricCommentLoginHint'),
+  lyricCommentMeta = document.getElementById('lyricCommentMeta'),
+  lyricCommentSubmitButton = document.getElementById('lyricCommentSubmitButton'),
+  lyricCommentError = document.getElementById('lyricCommentError'),
+  adminRecommendationCard = document.getElementById('adminRecommendationCard'),
+  adminRecommendationIcon = document.getElementById('adminRecommendationIcon'),
+  adminRecommendationLabel = document.getElementById('adminRecommendationLabel'),
+  adminRecommendationTitle = document.getElementById('adminRecommendationTitle'),
+  adminRecommendationMeta = document.getElementById('adminRecommendationMeta'),
+  btnAdminRecommendationEdit = document.getElementById('btnAdminRecommendationEdit'),
+  adminRecommendationDialog = document.getElementById('adminRecommendationDialog'),
+  adminRecommendationForm = document.getElementById('adminRecommendationForm'),
+  adminRecommendationType = document.getElementById('adminRecommendationType'),
+  adminRecommendationSongGroup = document.getElementById('adminRecommendationSongGroup'),
+  adminRecommendationSongId = document.getElementById('adminRecommendationSongId'),
+  adminRecommendationUrlGroup = document.getElementById('adminRecommendationUrlGroup'),
+  adminRecommendationUrl = document.getElementById('adminRecommendationUrl'),
+  adminRecommendationPreviewMedia = document.getElementById('adminRecommendationPreviewMedia'),
+  adminRecommendationPreviewLabel = document.getElementById('adminRecommendationPreviewLabel'),
+  adminRecommendationPreviewTitle = document.getElementById('adminRecommendationPreviewTitle'),
+  adminRecommendationPreviewSubtitle = document.getElementById('adminRecommendationPreviewSubtitle'),
+  adminRecommendationTypeLabel = document.getElementById('adminRecommendationTypeLabel'),
+  adminRecommendationSongLabel = document.getElementById('adminRecommendationSongLabel'),
+  adminRecommendationUrlLabel = document.getElementById('adminRecommendationUrlLabel'),
+  adminRecommendationDialogTitle = document.getElementById('adminRecommendationDialogTitle'),
+  adminRecommendationCancelButton = document.getElementById('adminRecommendationCancelButton'),
+  adminRecommendationSaveButton = document.getElementById('adminRecommendationSaveButton'),
+  adminRecommendationError = document.getElementById('adminRecommendationError'),
   searchInput = document.getElementById('searchInput');
 
 let currentEditId = null;
+let isSubmittingComment = false;
+let isSubmittingAdminRecommendation = false;
+let currentAdminRecommendation = null;
+const commentAvatarCache = new Map();
+const ADMIN_RECOMMENDATION_LOCAL_KEY = 'ntdMusicAdminRecommendation';
 
 function tr(key, variables = {}) {
   if (window.getTranslatedText) {
@@ -85,6 +122,682 @@ function buildLyricDialogMeta(song) {
   };
 }
 
+function escapeHtml(value) {
+  return String(value || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function parseSongComments(rawComments) {
+  let source = rawComments;
+
+  if (typeof source === 'string') {
+    try {
+      source = JSON.parse(source);
+    } catch {
+      source = source.trim()
+        ? [{
+            id: `legacy-${Date.now()}`,
+            displayName: 'Unknown',
+            content: source.trim(),
+            createdAt: new Date().toISOString()
+          }]
+        : [];
+    }
+  }
+
+  if (!Array.isArray(source)) {
+    return [];
+  }
+
+  return source
+    .map((item, index) => {
+      if (!item || typeof item !== 'object') return null;
+
+      const content = String(item.content || item.text || '').trim();
+      if (!content) return null;
+
+      return {
+        id: item.id || `comment-${Date.now()}-${index}`,
+        userId: item.userId || item.user_id || null,
+        displayName: String(item.displayName || item.display_name || item.name || 'Unknown').trim() || 'Unknown',
+        avatar: String(item.avatar || item.avatar_url || '').trim(),
+        content,
+        createdAt: item.createdAt || item.created_at || new Date().toISOString()
+      };
+    })
+    .filter(Boolean)
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+}
+
+function getSongComments(song) {
+  return parseSongComments(song?.comment);
+}
+
+function updateLocalSongComments(songId, comments) {
+  const song = window._songs?.find((item) => item.Id === songId);
+  if (song) {
+    song.comment = [...comments];
+  }
+}
+
+async function persistSongComments(songId, comments) {
+  const primary = await supabase
+    .from('songs')
+    .update({ comment: comments })
+    .eq('Id', songId);
+
+  if (!primary.error) return;
+
+  const fallback = await supabase
+    .from('songs')
+    .update({ comment: JSON.stringify(comments) })
+    .eq('Id', songId);
+
+  if (fallback.error) {
+    throw fallback.error;
+  }
+}
+
+function formatCommentTime(dateValue) {
+  const date = new Date(dateValue);
+  if (Number.isNaN(date.getTime())) {
+    return '';
+  }
+
+  return date.toLocaleString(getCurrentLocale(), {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+}
+
+function canDeleteComment(comment) {
+  if (!currentUser) return false;
+  return comment.userId === currentUser.id || window.currentUserRole === 'Admin';
+}
+
+function getCommentAvatarUrl(comment) {
+  if (comment?.avatar && isValidAvatarUrl(comment.avatar)) {
+    return comment.avatar;
+  }
+
+  if (comment?.userId && commentAvatarCache.has(comment.userId)) {
+    const cachedAvatar = commentAvatarCache.get(comment.userId);
+    return cachedAvatar && isValidAvatarUrl(cachedAvatar) ? cachedAvatar : '';
+  }
+
+  if (comment?.userId && window.currentUserProfile?.id === comment.userId) {
+    const currentAvatar = getProfileAvatarUrl(window.currentUserProfile);
+    return isValidAvatarUrl(currentAvatar) ? currentAvatar : '';
+  }
+
+  return '';
+}
+
+async function preloadCommentAvatars(song, comments) {
+  const missingUserIds = [...new Set(
+    comments
+      .filter((comment) => comment?.userId && !getCommentAvatarUrl(comment) && !commentAvatarCache.has(comment.userId))
+      .map((comment) => comment.userId)
+  )];
+
+  if (missingUserIds.length === 0) return;
+
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('id, avatar')
+    .in('id', missingUserIds);
+
+  if (error) {
+    console.error('Lỗi khi tải avatar comment:', error);
+    return;
+  }
+
+  const avatarMap = new Map((data || []).map((profile) => [profile.id, String(profile.avatar || '').trim()]));
+  let shouldRerender = false;
+
+  missingUserIds.forEach((userId) => {
+    const avatarUrl = avatarMap.get(userId) || '';
+    commentAvatarCache.set(userId, avatarUrl);
+    if (avatarUrl) shouldRerender = true;
+  });
+
+  if (shouldRerender && song?.Id === window.currentSongId) {
+    renderSongComments(song);
+  }
+}
+
+function renderSongComments(song) {
+  if (!lyricCommentList || !lyricCommentTitle || !lyricCommentForm) return;
+
+  const comments = getSongComments(song);
+  lyricCommentTitle.textContent = tr('commentsTitle', { count: comments.length });
+  lyricCommentInput.placeholder = tr('commentsPlaceholder');
+  lyricCommentMeta.textContent = tr('commentsMeta');
+  lyricCommentSubmitButton.textContent = tr('commentsSubmit');
+
+  if (currentUser) {
+    lyricCommentForm.style.display = 'flex';
+    lyricCommentLoginHint.textContent = '';
+  } else {
+    lyricCommentForm.style.display = 'none';
+    lyricCommentLoginHint.textContent = tr('commentsLoginHint');
+  }
+
+  lyricCommentList.innerHTML = comments.length === 0
+    ? `<div class="song-comments-empty">${escapeHtml(tr('commentsEmpty'))}</div>`
+    : comments.map((comment) => {
+        const initial = escapeHtml(comment.displayName.charAt(0).toUpperCase() || '?');
+        const commentTime = escapeHtml(formatCommentTime(comment.createdAt));
+        const deleteLabel = escapeHtml(tr('commentsDelete'));
+        const avatarUrl = getCommentAvatarUrl(comment);
+        const avatarMarkup = avatarUrl
+          ? `<img class="song-comment-avatar song-comment-avatar-image" src="${escapeHtml(avatarUrl)}" alt="${escapeHtml(comment.displayName)}">`
+          : `<span class="song-comment-avatar">${initial}</span>`;
+        const deleteButton = canDeleteComment(comment)
+          ? `<button type="button" class="song-comment-delete" data-comment-id="${escapeHtml(comment.id)}" aria-label="${deleteLabel}" title="${deleteLabel}">
+              <i class="fa-solid fa-trash-can" aria-hidden="true"></i>
+            </button>`
+          : '';
+
+        return `
+          <article class="song-comment-item">
+            <div class="song-comment-top">
+              <div class="song-comment-author">
+                ${avatarMarkup}
+                <div>
+                  <div class="song-comment-name">${escapeHtml(comment.displayName)}</div>
+                </div>
+              </div>
+              ${deleteButton}
+            </div>
+            <p class="song-comment-content">${escapeHtml(comment.content)}</p>
+            <div class="song-comment-bottom">
+              <div class="song-comment-time">${commentTime}</div>
+            </div>
+          </article>
+        `;
+      }).join('');
+
+  preloadCommentAvatars(song, comments);
+}
+
+async function getCurrentCommentProfile() {
+  const cachedName = window.currentUserProfile?.display_name;
+  const cachedAvatar = getProfileAvatarUrl(window.currentUserProfile);
+  if (cachedName) {
+    return {
+      displayName: cachedName,
+      avatar: cachedAvatar
+    };
+  }
+  if (!currentUser) {
+    return {
+      displayName: 'Unknown',
+      avatar: ''
+    };
+  }
+
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('display_name, avatar')
+    .eq('id', currentUser.id)
+    .single();
+
+  if (error) {
+    console.error('Lỗi khi tải display_name để comment:', error);
+    return {
+      displayName: currentUser.email || 'Unknown',
+      avatar: ''
+    };
+  }
+
+  if (window.currentUserProfile) {
+    window.currentUserProfile.display_name = data.display_name;
+    window.currentUserProfile.avatar = data.avatar;
+  }
+
+  return {
+    displayName: data.display_name,
+    avatar: String(data.avatar || '').trim()
+  };
+}
+
+function loadFallbackAdminRecommendation() {
+  try {
+    const raw = localStorage.getItem(ADMIN_RECOMMENDATION_LOCAL_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch (error) {
+    console.error('Lỗi đọc đề xuất admin từ localStorage:', error);
+    return null;
+  }
+}
+
+function saveFallbackAdminRecommendation(recommendation) {
+  localStorage.setItem(ADMIN_RECOMMENDATION_LOCAL_KEY, JSON.stringify(recommendation));
+}
+
+function normalizeAdminRecommendation(record) {
+  if (!record) return null;
+
+  return {
+    id: Number(record.id || 1),
+    type: String(record.type || 'song'),
+    songId: record.song_id ? Number(record.song_id) : (record.songId ? Number(record.songId) : null),
+    url: String(record.url || '').trim(),
+    title: String(record.title || '').trim(),
+    subtitle: String(record.subtitle || '').trim(),
+    thumbnail: String(record.thumbnail || '').trim(),
+    updatedAt: record.updated_at || record.updatedAt || new Date().toISOString()
+  };
+}
+
+function getRecommendationSnippetFromSong(song) {
+  const lyric = String(song?.['Lyric'] || '');
+  const hotLines = lyric
+    .split('\n')
+    .filter((line) => line.includes('--hot'))
+    .map((line) => line.replace('--hot', '').trim())
+    .filter(Boolean);
+
+  if (hotLines.length > 0) {
+    return hotLines.slice(0, 2).join(' • ');
+  }
+
+  const plainLines = lyric
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  return plainLines.slice(0, 2).join(' • ');
+}
+
+function resolveAdminRecommendation(record = currentAdminRecommendation) {
+  const normalizedRecord = normalizeAdminRecommendation(record);
+  if (!normalizedRecord) return null;
+
+  if (normalizedRecord.type === 'song' && normalizedRecord.songId) {
+    const song = window._songs?.find((item) => item.Id === normalizedRecord.songId);
+    if (song) {
+      return {
+        type: 'song',
+        songId: song.Id,
+        url: '',
+        title: song['Tên'] || normalizedRecord.title,
+        subtitle: song['Ca sĩ'] || normalizedRecord.subtitle,
+        thumbnail: song.avatar || normalizedRecord.thumbnail,
+        meta: getRecommendationSnippetFromSong(song) || song['Ca sĩ'] || normalizedRecord.subtitle
+      };
+    }
+  }
+
+  return {
+    ...normalizedRecord,
+    meta: normalizedRecord.subtitle || (normalizedRecord.type === 'spotify' ? 'Spotify' : normalizedRecord.type === 'youtube' ? 'YouTube' : tr('adminRecommendationEmpty'))
+  };
+}
+
+function renderAdminRecommendationMedia(container, recommendation) {
+  if (!container) return;
+
+  if (recommendation?.thumbnail && isValidAvatarUrl(recommendation.thumbnail)) {
+    container.innerHTML = `<img src="${escapeHtml(recommendation.thumbnail)}" alt="${escapeHtml(recommendation.title || 'recommendation')}">`;
+    return;
+  }
+
+  const fallbackIcon = recommendation?.type === 'spotify'
+    ? '<i class="fa-brands fa-spotify"></i>'
+    : recommendation?.type === 'youtube'
+      ? '<i class="fa-brands fa-youtube"></i>'
+      : '<i class="fa-solid fa-thumbtack"></i>';
+  container.innerHTML = fallbackIcon;
+}
+
+function refreshAdminRecommendationTexts() {
+  if (adminRecommendationLabel) adminRecommendationLabel.textContent = tr('adminRecommendationLabel');
+  if (btnAdminRecommendationEdit) btnAdminRecommendationEdit.title = tr('adminRecommendationManage');
+  if (adminRecommendationDialogTitle) adminRecommendationDialogTitle.textContent = tr('adminRecommendationDialogTitle');
+  if (adminRecommendationTypeLabel) adminRecommendationTypeLabel.textContent = tr('adminRecommendationTypeLabel');
+  if (adminRecommendationSongLabel) adminRecommendationSongLabel.textContent = tr('adminRecommendationSongLabel');
+  if (adminRecommendationUrlLabel) adminRecommendationUrlLabel.textContent = tr('adminRecommendationUrlLabel');
+  if (adminRecommendationPreviewLabel) adminRecommendationPreviewLabel.textContent = tr('adminRecommendationPreviewLabel');
+  if (adminRecommendationCancelButton) adminRecommendationCancelButton.textContent = tr('cancelText');
+  if (adminRecommendationSaveButton) adminRecommendationSaveButton.textContent = tr('adminRecommendationSave');
+  if (adminRecommendationType) {
+    const [songOption, youtubeOption, spotifyOption] = adminRecommendationType.options;
+    if (songOption) songOption.textContent = tr('adminRecommendationTypeSong');
+    if (youtubeOption) youtubeOption.textContent = tr('adminRecommendationTypeYoutube');
+    if (spotifyOption) spotifyOption.textContent = tr('adminRecommendationTypeSpotify');
+  }
+}
+
+function renderAdminRecommendationCard() {
+  refreshAdminRecommendationTexts();
+
+  if (btnAdminRecommendationEdit) {
+    btnAdminRecommendationEdit.style.display = window.currentUserRole === 'Admin' ? 'inline-flex' : 'none';
+  }
+
+  const recommendation = resolveAdminRecommendation();
+  if (!recommendation) {
+    if (adminRecommendationTitle) adminRecommendationTitle.textContent = '---';
+    if (adminRecommendationMeta) adminRecommendationMeta.textContent = tr('adminRecommendationEmpty');
+    renderAdminRecommendationMedia(adminRecommendationIcon, null);
+    if (adminRecommendationCard) adminRecommendationCard.style.opacity = '0.85';
+    return;
+  }
+
+  if (adminRecommendationTitle) adminRecommendationTitle.textContent = recommendation.title || '---';
+  if (adminRecommendationMeta) adminRecommendationMeta.textContent = recommendation.meta || tr('adminRecommendationEmpty');
+  renderAdminRecommendationMedia(adminRecommendationIcon, recommendation);
+  if (adminRecommendationCard) adminRecommendationCard.style.opacity = '1';
+}
+
+async function loadAdminRecommendation() {
+  let recommendation = null;
+
+  try {
+    const { data, error } = await supabase
+      .from('admin_recommendation')
+      .select('*')
+      .eq('id', 1)
+      .maybeSingle();
+
+    if (error) throw error;
+    recommendation = normalizeAdminRecommendation(data);
+    if (recommendation) {
+      saveFallbackAdminRecommendation(recommendation);
+    }
+  } catch (error) {
+    console.warn('Không tải được đề xuất admin từ Supabase, dùng local fallback:', error);
+    recommendation = normalizeAdminRecommendation(loadFallbackAdminRecommendation());
+  }
+
+  currentAdminRecommendation = recommendation;
+  renderAdminRecommendationCard();
+}
+
+function populateAdminRecommendationSongOptions(selectedSongId = '') {
+  if (!adminRecommendationSongId) return;
+
+  const songs = [...(window._songs || [])].sort((a, b) => a['Tên'].localeCompare(b['Tên'], 'vi'));
+  adminRecommendationSongId.innerHTML = `<option value="">${tr('adminRecommendationSongPlaceholder')}</option>` +
+    songs.map((song) => `<option value="${song.Id}">${escapeHtml(song['Tên'])} - ${escapeHtml(song['Ca sĩ'] || '')}</option>`).join('');
+
+  if (selectedSongId) {
+    adminRecommendationSongId.value = String(selectedSongId);
+  }
+}
+
+function syncAdminRecommendationForm() {
+  if (!adminRecommendationType) return;
+
+  const type = adminRecommendationType.value;
+  if (adminRecommendationSongGroup) adminRecommendationSongGroup.style.display = type === 'song' ? 'block' : 'none';
+  if (adminRecommendationUrlGroup) adminRecommendationUrlGroup.style.display = type === 'song' ? 'none' : 'block';
+  if (adminRecommendationUrl) {
+    adminRecommendationUrl.placeholder = type === 'spotify'
+      ? 'https://open.spotify.com/...'
+      : 'https://www.youtube.com/watch?v=...';
+  }
+}
+
+function updateAdminRecommendationPreview(recommendation) {
+  const resolved = resolveAdminRecommendation(recommendation);
+
+  renderAdminRecommendationMedia(adminRecommendationPreviewMedia, resolved);
+  if (adminRecommendationPreviewTitle) {
+    adminRecommendationPreviewTitle.textContent = resolved?.title || '---';
+  }
+  if (adminRecommendationPreviewSubtitle) {
+    adminRecommendationPreviewSubtitle.textContent = resolved?.meta || tr('adminRecommendationPreviewEmpty');
+  }
+}
+
+function isValidRecommendationUrl(type, rawUrl) {
+  try {
+    const parsed = new URL(rawUrl);
+    if (type === 'youtube') {
+      return parsed.hostname.includes('youtube.com') || parsed.hostname.includes('youtu.be');
+    }
+    if (type === 'spotify') {
+      return parsed.hostname.includes('spotify.com');
+    }
+    return false;
+  } catch (error) {
+    return false;
+  }
+}
+
+async function fetchAdminRecommendationLinkMeta(type, url) {
+  const getFallbackMeta = () => {
+    let fallbackTitle = url;
+    let fallbackThumbnail = '';
+
+    try {
+      const parsed = new URL(url);
+      const pathParts = parsed.pathname.split('/').filter(Boolean);
+      fallbackTitle = pathParts[pathParts.length - 1] || parsed.hostname;
+
+      if (type === 'youtube') {
+        const videoId = parsed.hostname.includes('youtu.be')
+          ? pathParts[0]
+          : parsed.searchParams.get('v') || (pathParts[0] === 'shorts' ? pathParts[1] : '');
+        if (videoId) {
+          fallbackThumbnail = `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
+        }
+      }
+    } catch (error) {
+      console.warn('Không parse được link recommendation:', error);
+    }
+
+    return {
+      title: fallbackTitle,
+      subtitle: type === 'spotify' ? 'Spotify' : 'YouTube',
+      thumbnail: fallbackThumbnail
+    };
+  };
+
+  try {
+    const endpoint = type === 'spotify'
+      ? `https://open.spotify.com/oembed?url=${encodeURIComponent(url)}`
+      : `https://www.youtube.com/oembed?url=${encodeURIComponent(url)}&format=json`;
+
+    const response = await fetch(endpoint);
+    if (!response.ok) {
+      throw new Error(`Metadata request failed with ${response.status}`);
+    }
+
+    const data = await response.json();
+    return {
+      title: String(data.title || '').trim() || getFallbackMeta().title,
+      subtitle: String(data.author_name || (type === 'spotify' ? 'Spotify' : 'YouTube')).trim(),
+      thumbnail: String(data.thumbnail_url || '').trim() || getFallbackMeta().thumbnail
+    };
+  } catch (error) {
+    console.warn('Không lấy được metadata recommendation, dùng fallback:', error);
+    return getFallbackMeta();
+  }
+}
+
+function getAdminRecommendationPayloadFromSong(song) {
+  return {
+    id: 1,
+    type: 'song',
+    song_id: song.Id,
+    url: null,
+    title: song['Tên'] || '',
+    subtitle: song['Ca sĩ'] || '',
+    thumbnail: song.avatar || '',
+    updated_by: currentUser?.id || null,
+    updated_at: new Date().toISOString()
+  };
+}
+
+window.openAdminRecommendation = function() {
+  const recommendation = resolveAdminRecommendation();
+  if (!recommendation) {
+    alert(tr('adminRecommendationEmpty'));
+    return;
+  }
+
+  if (recommendation.type === 'song' && recommendation.songId) {
+    const songExists = window._songs?.some((item) => item.Id === recommendation.songId);
+    if (!songExists) {
+      alert(tr('adminRecommendationSongMissing'));
+      return;
+    }
+    showLyric(recommendation.songId);
+    return;
+  }
+
+  if (recommendation.url) {
+    window.open(recommendation.url, '_blank', 'noopener,noreferrer');
+  }
+};
+
+window.openAdminRecommendationDialog = function() {
+  if (window.currentUserRole !== 'Admin') {
+    alert(tr('adminRecommendationAdminOnly'));
+    return;
+  }
+
+  refreshAdminRecommendationTexts();
+  populateAdminRecommendationSongOptions(currentAdminRecommendation?.songId);
+
+  const currentType = currentAdminRecommendation?.type || 'song';
+  adminRecommendationType.value = currentType;
+  adminRecommendationSongId.value = currentAdminRecommendation?.songId ? String(currentAdminRecommendation.songId) : '';
+  adminRecommendationUrl.value = currentAdminRecommendation?.url || '';
+  adminRecommendationError.textContent = '';
+  syncAdminRecommendationForm();
+  updateAdminRecommendationPreview(currentAdminRecommendation);
+  adminRecommendationDialog.showModal();
+};
+
+adminRecommendationType?.addEventListener('change', () => {
+  syncAdminRecommendationForm();
+
+  if (adminRecommendationType.value === 'song') {
+    const song = window._songs?.find((item) => String(item.Id) === adminRecommendationSongId.value);
+    updateAdminRecommendationPreview(song ? getAdminRecommendationPayloadFromSong(song) : null);
+  } else {
+    updateAdminRecommendationPreview({
+      type: adminRecommendationType.value,
+      title: adminRecommendationUrl.value.trim() || '---',
+      subtitle: adminRecommendationType.value === 'spotify' ? 'Spotify' : 'YouTube',
+      thumbnail: ''
+    });
+  }
+});
+
+adminRecommendationSongId?.addEventListener('change', () => {
+  const song = window._songs?.find((item) => String(item.Id) === adminRecommendationSongId.value);
+  updateAdminRecommendationPreview(song ? getAdminRecommendationPayloadFromSong(song) : null);
+});
+
+adminRecommendationUrl?.addEventListener('input', () => {
+  updateAdminRecommendationPreview({
+    type: adminRecommendationType.value,
+    title: adminRecommendationUrl.value.trim() || '---',
+    subtitle: adminRecommendationType.value === 'spotify' ? 'Spotify' : 'YouTube',
+    thumbnail: ''
+  });
+});
+
+adminRecommendationForm?.addEventListener('submit', async (event) => {
+  event.preventDefault();
+
+  if (window.currentUserRole !== 'Admin' || isSubmittingAdminRecommendation) {
+    return;
+  }
+
+  isSubmittingAdminRecommendation = true;
+  adminRecommendationError.textContent = '';
+  adminRecommendationSaveButton.disabled = true;
+
+  try {
+    let payload;
+
+    if (adminRecommendationType.value === 'song') {
+      const song = window._songs?.find((item) => String(item.Id) === adminRecommendationSongId.value);
+      if (!song) {
+        adminRecommendationError.textContent = tr('adminRecommendationPickSongError');
+        return;
+      }
+      payload = getAdminRecommendationPayloadFromSong(song);
+    } else {
+      const url = adminRecommendationUrl.value.trim();
+      if (!url) {
+        adminRecommendationError.textContent = tr('adminRecommendationUrlError');
+        return;
+      }
+      if (!isValidRecommendationUrl(adminRecommendationType.value, url)) {
+        adminRecommendationError.textContent = tr('adminRecommendationUrlTypeError');
+        return;
+      }
+
+      adminRecommendationPreviewTitle.textContent = tr('adminRecommendationLoadingMeta');
+      adminRecommendationPreviewSubtitle.textContent = '';
+
+      const meta = await fetchAdminRecommendationLinkMeta(adminRecommendationType.value, url);
+      payload = {
+        id: 1,
+        type: adminRecommendationType.value,
+        song_id: null,
+        url,
+        title: meta.title || url,
+        subtitle: meta.subtitle || (adminRecommendationType.value === 'spotify' ? 'Spotify' : 'YouTube'),
+        thumbnail: meta.thumbnail || '',
+        updated_by: currentUser?.id || null,
+        updated_at: new Date().toISOString()
+      };
+    }
+
+    let savedRecord;
+
+    try {
+      const { data, error } = await supabase
+        .from('admin_recommendation')
+        .upsert(payload, { onConflict: 'id' })
+        .select('*')
+        .single();
+
+      if (error) throw error;
+      savedRecord = normalizeAdminRecommendation(data);
+      saveFallbackAdminRecommendation(savedRecord);
+    } catch (error) {
+      console.warn('Không lưu được đề xuất admin lên Supabase, dùng local fallback:', error);
+      savedRecord = normalizeAdminRecommendation(payload);
+      saveFallbackAdminRecommendation(savedRecord);
+      adminRecommendationError.textContent = tr('adminRecommendationLocalFallback');
+    }
+
+    currentAdminRecommendation = savedRecord;
+    renderAdminRecommendationCard();
+    updateAdminRecommendationPreview(savedRecord);
+    adminRecommendationDialog.close();
+  } catch (error) {
+    console.error('Lỗi khi lưu đề xuất admin:', error);
+    adminRecommendationError.textContent = tr('adminRecommendationSaveError');
+  } finally {
+    isSubmittingAdminRecommendation = false;
+    adminRecommendationSaveButton.disabled = false;
+  }
+});
+
+adminRecommendationDialog?.addEventListener('click', (event) => {
+  if (event.target === adminRecommendationDialog) {
+    adminRecommendationDialog.close();
+  }
+});
+
 window.alertLyricVolumeWarning = function() {
   alert(tr('lyricVolumeWarning'));
 };
@@ -97,6 +810,13 @@ async function loadSongs() {
   }
   data.sort((a, b) => a['Tên'].localeCompare(b['Tên'], 'vi'));
   window._songs = data;
+  document.dispatchEvent(new CustomEvent('app-songsloaded', {
+    detail: {
+      count: data.length
+    }
+  }));
+  populateAdminRecommendationSongOptions(currentAdminRecommendation?.songId);
+  await loadAdminRecommendation();
   
   // Xác định search query từ nhiều nguồn (theo thứ tự ưu tiên):
   // 1. URL parameter (urlSearchQuery)
@@ -285,6 +1005,9 @@ window.showLyric = id => {
     dAddedBy.textContent = updates.addedByText;
     dLyric.innerHTML = updates.lyric;
     dLyric.style.display = 'block';
+    renderSongComments(s);
+    lyricCommentInput.value = '';
+    lyricCommentError.textContent = '';
     const lyricEmbed = document.getElementById('dLyricEmbed');
     if (lyricEmbed) {
       lyricEmbed.innerHTML = '';
@@ -399,6 +1122,8 @@ lyricDialog.addEventListener('click', (e) => {
 lyricDialog.addEventListener('close', () => {
   lyricDialog.classList.remove('lyric-embed-active');
   dLyric.style.display = 'block';
+  lyricCommentInput.value = '';
+  lyricCommentError.textContent = '';
   const lyricEmbed = document.getElementById('dLyricEmbed');
   if (lyricEmbed) {
     lyricEmbed.innerHTML = '';
@@ -409,6 +1134,94 @@ lyricDialog.addEventListener('close', () => {
 editSongDialog.addEventListener('click', (e) => {
   if (e.target === editSongDialog) {
     editSongDialog.close()
+  }
+});
+
+lyricCommentForm.addEventListener('submit', async (event) => {
+  event.preventDefault();
+
+  if (!currentUser || !window.currentSongId || isSubmittingComment) {
+    return;
+  }
+
+  const content = lyricCommentInput.value.trim();
+  if (!content) {
+    lyricCommentError.textContent = tr('commentsValidation');
+    return;
+  }
+
+  isSubmittingComment = true;
+  lyricCommentError.textContent = '';
+  lyricCommentSubmitButton.disabled = true;
+
+  try {
+    const songId = window.currentSongId;
+    const authorProfile = await getCurrentCommentProfile();
+    const { data, error } = await supabase
+      .from('songs')
+      .select('comment')
+      .eq('Id', songId)
+      .single();
+
+    if (error) throw error;
+
+    const latestComments = parseSongComments(data?.comment);
+    const newComment = {
+      id: typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `comment-${Date.now()}`,
+      userId: currentUser.id,
+      displayName: authorProfile.displayName,
+      avatar: authorProfile.avatar,
+      content,
+      createdAt: new Date().toISOString()
+    };
+
+    const updatedComments = [newComment, ...latestComments];
+    await persistSongComments(songId, updatedComments);
+    updateLocalSongComments(songId, updatedComments);
+
+    const song = window._songs.find((item) => item.Id === songId);
+    if (song) {
+      renderSongComments(song);
+    }
+    lyricCommentInput.value = '';
+  } catch (error) {
+    console.error('Lỗi khi gửi bình luận:', error);
+    lyricCommentError.textContent = tr('commentsSaveError');
+  } finally {
+    isSubmittingComment = false;
+    lyricCommentSubmitButton.disabled = false;
+  }
+});
+
+lyricCommentList.addEventListener('click', async (event) => {
+  const button = event.target.closest('.song-comment-delete');
+  if (!button || !window.currentSongId || isSubmittingComment) return;
+
+  const song = window._songs.find((item) => item.Id === window.currentSongId);
+  if (!song) return;
+
+  const commentId = button.dataset.commentId;
+  const comments = getSongComments(song);
+  const targetComment = comments.find((item) => item.id === commentId);
+  if (!targetComment || !canDeleteComment(targetComment)) return;
+
+  if (!confirm(tr('commentsDeleteConfirm'))) {
+    return;
+  }
+
+  isSubmittingComment = true;
+  lyricCommentError.textContent = '';
+
+  try {
+    const updatedComments = comments.filter((item) => item.id !== commentId);
+    await persistSongComments(window.currentSongId, updatedComments);
+    updateLocalSongComments(window.currentSongId, updatedComments);
+    renderSongComments(song);
+  } catch (error) {
+    console.error('Lỗi khi xóa bình luận:', error);
+    lyricCommentError.textContent = tr('commentsSaveError');
+  } finally {
+    isSubmittingComment = false;
   }
 });
 
@@ -1129,6 +1942,7 @@ async function loadUserProfile() {
 
   if (data) {
     window.currentUserProfile = data;
+    commentAvatarCache.set(data.id, getProfileAvatarUrl(data));
     renderUserDisplay(data);
     window.currentUserRole = data.role;
     
@@ -1142,7 +1956,8 @@ async function loadUserProfile() {
     }
   }
 
- await loadStreakCard();
+  renderAdminRecommendationCard();
+  await loadStreakCard();
 }
 
 function updateAuthUI(isLoggedIn) {
@@ -1160,6 +1975,8 @@ function updateAuthUI(isLoggedIn) {
       userInfo.style.display = 'none';
     }
   }
+
+  renderAdminRecommendationCard();
 }
 
 document.getElementById('registerForm').addEventListener('submit', async (e) => {
@@ -1360,7 +2177,8 @@ let currentmfySong = null;
 
 function updateStats(songs) {
   
-  document.getElementById('totalSongs').textContent = songs.length;
+  document.getElementById('totalSongs').textContent = `${songs.length} bài`;
+  renderAdminRecommendationCard();
   
   
   const now = new Date();
@@ -1816,17 +2634,51 @@ document.getElementById('btnClearTagFilter').addEventListener('click', () => {
 });
 
 // ===== ARTIST FILTER FUNCTIONALITY =====
+function normalizeArtistName(value) {
+  return removeDiacritics(String(value || '').replace(/\s+/g, ' ').trim());
+}
+
+function extractArtistNames(artistValue) {
+  return String(artistValue || '')
+    .split(/\s*(?:,|&)\s*/g)
+    .map((artist) => artist.replace(/\s+/g, ' ').trim())
+    .filter(Boolean);
+}
+
+function getUniqueArtistNames(songs) {
+  const artistMap = new Map();
+
+  songs.forEach((song) => {
+    extractArtistNames(song?.['Ca sĩ']).forEach((artist) => {
+      const key = normalizeArtistName(artist);
+      if (key && !artistMap.has(key)) {
+        artistMap.set(key, artist);
+      }
+    });
+  });
+
+  return [...artistMap.values()].sort((a, b) => a.localeCompare(b, 'vi', {
+    sensitivity: 'base',
+    numeric: true
+  }));
+}
+
 function initializeArtistFilter() {
   if (!window._songs || window._songs.length === 0) return;
   
   const selectedValue = document.getElementById('artistFilter').value;
-  const artists = [...new Set(window._songs.map(song => song['Ca sĩ']))].sort();
+  const normalizedSelectedValue = normalizeArtistName(selectedValue);
+  const artists = getUniqueArtistNames(window._songs);
   
   const select = document.getElementById('artistFilter');
   select.innerHTML = `<option value="">${tr('artistAll')}</option>` +
     artists.map(artist => `<option value="${artist}">${artist}</option>`).join('');
-  if (selectedValue && artists.includes(selectedValue)) {
-    select.value = selectedValue;
+
+  if (normalizedSelectedValue) {
+    const matchedArtist = artists.find((artist) => normalizeArtistName(artist) === normalizedSelectedValue);
+    if (matchedArtist) {
+      select.value = matchedArtist;
+    }
   }
 }
 
@@ -1847,7 +2699,10 @@ function applyFilters() {
   // Filter by artist
   const selectedArtist = document.getElementById('artistFilter').value;
   if (selectedArtist) {
-    filtered = filtered.filter(song => song['Ca sĩ'] === selectedArtist);
+    const normalizedSelectedArtist = normalizeArtistName(selectedArtist);
+    filtered = filtered.filter((song) =>
+      extractArtistNames(song['Ca sĩ']).some((artist) => normalizeArtistName(artist) === normalizedSelectedArtist)
+    );
   }
   
   // Filter by search query
@@ -1901,6 +2756,10 @@ async function updateProfileAvatarField(avatarUrl) {
 
   if (authUpdateError && !updatedProfile) {
     throw authUpdateError;
+  }
+
+  if (updatedProfile?.id) {
+    commentAvatarCache.set(updatedProfile.id, getProfileAvatarUrl(updatedProfile));
   }
 
   if (profileError && !updatedProfile && !authUpdateError) {
@@ -2361,9 +3220,17 @@ document.addEventListener('app-languagechange', () => {
       const meta = buildLyricDialogMeta(song);
       dAlbum.textContent = meta.albumText;
       dAddedBy.textContent = meta.addedByText;
+      renderSongComments(song);
     }
   }
   updateStreakCard(window.currentStreakCount || 0);
+  renderAdminRecommendationCard();
+  refreshAdminRecommendationTexts();
+  if (adminRecommendationDialog?.open) {
+    populateAdminRecommendationSongOptions(adminRecommendationSongId?.value);
+    syncAdminRecommendationForm();
+    updateAdminRecommendationPreview(currentAdminRecommendation);
+  }
 });
 
 window.showAlbumSongs = async function(albumName) {

@@ -96,6 +96,23 @@
       <i class="fa-solid fa-compact-disc"></i>
       <span>Danh sách Album</span>
     </button>
+    <div class="sidebar-group-label" id="sidebarMinigameLabel">Minigame</div>
+    <button class="sidebar-item" id="btn-intro-guess-game-sc" onclick="openIntroGuessGameDialog(); toggleSidebar();">
+      <i class="fa-solid fa-headphones"></i>
+      <span>Đoán bài qua intro</span>
+    </button>
+    <button class="sidebar-item" id="btn-lyric-fill-game-sc" onclick="openLyricFillGameDialog(); toggleSidebar();">
+      <i class="fa-solid fa-pen-to-square"></i>
+      <span>Điền từ còn thiếu</span>
+    </button>
+    <button class="sidebar-item" id="btn-hot-quote-game-sc" onclick="openHotQuoteGameDialog(); toggleSidebar();">
+      <i class="fa-solid fa-quote-left"></i>
+      <span>Đoán tên bài hát</span>
+    </button>
+    <button class="sidebar-item" id="btn-lyric-order-game-sc" onclick="openLyricOrderGameDialog(); toggleSidebar();">
+      <i class="fa-solid fa-arrow-down-1-9"></i>
+      <span>Sắp xếp lyric</span>
+    </button>
     <div class="sidebar-group-label" id="sidebarSocialLabel">Social</div>
     <button class="sidebar-item" id="btn-rank-sc" onclick="openRankingDialog(); toggleSidebar();">
       <i class="fa-solid fa-ranking-star"></i>
@@ -148,7 +165,7 @@
       <div class="stat-card">
         <div class="stat-icon">🎵</div>
         <div class="stat-content">
-          <div class="stat-label" id="totalSongsLabel">Tổng số bài hát</div>
+          <!-- <div class="stat-label" id="totalSongsLabel">Tổng số bài hát</div> -->
           <div class="stat-value" id="totalSongs">0</div>
         </div>
       </div>
@@ -159,6 +176,25 @@
         <div class="stat-content">
           <div class="stat-label" id="streakLabel">Chưa có streak</div>
           <div class="stat-value" id="streakValue">0 ngày</div>
+        </div>
+      </div>
+
+      <div class="stat-card admin-recommendation-card" id="adminRecommendationCard" onclick="openAdminRecommendation()" style="cursor: pointer;">
+        <button
+          type="button"
+          class="btn-admin-recommendation-edit"
+          id="btnAdminRecommendationEdit"
+          onclick="event.stopPropagation(); openAdminRecommendationDialog();"
+          title="Chỉnh đề xuất"
+          style="display: none;"
+        >
+          <i class="fa-solid fa-pen"></i>
+        </button>
+        <div class="stat-icon admin-recommendation-icon" id="adminRecommendationIcon">📌</div>
+        <div class="stat-content">
+          <div class="stat-label" id="adminRecommendationLabel">Đề xuất của Admin</div>
+          <div class="stat-value" id="adminRecommendationTitle">---</div>
+          <div class="admin-recommendation-meta" id="adminRecommendationMeta">Admin chưa đề xuất gì.</div>
         </div>
       </div>
       
@@ -263,6 +299,27 @@
      onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
     <i class="fa-brands fa-youtube"></i> <span id="lyricOpenWebVideoButtonText">Xem Video Trên Web</span>
   </button>
+
+        <section class="song-comments-section" id="songCommentsSection">
+          <div class="song-comments-header">
+            <h3 id="lyricCommentsTitle">Bình luận (0)</h3>
+            <span class="song-comments-badge"><i class="fa-solid fa-comments"></i></span>
+          </div>
+          <p class="song-comments-login-hint" id="lyricCommentLoginHint"></p>
+          <form id="lyricCommentForm" class="song-comment-form">
+            <textarea
+              id="lyricCommentInput"
+              maxlength="500"
+              placeholder="Viết bình luận cho bài hát này..."
+            ></textarea>
+            <div class="song-comment-form-footer">
+              <span id="lyricCommentMeta">Tối đa 500 ký tự</span>
+              <button type="submit" class="btn" id="lyricCommentSubmitButton">Gửi bình luận</button>
+            </div>
+          </form>
+          <div class="error" id="lyricCommentError"></div>
+          <div class="song-comments-list" id="lyricCommentList"></div>
+        </section>
 
       </div>
       <div class="lyric-content">
@@ -687,6 +744,54 @@
     </form>
   </dialog>
 
+  <dialog id="adminRecommendationDialog" class="dialog-standard dialog-medium">
+    <button class="btn-close-dialog" onclick="adminRecommendationDialog.close()">
+      <span>&times;</span>
+    </button>
+    <h2 class="dialog-header dialog-header-primary" id="adminRecommendationDialogTitle">Đề xuất của Admin</h2>
+
+    <form id="adminRecommendationForm" class="dialog-content-form">
+      <div class="form-group">
+        <label class="form-label" for="adminRecommendationType" id="adminRecommendationTypeLabel">Loại nội dung</label>
+        <select id="adminRecommendationType" class="form-select">
+          <option value="song">Bài hát trong web</option>
+          <option value="youtube">Link YouTube</option>
+          <option value="spotify">Link Spotify</option>
+        </select>
+      </div>
+
+      <div class="form-group" id="adminRecommendationSongGroup">
+        <label class="form-label" for="adminRecommendationSongId" id="adminRecommendationSongLabel">Chọn bài hát</label>
+        <select id="adminRecommendationSongId" class="form-select"></select>
+      </div>
+
+      <div class="form-group" id="adminRecommendationUrlGroup" style="display: none;">
+        <label class="form-label" for="adminRecommendationUrl" id="adminRecommendationUrlLabel">Dán link</label>
+        <input type="url" id="adminRecommendationUrl" placeholder="https://..." />
+      </div>
+
+      <div class="alert-box alert-info admin-recommendation-preview-box" id="adminRecommendationPreviewBox">
+        <div class="admin-recommendation-preview-media" id="adminRecommendationPreviewMedia">📌</div>
+        <div class="admin-recommendation-preview-text">
+          <div class="alert-label" id="adminRecommendationPreviewLabel">Xem trước</div>
+          <div class="alert-value" id="adminRecommendationPreviewTitle">---</div>
+          <div class="admin-recommendation-preview-subtitle" id="adminRecommendationPreviewSubtitle">Chưa có dữ liệu.</div>
+        </div>
+      </div>
+
+      <div class="error" id="adminRecommendationError"></div>
+
+      <div class="dialog-actions">
+        <button type="button" class="btn btn-secondary" id="adminRecommendationCancelButton" onclick="adminRecommendationDialog.close()">
+          Hủy
+        </button>
+        <button type="submit" class="btn" id="adminRecommendationSaveButton">
+          Lưu đề xuất
+        </button>
+      </div>
+    </form>
+  </dialog>
+
   <dialog id="gopyDialog">
     <button class="btn close" onclick="gopyDialog.close()">
       <span style="font-size: 30px;">+</span>
@@ -800,6 +905,15 @@
         <div id="favouriteCount" style="font-size: 32px; font-weight: 800; color: #ef4444;">
           0
         </div>
+        <button
+          type="button"
+          class="btn-favourite-playlist"
+          id="btnFavouritePlaylist"
+          onclick="startFavouritePlaylistFromDialog()"
+        >
+          <i class="fa-solid fa-play"></i>
+          <span id="favouritePlaylistButtonText">Phát playlist</span>
+        </button>
       </div>
       
       <div id="favouriteList" style="max-height: 500px; overflow-y: auto;">
@@ -824,7 +938,7 @@
     </button>
     <h2><i class="fa-brands fa-youtube"></i> <span id="youtubeVideoSongName"></span></h2>
     
-    <div style="padding: 24px 32px 32px 32px;">
+    <div class="youtube-dialog-body" style="padding: 24px 32px 32px 32px;">
       <div id="youtubeVideoIframe"></div>
       
       <!-- Other Version Section -->
@@ -887,6 +1001,26 @@
             <!-- Videos sẽ được thêm vào đây bằng JavaScript -->
           </div>
         </div>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog id="youtubePlaylistDialog">
+    <button class="btn close" onclick="youtubePlaylistDialog.close();">
+      <span style="font-size: 30px;">+</span>
+    </button>
+    <h2><i class="fa-solid fa-list-music"></i> <span id="youtubePlaylistDialogTitle">Playlist yêu thích</span></h2>
+
+    <div class="youtube-dialog-body" style="padding: 24px 32px 32px 32px;">
+      <div id="youtubePlaylistStatus" class="youtube-playlist-status" style="display: none;"></div>
+      <div id="youtubePlaylistSongName" class="youtube-playlist-now-playing">---</div>
+      <div id="youtubePlaylistIframe"></div>
+
+      <div class="youtube-playlist-panel">
+        <h3 id="youtubePlaylistListTitle">
+          <i class="fa-solid fa-music"></i> Các bài trong playlist
+        </h3>
+        <div id="youtubePlaylistSongs" class="youtube-playlist-list"></div>
       </div>
     </div>
   </dialog>
@@ -1165,6 +1299,223 @@
     <div style="padding: 24px 32px 32px 32px;">
       <div id="albumStats"></div>
       <div id="albumList"></div>
+    </div>
+  </dialog>
+
+  <dialog id="hotQuoteGameDialog">
+    <button class="btn close" onclick="hotQuoteGameDialog.close()">
+      <span style="font-size: 30px;">+</span>
+    </button>
+    <h2 id="hotQuoteGameDialogTitle"><i class="fa-solid fa-quote-left"></i> Đoán tên bài hát theo câu hot</h2>
+
+    <div class="minigame-dialog-body">
+      <div class="minigame-stats">
+        <div class="minigame-stat-card">
+          <span class="minigame-stat-label" id="hotQuoteSolvedLabel">Đúng</span>
+          <strong class="minigame-stat-value" id="hotQuoteSolvedValue">0</strong>
+        </div>
+        <div class="minigame-stat-card">
+          <span class="minigame-stat-label" id="hotQuoteAttemptsLabel">Lượt chơi</span>
+          <strong class="minigame-stat-value" id="hotQuoteAttemptsValue">0</strong>
+        </div>
+        <div class="minigame-stat-card">
+          <span class="minigame-stat-label" id="hotQuoteAccuracyLabel">Tỉ lệ đúng</span>
+          <strong class="minigame-stat-value" id="hotQuoteAccuracyValue">0%</strong>
+        </div>
+      </div>
+
+      <div class="minigame-panel">
+        <p class="minigame-subtitle" id="hotQuotePromptLabel">Nhìn câu hot rồi đoán đúng tên bài hát.</p>
+        <blockquote class="minigame-clue" id="hotQuoteClue">Đang tải dữ liệu bài hát...</blockquote>
+        <div class="minigame-meta" id="hotQuoteMeta"></div>
+        <div class="minigame-options" id="hotQuoteOptions"></div>
+        <div class="minigame-result" id="hotQuoteResult"></div>
+
+        <div class="minigame-actions">
+          <button type="button" class="btn btn-cancel" id="hotQuoteNextButton" onclick="nextHotQuoteRound()">
+            Câu khác
+          </button>
+          <button type="button" class="btn" id="hotQuoteOpenSongButton" onclick="openHotQuoteSong()" style="display: none;">
+            Mở bài hát
+          </button>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog id="lyricOrderGameDialog">
+    <button class="btn close" onclick="lyricOrderGameDialog.close()">
+      <span style="font-size: 30px;">+</span>
+    </button>
+    <h2 id="lyricOrderGameDialogTitle"><i class="fa-solid fa-arrow-down-1-9"></i> Sắp xếp lyric đúng thứ tự</h2>
+
+    <div class="minigame-dialog-body">
+      <div class="minigame-stats">
+        <div class="minigame-stat-card">
+          <span class="minigame-stat-label" id="lyricOrderSolvedLabel">Đúng</span>
+          <strong class="minigame-stat-value" id="lyricOrderSolvedValue">0</strong>
+        </div>
+        <div class="minigame-stat-card">
+          <span class="minigame-stat-label" id="lyricOrderAttemptsLabel">Lượt kiểm tra</span>
+          <strong class="minigame-stat-value" id="lyricOrderAttemptsValue">0</strong>
+        </div>
+        <div class="minigame-stat-card">
+          <span class="minigame-stat-label" id="lyricOrderAccuracyLabel">Tỉ lệ đúng</span>
+          <strong class="minigame-stat-value" id="lyricOrderAccuracyValue">0%</strong>
+        </div>
+      </div>
+
+      <div class="minigame-panel">
+        <p class="minigame-subtitle" id="lyricOrderPromptLabel">Chọn các câu theo đúng thứ tự xuất hiện trong bài hát.</p>
+        <div class="minigame-board">
+          <div class="minigame-column">
+            <div class="minigame-column-label" id="lyricOrderSelectedLabel">Thứ tự bạn chọn</div>
+            <div class="lyric-order-target" id="lyricOrderTarget"></div>
+          </div>
+          <div class="minigame-column">
+            <div class="minigame-column-label" id="lyricOrderPoolLabel">Các câu đang bị xáo trộn</div>
+            <div class="lyric-order-pool" id="lyricOrderPool"></div>
+          </div>
+        </div>
+
+        <div class="minigame-meta" id="lyricOrderMeta"></div>
+        <div class="minigame-result" id="lyricOrderResult"></div>
+
+        <div class="minigame-actions">
+          <button type="button" class="btn btn-cancel" id="lyricOrderResetButton" onclick="resetLyricOrderSelection()">
+            Làm lại
+          </button>
+          <button type="button" class="btn" id="lyricOrderCheckButton" onclick="checkLyricOrderAnswer()">
+            Kiểm tra
+          </button>
+          <button type="button" class="btn" id="lyricOrderNextButton" onclick="nextLyricOrderRound()">
+            Bài khác
+          </button>
+          <button type="button" class="btn" id="lyricOrderOpenSongButton" onclick="openLyricOrderSong()" style="display: none;">
+            Mở bài hát
+          </button>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog id="lyricFillGameDialog">
+    <button class="btn close" onclick="lyricFillGameDialog.close()">
+      <span style="font-size: 30px;">+</span>
+    </button>
+    <h2 id="lyricFillGameDialogTitle"><i class="fa-solid fa-pen-to-square"></i> Điền từ còn thiếu</h2>
+
+    <div class="minigame-dialog-body">
+      <div class="minigame-stats">
+        <div class="minigame-stat-card">
+          <span class="minigame-stat-label" id="lyricFillSolvedLabel">Đúng</span>
+          <strong class="minigame-stat-value" id="lyricFillSolvedValue">0</strong>
+        </div>
+        <div class="minigame-stat-card">
+          <span class="minigame-stat-label" id="lyricFillAttemptsLabel">Lượt kiểm tra</span>
+          <strong class="minigame-stat-value" id="lyricFillAttemptsValue">0</strong>
+        </div>
+        <div class="minigame-stat-card">
+          <span class="minigame-stat-label" id="lyricFillAccuracyLabel">Tỉ lệ đúng</span>
+          <strong class="minigame-stat-value" id="lyricFillAccuracyValue">0%</strong>
+        </div>
+      </div>
+
+      <div class="minigame-panel">
+        <p class="minigame-subtitle" id="lyricFillPromptLabel">Điền đúng các từ bị ẩn trong câu lyric.</p>
+        <blockquote class="minigame-clue lyric-fill-clue" id="lyricFillClue">Đang tải lyric...</blockquote>
+        <div class="lyric-fill-fields" id="lyricFillFields"></div>
+        <div class="minigame-meta" id="lyricFillMeta"></div>
+        <div class="minigame-result" id="lyricFillResult"></div>
+
+        <div class="minigame-actions">
+          <button type="button" class="btn" id="lyricFillCheckButton" onclick="checkLyricFillAnswer()">
+            Kiểm tra
+          </button>
+          <button type="button" class="btn btn-cancel" id="lyricFillNextButton" onclick="nextLyricFillRound()">
+            Bài khác
+          </button>
+          <button type="button" class="btn" id="lyricFillOpenSongButton" onclick="openLyricFillSong()" style="display: none;">
+            Mở bài hát
+          </button>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog id="introGuessGameDialog">
+    <button class="btn close" onclick="introGuessGameDialog.close()">
+      <span style="font-size: 30px;">+</span>
+    </button>
+    <h2 id="introGuessGameDialogTitle"><i class="fa-solid fa-headphones"></i> Đoán bài hát qua 15 giây intro</h2>
+
+    <div class="minigame-dialog-body">
+      <div class="minigame-stats">
+        <div class="minigame-stat-card">
+          <span class="minigame-stat-label" id="introGuessSolvedLabel">Đúng</span>
+          <strong class="minigame-stat-value" id="introGuessSolvedValue">0</strong>
+        </div>
+        <div class="minigame-stat-card">
+          <span class="minigame-stat-label" id="introGuessAttemptsLabel">Lượt chơi</span>
+          <strong class="minigame-stat-value" id="introGuessAttemptsValue">0</strong>
+        </div>
+        <div class="minigame-stat-card">
+          <span class="minigame-stat-label" id="introGuessAccuracyLabel">Tỉ lệ đúng</span>
+          <strong class="minigame-stat-value" id="introGuessAccuracyValue">0%</strong>
+        </div>
+      </div>
+
+      <div class="minigame-panel">
+        <p class="minigame-subtitle" id="introGuessPromptLabel">Nghe 15 giây đầu rồi đoán đúng tên bài hát.</p>
+        <div class="intro-guess-player-shell">
+          <div class="intro-guess-player" id="introGuessPlayer">
+            <div class="intro-guess-player-mask">
+              <div class="intro-guess-player-icon">
+                <i class="fa-solid fa-headphones"></i>
+              </div>
+              <div class="intro-guess-player-placeholder" id="introGuessPlayerPlaceholder">Đang chuẩn bị intro...</div>
+            </div>
+            <div class="intro-guess-player-audio" aria-hidden="true">
+              <div id="introGuessYoutubePlayer"></div>
+            </div>
+          </div>
+        </div>
+        <div class="intro-guess-toolbar">
+          <button type="button" class="btn" id="introGuessPlayButton" onclick="playIntroGuessSnippet()">
+            Phát intro 15s
+          </button>
+          <div class="intro-guess-status" id="introGuessStatus"></div>
+        </div>
+        <div class="intro-guess-volume">
+          <label class="intro-guess-volume-label" for="introGuessVolume">Âm lượng</label>
+          <input
+            type="range"
+            id="introGuessVolume"
+            class="intro-guess-volume-slider"
+            min="0"
+            max="100"
+            step="1"
+            value="50"
+            oninput="setIntroGuessVolume(this.value)"
+          />
+          <span class="intro-guess-volume-value" id="introGuessVolumeValue">50%</span>
+        </div>
+        <div class="intro-guess-progress" aria-hidden="true">
+          <div class="intro-guess-progress-bar" id="introGuessProgressBar"></div>
+        </div>
+        <div class="minigame-meta" id="introGuessMeta"></div>
+        <div class="minigame-options" id="introGuessOptions"></div>
+        <div class="minigame-result" id="introGuessResult"></div>
+
+        <div class="minigame-actions">
+          <button type="button" class="btn btn-cancel" id="introGuessNextButton" onclick="nextIntroGuessRound()">
+            Bài khác
+          </button>
+          <button type="button" class="btn" id="introGuessOpenSongButton" onclick="openIntroGuessSong()" style="display: none;">
+            Mở bài hát
+          </button>
+        </div>
+      </div>
     </div>
   </dialog>
   
@@ -2015,6 +2366,7 @@ document.addEventListener('keydown', (e) => {
   <script type="module" src="js/rejection.js"></script>
   <script type="module" src="js/ban.js"></script>
   <script type="module" src="js/module.js"></script>
+  <script type="module" src="js/minigame.js"></script>
   <script type="module" src="js/update.js"></script>
 
 </body>

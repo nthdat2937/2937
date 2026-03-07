@@ -240,6 +240,320 @@ document.addEventListener('keydown', (e) => {
 let otherVideosData = [];
 let allAvailableVideos = [];
 let currentVideoIndex = 0;
+let currentYoutubeSearchContext = {
+  songName: '',
+  artist: '',
+  searchQuery: ''
+};
+let youtubePlayer = null;
+let youtubeIframeApiPromise = null;
+let youtubeIframeApiResolver = null;
+let suppressYoutubeMiniPlayer = false;
+let currentYoutubeDisplayTitle = '';
+let favouritePlaylistState = {
+  active: false,
+  songs: [],
+  currentIndex: -1
+};
+
+function ytText(key, variables = {}, fallback = key) {
+  if (window.getTranslatedText) {
+    return window.getTranslatedText(key, variables);
+  }
+
+  return fallback;
+}
+
+function isYoutubePlaylistMode() {
+  return favouritePlaylistState.active;
+}
+
+function getYoutubeDialogByMode(playlistMode = isYoutubePlaylistMode()) {
+  return document.getElementById(playlistMode ? 'youtubePlaylistDialog' : 'youtubeVideoDialog');
+}
+
+function getCurrentYoutubeDialog() {
+  return getYoutubeDialogByMode();
+}
+
+function getYoutubeDialogBody(playlistMode = isYoutubePlaylistMode()) {
+  return getYoutubeDialogByMode(playlistMode)?.querySelector('.youtube-dialog-body');
+}
+
+function getYoutubePlayerContainer(playlistMode = isYoutubePlaylistMode()) {
+  return document.getElementById(playlistMode ? 'youtubePlaylistIframe' : 'youtubeVideoIframe');
+}
+
+function getYoutubeSongNameElement(playlistMode = isYoutubePlaylistMode()) {
+  return document.getElementById(playlistMode ? 'youtubePlaylistSongName' : 'youtubeVideoSongName');
+}
+
+function setYoutubeDisplayTitle(songName, artist, playlistMode = isYoutubePlaylistMode()) {
+  currentYoutubeDisplayTitle = artist
+    ? `${songName} - ${artist}`
+    : songName;
+
+  const songNameElement = getYoutubeSongNameElement(playlistMode);
+  if (songNameElement) {
+    songNameElement.textContent = currentYoutubeDisplayTitle;
+  }
+}
+
+function openYoutubeDialogForMode(playlistMode) {
+  const targetDialog = getYoutubeDialogByMode(playlistMode);
+  const otherDialog = getYoutubeDialogByMode(!playlistMode);
+
+  if (otherDialog?.open) {
+    suppressYoutubeMiniPlayer = true;
+    otherDialog.close();
+    suppressYoutubeMiniPlayer = false;
+  }
+
+  if (targetDialog && !targetDialog.open) {
+    targetDialog.showModal();
+  }
+}
+
+function resetYoutubeOtherVideosState() {
+  otherVideosData = [];
+  allAvailableVideos = [];
+  currentVideoIndex = 0;
+  document.getElementById('otherVideosContainer').style.display = 'none';
+  document.getElementById('btnShowOtherVideos').innerHTML = '<i class="fa-solid fa-list"></i> Hiển thị các video khác';
+}
+
+function renderYoutubeVersionButtons(songName, artist) {
+  const remixQuery = `${songName.trim()}${artist ? ` - ${artist}` : ''} - remix`;
+  const lofiQuery = `${songName.trim()}${artist ? ` - ${artist}` : ''} - lofi`;
+
+  document.getElementById('ytVersionRemix').innerHTML = `<button onclick='searchYoutubeVideo(${JSON.stringify(remixQuery)}, "")' style="
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 10px 24px;
+  border-radius: 25px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  position: relative;
+  overflow: hidden;
+"
+onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(102, 126, 234, 0.6)';"
+onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(102, 126, 234, 0.4)';"
+onmousedown="this.style.transform='scale(0.95)';"
+onmouseup="this.style.transform='translateY(-2px)';">
+  Remix
+</button>`;
+
+  document.getElementById('ytVersionLofi').innerHTML = `<button onclick='searchYoutubeVideo(${JSON.stringify(lofiQuery)}, "")' style="
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 10px 24px;
+  border-radius: 25px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  position: relative;
+  overflow: hidden;
+"
+onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(102, 126, 234, 0.6)';"
+onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(102, 126, 234, 0.4)';"
+onmousedown="this.style.transform='scale(0.95)';"
+onmouseup="this.style.transform='translateY(-2px)';">
+  Lofi
+</button>`;
+}
+
+function updateYoutubePlaylistStatus() {
+  const statusEl = document.getElementById('youtubePlaylistStatus');
+  if (!statusEl) return;
+
+  if (!favouritePlaylistState.active || !favouritePlaylistState.songs.length || favouritePlaylistState.currentIndex < 0) {
+    statusEl.style.display = 'none';
+    statusEl.textContent = '';
+    return;
+  }
+
+  statusEl.style.display = 'block';
+  statusEl.textContent = ytText(
+    'favouritePlaylistStatus',
+    {
+      current: favouritePlaylistState.currentIndex + 1,
+      total: favouritePlaylistState.songs.length
+    },
+    `Playlist yêu thích ${favouritePlaylistState.currentIndex + 1}/${favouritePlaylistState.songs.length}`
+  );
+}
+
+function updateYoutubeMiniPlayerLabel() {
+  const miniPlayerLabel = document.getElementById('miniPlayerYoutubeName');
+  if (!miniPlayerLabel) return;
+
+  const songName = currentYoutubeDisplayTitle || 'Đang phát video...';
+  if (favouritePlaylistState.active && favouritePlaylistState.songs.length) {
+    miniPlayerLabel.textContent = `${songName} • ${favouritePlaylistState.currentIndex + 1}/${favouritePlaylistState.songs.length}`;
+    return;
+  }
+
+  miniPlayerLabel.textContent = songName;
+}
+
+function renderFavouritePlaylistSongs() {
+  const listEl = document.getElementById('youtubePlaylistSongs');
+  if (!listEl) return;
+
+  if (!favouritePlaylistState.songs.length) {
+    listEl.innerHTML = `<div class="youtube-playlist-empty">${ytText('favouritePlaylistEmpty', {}, 'Chưa có bài yêu thích để phát.')}</div>`;
+    return;
+  }
+
+  listEl.innerHTML = favouritePlaylistState.songs.map((song, index) => {
+    const isActive = index === favouritePlaylistState.currentIndex;
+    const cover = song.avatar
+      ? `<img src="${song.avatar}" alt="${song['Tên']}" class="youtube-playlist-cover">`
+      : `<span class="youtube-playlist-cover youtube-playlist-cover-fallback"><i class="fa-solid fa-music"></i></span>`;
+
+    return `
+      <button
+        type="button"
+        class="youtube-playlist-item${isActive ? ' active' : ''}"
+        onclick="playFavouritePlaylistSongAtIndex(${index})"
+      >
+        <span class="youtube-playlist-index">${index + 1}</span>
+        ${cover}
+        <span class="youtube-playlist-info">
+          <span class="youtube-playlist-song">${song['Tên']}</span>
+          <span class="youtube-playlist-artist">${song['Ca sĩ'] || ''}</span>
+        </span>
+        <span class="youtube-playlist-current"><i class="fa-solid fa-volume-high"></i></span>
+      </button>
+    `;
+  }).join('');
+}
+
+function resetFavouritePlaylistState() {
+  favouritePlaylistState.active = false;
+  favouritePlaylistState.songs = [];
+  favouritePlaylistState.currentIndex = -1;
+  const playlistSongName = document.getElementById('youtubePlaylistSongName');
+  if (playlistSongName) {
+    playlistSongName.textContent = '---';
+  }
+  updateYoutubePlaylistStatus();
+  renderFavouritePlaylistSongs();
+  updateYoutubeMiniPlayerLabel();
+}
+
+function clearYoutubePlayer(clearContainer = true) {
+  if (youtubePlayer && typeof youtubePlayer.destroy === 'function') {
+    youtubePlayer.destroy();
+  }
+
+  youtubePlayer = null;
+
+  if (!clearContainer) return;
+
+  ['youtubeVideoIframe', 'youtubePlaylistIframe'].forEach(id => {
+    const container = document.getElementById(id);
+    if (container) {
+      container.innerHTML = '';
+    }
+  });
+}
+
+function ensureYoutubeIframeApi() {
+  if (window.YT?.Player) {
+    return Promise.resolve(window.YT);
+  }
+
+  if (youtubeIframeApiPromise) {
+    return youtubeIframeApiPromise;
+  }
+
+  youtubeIframeApiPromise = new Promise((resolve, reject) => {
+    youtubeIframeApiResolver = resolve;
+
+    window.onYouTubeIframeAPIReady = () => {
+      youtubeIframeApiResolver?.(window.YT);
+      youtubeIframeApiResolver = null;
+    };
+
+    const existingScript = document.querySelector('script[src="https://www.youtube.com/iframe_api"]');
+    if (!existingScript) {
+      const script = document.createElement('script');
+      script.src = 'https://www.youtube.com/iframe_api';
+      script.async = true;
+      script.onerror = () => reject(new Error('Failed to load YouTube IFrame API'));
+      document.head.appendChild(script);
+    }
+  });
+
+  return youtubeIframeApiPromise;
+}
+
+async function finishFavouritePlaylist() {
+  const completedMessage = ytText(
+    'favouritePlaylistCompleted',
+    {},
+    'Đã phát hết danh sách yêu thích.'
+  );
+
+  if (typeof window.showToast === 'function') {
+    window.showToast(completedMessage);
+  }
+
+  stopYoutube();
+}
+
+async function playNextFavouritePlaylistSong() {
+  const nextIndex = favouritePlaylistState.currentIndex + 1;
+  if (nextIndex >= favouritePlaylistState.songs.length) {
+    await finishFavouritePlaylist();
+    return;
+  }
+
+  await window.startFavouritePlaylist(favouritePlaylistState.songs, nextIndex);
+}
+
+window.startFavouritePlaylist = async function(songs, startIndex = 0) {
+  if (!Array.isArray(songs) || !songs.length) {
+    alert(ytText('favouritePlaylistEmpty', {}, 'Chưa có bài yêu thích để phát.'));
+    return;
+  }
+
+  const normalizedSongs = songs.filter(song => song && song.Id);
+  if (!normalizedSongs.length) {
+    alert(ytText('favouritePlaylistEmpty', {}, 'Chưa có bài yêu thích để phát.'));
+    return;
+  }
+
+  const safeIndex = Math.min(Math.max(startIndex, 0), normalizedSongs.length - 1);
+  favouritePlaylistState.active = true;
+  favouritePlaylistState.songs = normalizedSongs;
+  favouritePlaylistState.currentIndex = safeIndex;
+  renderFavouritePlaylistSongs();
+  updateYoutubePlaylistStatus();
+
+  const song = normalizedSongs[safeIndex];
+  const songName = song['Tên'];
+  const artist = (song['Ca sĩ'] || '').trim();
+
+  await searchYoutubeVideo(songName, artist, { playlistMode: true });
+};
+
+window.playFavouritePlaylistSongAtIndex = async function(index) {
+  if (!favouritePlaylistState.songs.length) return;
+  await window.startFavouritePlaylist(favouritePlaylistState.songs, index);
+};
 
 // ===== NCT MUSIC DIALOG FEATURE =====
 // Biến global cho NCT Music
@@ -291,11 +605,14 @@ function closeNctMusicDialog() {
 
 // Function đóng tất cả YouTube dialogs và mini player
 function closeAllYoutubeDialogs() {
-  // Đóng YouTube dialog
-  const youtubeDialog = document.getElementById('youtubeVideoDialog');
-  if (youtubeDialog && youtubeDialog.open) {
-    youtubeDialog.close();
-  }
+  suppressYoutubeMiniPlayer = true;
+  ['youtubeVideoDialog', 'youtubePlaylistDialog'].forEach(id => {
+    const dialog = document.getElementById(id);
+    if (dialog?.open) {
+      dialog.close();
+    }
+  });
+  suppressYoutubeMiniPlayer = false;
 
   // Đóng và xóa YouTube mini player
   const miniPlayer = document.getElementById('youtubeMiniPlayer');
@@ -304,10 +621,8 @@ function closeAllYoutubeDialogs() {
   }
 
   // Clear YouTube iframe
-  const youtubeIframe = document.getElementById('youtubeVideoIframe');
-  if (youtubeIframe) {
-    youtubeIframe.innerHTML = '';
-  }
+  clearYoutubePlayer();
+  resetFavouritePlaylistState();
 }
 
 // ===== NCT MUSIC DIALOG FUNCTIONS =====
@@ -658,9 +973,12 @@ async function toggleOtherVideos() {
 
 // Function fetch 3 videos đầu tiên từ YouTube API
 async function fetchOtherVideos() {
-  const songName = document.getElementById("dTitle").textContent;
-  const artist = document.getElementById("dArtist").textContent.replace('ㅤ', '').trim();
-  const searchQuery = `${songName} ${artist}`;
+  const searchQuery = currentYoutubeSearchContext.searchQuery
+    || [
+      currentYoutubeSearchContext.songName,
+      currentYoutubeSearchContext.artist
+    ].filter(Boolean).join(' ')
+    || document.getElementById('youtubeVideoSongName').textContent.trim();
 
   document.getElementById('otherVideosList').innerHTML = `
     <div style="text-align: center; padding: 40px 20px; color: var(--text-muted);">
@@ -745,139 +1063,24 @@ function renderOtherVideos() {
 
 // Function phát video từ danh sách other
 function playOtherVideo(videoId) {
-  const iframeHtml = `
-    <iframe 
-      width="100%" 
-      height="650" 
-      src="https://www.youtube.com/embed/${videoId}?autoplay=1&vq=large" 
-      frameborder="0" 
-      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-      allowfullscreen
-      style="border-radius: 16px;"
-    ></iframe>
-  `;
-
-  document.getElementById('youtubeVideoIframe').innerHTML = iframeHtml;
-  document.querySelector('#youtubeVideoDialog > div').scrollTo({ top: 0, behavior: 'smooth' });
+  loadYoutubeVideo(videoId, currentYoutubeSearchContext.songName, currentYoutubeSearchContext.artist);
+  getYoutubeDialogBody(false)?.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// Function mở YouTube Video Dialog
-async function openYoutubeVideoDialog() {
-  // Đóng NCT dialog trước
-  closeNctMusicDialog();
+async function loadYoutubeVideo(videoId, songName, artist) {
+  const playlistMode = isYoutubePlaylistMode();
+  setYoutubeDisplayTitle(songName, artist, playlistMode);
 
-  const songName = document.getElementById("dTitle").textContent;
-  const artist = document.getElementById("dArtist").textContent.replace('ㅤ', '').trim();
+  clearYoutubePlayer(false);
+  const playerContainer = getYoutubePlayerContainer(playlistMode);
+  if (!playerContainer) return;
 
-  const searchQuery = `${songName} ${artist}`;
-
-  // Reset state
-  otherVideosData = [];
-  allAvailableVideos = [];
-  currentVideoIndex = 0;
-  document.getElementById('otherVideosContainer').style.display = 'none';
-  document.getElementById('btnShowOtherVideos').innerHTML = '<i class="fa-solid fa-list"></i> Hiển thị các video khác';
-
-  document.getElementById('youtubeVideoIframe').innerHTML = `
-    <div style="text-align: center; padding: 100px 20px; color: var(--text-muted);">
-      <i class="fa-solid fa-spinner fa-spin" style="font-size: 48px; margin-bottom: 20px;"></i>
-      <p>Đang tìm video phù hợp...</p>
-    </div>
-  `;
-  document.getElementById('youtubeVideoSongName').textContent = `${songName} - ${artist}`;
-
-  document.getElementById('ytVersionRemix').innerHTML = `<button onclick="searchYoutubeVideo('${songName.trim()} - ${artist} - remix');" style="
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
-  padding: 10px 24px;
-  border-radius: 25px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-  transition: all 0.3s ease;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  position: relative;
-  overflow: hidden;
-"
-onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(102, 126, 234, 0.6)';"
-onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(102, 126, 234, 0.4)';"
-onmousedown="this.style.transform='scale(0.95)';"
-onmouseup="this.style.transform='translateY(-2px)';">
-  Remix
-</button>`;
-
-  document.getElementById('ytVersionLofi').innerHTML = `<button onclick="searchYoutubeVideo('${songName.trim()} - ${artist} - lofi');" style="
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
-  padding: 10px 24px;
-  border-radius: 25px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-  transition: all 0.3s ease;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  position: relative;
-  overflow: hidden;
-"
-onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(102, 126, 234, 0.6)';"
-onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(102, 126, 234, 0.4)';"
-onmousedown="this.style.transform='scale(0.95)';"
-onmouseup="this.style.transform='translateY(-2px)';">
-  Lofi
-</button>`;
-
-  youtubeVideoDialog.showModal();
-
-  try {
-    const searchRes = await fetch(
-      `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=5&q=${encodeURIComponent(searchQuery)}&key=AIzaSyAS6c7bto_vvZ60g_FsdA60od3Fgw0y67g`
-    );
-    const searchData = await searchRes.json();
-
-    if (!searchData.items?.length) {
-      showVideoNotAvailable(songName, artist);
-      return;
-    }
-
-    allAvailableVideos = searchData.items;
-    loadVideoByIndex(0, songName, artist);
-
-  } catch (error) {
-    console.error('Lỗi khi tìm video:', error);
-    showVideoError();
-  }
-}
-
-function loadVideoByIndex(index, songName, artist) {
-  if (index >= allAvailableVideos.length) {
-    showVideoNotAvailable(songName, artist);
-    return;
-  }
-
-  currentVideoIndex = index;
-  const videoId = allAvailableVideos[index].id.videoId;
-
-  const iframeHtml = `
-    <iframe 
-      id="mainYoutubeIframe"
-      width="100%" 
-      height="650" 
-      src="https://www.youtube.com/embed/${videoId}?autoplay=1&vq=large" 
-      frameborder="0" 
-      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-      allowfullscreen
-      style="border-radius: 16px;"
-    ></iframe>
+  playerContainer.innerHTML = `
+    <div id="mainYoutubePlayer" style="width: 100%; min-height: 650px; border-radius: 16px; overflow: hidden; background: #000;"></div>
     <div style="text-align: center; margin-top: 16px; color: var(--text-muted); font-size: 14px;">
-      <i class="fa-solid fa-info-circle"></i> Video bị chặn? 
-      <button 
-        onclick="tryNextVideo('${songName}', '${artist}')" 
+      <i class="fa-solid fa-info-circle"></i> Video bị chặn?
+      <button
+        onclick="tryNextVideo(${JSON.stringify(songName)}, ${JSON.stringify(artist)})"
         style="
           background: linear-gradient(135deg, #f59e0b, #d97706);
           color: white;
@@ -898,17 +1101,66 @@ function loadVideoByIndex(index, songName, artist) {
     </div>
   `;
 
-  document.getElementById('youtubeVideoIframe').innerHTML = iframeHtml;
+  try {
+    await ensureYoutubeIframeApi();
+    youtubePlayer = new YT.Player('mainYoutubePlayer', {
+      height: '650',
+      width: '100%',
+      videoId,
+      playerVars: {
+        autoplay: 1,
+        rel: 0,
+        playsinline: 1
+      },
+      events: {
+        onReady: () => {
+          updateYoutubePlaylistStatus();
+          updateYoutubeMiniPlayerLabel();
+        },
+        onStateChange: async (event) => {
+          if (event.data === window.YT.PlayerState.ENDED && favouritePlaylistState.active) {
+            await playNextFavouritePlaylistSong();
+          }
+        },
+        onError: () => {
+          tryNextVideo(currentYoutubeSearchContext.songName, currentYoutubeSearchContext.artist);
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Lỗi khi load YouTube player:', error);
+    showVideoError();
+  }
+}
+
+async function loadVideoByIndex(index, songName, artist) {
+  if (index >= allAvailableVideos.length) {
+    await showVideoNotAvailable(songName, artist);
+    return;
+  }
+
+  currentVideoIndex = index;
+  const videoId = allAvailableVideos[index].id.videoId;
+  await loadYoutubeVideo(videoId, songName, artist);
 }
 
 function tryNextVideo(songName, artist) {
   loadVideoByIndex(currentVideoIndex + 1, songName, artist);
 }
 
-function showVideoNotAvailable(songName, artist) {
-  const searchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(songName + ' ' + artist)}`;
+async function showVideoNotAvailable(songName, artist) {
+  if (favouritePlaylistState.active) {
+    await playNextFavouritePlaylistSong();
+    return;
+  }
 
-  document.getElementById('youtubeVideoIframe').innerHTML = `
+  const searchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(songName + ' ' + artist)}`;
+  clearYoutubePlayer();
+
+  const playerContainer = getYoutubePlayerContainer();
+  if (!playerContainer) return;
+
+  playerContainer.innerHTML = `
     <div style="text-align: center; padding: 100px 20px; color: var(--text-muted);">
       <i class="fa-solid fa-ban" style="font-size: 64px; margin-bottom: 20px; color: #ef4444;"></i>
       <h3 style="color: var(--text-primary); margin-bottom: 12px;">Video không có sẵn</h3>
@@ -944,12 +1196,23 @@ function showVideoNotAvailable(songName, artist) {
 }
 
 function showVideoError() {
-  document.getElementById('youtubeVideoIframe').innerHTML = `
+  clearYoutubePlayer();
+  const playerContainer = getYoutubePlayerContainer();
+  if (!playerContainer) return;
+
+  playerContainer.innerHTML = `
     <div style="text-align: center; padding: 100px 20px; color: var(--text-muted);">
       <i class="fa-solid fa-triangle-exclamation" style="font-size: 48px; margin-bottom: 20px; color: #f59e0b;"></i>
       <p>Có lỗi xảy ra khi tìm video</p>
     </div>
   `;
+}
+
+// Function mở YouTube Video Dialog
+async function openYoutubeVideoDialog() {
+  const songName = document.getElementById("dTitle").textContent;
+  const artist = document.getElementById("dArtist").textContent.replace('ㅤ', '').trim();
+  await searchYoutubeVideo(songName, artist);
 }
 
 youtubeVideoDialog.addEventListener('click', (e) => {
@@ -958,12 +1221,29 @@ youtubeVideoDialog.addEventListener('click', (e) => {
   }
 });
 
-youtubeVideoDialog.addEventListener('close', () => {
-  const iframe = document.getElementById('youtubeVideoIframe');
-  if (iframe.innerHTML.trim() !== '') {
-    showYoutubeMiniPlayer();
+youtubePlaylistDialog.addEventListener('click', (e) => {
+  if (e.target === youtubePlaylistDialog) {
+    youtubePlaylistDialog.close();
   }
 });
+
+function handleYoutubeDialogClose() {
+  if (suppressYoutubeMiniPlayer) {
+    return;
+  }
+
+  const hasPlayerContent = ['youtubeVideoIframe', 'youtubePlaylistIframe'].some(id => {
+    const container = document.getElementById(id);
+    return container && container.innerHTML.trim() !== '';
+  });
+
+  if (youtubePlayer || hasPlayerContent) {
+    showYoutubeMiniPlayer();
+  }
+}
+
+youtubeVideoDialog.addEventListener('close', handleYoutubeDialogClose);
+youtubePlaylistDialog.addEventListener('close', handleYoutubeDialogClose);
 
 function showYoutubeMiniPlayer() {
   let miniPlayer = document.getElementById('youtubeMiniPlayer');
@@ -1006,20 +1286,23 @@ function showYoutubeMiniPlayer() {
     document.body.appendChild(miniPlayer);
   }
 
-  const songName = document.getElementById('youtubeVideoSongName').textContent;
-  document.getElementById('miniPlayerYoutubeName').textContent = songName;
+  updateYoutubeMiniPlayerLabel();
 
   miniPlayer.classList.add('show');
 }
 
 function reopenYoutubeDialog() {
-  youtubeVideoDialog.showModal();
+  const dialog = getCurrentYoutubeDialog();
+  if (dialog && !dialog.open) {
+    dialog.showModal();
+  }
   const miniPlayer = document.getElementById('youtubeMiniPlayer');
   if (miniPlayer) miniPlayer.classList.remove('show');
 }
 
 function stopYoutube() {
-  document.getElementById('youtubeVideoIframe').innerHTML = '';
+  clearYoutubePlayer();
+  resetFavouritePlaylistState();
   const miniPlayer = document.getElementById('youtubeMiniPlayer');
   if (miniPlayer) miniPlayer.remove();
 }
@@ -1040,7 +1323,7 @@ function openYoutubeSearchDialog() {
   searchYoutubeVideo(songName.trim(), artist ? artist.trim() : "");
 }
 
-async function searchYoutubeVideo(songName, artist) {
+async function searchYoutubeVideo(songName, artist, options = {}) {
   // Đóng NCT dialog trước
   closeNctMusicDialog();
 
@@ -1048,22 +1331,36 @@ async function searchYoutubeVideo(songName, artist) {
     ? `${songName} ${artist}`
     : `${songName}`;
 
-  otherVideosData = [];
-  allAvailableVideos = [];
-  currentVideoIndex = 0;
-  document.getElementById('otherVideosContainer').style.display = 'none';
-  document.getElementById('btnShowOtherVideos').innerHTML = '<i class="fa-solid fa-list"></i> Hiển thị các video khác';
+  if (!options.playlistMode) {
+    resetFavouritePlaylistState();
+  }
 
-  document.getElementById('youtubeVideoIframe').innerHTML = `
+  currentYoutubeSearchContext = {
+    songName,
+    artist: artist || '',
+    searchQuery
+  };
+
+  if (options.playlistMode) {
+    renderFavouritePlaylistSongs();
+  } else {
+    resetYoutubeOtherVideosState();
+    renderYoutubeVersionButtons(songName, artist || '');
+  }
+
+  clearYoutubePlayer();
+  const playerContainer = getYoutubePlayerContainer(!!options.playlistMode);
+  if (!playerContainer) return;
+
+  playerContainer.innerHTML = `
     <div style="text-align: center; padding: 100px 20px; color: var(--text-muted);">
       <i class="fa-solid fa-spinner fa-spin" style="font-size: 48px; margin-bottom: 20px;"></i>
       <p>Đang tải video! Vui lòng chờ...</p>
     </div>
   `;
-  document.getElementById('youtubeVideoSongName').textContent = artist
-    ? `${songName} - ${artist}`
-    : songName;
-  youtubeVideoDialog.showModal();
+  setYoutubeDisplayTitle(songName, artist, !!options.playlistMode);
+  updateYoutubePlaylistStatus();
+  openYoutubeDialogForMode(!!options.playlistMode);
 
   try {
     const searchRes = await fetch(
@@ -1072,18 +1369,24 @@ async function searchYoutubeVideo(songName, artist) {
     const searchData = await searchRes.json();
 
     if (!searchData.items?.length) {
-      showVideoNotAvailable(songName, artist);
+      await showVideoNotAvailable(songName, artist);
       return;
     }
 
     allAvailableVideos = searchData.items;
-    loadVideoByIndex(0, songName, artist);
+    await loadVideoByIndex(0, songName, artist);
 
   } catch (error) {
     console.error('Lỗi khi tìm video:', error);
     showVideoError();
   }
 }
+
+document.addEventListener('app-languagechange', () => {
+  updateYoutubePlaylistStatus();
+  renderFavouritePlaylistSongs();
+  updateYoutubeMiniPlayerLabel();
+});
 
 // Tag Selector Handler
 function initTagSelector(selectorId, inputId) {

@@ -14,6 +14,17 @@ function tr(key, variables = {}) {
   return key;
 }
 
+function getFavouriteSongs() {
+  if (!Array.isArray(window._songs) || !window._songs.length) {
+    return [];
+  }
+
+  const songMap = new Map(window._songs.map(song => [song.Id.toString(), song]));
+  return userFavourites
+    .map(songId => songMap.get(songId))
+    .filter(Boolean);
+}
+
 // Load favourites từ database
 async function loadUserFavourites() {
   if (!window.currentUser) {
@@ -173,6 +184,8 @@ function showToast(message) {
   }, 2000);
 }
 
+window.showToast = showToast;
+
 // Open favourite dialog
 window.openFavouriteDialog = async function() {
   if (!window.currentUser) {
@@ -184,10 +197,13 @@ window.openFavouriteDialog = async function() {
   
   const favouriteList = document.getElementById('favouriteList');
   const favouriteCount = document.getElementById('favouriteCount');
+  const playlistButton = document.getElementById('btnFavouritePlaylist');
+  const songs = getFavouriteSongs();
   
-  favouriteCount.textContent = userFavourites.length;
+  favouriteCount.textContent = songs.length;
   
-  if (userFavourites.length === 0) {
+  if (songs.length === 0) {
+    if (playlistButton) playlistButton.disabled = true;
     favouriteList.innerHTML = `
       <div style="text-align: center; padding: 60px 20px; color: var(--text-muted);">
         <i class="fa-solid fa-heart-crack" style="font-size: 64px; margin-bottom: 20px; opacity: 0.3;"></i>
@@ -196,7 +212,7 @@ window.openFavouriteDialog = async function() {
       </div>
     `;
   } else {
-    const songs = window._songs.filter(s => userFavourites.includes(s.Id.toString()));
+    if (playlistButton) playlistButton.disabled = songs.length === 0;
     
     favouriteList.innerHTML = songs.map(song => `
       <div class="favourite-item" onclick="showLyric(${song.Id}); favouriteDialog.close();">
@@ -224,6 +240,24 @@ window.openFavouriteDialog = async function() {
   }
   
   favouriteDialog.showModal();
+};
+
+window.startFavouritePlaylistFromDialog = async function() {
+  if (!window.currentUser) {
+    alert('Vui lòng đăng nhập để xem bài hát yêu thích!');
+    return;
+  }
+
+  await loadUserFavourites();
+
+  const songs = getFavouriteSongs();
+  if (!songs.length) {
+    alert(tr('favouritePlaylistEmpty'));
+    return;
+  }
+
+  favouriteDialog.close();
+  await window.startFavouritePlaylist?.(songs, 0);
 };
 
 // Close favourite dialog khi click outside
