@@ -1,31 +1,20 @@
 const HOT_QUOTE_OPTION_COUNT = 4;
-const ARTIST_GUESS_OPTION_COUNT = 4;
 const LYRIC_ORDER_LINE_COUNT = 4;
 const LYRIC_FILL_MAX_BLANKS = 2;
 const INTRO_GUESS_DURATION_SECONDS = 15;
 const INTRO_GUESS_OPTION_COUNT = 4;
-const ARTIST_GUESS_AUDIO_DURATION_SECONDS = 15;
 const MINIGAME_YOUTUBE_API_KEY = 'AIzaSyAS6c7bto_vvZ60g_FsdA60od3Fgw0y67g';
 const INTRO_GUESS_LOG_PREFIX = '[IntroMinigame]';
-const ARTIST_GUESS_LOG_PREFIX = '[ArtistMinigame]';
-const ARTIST_GUESS_MODES = ['title', 'hot', 'audio'];
-const USE_LUCKY_AUDIO_SOURCE = false;
-const INTRO_GUESS_LUCKY_WINDOW_NAME = 'ntdLuckyIntroWindow';
-const ARTIST_GUESS_LUCKY_WINDOW_NAME = 'ntdLuckyArtistWindow';
-const LUCKY_WINDOW_FEATURES = 'width=480,height=220';
-const LUCKY_STOP_PAGE_URL = new URL('../lucky-stop.html', import.meta.url).href;
 
 const MINIGAME_TEXT = {
   vi: {
     menuIntroGuess: 'Đoán bài qua intro',
     menuLyricFill: 'Điền từ còn thiếu',
     menuHotQuote: 'Đoán tên bài hát',
-    menuArtistGuess: 'Đoán tên ca sĩ',
     menuLyricOrder: 'Sắp xếp lyric',
     introGuessTitle: 'Đoán bài hát qua 15 giây intro',
     lyricFillTitle: 'Điền từ còn thiếu trong lyric',
     hotQuoteTitle: 'Đoán tên bài hát theo các câu hot',
-    artistGuessTitle: 'Đoán tên ca sĩ qua gợi ý',
     lyricOrderTitle: 'Sắp xếp lyric đúng thứ tự',
     solvedLabel: 'Đúng',
     attemptsLabel: 'Lượt chơi',
@@ -38,7 +27,6 @@ const MINIGAME_TEXT = {
     introGuessHint: '4 đáp án, bạn có thể nghe lại intro nếu cần.',
     introGuessMetaHidden: 'Tên bài hát đang được ẩn. Nghe intro rồi chọn đáp án đúng.',
     introGuessMetaReady: 'Intro đã sẵn sàng. Bấm phát để nghe 15 giây đầu.',
-    introGuessMetaReadyLucky: 'Intro sẽ tự mở ở tab mới. Nếu chưa nghe được, bấm "Nghe lại intro".',
     introGuessMetaPlaying: 'Đang phát 15 giây intro...',
     introGuessMetaRevealed: 'Đáp án: "{song}" - {artist}',
     introGuessCorrect: 'Chính xác! Đây là "{song}" của {artist}.',
@@ -72,41 +60,6 @@ const MINIGAME_TEXT = {
     hotQuoteCorrect: 'Chính xác! Đây là "{song}" của {artist}.',
     hotQuoteWrong: 'Chưa đúng. Đáp án là "{song}" của {artist}.',
     hotQuoteMeta: 'Ca sĩ: {artist}',
-    artistGuessPrompt: 'Đoán đúng ca sĩ qua tên bài, hot lyric hoặc audio.',
-    artistGuessTitlePrompt: 'Nhìn tên bài hát rồi đoán ca sĩ.',
-    artistGuessHotPrompt: 'Đọc hot lyric rồi đoán ca sĩ.',
-    artistGuessAudioPrompt: 'Nghe 15 giây rồi đoán ca sĩ.',
-    artistGuessModeTitle: 'Theo tên bài',
-    artistGuessModeHot: 'Theo hot lyric',
-    artistGuessModeAudio: 'Theo audio',
-    artistGuessLoading: 'Đang chuẩn bị câu hỏi...',
-    artistGuessEmpty: 'Chưa có đủ dữ liệu để chơi mini game này.',
-    artistGuessHotEmpty: 'Chưa có đủ bài có hot lyric để chơi mode này.',
-    artistGuessAudioEmpty: 'Chưa có đủ bài có audio để chơi mode này.',
-    artistGuessHint: 'Chọn đúng ca sĩ từ các đáp án bên dưới.',
-    artistGuessCorrect: 'Chính xác! Ca sĩ là {artist}.',
-    artistGuessWrong: 'Chưa đúng. Đáp án là {artist}.',
-    artistGuessMetaHidden: 'Tên ca sĩ đang được ẩn. Dựa vào gợi ý để chọn đáp án đúng.',
-    artistGuessMetaRevealed: 'Đáp án: {artist}\nBài hát: "{song}"',
-    artistGuessClueTypeLabel: 'Gợi ý hiện tại',
-    artistGuessClueTypeTitle: 'Tên bài hát',
-    artistGuessClueTypeHot: 'Hot lyric',
-    artistGuessClueTypeAudio: 'Nghe intro',
-    artistGuessAudioClue: 'Bấm phát để nghe đoạn intro 15 giây của bài hát này.',
-    artistGuessAudioClueLucky: 'Audio sẽ tự mở ở tab mới. Nếu chưa nghe được, bấm "Nghe lại".',
-    artistGuessAudioLoading: 'Đang chuẩn bị audio...',
-    artistGuessAudioReady: 'Audio đã sẵn sàng. Bấm phát để nghe 15 giây.',
-    artistGuessAudioReadyLucky: 'Audio đã sẵn sàng và đang tự mở ở tab mới.',
-    artistGuessAudioPlaying: 'Đang phát 15 giây audio...',
-    artistGuessAudioSearchingStatus: 'Đang tìm audio...',
-    artistGuessAudioReadyStatus: 'Sẵn sàng phát',
-    artistGuessAudioPlayingStatus: 'Đang phát 15 giây audio',
-    artistGuessAudioStoppedStatus: 'Đã phát xong 15 giây',
-    artistGuessAudioRetryingStatus: 'Audio lỗi, đang thử nguồn khác...',
-    artistGuessAudioUnavailableStatus: 'Không phát được audio cho câu này',
-    artistGuessAudioUnavailableMeta: 'Không tìm được audio phát được. Bấm "Câu khác" để đổi câu.',
-    artistGuessPlay: 'Phát gợi ý',
-    artistGuessReplay: 'Nghe lại',
     nextQuestion: 'Câu khác',
     openSong: 'Mở bài hát',
     lyricOrderPrompt: 'Chọn các câu theo đúng thứ tự xuất hiện trong bài hát.',
@@ -130,12 +83,10 @@ const MINIGAME_TEXT = {
     menuIntroGuess: 'Guess by Intro',
     menuLyricFill: 'Fill in the Blanks',
     menuHotQuote: 'Guess Song Title',
-    menuArtistGuess: 'Guess Artist',
     menuLyricOrder: 'Sort Lyrics',
     introGuessTitle: 'Guess the Song from a 15s Intro',
     lyricFillTitle: 'Fill in the Missing Lyrics',
     hotQuoteTitle: 'Guess the Song from Hot Lines',
-    artistGuessTitle: 'Guess the Artist from Clues',
     lyricOrderTitle: 'Arrange Lyrics in Order',
     solvedLabel: 'Solved',
     attemptsLabel: 'Attempts',
@@ -148,7 +99,6 @@ const MINIGAME_TEXT = {
     introGuessHint: '4 choices. You can replay the intro if needed.',
     introGuessMetaHidden: 'The song title is hidden. Listen to the intro and pick the correct answer.',
     introGuessMetaReady: 'The intro is ready. Press play to hear the first 15 seconds.',
-    introGuessMetaReadyLucky: 'The intro will open in a new tab automatically. If nothing plays, press "Replay Intro".',
     introGuessMetaPlaying: 'Playing the 15-second intro...',
     introGuessMetaRevealed: 'Answer: "{song}" - {artist}',
     introGuessCorrect: 'Correct! This is "{song}" by {artist}.',
@@ -182,41 +132,6 @@ const MINIGAME_TEXT = {
     hotQuoteCorrect: 'Correct! This is "{song}" by {artist}.',
     hotQuoteWrong: 'Not quite. The answer is "{song}" by {artist}.',
     hotQuoteMeta: 'Artist: {artist}',
-    artistGuessPrompt: 'Guess the artist from the song title, hot lyrics, or audio.',
-    artistGuessTitlePrompt: 'Read the song title and guess the artist.',
-    artistGuessHotPrompt: 'Read the highlighted lyrics and guess the artist.',
-    artistGuessAudioPrompt: 'Listen to 15 seconds and guess the artist.',
-    artistGuessModeTitle: 'By title',
-    artistGuessModeHot: 'By hot lyric',
-    artistGuessModeAudio: 'By audio',
-    artistGuessLoading: 'Preparing the next clue...',
-    artistGuessEmpty: 'There is not enough data to play this mini game yet.',
-    artistGuessHotEmpty: 'There are not enough songs with hot lyrics for this mode yet.',
-    artistGuessAudioEmpty: 'There are not enough songs with audio clues for this mode yet.',
-    artistGuessHint: 'Pick the correct artist from the options below.',
-    artistGuessCorrect: 'Correct! The artist is {artist}.',
-    artistGuessWrong: 'Not quite. The answer is {artist}.',
-    artistGuessMetaHidden: 'The artist name is hidden. Use the clue to choose the right answer.',
-    artistGuessMetaRevealed: 'Answer: {artist}\nSong: "{song}"',
-    artistGuessClueTypeLabel: 'Current clue',
-    artistGuessClueTypeTitle: 'Song title',
-    artistGuessClueTypeHot: 'Hot lyric',
-    artistGuessClueTypeAudio: 'Audio intro',
-    artistGuessAudioClue: 'Press play to hear a 15-second intro from this song.',
-    artistGuessAudioClueLucky: 'The audio will open in a new tab automatically. If nothing plays, press "Replay".',
-    artistGuessAudioLoading: 'Preparing audio...',
-    artistGuessAudioReady: 'The audio is ready. Press play to hear 15 seconds.',
-    artistGuessAudioReadyLucky: 'The audio is ready and opening in a new tab automatically.',
-    artistGuessAudioPlaying: 'Playing the 15-second audio clue...',
-    artistGuessAudioSearchingStatus: 'Searching for audio...',
-    artistGuessAudioReadyStatus: 'Ready to play',
-    artistGuessAudioPlayingStatus: 'Playing 15-second audio',
-    artistGuessAudioStoppedStatus: 'The 15 seconds finished',
-    artistGuessAudioRetryingStatus: 'That source failed. Trying another one...',
-    artistGuessAudioUnavailableStatus: 'This audio clue could not be played',
-    artistGuessAudioUnavailableMeta: 'No playable audio was found. Press "Next clue" to switch rounds.',
-    artistGuessPlay: 'Play clue',
-    artistGuessReplay: 'Replay',
     nextQuestion: 'Next clue',
     openSong: 'Open song',
     lyricOrderPrompt: 'Pick the lines in the correct order they appear in the song.',
@@ -240,12 +155,10 @@ const MINIGAME_TEXT = {
     menuIntroGuess: '인트로 맞히기',
     menuLyricFill: '빈칸 채우기',
     menuHotQuote: '노래 제목 맞히기',
-    menuArtistGuess: '가수 맞히기',
     menuLyricOrder: '가사 순서 맞추기',
     introGuessTitle: '15초 인트로로 노래 맞히기',
     lyricFillTitle: '가사 빈칸 채우기',
     hotQuoteTitle: '핫한 가사들로 노래 맞히기',
-    artistGuessTitle: '힌트로 가수 맞히기',
     lyricOrderTitle: '가사 순서 맞추기',
     solvedLabel: '정답',
     attemptsLabel: '시도',
@@ -258,7 +171,6 @@ const MINIGAME_TEXT = {
     introGuessHint: '보기는 4개이며, 필요하면 다시 들을 수 있습니다.',
     introGuessMetaHidden: '노래 제목은 숨겨져 있습니다. 인트로를 듣고 정답을 골라보세요.',
     introGuessMetaReady: '인트로가 준비되었습니다. 15초 재생 버튼을 누르세요.',
-    introGuessMetaReadyLucky: '인트로가 새 탭에서 자동으로 열립니다. 들리지 않으면 "다시 듣기"를 누르세요.',
     introGuessMetaPlaying: '15초 인트로 재생 중...',
     introGuessMetaRevealed: '정답: "{song}" - {artist}',
     introGuessCorrect: '정답! "{song}" - {artist}',
@@ -292,41 +204,6 @@ const MINIGAME_TEXT = {
     hotQuoteCorrect: '정답! "{song}" - {artist}',
     hotQuoteWrong: '아쉽네요. 정답은 "{song}" - {artist}',
     hotQuoteMeta: '가수: {artist}',
-    artistGuessPrompt: '노래 제목, 핫한 가사, 또는 오디오로 가수를 맞혀보세요.',
-    artistGuessTitlePrompt: '노래 제목을 보고 가수를 맞혀보세요.',
-    artistGuessHotPrompt: '핫한 가사를 보고 가수를 맞혀보세요.',
-    artistGuessAudioPrompt: '15초를 듣고 가수를 맞혀보세요.',
-    artistGuessModeTitle: '제목으로',
-    artistGuessModeHot: '핫한 가사로',
-    artistGuessModeAudio: '오디오로',
-    artistGuessLoading: '문제를 준비하는 중...',
-    artistGuessEmpty: '이 미니게임에 사용할 데이터가 아직 충분하지 않습니다.',
-    artistGuessHotEmpty: '이 모드에 사용할 핫한 가사가 아직 충분하지 않습니다.',
-    artistGuessAudioEmpty: '이 모드에 사용할 오디오 힌트가 아직 충분하지 않습니다.',
-    artistGuessHint: '아래 보기에서 맞는 가수를 골라보세요.',
-    artistGuessCorrect: '정답! 가수는 {artist}입니다.',
-    artistGuessWrong: '아쉽네요. 정답은 {artist}입니다.',
-    artistGuessMetaHidden: '가수 이름은 숨겨져 있습니다. 힌트를 보고 정답을 고르세요.',
-    artistGuessMetaRevealed: '정답: {artist}\n노래: "{song}"',
-    artistGuessClueTypeLabel: '현재 힌트',
-    artistGuessClueTypeTitle: '노래 제목',
-    artistGuessClueTypeHot: '핫한 가사',
-    artistGuessClueTypeAudio: '오디오 인트로',
-    artistGuessAudioClue: '재생 버튼을 눌러 15초 인트로를 들어보세요.',
-    artistGuessAudioClueLucky: '오디오가 새 탭에서 자동으로 열립니다. 들리지 않으면 "다시 듣기"를 누르세요.',
-    artistGuessAudioLoading: '오디오 준비 중...',
-    artistGuessAudioReady: '오디오가 준비되었습니다. 15초 재생 버튼을 누르세요.',
-    artistGuessAudioReadyLucky: '오디오가 준비되었고 새 탭에서 자동으로 열리는 중입니다.',
-    artistGuessAudioPlaying: '15초 오디오 힌트 재생 중...',
-    artistGuessAudioSearchingStatus: '오디오 검색 중...',
-    artistGuessAudioReadyStatus: '재생 준비 완료',
-    artistGuessAudioPlayingStatus: '15초 오디오 재생 중',
-    artistGuessAudioStoppedStatus: '15초 재생 완료',
-    artistGuessAudioRetryingStatus: '오디오 오류, 다른 소스를 찾는 중...',
-    artistGuessAudioUnavailableStatus: '이 오디오 힌트를 재생할 수 없습니다',
-    artistGuessAudioUnavailableMeta: '재생 가능한 오디오를 찾지 못했습니다. "다음 문제"를 눌러 바꾸세요.',
-    artistGuessPlay: '힌트 재생',
-    artistGuessReplay: '다시 듣기',
     nextQuestion: '다음 문제',
     openSong: '노래 열기',
     lyricOrderPrompt: '노래에 나오는 순서대로 가사를 선택하세요.',
@@ -358,33 +235,6 @@ const hotQuoteState = {
   answered: false,
   lastSongId: null,
   emptyReasonKey: 'hotQuoteLoading'
-};
-
-const artistGuessState = {
-  currentMode: 'title',
-  modeStats: {
-    title: { solved: 0, attempts: 0, lastSongId: null },
-    hot: { solved: 0, attempts: 0, lastSongId: null },
-    audio: { solved: 0, attempts: 0, lastSongId: null }
-  },
-  currentSong: null,
-  currentClueType: '',
-  currentClueText: '',
-  currentPromptKey: 'artistGuessPrompt',
-  currentOptions: [],
-  currentArtistLabel: '',
-  currentArtistKey: '',
-  selectedArtistKey: '',
-  answered: false,
-  loading: false,
-  emptyReasonKey: 'artistGuessLoading',
-  currentVideoId: '',
-  candidateVideoIds: [],
-  currentVideoIndex: 0,
-  autoplayAfterLoad: false,
-  isPlaying: false,
-  progressPercent: 0,
-  statusKey: 'artistGuessAudioLoading'
 };
 
 const lyricOrderState = {
@@ -447,20 +297,6 @@ let introGuessNextPreparedRound = null;
 let introGuessCurrentPreloadPromise = null;
 let introGuessNextPreloadPromise = null;
 let introGuessLastBootstrapKey = '';
-let introGuessRecentSongIds = [];
-let introGuessCyclePlayedSongIds = [];
-let introGuessYoutubeLookupDisabled = false;
-const introGuessVideoCache = new Map();
-let introGuessLuckyWindow = null;
-let artistGuessPlayer = null;
-let artistGuessStopTimer = null;
-let artistGuessProgressTimer = null;
-let artistGuessPlayStartedAt = 0;
-let artistGuessPlaybackToken = 0;
-let artistGuessPlayRequestToken = 0;
-let artistGuessRoundRequestToken = 0;
-let artistGuessLuckyWindow = null;
-const luckyWindowCloseTimers = new Map();
 
 function getLanguage() {
   return window.getCurrentLanguage ? window.getCurrentLanguage() : 'vi';
@@ -487,38 +323,6 @@ function normalizeText(value) {
     .trim();
 }
 
-function normalizeArtistOption(value) {
-  return normalizeText(String(value || '').replace(/\s+/g, ' '));
-}
-
-function getArtistGuessLabel(song) {
-  return String(song?.['Ca sĩ'] || '').replace(/\s+/g, ' ').trim();
-}
-
-function buildArtistGuessOptionPool() {
-  const artistMap = new Map();
-
-  getSongs().forEach((song) => {
-    const label = getArtistGuessLabel(song);
-    const key = normalizeArtistOption(label);
-    if (key && !artistMap.has(key)) {
-      artistMap.set(key, label);
-    }
-  });
-
-  return [...artistMap.entries()].map(([key, label]) => ({ key, label }));
-}
-
-function getArtistGuessModeStats(mode = artistGuessState.currentMode) {
-  return artistGuessState.modeStats[mode] || artistGuessState.modeStats.title;
-}
-
-function getArtistGuessEmptyReasonKey(mode = artistGuessState.currentMode) {
-  if (mode === 'audio') return 'artistGuessAudioEmpty';
-  if (mode === 'hot') return 'artistGuessHotEmpty';
-  return 'artistGuessEmpty';
-}
-
 function trimLyricToken(token) {
   return String(token || '').replace(/^[^0-9A-Za-zÀ-ỹ가-힣]+|[^0-9A-Za-zÀ-ỹ가-힣]+$/g, '');
 }
@@ -540,286 +344,10 @@ function pickRandom(items) {
   return items[Math.floor(Math.random() * items.length)];
 }
 
-function buildSongQueue(songs, excludedSongIds = []) {
-  const excluded = new Set(excludedSongIds.filter(Boolean));
-  const primaryQueue = shuffle(songs.filter((song) => !excluded.has(song.Id)));
-  const fallbackQueue = shuffle(songs.filter((song) => excluded.has(song.Id)));
-  return [...primaryQueue, ...fallbackQueue];
-}
-
-function logArtistGuess(message, payload) {
-  if (payload === undefined) {
-    console.info(`${ARTIST_GUESS_LOG_PREFIX} ${message}`);
-    return;
-  }
-  console.info(`${ARTIST_GUESS_LOG_PREFIX} ${message}`, payload);
-}
-
 function getIntroSearchQuery(song) {
   return [song?.Tên, song?.['Ca sĩ'], 'official audio']
     .filter(Boolean)
     .join(' ');
-}
-
-function getLuckyAudioSearchQuery(song) {
-  return [song?.Tên, song?.['Ca sĩ'], 'official audio site:youtube.com/watch']
-    .filter(Boolean)
-    .join(' ');
-}
-
-function buildLuckyAudioUrl(song) {
-  const searchQuery = getLuckyAudioSearchQuery(song);
-  if (!searchQuery) return '';
-  return `https://www.google.com/search?q=${encodeURIComponent(searchQuery)}&btnI=1`;
-}
-
-function updateLuckyWindowPlaceholder(windowHandle, message) {
-  if (!windowHandle || windowHandle.closed) return null;
-
-  try {
-    const doc = windowHandle.document;
-    if (!doc?.body) return windowHandle;
-
-    doc.title = message || 'Preparing audio...';
-    doc.body.innerHTML = '';
-    doc.body.style.margin = '0';
-    doc.body.style.minHeight = '100vh';
-    doc.body.style.display = 'grid';
-    doc.body.style.placeItems = 'center';
-    doc.body.style.padding = '24px';
-    doc.body.style.background = '#050816';
-    doc.body.style.color = '#e5eefc';
-    doc.body.style.font = '600 16px/1.5 system-ui, sans-serif';
-    doc.body.style.textAlign = 'center';
-
-    const label = doc.createElement('div');
-    label.textContent = message || '';
-    label.style.maxWidth = '320px';
-    doc.body.appendChild(label);
-  } catch (_) { }
-
-  return windowHandle;
-}
-
-function reserveLuckyAudioWindow(windowName, windowHandle, message) {
-  const closeTimer = luckyWindowCloseTimers.get(windowName);
-  if (closeTimer) {
-    clearTimeout(closeTimer);
-    luckyWindowCloseTimers.delete(windowName);
-  }
-
-  let popup = windowHandle && !windowHandle.closed ? windowHandle : null;
-
-  if (!popup) {
-    try {
-      popup = window.open('', windowName, LUCKY_WINDOW_FEATURES);
-    } catch (_) {
-      popup = null;
-    }
-  }
-
-  if (!popup) return null;
-
-  updateLuckyWindowPlaceholder(popup, message);
-
-  try {
-    popup.focus();
-  } catch (_) { }
-
-  return popup;
-}
-
-function closeLuckyWindow(windowHandle) {
-  if (!windowHandle || windowHandle.closed) return null;
-  try {
-    windowHandle.close();
-  } catch (_) {
-    return windowHandle;
-  }
-  return null;
-}
-
-function openLuckyAudioWindow(url, windowName, windowHandle = null) {
-  if (!url) return null;
-
-  const closeTimer = luckyWindowCloseTimers.get(windowName);
-  if (closeTimer) {
-    clearTimeout(closeTimer);
-    luckyWindowCloseTimers.delete(windowName);
-  }
-
-  let popup = windowHandle && !windowHandle.closed
-    ? windowHandle
-    : reserveLuckyAudioWindow(windowName, null, '');
-
-  if (!popup) return null;
-
-  try {
-    popup.location.replace(url);
-  } catch (_) {
-    try {
-      popup.location.href = url;
-    } catch (_) {
-      return null;
-    }
-  }
-
-  try {
-    popup.focus();
-  } catch (_) { }
-
-  return popup;
-}
-
-function forceStopLuckyWindow(windowName, windowHandle) {
-  const closeTimer = luckyWindowCloseTimers.get(windowName);
-  if (closeTimer) {
-    clearTimeout(closeTimer);
-    luckyWindowCloseTimers.delete(windowName);
-  }
-
-  if (!windowHandle || windowHandle.closed) {
-    return null;
-  }
-
-  let activeHandle = null;
-  try {
-    activeHandle = window.open(LUCKY_STOP_PAGE_URL, windowName, LUCKY_WINDOW_FEATURES);
-  } catch (_) {
-    activeHandle = null;
-  }
-
-  if (!activeHandle) {
-    try {
-      windowHandle.location.replace(LUCKY_STOP_PAGE_URL);
-      activeHandle = windowHandle;
-    } catch (_) {
-      activeHandle = closeLuckyWindow(windowHandle);
-    }
-  }
-
-  if (activeHandle && !activeHandle.closed) {
-    const timerId = window.setTimeout(() => {
-      try {
-        activeHandle.close();
-      } catch (_) { }
-      luckyWindowCloseTimers.delete(windowName);
-    }, 80);
-    luckyWindowCloseTimers.set(windowName, timerId);
-  }
-
-  return activeHandle && !activeHandle.closed ? activeHandle : null;
-}
-
-function extractYoutubeVideoId(value, allowBareId = false) {
-  if (typeof value !== 'string') return '';
-  const text = value.trim();
-  if (!text) return '';
-
-  if (allowBareId && /^[a-zA-Z0-9_-]{11}$/.test(text)) {
-    return text;
-  }
-
-  const thumbnailMatch = text.match(/(?:ytimg\.com|youtube\.com)\/(?:vi|vi_webp)\/([a-zA-Z0-9_-]{11})\//i);
-  if (thumbnailMatch?.[1]) {
-    return thumbnailMatch[1];
-  }
-
-  const inlineMatch = text.match(/(?:youtube\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/|live\/|v\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/i);
-  if (inlineMatch?.[1]) {
-    return inlineMatch[1];
-  }
-
-  try {
-    const url = new URL(text);
-    const host = url.hostname.toLowerCase();
-
-    if (host.includes('youtu.be')) {
-      const id = url.pathname.split('/').filter(Boolean)[0] || '';
-      return /^[a-zA-Z0-9_-]{11}$/.test(id) ? id : '';
-    }
-
-    if (host.includes('youtube.com') || host.includes('youtube-nocookie.com')) {
-      const fromQuery = url.searchParams.get('v') || '';
-      if (/^[a-zA-Z0-9_-]{11}$/.test(fromQuery)) {
-        return fromQuery;
-      }
-
-      const segments = url.pathname.split('/').filter(Boolean);
-      const markerIndex = segments.findIndex((segment) => ['embed', 'shorts', 'live', 'v'].includes(segment));
-      const fromPath = markerIndex >= 0 ? segments[markerIndex + 1] : '';
-      if (/^[a-zA-Z0-9_-]{11}$/.test(fromPath || '')) {
-        return fromPath;
-      }
-    }
-  } catch (_) {
-    return '';
-  }
-
-  return '';
-}
-
-function getIntroGuessVideoIdsFromSong(song) {
-  if (!song || typeof song !== 'object') return [];
-
-  const preferredKeys = [
-    'intro',
-    'Intro',
-    'intro_url',
-    'introUrl',
-    'intro_link',
-    'introLink',
-    'intro_video',
-    'introVideo',
-    'youtube',
-    'youtube_url',
-    'youtubeUrl',
-    'youtube_link',
-    'youtubeLink',
-    'video',
-    'video_url',
-    'videoUrl',
-    'video_link',
-    'videoLink',
-    'yt',
-    'yt_url',
-    'ytUrl',
-    'yt_link',
-    'ytLink',
-    'video_id',
-    'videoId',
-    'youtube_id',
-    'youtubeId',
-    'avatar'
-  ];
-
-  const values = [];
-  preferredKeys.forEach((key) => {
-    if (Object.prototype.hasOwnProperty.call(song, key)) {
-      values.push({
-        key,
-        value: song[key]
-      });
-    }
-  });
-
-  Object.values(song).forEach((value) => {
-    if (typeof value === 'string' && value.trim()) {
-      values.push({
-        key: '',
-        value
-      });
-    }
-  });
-
-  const ids = values
-    .map((entry) => {
-      const allowBareId = /(video.?id|youtube.?id|yt.?id)$/i.test(entry.key || '');
-      return extractYoutubeVideoId(entry.value, allowBareId);
-    })
-    .filter(Boolean);
-
-  return [...new Set(ids)];
 }
 
 function logIntroGuess(message, payload) {
@@ -832,68 +360,6 @@ function logIntroGuess(message, payload) {
 
 function isIntroGuessDialogOpen() {
   return Boolean(document.getElementById('introGuessGameDialog')?.open);
-}
-
-function getIntroGuessRecentLimit(songCount = getSongs().length) {
-  if (songCount <= 1) return 0;
-  return Math.min(10, Math.max(3, Math.floor(songCount / 4)));
-}
-
-function pruneIntroGuessRecentSongIds() {
-  const existingIds = new Set(getSongs().map((song) => song?.Id).filter(Boolean));
-  introGuessRecentSongIds = introGuessRecentSongIds.filter((songId) => existingIds.has(songId));
-  const limit = getIntroGuessRecentLimit(existingIds.size);
-  if (introGuessRecentSongIds.length > limit) {
-    introGuessRecentSongIds = introGuessRecentSongIds.slice(0, limit);
-  }
-}
-
-function pruneIntroGuessCyclePlayedSongIds() {
-  const existingIds = new Set(getSongs().map((song) => song?.Id).filter(Boolean));
-  introGuessCyclePlayedSongIds = introGuessCyclePlayedSongIds.filter((songId) => existingIds.has(songId));
-}
-
-function rememberIntroGuessSong(songId) {
-  if (!songId) return;
-  introGuessRecentSongIds = [
-    songId,
-    ...introGuessRecentSongIds.filter((item) => item !== songId)
-  ];
-  introGuessCyclePlayedSongIds = [
-    songId,
-    ...introGuessCyclePlayedSongIds.filter((item) => item !== songId)
-  ];
-  const limit = getIntroGuessRecentLimit();
-  if (introGuessRecentSongIds.length > limit) {
-    introGuessRecentSongIds = introGuessRecentSongIds.slice(0, limit);
-  }
-}
-
-function buildIntroGuessExcludedSongIds(extraSongIds = [], includeCyclePlayed = true) {
-  pruneIntroGuessRecentSongIds();
-  pruneIntroGuessCyclePlayedSongIds();
-  const cycleIds = includeCyclePlayed ? introGuessCyclePlayedSongIds : [];
-  return [...new Set([...extraSongIds.filter(Boolean), ...introGuessRecentSongIds, ...cycleIds])];
-}
-
-async function buildPreparedIntroGuessRoundWithCycle(extraExcludedSongIds = []) {
-  let preparedRound = await buildPreparedIntroGuessRound(
-    buildIntroGuessExcludedSongIds(extraExcludedSongIds, true),
-    false
-  );
-  if (preparedRound) return preparedRound;
-
-  if (introGuessCyclePlayedSongIds.length === 0) {
-    return null;
-  }
-
-  // Reset vong choi de mo lai pool bai hat da dung.
-  introGuessCyclePlayedSongIds = [];
-  preparedRound = await buildPreparedIntroGuessRound(
-    buildIntroGuessExcludedSongIds(extraExcludedSongIds, false),
-    true
-  );
-  return preparedRound;
 }
 
 function clearIntroGuessTimer() {
@@ -922,47 +388,13 @@ function startIntroGuessProgress() {
   introGuessPlayStartedAt = Date.now();
   introGuessProgressTimer = window.setInterval(() => {
     if (!introGuessPlayStartedAt || playbackToken !== introGuessPlaybackToken || !isIntroGuessDialogOpen()) return;
-    if (
-      !introGuessState.isPlaying ||
-      introGuessState.loading ||
-      introGuessState.answered ||
-      !introGuessState.currentSong ||
-      !introGuessState.currentVideoId ||
-      introGuessState.statusKey === 'introGuessUnavailableStatus'
-    ) {
+
+    const elapsed = Date.now() - introGuessPlayStartedAt;
+    introGuessState.progressPercent = Math.min(100, (elapsed / (INTRO_GUESS_DURATION_SECONDS * 1000)) * 100);
+    renderIntroGuessGame();
+
+    if (introGuessState.progressPercent >= 100) {
       clearIntroGuessProgressTimer();
-      return;
-    }
-
-    let elapsedSeconds = 0;
-    if (USE_LUCKY_AUDIO_SOURCE) {
-      elapsedSeconds = (Date.now() - introGuessPlayStartedAt) / 1000;
-    } else {
-      if (!introGuessPlayer || typeof introGuessPlayer.getCurrentTime !== 'function') {
-        clearIntroGuessProgressTimer();
-        return;
-      }
-
-      try {
-        elapsedSeconds = Number(introGuessPlayer.getCurrentTime()) || 0;
-      } catch (_) {
-        elapsedSeconds = 0;
-      }
-    }
-
-    if (!Number.isFinite(elapsedSeconds) || elapsedSeconds < 0) {
-      elapsedSeconds = 0;
-    }
-
-    introGuessState.progressPercent = Math.min(100, (elapsedSeconds / INTRO_GUESS_DURATION_SECONDS) * 100);
-
-    const progressBar = document.getElementById('introGuessProgressBar');
-    if (progressBar) progressBar.style.width = `${introGuessState.progressPercent}%`;
-
-    if (elapsedSeconds >= INTRO_GUESS_DURATION_SECONDS) {
-      clearIntroGuessProgressTimer();
-      stopIntroGuessPlayback(false, true);
-      renderIntroGuessGame();
     }
   }, 100);
 }
@@ -972,7 +404,6 @@ function stopIntroGuessPlayback(resetToStart = false, markCompleted = false) {
   introGuessPlayRequestToken += 1;
   clearIntroGuessTimer();
   clearIntroGuessProgressTimer();
-  introGuessLuckyWindow = forceStopLuckyWindow(INTRO_GUESS_LUCKY_WINDOW_NAME, introGuessLuckyWindow);
   introGuessState.isPlaying = false;
   introGuessPlayStartedAt = 0;
   introGuessState.autoplayAfterLoad = false;
@@ -1065,167 +496,35 @@ function isIntroGuessVideoMatch(item, normalizedSong, normalizedArtist) {
   );
 }
 
-function isIntroGuessYoutubeLimitError(error) {
-  const message = String(error?.message || '').toLowerCase();
-  return (
-    message.includes('quota') ||
-    message.includes('api error') ||
-    message.includes('http 403') ||
-    message.includes('http 429')
-  );
-}
-
-function cacheIntroGuessVideoIds(song, videoIds) {
-  if (!song?.Id || !Array.isArray(videoIds) || videoIds.length === 0) return;
-  introGuessVideoCache.set(song.Id, [...new Set(videoIds.filter(Boolean))]);
-}
-
-function getCachedIntroGuessVideoIds(song) {
-  if (!song?.Id) return [];
-  const cached = introGuessVideoCache.get(song.Id);
-  return Array.isArray(cached) ? [...cached] : [];
-}
-
-async function findIntroGuessVideoIdsFromSearchFallback(searchQuery) {
+async function findIntroGuessVideoIds(song) {
+  const searchQuery = getIntroSearchQuery(song);
   const response = await fetch(
-    `https://r.jina.ai/http://www.youtube.com/results?search_query=${encodeURIComponent(searchQuery)}`
+    `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&videoEmbeddable=true&maxResults=8&q=${encodeURIComponent(searchQuery)}&key=${MINIGAME_YOUTUBE_API_KEY}`
   );
-  if (!response.ok) {
-    throw new Error(`Search fallback HTTP ${response.status}`);
-  }
-  const text = await response.text();
-  const ids = [];
+  const data = await response.json();
+  const items = Array.isArray(data?.items) ? data.items : [];
+  const normalizedSong = normalizeText(song?.Tên || '');
+  const normalizedArtist = normalizeText(song?.['Ca sĩ'] || '');
 
-  const patterns = [
-    /\/watch\?v=([a-zA-Z0-9_-]{11})/g,
-    /"videoId":"([a-zA-Z0-9_-]{11})"/g
+  const prioritizedItems = [
+    ...items.filter((item) => isIntroGuessVideoMatch(item, normalizedSong, normalizedArtist)),
+    ...items.filter((item) => !isIntroGuessVideoMatch(item, normalizedSong, normalizedArtist))
   ];
 
-  patterns.forEach((pattern) => {
-    let match = pattern.exec(text);
-    while (match) {
-      if (match[1]) ids.push(match[1]);
-      match = pattern.exec(text);
-    }
-  });
-
-  return [...new Set(ids)].slice(0, 8);
+  return [...new Set(prioritizedItems.map((item) => item?.id?.videoId).filter(Boolean))];
 }
 
-function getIntroGuessLocalPlayableSongCount() {
-  return getSongs().filter((song) => song?.Id && getIntroGuessVideoIdsFromSong(song).length > 0).length;
-}
-
-function getIntroGuessAvailabilityNotice() {
-  if (!introGuessYoutubeLookupDisabled) return '';
-
-  const localPlayable = getIntroGuessLocalPlayableSongCount();
-  const totalSongs = getSongs().filter((song) => song?.Id && song?.['Tên']).length;
-  const language = getLanguage();
-
-  if (language === 'en') {
-    return `YouTube API is currently limited (403). Only ${localPlayable}/${totalSongs} songs have built-in intro links, so repeats can happen.`;
-  }
-
-  if (language === 'ko') {
-    return `YouTube API 제한(403)으로 인해 현재 DB에 인트로 링크가 있는 곡 ${localPlayable}/${totalSongs}개만 사용됩니다. 반복이 발생할 수 있습니다.`;
-  }
-
-  return `YouTube API đang bị giới hạn (403). Hiện chỉ có ${localPlayable}/${totalSongs} bài có link intro sẵn trong DB nên sẽ bị lặp.`;
-}
-
-async function findIntroGuessVideoIds(song, options = {}) {
-  const { allowYoutubeApi = true } = options;
-
-  const localVideoIds = getIntroGuessVideoIdsFromSong(song);
-  if (localVideoIds.length > 0) {
-    cacheIntroGuessVideoIds(song, localVideoIds);
-    return localVideoIds;
-  }
-
-  const cachedVideoIds = getCachedIntroGuessVideoIds(song);
-  if (cachedVideoIds.length > 0) {
-    return cachedVideoIds;
-  }
-
-  const searchQuery = getIntroSearchQuery(song);
-  let latestError = null;
-
-  try {
-    const fallbackVideoIds = await findIntroGuessVideoIdsFromSearchFallback(searchQuery);
-    if (fallbackVideoIds.length > 0) {
-      cacheIntroGuessVideoIds(song, fallbackVideoIds);
-      return fallbackVideoIds;
-    }
-  } catch (error) {
-    latestError = error;
-  }
-
-  if (allowYoutubeApi) {
-    try {
-      const response = await fetch(
-        `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&videoEmbeddable=true&maxResults=8&q=${encodeURIComponent(searchQuery)}&key=${MINIGAME_YOUTUBE_API_KEY}`
-      );
-      if (!response.ok) {
-        throw new Error(`YouTube API HTTP ${response.status}`);
-      }
-      const data = await response.json();
-
-      if (data.error) {
-        throw new Error(data.error.message || 'YouTube API Error');
-      }
-
-      const items = Array.isArray(data?.items) ? data.items : [];
-      const normalizedSong = normalizeText(song?.['Tên'] || '');
-      const normalizedArtist = normalizeText(song?.['Ca sĩ'] || '');
-
-      const prioritizedItems = [
-        ...items.filter((item) => isIntroGuessVideoMatch(item, normalizedSong, normalizedArtist)),
-        ...items.filter((item) => !isIntroGuessVideoMatch(item, normalizedSong, normalizedArtist))
-      ];
-
-      const apiVideoIds = [...new Set(prioritizedItems.map((item) => item?.id?.videoId).filter(Boolean))];
-      if (apiVideoIds.length > 0) {
-        cacheIntroGuessVideoIds(song, apiVideoIds);
-        return apiVideoIds;
-      }
-    } catch (error) {
-      latestError = error;
-      if (isIntroGuessYoutubeLimitError(error) && !introGuessYoutubeLookupDisabled) {
-        introGuessYoutubeLookupDisabled = true;
-        logIntroGuess('YouTube API bi gioi han (403/quota). Tam dung Data API trong phien nay, chuyen sang fallback.', {
-          localPlayable: getIntroGuessLocalPlayableSongCount(),
-          totalSongs: getSongs().filter((candidate) => candidate?.Id && candidate?.['Tên']).length
-        });
-      }
-    }
-  }
-
-  if (latestError) {
-    throw latestError;
-  }
-
-  return [];
-}
-
-async function buildPreparedIntroGuessRound(excludedSongIds = [], allowFallback = true) {
-  const allSongs = getSongs().filter((song) => song?.Id && song?.['Tên']);
+async function buildPreparedIntroGuessRound(excludedSongIds = []) {
+  const allSongs = getSongs().filter((song) => song?.Id && song?.Tên);
   const excluded = new Set(excludedSongIds);
   const primaryQueue = shuffle(allSongs.filter((song) => !excluded.has(song.Id)));
   const fallbackQueue = shuffle(allSongs.filter((song) => excluded.has(song.Id)));
-  const queue = allowFallback ? [...primaryQueue, ...fallbackQueue] : [...primaryQueue];
+  const queue = [...primaryQueue, ...fallbackQueue];
 
   for (const song of queue) {
     try {
-      let videoIds = USE_LUCKY_AUDIO_SOURCE ? [buildLuckyAudioUrl(song)] : getIntroGuessVideoIdsFromSong(song);
-
-      if (!videoIds.length && !USE_LUCKY_AUDIO_SOURCE) {
-        videoIds = await findIntroGuessVideoIds(song, {
-          allowYoutubeApi: !introGuessYoutubeLookupDisabled
-        });
-      }
-
-      if (!videoIds || videoIds.length === 0) continue;
+      const videoIds = await findIntroGuessVideoIds(song);
+      if (videoIds.length === 0) continue;
 
       const wrongOptions = shuffle(allSongs.filter((candidate) => candidate.Id !== song.Id))
         .slice(0, INTRO_GUESS_OPTION_COUNT - 1);
@@ -1238,7 +537,7 @@ async function buildPreparedIntroGuessRound(excludedSongIds = [], allowFallback 
         options: shuffle([song, ...wrongOptions])
       };
     } catch (error) {
-      console.warn(`${INTRO_GUESS_LOG_PREFIX} Failed to prepare round for song`, song?.['Tên'], error);
+      console.warn(`${INTRO_GUESS_LOG_PREFIX} Failed to prepare round for song`, song?.Tên, error);
     }
   }
 
@@ -1259,24 +558,12 @@ function applyPreparedIntroGuessRound(preparedRound) {
   introGuessState.autoplayAfterLoad = false;
   introGuessState.statusKey = 'introGuessReadyStatus';
   introGuessState.lastSongId = preparedRound.song.Id;
-  rememberIntroGuessSong(preparedRound.song.Id);
   introGuessState.emptyReasonKey = '';
   introGuessState.progressPercent = 0;
   return true;
 }
 
-function consumePreparedIntroGuessRound() {
-  const round = introGuessPreparedRound;
-  introGuessPreparedRound = introGuessNextPreparedRound;
-  introGuessNextPreparedRound = null;
-  return round || null;
-}
-
 async function ensureIntroGuessCurrentRoundReady(forceRefresh = false) {
-  if (forceRefresh) {
-    introGuessPreparedRound = null;
-  }
-
   if (!forceRefresh && introGuessPreparedRound) {
     return introGuessPreparedRound;
   }
@@ -1286,13 +573,7 @@ async function ensureIntroGuessCurrentRoundReady(forceRefresh = false) {
   }
 
   logIntroGuess('Bat dau preload intro hien tai');
-  const excludedSongIds = [
-    introGuessState.currentSong?.Id,
-    introGuessState.lastSongId,
-    introGuessNextPreparedRound?.song?.Id
-  ].filter(Boolean);
-
-  introGuessCurrentPreloadPromise = buildPreparedIntroGuessRoundWithCycle(excludedSongIds)
+  introGuessCurrentPreloadPromise = buildPreparedIntroGuessRound([introGuessState.lastSongId].filter(Boolean))
     .then((preparedRound) => {
       introGuessPreparedRound = preparedRound;
       if (preparedRound) {
@@ -1312,21 +593,9 @@ async function ensureIntroGuessCurrentRoundReady(forceRefresh = false) {
   return introGuessCurrentPreloadPromise;
 }
 
-async function ensureIntroGuessNextRoundReady(forceRefresh = false) {
-  if (forceRefresh) {
-    introGuessNextPreparedRound = null;
-  }
-
-  const currentSongId = introGuessState.currentSong?.Id || introGuessState.lastSongId;
-  const preparedSongId = introGuessPreparedRound?.song?.Id;
-  const anchorSongId = preparedSongId || currentSongId;
-
-  if (
-    !forceRefresh &&
-    introGuessNextPreparedRound &&
-    introGuessNextPreparedRound.song?.Id !== anchorSongId &&
-    introGuessNextPreparedRound.song?.Id !== currentSongId
-  ) {
+async function ensureIntroGuessNextRoundReady() {
+  const currentSongId = introGuessPreparedRound?.song?.Id || introGuessState.currentSong?.Id || introGuessState.lastSongId;
+  if (introGuessNextPreparedRound && introGuessNextPreparedRound.song?.Id !== currentSongId) {
     return introGuessNextPreparedRound;
   }
 
@@ -1335,8 +604,7 @@ async function ensureIntroGuessNextRoundReady(forceRefresh = false) {
   }
 
   logIntroGuess('Bat dau preload intro bai tiep theo');
-  const excludedSongIds = [currentSongId, preparedSongId, introGuessState.lastSongId].filter(Boolean);
-  introGuessNextPreloadPromise = buildPreparedIntroGuessRoundWithCycle(excludedSongIds)
+  introGuessNextPreloadPromise = buildPreparedIntroGuessRound([currentSongId].filter(Boolean))
     .then((preparedRound) => {
       introGuessNextPreparedRound = preparedRound;
       if (preparedRound) {
@@ -1416,96 +684,34 @@ function startIntroGuessPlaybackFromCurrentVideo() {
   }
 }
 
-function startIntroGuessLuckyPlayback() {
-  if (
-    !USE_LUCKY_AUDIO_SOURCE ||
-    !introGuessState.currentSong ||
-    !introGuessState.currentVideoId ||
-    introGuessState.loading ||
-    introGuessState.answered
-  ) {
-    return false;
-  }
-
-  introGuessPlayRequestToken += 1;
-  introGuessPlaybackToken += 1;
-  clearIntroGuessTimer();
-  clearIntroGuessProgressTimer();
-  introGuessState.autoplayAfterLoad = false;
-  introGuessState.progressPercent = 0;
-  introGuessState.isPlaying = false;
-
-  const popup = openLuckyAudioWindow(
-    introGuessState.currentVideoId,
-    INTRO_GUESS_LUCKY_WINDOW_NAME,
-    introGuessLuckyWindow
-  );
-
-  if (!popup) {
-    introGuessState.statusKey = 'introGuessUnavailableStatus';
-    renderIntroGuessGame();
-    return false;
-  }
-
-  introGuessLuckyWindow = popup;
-  introGuessState.isPlaying = true;
-  introGuessState.statusKey = 'introGuessPlayingStatus';
-  startIntroGuessProgress();
-  renderIntroGuessGame();
-  return true;
-}
-
-function queueIntroGuessLuckyAutoplay(songId, videoId) {
-  if (!USE_LUCKY_AUDIO_SOURCE || !songId || !videoId) return;
-
-  const queuedRequestToken = ++introGuessPlayRequestToken;
-  window.setTimeout(() => {
-    if (
-      queuedRequestToken !== introGuessPlayRequestToken ||
-      !isIntroGuessDialogOpen() ||
-      introGuessState.loading ||
-      introGuessState.answered ||
-      introGuessState.currentSong?.Id !== songId ||
-      introGuessState.currentVideoId !== videoId
-    ) {
-      return;
-    }
-
-    startIntroGuessLuckyPlayback();
-  }, 0);
-}
-
 async function loadIntroGuessPlayer(videoId) {
   await ensureIntroGuessYoutubeApi();
   const playerRoot = ensureIntroGuessPlayerContainer();
   if (!playerRoot) return;
 
-  const isSameVideo = introGuessPlayer && typeof introGuessPlayer.getVideoData === 'function'
-    ? introGuessPlayer.getVideoData()?.video_id === videoId
-    : false;
-
   if (introGuessPlayer && typeof introGuessPlayer.cueVideoById === 'function') {
+    introGuessPlayer.cueVideoById({ videoId, startSeconds: 0 });
+    if (typeof introGuessPlayer.pauseVideo === 'function') {
+      introGuessPlayer.pauseVideo();
+    }
+    if (typeof introGuessPlayer.seekTo === 'function') {
+      introGuessPlayer.seekTo(0, true);
+    }
     if (introGuessState.autoplayAfterLoad) {
+      const queuedRequestToken = introGuessPlayRequestToken;
       introGuessState.autoplayAfterLoad = false;
-      introGuessPlaybackToken += 1;
-      resetIntroGuessProgress();
-      clearIntroGuessTimer();
-      introGuessState.isPlaying = true;
-      introGuessState.statusKey = 'introGuessPlayingStatus';
-      if (typeof introGuessPlayer.setVolume === 'function') {
-        introGuessPlayer.setVolume(introGuessState.volume);
-      }
-      introGuessPlayer.loadVideoById({ videoId, startSeconds: 0, endSeconds: INTRO_GUESS_DURATION_SECONDS });
-    } else {
-      if (!isSameVideo) {
-        introGuessPlayer.cueVideoById({ videoId, startSeconds: 0 });
-      }
-      if (typeof introGuessPlayer.pauseVideo === 'function') {
-        introGuessPlayer.pauseVideo();
-      }
-      if (typeof introGuessPlayer.seekTo === 'function') {
-        introGuessPlayer.seekTo(0, true);
-      }
+      window.setTimeout(() => {
+        if (
+          queuedRequestToken !== introGuessPlayRequestToken ||
+          introGuessState.answered ||
+          !introGuessState.currentVideoId ||
+          !isIntroGuessDialogOpen()
+        ) {
+          return;
+        }
+        startIntroGuessPlaybackFromCurrentVideo();
+        renderIntroGuessGame();
+      }, 0);
     }
     return;
   }
@@ -1552,24 +758,14 @@ async function loadIntroGuessPlayer(videoId) {
         }
 
         if (window.YT?.PlayerState && event.data === window.YT.PlayerState.PLAYING) {
-          const activeVideoId = typeof event.target?.getVideoData === 'function'
-            ? event.target.getVideoData()?.video_id
-            : '';
-
-          if (
-            !introGuessState.isPlaying ||
-            introGuessState.loading ||
-            introGuessState.answered ||
-            !introGuessState.currentSong ||
-            !introGuessState.currentVideoId ||
-            (activeVideoId && activeVideoId !== introGuessState.currentVideoId)
-          ) {
-            return;
-          }
-
-          if (!introGuessProgressTimer) {
-            startIntroGuessProgress();
-          }
+          startIntroGuessProgress();
+          clearIntroGuessTimer();
+          const playbackToken = introGuessPlaybackToken;
+          introGuessStopTimer = window.setTimeout(() => {
+            if (playbackToken !== introGuessPlaybackToken || !isIntroGuessDialogOpen()) return;
+            stopIntroGuessPlayback(false, true);
+            renderIntroGuessGame();
+          }, INTRO_GUESS_DURATION_SECONDS * 1000);
         } else if (window.YT?.PlayerState && (
           event.data === window.YT.PlayerState.ENDED ||
           event.data === window.YT.PlayerState.PAUSED
@@ -1760,521 +956,6 @@ function attachBackdropClose(dialogId) {
   });
 }
 
-function getArtistGuessClueTypeKey(clueType) {
-  if (clueType === 'audio') return 'artistGuessClueTypeAudio';
-  if (clueType === 'hot') return 'artistGuessClueTypeHot';
-  return 'artistGuessClueTypeTitle';
-}
-
-function getArtistGuessPromptKey(clueType) {
-  if (clueType === 'audio') return 'artistGuessAudioPrompt';
-  if (clueType === 'hot') return 'artistGuessHotPrompt';
-  if (clueType === 'title') return 'artistGuessTitlePrompt';
-  return 'artistGuessPrompt';
-}
-
-function isArtistGuessDialogOpen() {
-  return Boolean(document.getElementById('artistGuessGameDialog')?.open);
-}
-
-function clearArtistGuessTimer() {
-  if (artistGuessStopTimer) {
-    clearTimeout(artistGuessStopTimer);
-    artistGuessStopTimer = null;
-  }
-}
-
-function clearArtistGuessProgressTimer() {
-  if (artistGuessProgressTimer) {
-    clearInterval(artistGuessProgressTimer);
-    artistGuessProgressTimer = null;
-  }
-}
-
-function resetArtistGuessProgress() {
-  clearArtistGuessProgressTimer();
-  artistGuessPlayStartedAt = 0;
-  artistGuessState.progressPercent = 0;
-}
-
-function startArtistGuessProgress() {
-  const playbackToken = artistGuessPlaybackToken;
-  resetArtistGuessProgress();
-  artistGuessPlayStartedAt = Date.now();
-  artistGuessProgressTimer = window.setInterval(() => {
-    if (!artistGuessPlayStartedAt || playbackToken !== artistGuessPlaybackToken || !isArtistGuessDialogOpen()) return;
-    if (
-      !artistGuessState.isPlaying ||
-      artistGuessState.loading ||
-      artistGuessState.answered ||
-      !artistGuessState.currentSong ||
-      !artistGuessState.currentVideoId ||
-      artistGuessState.statusKey === 'artistGuessAudioUnavailableStatus'
-    ) {
-      clearArtistGuessProgressTimer();
-      return;
-    }
-
-    let elapsedSeconds = 0;
-    if (USE_LUCKY_AUDIO_SOURCE) {
-      elapsedSeconds = (Date.now() - artistGuessPlayStartedAt) / 1000;
-    } else {
-      if (!artistGuessPlayer || typeof artistGuessPlayer.getCurrentTime !== 'function') {
-        clearArtistGuessProgressTimer();
-        return;
-      }
-
-      try {
-        elapsedSeconds = Number(artistGuessPlayer.getCurrentTime()) || 0;
-      } catch (_) {
-        elapsedSeconds = 0;
-      }
-    }
-
-    if (!Number.isFinite(elapsedSeconds) || elapsedSeconds < 0) {
-      elapsedSeconds = 0;
-    }
-
-    artistGuessState.progressPercent = Math.min(100, (elapsedSeconds / ARTIST_GUESS_AUDIO_DURATION_SECONDS) * 100);
-
-    const progressBar = document.getElementById('artistGuessProgressBar');
-    if (progressBar) progressBar.style.width = `${artistGuessState.progressPercent}%`;
-
-    if (elapsedSeconds >= ARTIST_GUESS_AUDIO_DURATION_SECONDS) {
-      clearArtistGuessProgressTimer();
-      stopArtistGuessPlayback(false, true);
-      renderArtistGuessGame();
-    }
-  }, 100);
-}
-
-function stopArtistGuessPlayback(resetToStart = false, markCompleted = false) {
-  artistGuessPlaybackToken += 1;
-  artistGuessPlayRequestToken += 1;
-  clearArtistGuessTimer();
-  clearArtistGuessProgressTimer();
-  artistGuessLuckyWindow = forceStopLuckyWindow(ARTIST_GUESS_LUCKY_WINDOW_NAME, artistGuessLuckyWindow);
-  artistGuessState.isPlaying = false;
-  artistGuessPlayStartedAt = 0;
-  artistGuessState.autoplayAfterLoad = false;
-
-  if (resetToStart) {
-    artistGuessState.progressPercent = 0;
-  } else if (markCompleted) {
-    artistGuessState.progressPercent = 100;
-  }
-
-  if (artistGuessPlayer) {
-    try {
-      if (typeof artistGuessPlayer.stopVideo === 'function') {
-        artistGuessPlayer.stopVideo();
-      } else if (typeof artistGuessPlayer.pauseVideo === 'function') {
-        artistGuessPlayer.pauseVideo();
-      }
-      if (resetToStart && typeof artistGuessPlayer.seekTo === 'function') {
-        artistGuessPlayer.seekTo(0, true);
-      }
-    } catch (error) {
-      console.warn('Failed to stop artist preview:', error);
-    }
-  }
-
-  if (!artistGuessState.loading && artistGuessState.currentSong && artistGuessState.currentClueType === 'audio') {
-    artistGuessState.statusKey = 'artistGuessAudioStoppedStatus';
-  }
-}
-
-function ensureArtistGuessPlayerContainer() {
-  let playerRoot = document.getElementById('artistGuessYoutubePlayer');
-  if (!playerRoot) {
-    const audioContainer = document.querySelector('.artist-guess-player-audio');
-    if (!audioContainer) return null;
-    playerRoot = document.createElement('div');
-    playerRoot.id = 'artistGuessYoutubePlayer';
-    audioContainer.appendChild(playerRoot);
-  }
-
-  return playerRoot;
-}
-
-async function switchArtistGuessVideoByIndex(videoIndex, autoplay = false) {
-  const nextVideoId = artistGuessState.candidateVideoIds[videoIndex];
-  if (!nextVideoId) {
-    artistGuessState.currentVideoId = '';
-    artistGuessState.currentVideoIndex = 0;
-    artistGuessState.autoplayAfterLoad = false;
-    artistGuessState.progressPercent = 0;
-    artistGuessState.statusKey = 'artistGuessAudioUnavailableStatus';
-    return false;
-  }
-
-  artistGuessState.currentVideoIndex = videoIndex;
-  artistGuessState.currentVideoId = nextVideoId;
-  artistGuessState.autoplayAfterLoad = autoplay;
-  await loadArtistGuessPlayer(nextVideoId);
-  return true;
-}
-
-function startArtistGuessPlaybackFromCurrentVideo() {
-  if (
-    !artistGuessPlayer ||
-    !isArtistGuessDialogOpen() ||
-    artistGuessState.answered ||
-    artistGuessState.loading ||
-    !artistGuessState.currentSong ||
-    !artistGuessState.currentVideoId
-  ) {
-    return;
-  }
-
-  artistGuessPlaybackToken += 1;
-  resetArtistGuessProgress();
-  clearArtistGuessTimer();
-  artistGuessState.isPlaying = true;
-  artistGuessState.statusKey = 'artistGuessAudioPlayingStatus';
-
-  if (typeof artistGuessPlayer.seekTo === 'function') {
-    artistGuessPlayer.seekTo(0, true);
-  }
-  if (typeof artistGuessPlayer.playVideo === 'function') {
-    artistGuessPlayer.playVideo();
-  }
-}
-
-function startArtistGuessLuckyPlayback() {
-  if (
-    !USE_LUCKY_AUDIO_SOURCE ||
-    !artistGuessState.currentSong ||
-    artistGuessState.currentClueType !== 'audio' ||
-    !artistGuessState.currentVideoId ||
-    artistGuessState.loading ||
-    artistGuessState.answered
-  ) {
-    return false;
-  }
-
-  artistGuessPlayRequestToken += 1;
-  artistGuessPlaybackToken += 1;
-  clearArtistGuessTimer();
-  clearArtistGuessProgressTimer();
-  artistGuessState.autoplayAfterLoad = false;
-  artistGuessState.progressPercent = 0;
-  artistGuessState.isPlaying = false;
-
-  const popup = openLuckyAudioWindow(
-    artistGuessState.currentVideoId,
-    ARTIST_GUESS_LUCKY_WINDOW_NAME,
-    artistGuessLuckyWindow
-  );
-
-  if (!popup) {
-    artistGuessState.statusKey = 'artistGuessAudioUnavailableStatus';
-    renderArtistGuessGame();
-    return false;
-  }
-
-  artistGuessLuckyWindow = popup;
-  artistGuessState.isPlaying = true;
-  artistGuessState.statusKey = 'artistGuessAudioPlayingStatus';
-  startArtistGuessProgress();
-  renderArtistGuessGame();
-  return true;
-}
-
-function queueArtistGuessLuckyAutoplay(songId, videoId) {
-  if (!USE_LUCKY_AUDIO_SOURCE || !songId || !videoId) return;
-
-  const queuedRequestToken = ++artistGuessPlayRequestToken;
-  window.setTimeout(() => {
-    if (
-      queuedRequestToken !== artistGuessPlayRequestToken ||
-      !isArtistGuessDialogOpen() ||
-      artistGuessState.loading ||
-      artistGuessState.answered ||
-      artistGuessState.currentClueType !== 'audio' ||
-      artistGuessState.currentSong?.Id !== songId ||
-      artistGuessState.currentVideoId !== videoId
-    ) {
-      return;
-    }
-
-    startArtistGuessLuckyPlayback();
-  }, 0);
-}
-
-async function loadArtistGuessPlayer(videoId) {
-  await ensureIntroGuessYoutubeApi();
-  const playerRoot = ensureArtistGuessPlayerContainer();
-  if (!playerRoot) return;
-
-  const isSameVideo = artistGuessPlayer && typeof artistGuessPlayer.getVideoData === 'function'
-    ? artistGuessPlayer.getVideoData()?.video_id === videoId
-    : false;
-
-  if (artistGuessPlayer && typeof artistGuessPlayer.cueVideoById === 'function') {
-    if (artistGuessState.autoplayAfterLoad) {
-      artistGuessState.autoplayAfterLoad = false;
-      artistGuessPlaybackToken += 1;
-      resetArtistGuessProgress();
-      clearArtistGuessTimer();
-      artistGuessState.isPlaying = true;
-      artistGuessState.statusKey = 'artistGuessAudioPlayingStatus';
-      artistGuessPlayer.loadVideoById({ videoId, startSeconds: 0, endSeconds: ARTIST_GUESS_AUDIO_DURATION_SECONDS });
-    } else {
-      if (!isSameVideo) {
-        artistGuessPlayer.cueVideoById({ videoId, startSeconds: 0 });
-      }
-      if (typeof artistGuessPlayer.pauseVideo === 'function') {
-        artistGuessPlayer.pauseVideo();
-      }
-      if (typeof artistGuessPlayer.seekTo === 'function') {
-        artistGuessPlayer.seekTo(0, true);
-      }
-    }
-    return;
-  }
-
-  artistGuessPlayer = new window.YT.Player('artistGuessYoutubePlayer', {
-    height: '220',
-    width: '100%',
-    videoId,
-    playerVars: {
-      autoplay: 0,
-      controls: 0,
-      disablekb: 1,
-      fs: 0,
-      modestbranding: 1,
-      playsinline: 1,
-      rel: 0
-    },
-    events: {
-      onReady: (event) => {
-        event.target.pauseVideo();
-        event.target.seekTo(0, true);
-        if (artistGuessState.autoplayAfterLoad) {
-          const queuedRequestToken = artistGuessPlayRequestToken;
-          artistGuessState.autoplayAfterLoad = false;
-          if (
-            queuedRequestToken === artistGuessPlayRequestToken &&
-            !artistGuessState.answered &&
-            artistGuessState.currentVideoId &&
-            isArtistGuessDialogOpen()
-          ) {
-            startArtistGuessPlaybackFromCurrentVideo();
-            renderArtistGuessGame();
-          }
-        }
-      },
-      onStateChange: (event) => {
-        if (!isArtistGuessDialogOpen()) {
-          stopArtistGuessPlayback(true);
-          renderArtistGuessGame();
-          return;
-        }
-
-        if (window.YT?.PlayerState && event.data === window.YT.PlayerState.PLAYING) {
-          const activeVideoId = typeof event.target?.getVideoData === 'function'
-            ? event.target.getVideoData()?.video_id
-            : '';
-
-          if (
-            !artistGuessState.isPlaying ||
-            artistGuessState.loading ||
-            artistGuessState.answered ||
-            !artistGuessState.currentSong ||
-            !artistGuessState.currentVideoId ||
-            (activeVideoId && activeVideoId !== artistGuessState.currentVideoId)
-          ) {
-            return;
-          }
-
-          if (!artistGuessProgressTimer) {
-            startArtistGuessProgress();
-          }
-        } else if (window.YT?.PlayerState && (
-          event.data === window.YT.PlayerState.ENDED ||
-          event.data === window.YT.PlayerState.PAUSED
-        ) && artistGuessState.isPlaying) {
-          stopArtistGuessPlayback();
-          renderArtistGuessGame();
-        }
-      },
-      onError: () => {
-        handleArtistGuessPlaybackError();
-      }
-    }
-  });
-}
-
-async function handleArtistGuessPlaybackError() {
-  stopArtistGuessPlayback(true);
-  if (!artistGuessState.currentSong) return;
-
-  const nextIndex = artistGuessState.currentVideoIndex + 1;
-  if (nextIndex >= artistGuessState.candidateVideoIds.length) {
-    artistGuessState.currentVideoId = '';
-    artistGuessState.autoplayAfterLoad = false;
-    artistGuessState.statusKey = 'artistGuessAudioUnavailableStatus';
-    renderArtistGuessGame();
-    return;
-  }
-
-  artistGuessState.loading = true;
-  artistGuessState.statusKey = 'artistGuessAudioRetryingStatus';
-  renderArtistGuessGame();
-
-  try {
-    await switchArtistGuessVideoByIndex(nextIndex, true);
-  } catch (error) {
-    console.warn('Failed to switch artist guess video:', error);
-    artistGuessState.currentVideoId = '';
-    artistGuessState.autoplayAfterLoad = false;
-    artistGuessState.statusKey = 'artistGuessAudioUnavailableStatus';
-  }
-
-  artistGuessState.loading = false;
-  renderArtistGuessGame();
-}
-
-function renderArtistGuessGame() {
-  updateStats('artistGuess', getArtistGuessModeStats());
-
-  const modeTitleButton = document.getElementById('artistGuessModeTitleButton');
-  const modeHotButton = document.getElementById('artistGuessModeHotButton');
-  const modeAudioButton = document.getElementById('artistGuessModeAudioButton');
-  const promptEl = document.getElementById('artistGuessPromptLabel');
-  const clueTypeValueEl = document.getElementById('artistGuessClueTypeValue');
-  const clueEl = document.getElementById('artistGuessClue');
-  const audioShell = document.getElementById('artistGuessAudioShell');
-  const placeholderEl = document.getElementById('artistGuessPlayerPlaceholder');
-  const statusEl = document.getElementById('artistGuessStatus');
-  const metaEl = document.getElementById('artistGuessMeta');
-  const optionsEl = document.getElementById('artistGuessOptions');
-  const resultEl = document.getElementById('artistGuessResult');
-  const playButton = document.getElementById('artistGuessPlayButton');
-  const openSongButton = document.getElementById('artistGuessOpenSongButton');
-  const progressBar = document.getElementById('artistGuessProgressBar');
-
-  if (
-    !modeTitleButton ||
-    !modeHotButton ||
-    !modeAudioButton ||
-    !promptEl ||
-    !clueTypeValueEl ||
-    !clueEl ||
-    !audioShell ||
-    !placeholderEl ||
-    !statusEl ||
-    !metaEl ||
-    !optionsEl ||
-    !resultEl ||
-    !playButton ||
-    !openSongButton ||
-    !progressBar
-  ) {
-    return;
-  }
-
-  [
-    [modeTitleButton, 'title'],
-    [modeHotButton, 'hot'],
-    [modeAudioButton, 'audio']
-  ].forEach(([button, mode]) => {
-    button.classList.toggle('is-active', artistGuessState.currentMode === mode);
-  });
-
-  const isAudioClue = artistGuessState.currentClueType === 'audio';
-  promptEl.textContent = t(
-    artistGuessState.currentSong
-      ? (artistGuessState.currentPromptKey || 'artistGuessPrompt')
-      : getArtistGuessPromptKey(artistGuessState.currentMode)
-  );
-  clueTypeValueEl.textContent = t(getArtistGuessClueTypeKey(
-    artistGuessState.currentSong ? artistGuessState.currentClueType : artistGuessState.currentMode
-  ));
-  audioShell.style.display = isAudioClue && artistGuessState.currentSong ? 'block' : 'none';
-  playButton.style.display = isAudioClue && artistGuessState.currentSong ? 'inline-flex' : 'none';
-
-  if (!artistGuessState.currentSong) {
-    clueEl.textContent = artistGuessState.loading ? t('artistGuessLoading') : t(artistGuessState.emptyReasonKey);
-    placeholderEl.textContent = t('artistGuessAudioLoading');
-    statusEl.textContent = '';
-    metaEl.textContent = '';
-    optionsEl.innerHTML = '';
-    playButton.disabled = true;
-    progressBar.style.width = '0%';
-    setResult(resultEl, '');
-    openSongButton.style.display = 'none';
-    return;
-  }
-
-  clueEl.textContent = isAudioClue
-    ? t(USE_LUCKY_AUDIO_SOURCE ? 'artistGuessAudioClueLucky' : 'artistGuessAudioClue')
-    : artistGuessState.currentClueText;
-  placeholderEl.textContent = artistGuessState.loading
-    ? t('artistGuessAudioLoading')
-    : artistGuessState.isPlaying
-      ? t('artistGuessAudioPlaying')
-      : (artistGuessState.statusKey === 'artistGuessAudioUnavailableStatus'
-        ? t('artistGuessAudioUnavailableStatus')
-        : t(USE_LUCKY_AUDIO_SOURCE ? 'artistGuessAudioReadyLucky' : 'artistGuessAudioReady'));
-  statusEl.textContent = isAudioClue ? t(artistGuessState.statusKey) : '';
-  progressBar.style.width = `${artistGuessState.progressPercent}%`;
-  playButton.textContent = artistGuessState.statusKey === 'artistGuessAudioStoppedStatus'
-    ? t('artistGuessReplay')
-    : t('artistGuessPlay');
-  playButton.disabled =
-    !isAudioClue ||
-    artistGuessState.answered ||
-    artistGuessState.loading ||
-    !artistGuessState.currentVideoId ||
-    artistGuessState.statusKey === 'artistGuessAudioUnavailableStatus';
-
-  metaEl.textContent = artistGuessState.answered
-    ? t('artistGuessMetaRevealed', {
-      artist: artistGuessState.currentArtistLabel,
-      song: artistGuessState.currentSong.Tên
-    })
-    : (isAudioClue && artistGuessState.statusKey === 'artistGuessAudioUnavailableStatus'
-      ? t('artistGuessAudioUnavailableMeta')
-      : `${t('artistGuessHint')}\n${t('artistGuessMetaHidden')}`);
-
-  const buttons = artistGuessState.currentOptions.map((option) => {
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.className = 'minigame-option';
-    button.textContent = option.label;
-    button.disabled = artistGuessState.answered;
-
-    if (artistGuessState.answered) {
-      if (option.key === artistGuessState.currentArtistKey) {
-        button.classList.add('is-correct');
-      } else if (option.key === artistGuessState.selectedArtistKey) {
-        button.classList.add('is-wrong');
-      }
-    }
-
-    button.addEventListener('click', () => {
-      window.answerArtistGuess(option.key);
-    });
-
-    return button;
-  });
-
-  optionsEl.replaceChildren(...buttons);
-
-  if (artistGuessState.answered) {
-    const isCorrect = artistGuessState.selectedArtistKey === artistGuessState.currentArtistKey;
-    setResult(resultEl, t(isCorrect ? 'artistGuessCorrect' : 'artistGuessWrong', {
-      artist: artistGuessState.currentArtistLabel
-    }), isCorrect ? 'correct' : 'wrong');
-    openSongButton.style.display = 'inline-flex';
-  } else {
-    setResult(resultEl, '');
-    openSongButton.style.display = 'none';
-  }
-}
-
 function renderIntroGuessGame() {
   updateStats('introGuess', introGuessState);
 
@@ -2288,27 +969,18 @@ function renderIntroGuessGame() {
   const progressBar = document.getElementById('introGuessProgressBar');
   const volumeSlider = document.getElementById('introGuessVolume');
   const volumeValue = document.getElementById('introGuessVolumeValue');
-  const volumeContainer = volumeSlider?.closest('.intro-guess-volume');
 
   if (!statusEl || !metaEl || !optionsEl || !resultEl || !playButton || !openSongButton || !progressBar || !volumeSlider || !volumeValue) return;
-  if (volumeContainer) {
-    volumeContainer.style.display = USE_LUCKY_AUDIO_SOURCE ? 'none' : 'grid';
-  }
 
   volumeSlider.value = String(introGuessState.volume);
   volumeValue.textContent = `${introGuessState.volume}%`;
 
   if (!introGuessState.currentSong) {
-    const availabilityNotice = getIntroGuessAvailabilityNotice();
     if (placeholderEl) {
       placeholderEl.textContent = introGuessState.loading ? t('introGuessSearching') : t(introGuessState.emptyReasonKey);
     }
-    statusEl.textContent = introGuessState.loading
-      ? t('introGuessSearchingStatus')
-      : (availabilityNotice || '');
-    metaEl.textContent = introGuessState.loading
-      ? t('introGuessSearching')
-      : (availabilityNotice || '');
+    statusEl.textContent = introGuessState.loading ? t('introGuessSearchingStatus') : '';
+    metaEl.textContent = introGuessState.loading ? t('introGuessSearching') : '';
     optionsEl.innerHTML = '';
     playButton.textContent = t('introGuessPlay');
     playButton.disabled = true;
@@ -2319,24 +991,20 @@ function renderIntroGuessGame() {
   }
 
   if (placeholderEl) {
-    placeholderEl.textContent = introGuessState.isPlaying
-      ? t('introGuessMetaPlaying')
-      : (introGuessState.statusKey === 'introGuessUnavailableStatus'
-        ? t('introGuessUnavailableStatus')
-        : t(USE_LUCKY_AUDIO_SOURCE ? 'introGuessMetaReadyLucky' : 'introGuessMetaReady'));
+    placeholderEl.textContent = introGuessState.isPlaying ? t('introGuessMetaPlaying') : t('introGuessMetaReady');
   }
 
   statusEl.textContent = t(introGuessState.statusKey);
   metaEl.textContent = introGuessState.answered
     ? t('introGuessMetaRevealed', {
-      song: introGuessState.currentSong.Tên,
-      artist: introGuessState.currentSong['Ca sĩ'] || 'Unknown'
-    })
+        song: introGuessState.currentSong.Tên,
+        artist: introGuessState.currentSong['Ca sĩ'] || 'Unknown'
+      })
     : (introGuessState.statusKey === 'introGuessUnavailableStatus'
-      ? t('introGuessUnavailableMeta')
-      : introGuessState.isPlaying
-        ? t('introGuessMetaPlaying')
-        : t('introGuessMetaHidden'));
+        ? t('introGuessUnavailableMeta')
+        : introGuessState.isPlaying
+          ? t('introGuessMetaPlaying')
+          : t('introGuessMetaHidden'));
 
   playButton.textContent = introGuessState.statusKey === 'introGuessStoppedStatus' ? t('introGuessReplay') : t('introGuessPlay');
   playButton.disabled =
@@ -2519,9 +1187,9 @@ function renderLyricOrderGame() {
 
   metaEl.textContent = lyricOrderState.answered
     ? t('lyricOrderMetaRevealed', {
-      song: lyricOrderState.currentSong.Tên,
-      artist: lyricOrderState.currentSong['Ca sĩ'] || 'Unknown'
-    })
+        song: lyricOrderState.currentSong.Tên,
+        artist: lyricOrderState.currentSong['Ca sĩ'] || 'Unknown'
+      })
     : t('lyricOrderMetaHidden');
 
   if (lyricOrderState.messageKey) {
@@ -2613,10 +1281,10 @@ function renderLyricFillGame() {
 
   metaEl.textContent = lyricFillState.answered
     ? t('lyricFillMetaRevealed', {
-      song: lyricFillState.currentSong.Tên,
-      artist: lyricFillState.currentSong['Ca sĩ'] || 'Unknown',
-      line: lyricFillState.originalLine
-    })
+        song: lyricFillState.currentSong.Tên,
+        artist: lyricFillState.currentSong['Ca sĩ'] || 'Unknown',
+        line: lyricFillState.originalLine
+      })
     : `${t('lyricFillHint')}\n${t('lyricFillMetaHidden')}`;
 
   if (lyricFillState.messageKey) {
@@ -2636,14 +1304,6 @@ function renderLyricFillGame() {
 
 async function prepareIntroGuessRound() {
   stopIntroGuessPlayback(true);
-  if (USE_LUCKY_AUDIO_SOURCE) {
-    introGuessLuckyWindow = null;
-    introGuessLuckyWindow = reserveLuckyAudioWindow(
-      INTRO_GUESS_LUCKY_WINDOW_NAME,
-      introGuessLuckyWindow,
-      t('introGuessLoading')
-    );
-  }
   resetIntroGuessProgress();
   introGuessState.loading = true;
   introGuessState.currentSong = null;
@@ -2658,12 +1318,12 @@ async function prepareIntroGuessRound() {
   introGuessState.emptyReasonKey = getSongs().length > 0 ? 'introGuessEmpty' : 'introGuessLoading';
   renderIntroGuessGame();
 
-  let preparedRound = consumePreparedIntroGuessRound();
+  let preparedRound = introGuessNextPreparedRound || introGuessPreparedRound;
+  introGuessPreparedRound = null;
+  introGuessNextPreparedRound = null;
 
   if (!preparedRound) {
-    await ensureIntroGuessCurrentRoundReady(true);
-    await ensureIntroGuessNextRoundReady(true);
-    preparedRound = consumePreparedIntroGuessRound();
+    preparedRound = await ensureIntroGuessCurrentRoundReady(true);
   }
   logIntroGuess('Dang ap dung round intro da preload', {
     song: preparedRound?.song?.Tên || null
@@ -2672,9 +1332,6 @@ async function prepareIntroGuessRound() {
   introGuessState.loading = false;
 
   if (!preparedRound) {
-    if (USE_LUCKY_AUDIO_SOURCE) {
-      introGuessLuckyWindow = forceStopLuckyWindow(INTRO_GUESS_LUCKY_WINDOW_NAME, introGuessLuckyWindow);
-    }
     introGuessState.currentSong = null;
     introGuessState.emptyReasonKey = getSongs().length > 0 ? 'introGuessEmpty' : 'introGuessLoading';
     renderIntroGuessGame();
@@ -2683,254 +1340,19 @@ async function prepareIntroGuessRound() {
 
   applyPreparedIntroGuessRound(preparedRound);
 
-  if (!USE_LUCKY_AUDIO_SOURCE) {
-    try {
-      await switchIntroGuessVideoByIndex(0, true);
-    } catch (error) {
-      console.warn(`${INTRO_GUESS_LOG_PREFIX} Failed to load intro guess player`, error);
-      introGuessState.currentSong = null;
-      introGuessState.currentVideoId = '';
-      introGuessState.candidateVideoIds = [];
-      introGuessState.currentOptions = [];
-      introGuessState.emptyReasonKey = 'introGuessEmpty';
-    }
+  try {
+    await switchIntroGuessVideoByIndex(0, false);
+  } catch (error) {
+    console.warn(`${INTRO_GUESS_LOG_PREFIX} Failed to load intro guess player`, error);
+    introGuessState.currentSong = null;
+    introGuessState.currentVideoId = '';
+    introGuessState.candidateVideoIds = [];
+    introGuessState.currentOptions = [];
+    introGuessState.emptyReasonKey = 'introGuessEmpty';
   }
 
   renderIntroGuessGame();
-  if (USE_LUCKY_AUDIO_SOURCE && introGuessState.currentSong && introGuessState.currentVideoId) {
-    queueIntroGuessLuckyAutoplay(introGuessState.currentSong.Id, introGuessState.currentVideoId);
-  }
-  void ensureIntroGuessCurrentRoundReady();
   void ensureIntroGuessNextRoundReady();
-}
-
-function buildArtistGuessOptions(correctArtistLabel, correctArtistKey) {
-  const allOptions = buildArtistGuessOptionPool();
-  if (allOptions.length < 2) return [];
-
-  const wrongOptions = shuffle(allOptions.filter((option) => option.key !== correctArtistKey))
-    .slice(0, ARTIST_GUESS_OPTION_COUNT - 1);
-
-  return shuffle([
-    { key: correctArtistKey, label: correctArtistLabel },
-    ...wrongOptions
-  ]);
-}
-
-function createArtistGuessRound(song, clueType, clueText, extras = {}) {
-  const artistLabel = getArtistGuessLabel(song);
-  const artistKey = normalizeArtistOption(artistLabel);
-  if (!artistLabel || !artistKey) return null;
-
-  const options = buildArtistGuessOptions(artistLabel, artistKey);
-  if (options.length < 2) return null;
-
-  return {
-    song,
-    clueType,
-    clueText,
-    promptKey: getArtistGuessPromptKey(clueType),
-    artistLabel,
-    artistKey,
-    options,
-    currentVideoId: '',
-    candidateVideoIds: [],
-    currentVideoIndex: 0,
-    statusKey: 'artistGuessAudioReadyStatus',
-    ...extras
-  };
-}
-
-function buildArtistGuessTitleRound(songs, excludedSongIds = []) {
-  const queue = buildSongQueue(songs, excludedSongIds);
-
-  for (const song of queue) {
-    const title = String(song?.['Tên'] || '').trim();
-    if (!title) continue;
-
-    const round = createArtistGuessRound(song, 'title', title, {
-      statusKey: 'artistGuessAudioReadyStatus'
-    });
-    if (round) return round;
-  }
-
-  return null;
-}
-
-function buildArtistGuessHotRound(songs, excludedSongIds = []) {
-  const queue = buildSongQueue(songs, excludedSongIds);
-
-  for (const song of queue) {
-    const hotLines = getHotLines(song);
-    if (!hotLines.length) continue;
-
-    const round = createArtistGuessRound(song, 'hot', formatHotQuoteClue(hotLines), {
-      statusKey: 'artistGuessAudioReadyStatus'
-    });
-    if (round) return round;
-  }
-
-  return null;
-}
-
-async function buildArtistGuessAudioRound(songs, excludedSongIds = []) {
-  const queue = buildSongQueue(songs, excludedSongIds);
-
-  for (const song of queue) {
-    try {
-      let videoIds = USE_LUCKY_AUDIO_SOURCE ? [buildLuckyAudioUrl(song)] : getIntroGuessVideoIdsFromSong(song);
-
-      if (!videoIds.length && !USE_LUCKY_AUDIO_SOURCE) {
-        videoIds = await findIntroGuessVideoIds(song, {
-          allowYoutubeApi: !introGuessYoutubeLookupDisabled
-        });
-      }
-
-      if (!videoIds.length) continue;
-
-      const round = createArtistGuessRound(song, 'audio', t('artistGuessAudioClue'), {
-        currentVideoId: videoIds[0] || '',
-        candidateVideoIds: videoIds,
-        currentVideoIndex: 0,
-        statusKey: 'artistGuessAudioReadyStatus'
-      });
-
-      if (round) return round;
-    } catch (error) {
-      console.warn(`${ARTIST_GUESS_LOG_PREFIX} Failed to prepare audio round`, song?.['Tên'], error);
-    }
-  }
-
-  return null;
-}
-
-function applyArtistGuessRound(round) {
-  artistGuessState.currentSong = round.song;
-  artistGuessState.currentClueType = round.clueType;
-  artistGuessState.currentClueText = round.clueText;
-  artistGuessState.currentPromptKey = round.promptKey || getArtistGuessPromptKey(round.clueType);
-  artistGuessState.currentOptions = [...round.options];
-  artistGuessState.currentArtistLabel = round.artistLabel;
-  artistGuessState.currentArtistKey = round.artistKey;
-  artistGuessState.selectedArtistKey = '';
-  artistGuessState.answered = false;
-  artistGuessState.loading = false;
-  getArtistGuessModeStats().lastSongId = round.song.Id;
-  artistGuessState.emptyReasonKey = '';
-  artistGuessState.currentVideoId = round.currentVideoId || '';
-  artistGuessState.candidateVideoIds = [...(round.candidateVideoIds || [])];
-  artistGuessState.currentVideoIndex = round.currentVideoIndex || 0;
-  artistGuessState.autoplayAfterLoad = false;
-  artistGuessState.isPlaying = false;
-  artistGuessState.progressPercent = 0;
-  artistGuessState.statusKey = round.statusKey || 'artistGuessAudioReadyStatus';
-}
-
-async function prepareArtistGuessRound(mode = artistGuessState.currentMode) {
-  if (!ARTIST_GUESS_MODES.includes(mode)) {
-    mode = 'title';
-  }
-
-  const requestToken = ++artistGuessRoundRequestToken;
-  artistGuessState.currentMode = mode;
-  stopArtistGuessPlayback(true);
-  if (USE_LUCKY_AUDIO_SOURCE && mode === 'audio') {
-    artistGuessLuckyWindow = null;
-    artistGuessLuckyWindow = reserveLuckyAudioWindow(
-      ARTIST_GUESS_LUCKY_WINDOW_NAME,
-      artistGuessLuckyWindow,
-      t('artistGuessAudioLoading')
-    );
-  }
-  resetArtistGuessProgress();
-  artistGuessState.loading = true;
-  artistGuessState.currentSong = null;
-  artistGuessState.currentClueType = '';
-  artistGuessState.currentClueText = '';
-  artistGuessState.currentPromptKey = getArtistGuessPromptKey(mode);
-  artistGuessState.currentOptions = [];
-  artistGuessState.currentArtistLabel = '';
-  artistGuessState.currentArtistKey = '';
-  artistGuessState.selectedArtistKey = '';
-  artistGuessState.answered = false;
-  artistGuessState.currentVideoId = '';
-  artistGuessState.candidateVideoIds = [];
-  artistGuessState.currentVideoIndex = 0;
-  artistGuessState.autoplayAfterLoad = false;
-  artistGuessState.isPlaying = false;
-  artistGuessState.progressPercent = 0;
-  artistGuessState.statusKey = mode === 'audio' ? 'artistGuessAudioSearchingStatus' : 'artistGuessAudioReadyStatus';
-  artistGuessState.emptyReasonKey = getSongs().length > 0 ? getArtistGuessEmptyReasonKey(mode) : 'artistGuessLoading';
-  renderArtistGuessGame();
-
-  const songs = getSongs().filter((song) => song?.Id && song?.['Tên'] && getArtistGuessLabel(song));
-  const optionPool = buildArtistGuessOptionPool();
-  if (songs.length === 0 || optionPool.length < 2) {
-    if (requestToken !== artistGuessRoundRequestToken) return;
-    if (USE_LUCKY_AUDIO_SOURCE && mode === 'audio') {
-      artistGuessLuckyWindow = forceStopLuckyWindow(ARTIST_GUESS_LUCKY_WINDOW_NAME, artistGuessLuckyWindow);
-    }
-    artistGuessState.loading = false;
-    artistGuessState.currentSong = null;
-    artistGuessState.emptyReasonKey = getSongs().length > 0 ? getArtistGuessEmptyReasonKey(mode) : 'artistGuessLoading';
-    renderArtistGuessGame();
-    return;
-  }
-
-  const excludedSongIds = [getArtistGuessModeStats(mode).lastSongId].filter(Boolean);
-  let preparedRound = null;
-
-  if (mode === 'audio') {
-    preparedRound = await buildArtistGuessAudioRound(songs, excludedSongIds);
-  } else if (mode === 'hot') {
-    preparedRound = buildArtistGuessHotRound(songs, excludedSongIds);
-  } else {
-    preparedRound = buildArtistGuessTitleRound(songs, excludedSongIds);
-  }
-
-  if (requestToken !== artistGuessRoundRequestToken) return;
-  artistGuessState.loading = false;
-
-  if (!preparedRound) {
-    if (USE_LUCKY_AUDIO_SOURCE && mode === 'audio') {
-      artistGuessLuckyWindow = forceStopLuckyWindow(ARTIST_GUESS_LUCKY_WINDOW_NAME, artistGuessLuckyWindow);
-    }
-    artistGuessState.currentSong = null;
-    artistGuessState.emptyReasonKey = getArtistGuessEmptyReasonKey(mode);
-    renderArtistGuessGame();
-    return;
-  }
-
-  logArtistGuess('Prepared round', {
-    clueType: mode,
-    song: preparedRound.song?.Tên
-  });
-
-  applyArtistGuessRound(preparedRound);
-
-  if (!USE_LUCKY_AUDIO_SOURCE && artistGuessState.currentClueType === 'audio' && artistGuessState.currentVideoId) {
-    try {
-      await switchArtistGuessVideoByIndex(0, false);
-      if (requestToken !== artistGuessRoundRequestToken) return;
-    } catch (error) {
-      if (requestToken !== artistGuessRoundRequestToken) return;
-      console.warn(`${ARTIST_GUESS_LOG_PREFIX} Failed to load artist guess player`, error);
-      artistGuessState.currentVideoId = '';
-      artistGuessState.candidateVideoIds = [];
-      artistGuessState.statusKey = 'artistGuessAudioUnavailableStatus';
-    }
-  }
-
-  if (requestToken !== artistGuessRoundRequestToken) return;
-  renderArtistGuessGame();
-  if (
-    USE_LUCKY_AUDIO_SOURCE &&
-    artistGuessState.currentClueType === 'audio' &&
-    artistGuessState.currentSong &&
-    artistGuessState.currentVideoId
-  ) {
-    queueArtistGuessLuckyAutoplay(artistGuessState.currentSong.Id, artistGuessState.currentVideoId);
-  }
 }
 
 function prepareHotQuoteRound() {
@@ -3047,24 +1469,20 @@ function refreshMinigameLanguage() {
   const introGuessButton = document.querySelector('#btn-intro-guess-game-sc span');
   const lyricFillButton = document.querySelector('#btn-lyric-fill-game-sc span');
   const hotQuoteButton = document.querySelector('#btn-hot-quote-game-sc span');
-  const artistGuessButton = document.querySelector('#btn-artist-guess-game-sc span');
   const lyricOrderButton = document.querySelector('#btn-lyric-order-game-sc span');
 
   if (introGuessButton) introGuessButton.textContent = t('menuIntroGuess');
   if (lyricFillButton) lyricFillButton.textContent = t('menuLyricFill');
   if (hotQuoteButton) hotQuoteButton.textContent = t('menuHotQuote');
-  if (artistGuessButton) artistGuessButton.textContent = t('menuArtistGuess');
   if (lyricOrderButton) lyricOrderButton.textContent = t('menuLyricOrder');
 
   const introGuessButtonRoot = document.getElementById('btn-intro-guess-game-sc');
   const lyricFillButtonRoot = document.getElementById('btn-lyric-fill-game-sc');
   const hotButtonRoot = document.getElementById('btn-hot-quote-game-sc');
-  const artistButtonRoot = document.getElementById('btn-artist-guess-game-sc');
   const lyricButtonRoot = document.getElementById('btn-lyric-order-game-sc');
   if (introGuessButtonRoot) introGuessButtonRoot.title = t('menuIntroGuess');
   if (lyricFillButtonRoot) lyricFillButtonRoot.title = t('menuLyricFill');
   if (hotButtonRoot) hotButtonRoot.title = t('menuHotQuote');
-  if (artistButtonRoot) artistButtonRoot.title = t('menuArtistGuess');
   if (lyricButtonRoot) lyricButtonRoot.title = t('menuLyricOrder');
 
   const mappings = [
@@ -3092,17 +1510,6 @@ function refreshMinigameLanguage() {
     ['hotQuotePromptLabel', 'hotQuotePrompt'],
     ['hotQuoteNextButton', 'nextQuestion'],
     ['hotQuoteOpenSongButton', 'openSong'],
-    ['artistGuessGameDialogTitle', 'artistGuessTitle'],
-    ['artistGuessSolvedLabel', 'solvedLabel'],
-    ['artistGuessAttemptsLabel', 'attemptsLabel'],
-    ['artistGuessAccuracyLabel', 'accuracyLabel'],
-    ['artistGuessModeTitleButton', 'artistGuessModeTitle'],
-    ['artistGuessModeHotButton', 'artistGuessModeHot'],
-    ['artistGuessModeAudioButton', 'artistGuessModeAudio'],
-    ['artistGuessClueTypeLabel', 'artistGuessClueTypeLabel'],
-    ['artistGuessPlayButton', 'artistGuessPlay'],
-    ['artistGuessNextButton', 'nextQuestion'],
-    ['artistGuessOpenSongButton', 'openSong'],
     ['lyricOrderSolvedLabel', 'solvedLabel'],
     ['lyricOrderAttemptsLabel', 'attemptsCheckLabel'],
     ['lyricOrderAccuracyLabel', 'accuracyLabel'],
@@ -3128,7 +1535,6 @@ function refreshMinigameLanguage() {
     }
   });
 
-  renderArtistGuessGame();
   renderIntroGuessGame();
   renderLyricFillGame();
   renderHotQuoteGame();
@@ -3155,22 +1561,10 @@ window.nextIntroGuessRound = function nextIntroGuessRound() {
 
 window.playIntroGuessSnippet = async function playIntroGuessSnippet() {
   if (!introGuessState.currentSong || !introGuessState.currentVideoId || introGuessState.loading) return;
-  if (USE_LUCKY_AUDIO_SOURCE) {
-    startIntroGuessLuckyPlayback();
-    return;
-  }
-
   const requestToken = ++introGuessPlayRequestToken;
 
   try {
-    const isSameVideo = introGuessPlayer && typeof introGuessPlayer.getVideoData === 'function'
-      ? introGuessPlayer.getVideoData()?.video_id === introGuessState.currentVideoId
-      : false;
-
-    if (!isSameVideo) {
-      await loadIntroGuessPlayer(introGuessState.currentVideoId);
-    }
-
+    await loadIntroGuessPlayer(introGuessState.currentVideoId);
     if (
       requestToken !== introGuessPlayRequestToken ||
       introGuessState.answered ||
@@ -3323,112 +1717,6 @@ window.openHotQuoteSong = function openHotQuoteSong() {
   }
 };
 
-window.openArtistGuessGameDialog = function openArtistGuessGameDialog() {
-  const dialog = document.getElementById('artistGuessGameDialog');
-  if (!dialog) return;
-
-  refreshMinigameLanguage();
-  if (!artistGuessState.currentSong && !artistGuessState.loading) {
-    void prepareArtistGuessRound(artistGuessState.currentMode);
-  }
-  if (!dialog.open) {
-    dialog.showModal();
-  }
-};
-
-window.setArtistGuessMode = function setArtistGuessMode(mode) {
-  if (!ARTIST_GUESS_MODES.includes(mode)) return;
-  if (artistGuessState.currentMode === mode && artistGuessState.currentSong && !artistGuessState.loading) return;
-  if (artistGuessState.loading && artistGuessState.currentMode === mode) return;
-
-  artistGuessState.currentMode = mode;
-  artistGuessState.currentSong = null;
-  artistGuessState.currentClueType = '';
-  artistGuessState.currentClueText = '';
-  artistGuessState.currentPromptKey = getArtistGuessPromptKey(mode);
-  artistGuessState.currentOptions = [];
-  artistGuessState.selectedArtistKey = '';
-  artistGuessState.answered = false;
-  artistGuessState.emptyReasonKey = getSongs().length > 0 ? getArtistGuessEmptyReasonKey(mode) : 'artistGuessLoading';
-  renderArtistGuessGame();
-  void prepareArtistGuessRound(mode);
-};
-
-window.nextArtistGuessRound = function nextArtistGuessRound() {
-  void prepareArtistGuessRound(artistGuessState.currentMode);
-};
-
-window.playArtistGuessSnippet = async function playArtistGuessSnippet() {
-  if (
-    !artistGuessState.currentSong ||
-    artistGuessState.currentClueType !== 'audio' ||
-    !artistGuessState.currentVideoId ||
-    artistGuessState.loading
-  ) {
-    return;
-  }
-
-  if (USE_LUCKY_AUDIO_SOURCE) {
-    startArtistGuessLuckyPlayback();
-    return;
-  }
-
-  const requestToken = ++artistGuessPlayRequestToken;
-
-  try {
-    const isSameVideo = artistGuessPlayer && typeof artistGuessPlayer.getVideoData === 'function'
-      ? artistGuessPlayer.getVideoData()?.video_id === artistGuessState.currentVideoId
-      : false;
-
-    if (!isSameVideo) {
-      await loadArtistGuessPlayer(artistGuessState.currentVideoId);
-    }
-
-    if (
-      requestToken !== artistGuessPlayRequestToken ||
-      artistGuessState.answered ||
-      !isArtistGuessDialogOpen() ||
-      artistGuessState.loading
-    ) {
-      return;
-    }
-
-    startArtistGuessPlaybackFromCurrentVideo();
-  } catch (error) {
-    console.warn('Failed to play artist clue snippet:', error);
-    artistGuessState.statusKey = 'artistGuessAudioUnavailableStatus';
-    artistGuessState.currentVideoId = '';
-  }
-
-  renderArtistGuessGame();
-};
-
-window.answerArtistGuess = function answerArtistGuess(artistKey) {
-  if (artistGuessState.answered || !artistGuessState.currentSong) return;
-
-  const currentModeStats = getArtistGuessModeStats();
-  stopArtistGuessPlayback(true);
-  artistGuessState.selectedArtistKey = artistKey;
-  artistGuessState.answered = true;
-  artistGuessState.autoplayAfterLoad = false;
-  currentModeStats.attempts += 1;
-
-  if (artistKey === artistGuessState.currentArtistKey) {
-    currentModeStats.solved += 1;
-  }
-
-  renderArtistGuessGame();
-};
-
-window.openArtistGuessSong = function openArtistGuessSong() {
-  if (artistGuessState.currentSong && typeof window.showLyric === 'function') {
-    stopArtistGuessPlayback(true);
-    const dialog = document.getElementById('artistGuessGameDialog');
-    if (dialog?.open) dialog.close();
-    window.showLyric(artistGuessState.currentSong.Id);
-  }
-};
-
 window.openLyricOrderGameDialog = function openLyricOrderGameDialog() {
   const dialog = document.getElementById('lyricOrderGameDialog');
   if (!dialog) return;
@@ -3511,14 +1799,9 @@ async function bootstrapIntroGuessPreload() {
     logIntroGuess('Chua the preload vi danh sach bai hat chua san sang');
     return;
   }
-  pruneIntroGuessRecentSongIds();
-  pruneIntroGuessCyclePlayedSongIds();
 
   const bootstrapKey = songs.map((song) => song.Id).join('|');
-  if (
-    bootstrapKey === introGuessLastBootstrapKey &&
-    (introGuessPreparedRound || introGuessNextPreparedRound || introGuessCurrentPreloadPromise || introGuessNextPreloadPromise)
-  ) {
+  if (bootstrapKey === introGuessLastBootstrapKey && (introGuessPreparedRound || introGuessCurrentPreloadPromise)) {
     return;
   }
 
@@ -3526,7 +1809,7 @@ async function bootstrapIntroGuessPreload() {
 
   try {
     await ensureIntroGuessCurrentRoundReady();
-    await ensureIntroGuessNextRoundReady();
+    void ensureIntroGuessNextRoundReady();
   } catch (error) {
     console.warn(`${INTRO_GUESS_LOG_PREFIX} Loi khi bootstrap preload`, error);
   }
@@ -3535,77 +1818,13 @@ async function bootstrapIntroGuessPreload() {
 attachBackdropClose('introGuessGameDialog');
 attachBackdropClose('lyricFillGameDialog');
 attachBackdropClose('hotQuoteGameDialog');
-attachBackdropClose('artistGuessGameDialog');
 attachBackdropClose('lyricOrderGameDialog');
 document.getElementById('introGuessGameDialog')?.addEventListener('close', () => {
   stopIntroGuessPlayback(true);
   renderIntroGuessGame();
 });
-document.getElementById('artistGuessGameDialog')?.addEventListener('close', () => {
-  stopArtistGuessPlayback(true);
-  renderArtistGuessGame();
-});
-document.addEventListener('keydown', (event) => {
-  if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA' || event.target.tagName === 'SELECT') return;
-
-  if (isIntroGuessDialogOpen()) {
-    if (event.key >= '1' && event.key <= '4') {
-      event.preventDefault();
-      const index = Number(event.key) - 1;
-      const option = introGuessState.currentOptions[index];
-      if (option && !introGuessState.answered && introGuessState.currentSong) {
-        window.answerIntroGuess(option.Id);
-      }
-    } else if (event.key === 'Enter') {
-      event.preventDefault();
-      window.nextIntroGuessRound();
-    } else if (event.key === ' ') {
-      event.preventDefault();
-      if (introGuessState.answered && introGuessState.currentSong) {
-        window.openIntroGuessSong();
-      } else if (!introGuessState.answered && introGuessState.currentSong && introGuessState.currentVideoId) {
-        void window.playIntroGuessSnippet();
-      }
-    }
-    return;
-  }
-
-  if (!isArtistGuessDialogOpen()) return;
-
-  if (event.key >= '1' && event.key <= '4') {
-    event.preventDefault();
-    const index = Number(event.key) - 1;
-    const option = artistGuessState.currentOptions[index];
-    if (option && !artistGuessState.answered && artistGuessState.currentSong) {
-      window.answerArtistGuess(option.key);
-    }
-  } else if (event.key === 'Enter') {
-    event.preventDefault();
-    void window.nextArtistGuessRound();
-  } else if (event.key === ' ') {
-    event.preventDefault();
-    if (artistGuessState.answered && artistGuessState.currentSong) {
-      window.openArtistGuessSong();
-    } else if (
-      !artistGuessState.answered &&
-      artistGuessState.currentSong &&
-      artistGuessState.currentClueType === 'audio' &&
-      artistGuessState.currentVideoId
-    ) {
-      void window.playArtistGuessSnippet();
-    }
-  }
-});
 document.addEventListener('app-songsloaded', (event) => {
   logIntroGuess('Nhan su kien songs loaded', event?.detail || {});
-  introGuessPreparedRound = null;
-  introGuessNextPreparedRound = null;
-  introGuessCurrentPreloadPromise = null;
-  introGuessNextPreloadPromise = null;
-  introGuessRecentSongIds = [];
-  introGuessCyclePlayedSongIds = [];
-  introGuessYoutubeLookupDisabled = false;
-  introGuessVideoCache.clear();
   void bootstrapIntroGuessPreload();
 });
 document.addEventListener('app-languagechange', refreshMinigameLanguage);

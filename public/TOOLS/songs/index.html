@@ -14,13 +14,10 @@
   <header>
     <div>
       <span><i class="fa-solid fa-music"></i></span> <span class="logoweb" onclick="location.reload()">ntdMUSIC</span>
-      <span style="font-size: medium; color: rgba(255,255,255,0.5);"><span class="rauMa"
-          onclick="alert('Bấm vô đây làm cái chó gì??? Var hả???')">36</span></span>
+      <span style="font-size: medium; color: rgba(255,255,255,0.5);"><span class="rauMa" onclick="alert('Bấm vô đây làm cái chó gì??? Var hả???')">36</span></span>
     </div>
     <div class="search-container">
-      <input type="text" id="searchInput" class="search-input"
-        placeholder="🔎 Tìm theo tên, ca sĩ, sáng tác hoặc lời bài hát..." autocomplete="off" />
-      <div id="searchSuggestions" class="search-suggestions" style="display: none;"></div>
+      <input type="text" id="searchInput" class="search-input" placeholder="🔎 Tìm theo tên, ca sĩ, sáng tác hoặc lời bài hát..." />
       <select id="artistFilter" class="artist-filter">
         <option value="">-- Tất cả ca sĩ --</option>
         <!-- Options sẽ được tạo động từ JS -->
@@ -56,118 +53,112 @@
     </div>
   </header>
 
-  <!-- Sidebar Menu -->
-  <div id="sidebar" class="sidebar">
-    <div class="sidebar-header">
-      <h3 id="sidebarTitle">Menu</h3>
-      <button class="btn-close-sidebar" onclick="toggleSidebar()">
-        <i class="fa-solid fa-xmark"></i>
-      </button>
-    </div>
-    <div class="sidebar-content">
-      <div class="sidebar-group-label" id="sidebarSongLabel">Song</div>
-      <button class="sidebar-item" id="btn-reload-sc" onclick="location.reload(); toggleSidebar();">
-        <i class="fa-solid fa-arrow-rotate-right"></i>
-        <span>Làm mới</span>
-      </button>
-      <button class="sidebar-item" id="btn-add-sc" onclick="addSongDialog.showModal(); toggleSidebar();">
-        <i class="fa-solid fa-plus"></i>
-        <span>Thêm bài hát</span>
-      </button>
-      <div class="sidebar-group-label" id="sidebarFeatureLabel">Feature other</div>
-      <button class="sidebar-item" id="btn-youtube-sc" onclick="openYoutubeSearchDialog(); toggleSidebar();">
-        <i class="fa-brands fa-youtube"></i>
-        <span>Tìm video YouTube</span>
-      </button>
-      <button class="sidebar-item" id="btn-hoiAI-sc" onclick="hoiAI(); toggleSidebar();">
-        <i class="fa-solid fa-robot"></i>
-        <span>Hỏi AI</span>
-      </button>
-      <button class="sidebar-item" id="btn-home-sc" onclick="window.open('https://2937.vercel.app'); toggleSidebar();">
-        <i class="fa-solid fa-house"></i>
-        <span>Trang chủ</span>
-      </button>
-      <button class="sidebar-item" id="btn-settings-sc" onclick="openSettingsDialog(); toggleSidebar();">
-        <i class="fa-solid fa-gear"></i>
-        <span>Cài đặt</span>
-      </button>
-      <button class="sidebar-item" id="btn-history-sc" onclick="openHistoryDialog(); toggleSidebar();">
-        <i class="fa-solid fa-clock-rotate-left"></i>
-        <span>Lịch sử thêm bài</span>
-      </button>
-      <button class="sidebar-item" id="btn-album-sc" onclick="openAlbumDialog(); toggleSidebar();">
-        <i class="fa-solid fa-compact-disc"></i>
-        <span>Danh sách Album</span>
-      </button>
-      <div class="sidebar-group-label" id="sidebarMinigameLabel">Minigame</div>
-      <button class="sidebar-item" id="btn-intro-guess-game-sc"
-        onclick="openIntroGuessGameDialog(); toggleSidebar(); stopNct(); stopYoutube();">
-        <i class="fa-solid fa-headphones"></i>
-        <span>Đoán bài qua intro</span>
-      </button>
-      <button class="sidebar-item" id="btn-lyric-fill-game-sc" onclick="openLyricFillGameDialog(); toggleSidebar();">
-        <i class="fa-solid fa-pen-to-square"></i>
-        <span>Điền từ còn thiếu</span>
-      </button>
-      <button class="sidebar-item" id="btn-hot-quote-game-sc" onclick="openHotQuoteGameDialog(); toggleSidebar();">
-        <i class="fa-solid fa-quote-left"></i>
-        <span>Đoán tên bài hát</span>
-      </button>
-      <button class="sidebar-item" id="btn-artist-guess-game-sc"
-        onclick="openArtistGuessGameDialog(); toggleSidebar();">
-        <i class="fa-solid fa-microphone-lines"></i>
-        <span>Đoán tên ca sĩ</span>
-      </button>
-      <button class="sidebar-item" id="btn-lyric-order-game-sc" onclick="openLyricOrderGameDialog(); toggleSidebar();">
-        <i class="fa-solid fa-arrow-down-1-9"></i>
-        <span>Sắp xếp lyric</span>
-      </button>
-      <div class="sidebar-group-label" id="sidebarSocialLabel">Social</div>
-      <button class="sidebar-item" id="btn-rank-sc" onclick="openRankingDialog(); toggleSidebar();">
-        <i class="fa-solid fa-ranking-star"></i>
-        <span>Bảng xếp hạng</span>
-      </button>
-      <button class="sidebar-item" id="btn-streak-sc" onclick="checkStreak(); toggleSidebar();">
-        <i class="fa-solid fa-fire"></i>
-        <span id="streakText">Điểm danh hàng ngày</span>
-      </button>
-      <button class="sidebar-item" id="btn-favourite-sc" onclick="openFavouriteDialog(); toggleSidebar();">
-        <i class="fa-solid fa-heart"></i>
-        <span>Bài hát yêu thích</span>
-      </button>
-      <button class="sidebar-item" id="btn-users-sc" onclick="openUsersDialog(); toggleSidebar();">
-        <i class="fa-solid fa-users"></i>
-        <span>Danh sách người dùng</span>
-      </button>
-      <div class="sidebar-group-label" id="sidebarAboutLabel">About</div>
-      <button class="sidebar-item" id="btn-guide-sc" onclick="openGuideDialog(); toggleSidebar();">
-        <i class="fa-solid fa-circle-info"></i>
-        <span>Hướng dẫn sử dụng</span>
-      </button>
-      <button class="sidebar-item" id="btn-updates-sc" onclick="openUpdatesDialog(); toggleSidebar();">
-        <i class="fa-solid fa-bullhorn"></i>
-        <span>Thông tin cập nhật</span>
-      </button>
-    </div>
+<!-- Sidebar Menu -->
+<div id="sidebar" class="sidebar">
+  <div class="sidebar-header">
+    <h3 id="sidebarTitle">Menu</h3>
+    <button class="btn-close-sidebar" onclick="toggleSidebar()">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
   </div>
-
-  <!-- Overlay -->
-  <div id="sidebar-overlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
-
-  <div class="filter-section">
-    <div class="tag-filter-container">
-      <div class="tag-filter-label">
-        <i class="fa-solid fa-filter"></i>
-        <span id="tagFilterLabelText">Lọc theo tag:</span>
-      </div>
-      <div class="tag-filter-options" id="tagFilterOptions">
-        <!-- Tags sẽ được tạo động từ JS -->
-      </div>
-      <button class="btn-clear-filter" id="btnClearTagFilter" style="display: none;">
-        <i class="fa-solid fa-xmark"></i> <span id="btnClearTagFilterText">Xóa bộ lọc</span>
-      </button>
-    </div>
+  <div class="sidebar-content">
+    <div class="sidebar-group-label" id="sidebarSongLabel">Song</div>
+    <button class="sidebar-item" id="btn-reload-sc" onclick="location.reload(); toggleSidebar();">
+      <i class="fa-solid fa-arrow-rotate-right"></i>
+      <span>Làm mới</span>
+    </button>
+    <button class="sidebar-item" id="btn-add-sc" onclick="addSongDialog.showModal(); toggleSidebar();">
+      <i class="fa-solid fa-plus"></i>
+      <span>Thêm bài hát</span>
+    </button>
+    <div class="sidebar-group-label" id="sidebarFeatureLabel">Feature other</div>
+    <button class="sidebar-item" id="btn-youtube-sc" onclick="openYoutubeSearchDialog(); toggleSidebar();">
+      <i class="fa-brands fa-youtube"></i>
+      <span>Tìm video YouTube</span>
+    </button>
+    <button class="sidebar-item" id="btn-hoiAI-sc" onclick="hoiAI(); toggleSidebar();">
+      <i class="fa-solid fa-robot"></i>
+      <span>Hỏi AI</span>
+    </button>
+    <button class="sidebar-item" id="btn-home-sc" onclick="window.open('https://2937.vercel.app'); toggleSidebar();">
+      <i class="fa-solid fa-house"></i>
+      <span>Trang chủ</span>
+    </button>
+    <button class="sidebar-item" id="btn-settings-sc" onclick="openSettingsDialog(); toggleSidebar();">
+      <i class="fa-solid fa-gear"></i>
+      <span>Cài đặt</span>
+    </button>
+    <button class="sidebar-item" id="btn-history-sc" onclick="openHistoryDialog(); toggleSidebar();">
+      <i class="fa-solid fa-clock-rotate-left"></i>
+      <span>Lịch sử thêm bài</span>
+    </button>
+    <button class="sidebar-item" id="btn-album-sc" onclick="openAlbumDialog(); toggleSidebar();">
+      <i class="fa-solid fa-compact-disc"></i>
+      <span>Danh sách Album</span>
+    </button>
+    <div class="sidebar-group-label" id="sidebarMinigameLabel">Minigame</div>
+    <button class="sidebar-item" id="btn-intro-guess-game-sc" onclick="openIntroGuessGameDialog(); toggleSidebar();">
+      <i class="fa-solid fa-headphones"></i>
+      <span>Đoán bài qua intro</span>
+    </button>
+    <button class="sidebar-item" id="btn-lyric-fill-game-sc" onclick="openLyricFillGameDialog(); toggleSidebar();">
+      <i class="fa-solid fa-pen-to-square"></i>
+      <span>Điền từ còn thiếu</span>
+    </button>
+    <button class="sidebar-item" id="btn-hot-quote-game-sc" onclick="openHotQuoteGameDialog(); toggleSidebar();">
+      <i class="fa-solid fa-quote-left"></i>
+      <span>Đoán tên bài hát</span>
+    </button>
+    <button class="sidebar-item" id="btn-lyric-order-game-sc" onclick="openLyricOrderGameDialog(); toggleSidebar();">
+      <i class="fa-solid fa-arrow-down-1-9"></i>
+      <span>Sắp xếp lyric</span>
+    </button>
+    <div class="sidebar-group-label" id="sidebarSocialLabel">Social</div>
+    <button class="sidebar-item" id="btn-rank-sc" onclick="openRankingDialog(); toggleSidebar();">
+      <i class="fa-solid fa-ranking-star"></i>
+      <span>Bảng xếp hạng</span>
+    </button>
+    <button class="sidebar-item" id="btn-streak-sc" onclick="checkStreak(); toggleSidebar();">
+      <i class="fa-solid fa-fire"></i>
+      <span id="streakText">Điểm danh hàng ngày</span>
+    </button>
+    <button class="sidebar-item" id="btn-favourite-sc" onclick="openFavouriteDialog(); toggleSidebar();">
+      <i class="fa-solid fa-heart"></i>
+      <span>Bài hát yêu thích</span>
+    </button>
+    <button class="sidebar-item" id="btn-users-sc" onclick="openUsersDialog(); toggleSidebar();">
+      <i class="fa-solid fa-users"></i>
+      <span>Danh sách người dùng</span>
+    </button>
+    <div class="sidebar-group-label" id="sidebarAboutLabel">About</div>
+    <button class="sidebar-item" id="btn-guide-sc" onclick="openGuideDialog(); toggleSidebar();">
+      <i class="fa-solid fa-circle-info"></i>
+      <span>Hướng dẫn sử dụng</span>
+    </button>
+    <button class="sidebar-item" id="btn-updates-sc" onclick="openUpdatesDialog(); toggleSidebar();">
+      <i class="fa-solid fa-bullhorn"></i>
+      <span>Thông tin cập nhật</span>
+    </button>
   </div>
+</div>
+
+<!-- Overlay -->
+<div id="sidebar-overlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+<div class="filter-section">
+  <div class="tag-filter-container">
+    <div class="tag-filter-label">
+      <i class="fa-solid fa-filter"></i>
+      <span id="tagFilterLabelText">Lọc theo tag:</span>
+    </div>
+    <div class="tag-filter-options" id="tagFilterOptions">
+      <!-- Tags sẽ được tạo động từ JS -->
+    </div>
+    <button class="btn-clear-filter" id="btnClearTagFilter" style="display: none;">
+      <i class="fa-solid fa-xmark"></i> <span id="btnClearTagFilterText">Xóa bộ lọc</span>
+    </button>
+  </div>
+</div>
 
   <main>
     <div class="stats-container">
@@ -178,7 +169,7 @@
           <div class="stat-value" id="totalSongs">0</div>
         </div>
       </div>
-
+    
       <!-- THÊM CARD STREAK MỚI -->
       <div class="stat-card streak-card" onclick="checkStreak()" style="cursor: pointer;">
         <div class="stat-icon">🔥</div>
@@ -188,11 +179,15 @@
         </div>
       </div>
 
-      <div class="stat-card admin-recommendation-card" id="adminRecommendationCard" onclick="openAdminRecommendation()"
-        style="cursor: pointer;">
-        <button type="button" class="btn-admin-recommendation-edit" id="btnAdminRecommendationEdit"
-          onclick="event.stopPropagation(); openAdminRecommendationDialog();" title="Chỉnh đề xuất"
-          style="display: none;">
+      <div class="stat-card admin-recommendation-card" id="adminRecommendationCard" onclick="openAdminRecommendation()" style="cursor: pointer;">
+        <button
+          type="button"
+          class="btn-admin-recommendation-edit"
+          id="btnAdminRecommendationEdit"
+          onclick="event.stopPropagation(); openAdminRecommendationDialog();"
+          title="Chỉnh đề xuất"
+          style="display: none;"
+        >
           <i class="fa-solid fa-pen"></i>
         </button>
         <div class="stat-icon admin-recommendation-icon" id="adminRecommendationIcon">📌</div>
@@ -202,7 +197,7 @@
           <div class="admin-recommendation-meta" id="adminRecommendationMeta">Admin chưa đề xuất gì.</div>
         </div>
       </div>
-
+      
       <div class="stat-card mfy-card" id="mfyCard" onclick="showmfyDetail()" style="cursor: pointer;">
         <div class="stat-icon">⭐</div>
         <div class="stat-content">
@@ -257,14 +252,11 @@
     <div class="lyric-container">
       <div class="lyric-avatar">
         <img id="dAvatar" src="" alt="avatar" style="display: none" />
-        <hr width="100%" color="white"
-          style="border: none; height: 1px; margin: 32px 0; background-color: white; opacity: 1;">
+        <hr width="100%" color="white" style="border: none; height: 1px; margin: 32px 0; background-color: white; opacity: 1;">
         <div id="lyricListenLabel" style="font-weight: 700; text-align: center; font-style: italic;">Nghe nhạc</div>
-        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/84/Spotify_icon.svg/250px-Spotify_icon.svg.png"
-          class="iconMXH" onclick="spotifyThismusic()" />
+        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/84/Spotify_icon.svg/250px-Spotify_icon.svg.png" class="iconMXH" onclick="spotifyThismusic()" />
         <img src="https://dangcapdigital.vn/img/app/zingmp3-aszyd.png" class="iconMXH" onclick="zingmp3Thismusic()" />
-        <img src="https://upload.wikimedia.org/wikipedia/commons/2/2b/NhacCuaTui_2022logo.png" class="iconMXH"
-          onclick="nctThismusic()" />
+        <img src="https://upload.wikimedia.org/wikipedia/commons/2/2b/NhacCuaTui_2022logo.png" class="iconMXH" onclick="nctThismusic()" />
 
         <button id="lyricOpenWebMusicButton" onclick="alertLyricVolumeWarning();openNctMusicDialog()" style="
         width: 90%;
@@ -279,22 +271,18 @@
         margin: 12px auto;
         display: block;
         transition: all 0.3s;
-      " onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 8px 25px rgba(255,0,0,0.4)'"
-          onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
-          <i class="fa-solid fa-music"></i> <span id="lyricOpenWebMusicButtonText">Nghe Nhạc Trên Web</span>
-        </button>
+      " onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 8px 25px rgba(255,0,0,0.4)'" 
+         onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+        <i class="fa-solid fa-music"></i> <span id="lyricOpenWebMusicButtonText">Nghe Nhạc Trên Web</span>
+      </button>
 
-        <hr width="100%" color="white"
-          style="border: none; height: 1px; margin: 32px 0; background-color: white; opacity: 1;">
+        <hr width="100%" color="white" style="border: none; height: 1px; margin: 32px 0; background-color: white; opacity: 1;">
         <div id="lyricVideoLabel" style="font-weight: 700; text-align: center; font-style: italic;">Xem MV / Video</div>
-        <img src="https://upload.wikimedia.org/wikipedia/commons/e/ef/Youtube_logo.png" class="iconMXH"
-          onclick="youtubeThismusic()" />
-        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQiXN9xSEe8unzPBEQOeAKXd9Q55efGHGB9BA&s"
-          class="iconMXH" onclick="facebookThismusic()" />
-        <img src="https://p16-tiktokcdn-com.akamaized.net/obj/tiktok-obj/32f2ab89bf0d9acee8ff3021890559a7.png"
-          class="iconMXH" onclick="tiktokThismusic()" />
+        <img src="https://upload.wikimedia.org/wikipedia/commons/e/ef/Youtube_logo.png" class="iconMXH" onclick="youtubeThismusic()" />
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQiXN9xSEe8unzPBEQOeAKXd9Q55efGHGB9BA&s" class="iconMXH" onclick="facebookThismusic()" />
+        <img src="https://p16-tiktokcdn-com.akamaized.net/obj/tiktok-obj/32f2ab89bf0d9acee8ff3021890559a7.png" class="iconMXH" onclick="tiktokThismusic()" />
 
-        <button id="lyricOpenWebVideoButton" onclick="openYoutubeVideoDialog()" style="
+  <button id="lyricOpenWebVideoButton" onclick="openYoutubeVideoDialog()" style="
     width: 90%;
     padding: 12px 24px;
     background: linear-gradient(135deg, #ff0000, #cc0000);
@@ -307,10 +295,10 @@
     margin: 12px auto;
     display: block;
     transition: all 0.3s;
-  " onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 8px 25px rgba(255,0,0,0.4)'"
-          onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
-          <i class="fa-brands fa-youtube"></i> <span id="lyricOpenWebVideoButtonText">Xem Video Trên Web</span>
-        </button>
+  " onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 8px 25px rgba(255,0,0,0.4)'" 
+     onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+    <i class="fa-brands fa-youtube"></i> <span id="lyricOpenWebVideoButtonText">Xem Video Trên Web</span>
+  </button>
 
         <section class="song-comments-section" id="songCommentsSection">
           <div class="song-comments-header">
@@ -319,7 +307,11 @@
           </div>
           <p class="song-comments-login-hint" id="lyricCommentLoginHint"></p>
           <form id="lyricCommentForm" class="song-comment-form">
-            <textarea id="lyricCommentInput" maxlength="500" placeholder="Viết bình luận cho bài hát này..."></textarea>
+            <textarea
+              id="lyricCommentInput"
+              maxlength="500"
+              placeholder="Viết bình luận cho bài hát này..."
+            ></textarea>
             <div class="song-comment-form-footer">
               <span id="lyricCommentMeta">Tối đa 500 ký tự</span>
               <button type="submit" class="btn" id="lyricCommentSubmitButton">Gửi bình luận</button>
@@ -333,12 +325,21 @@
       <div class="lyric-content">
         <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 8px;">
           <p id="dArtist" style="margin: 0; flex: 1;"></p>
-          <button id="btnAudioVisualLyric" onclick="audioVisual(); stopNct(); stopYoutube();" class="btn-favourite"
-            title="Lyric">
-            <i class="fa-solid fa-bars"></i>
+          <button 
+            id="btnAudioVisualLyric" 
+            onclick="audioVisual(); stopNct(); stopYoutube();" 
+            class="btn-favourite"
+            title="Lyric"
+          >
+          <i class="fa-solid fa-bars"></i>
           </button>
 
-          <button id="btnFavouriteLyric" onclick="toggleFavourite()" class="btn-favourite" title="Yêu thích">
+          <button 
+            id="btnFavouriteLyric" 
+            onclick="toggleFavourite()" 
+            class="btn-favourite"
+            title="Yêu thích"
+          >
             <i class="fa-solid fa-heart"></i>
           </button>
         </div>
@@ -348,7 +349,7 @@
         <pre id="dLyric"></pre>
         <div id="dLyricEmbed" class="lyric-embed" style="display: none;"></div>
       </div>
-    </div>
+      </div>
     </div>
   </dialog>
   <dialog id="addSongDialog">
@@ -358,43 +359,32 @@
     <h2>Thêm bài hát mới</h2>
     <form id="songForm">
       <div class="form-group">
-        <a href="https://www.google.com/search?q=b%C3%A0i+h%C3%A1t+hot+nh%E1%BA%A5t+tiktok+hi%E1%BB%87n+t%E1%BA%A1i"
-          target="_blank" class="goiy">Gợi ý</a>
+        <a href="https://www.google.com/search?q=b%C3%A0i+h%C3%A1t+hot+nh%E1%BA%A5t+tiktok+hi%E1%BB%87n+t%E1%BA%A1i" target="_blank" class="goiy">Gợi ý</a>
         <label for="songName">Tên bài hát *</label>
-        <input type="text" id="songName" placeholder="Nhập tên bài hát" required autocomplete="off" />
-        <div id="songNameWarning" class="warning-text"
-          style="display: none; color: #f59e0b; font-size: 13px; margin-top: 6px;"></div>
+        <input type="text" id="songName" placeholder="Nhập tên bài hát" required />
         <div class="error" id="error-songName"></div>
       </div>
-      <div class="form-group" style="position: relative;">
+      <div class="form-group">
         <a href="#" class="goiy" onclick="timCasi()">Không biết tên ca sĩ?</a>
         <label for="artist">Ca sĩ *</label>
         <div class="input-with-btn">
-          <input type="text" id="artist" placeholder="Nhập tên ca sĩ" required autocomplete="off" />
-          <button type="button" class="btn btn-inline" onclick="autoFillArtistComposer('add')"
-            title="Tự tìm ca sĩ, sáng tác theo tên bài hát">✨</button>
-        </div>
-        <div id="artistSuggestions" class="search-suggestions" style="display: none; z-index: 1001; max-height: 200px;">
+          <input type="text" id="artist" placeholder="Nhập tên ca sĩ" required />
+          <button type="button" class="btn btn-inline" onclick="autoFillArtistComposer('add')" title="Tự tìm ca sĩ, sáng tác theo tên bài hát">✨</button>
         </div>
         <div class="error" id="error-artist"></div>
       </div>
-      <div class="form-group" style="position: relative;">
+      <div class="form-group">
         <a href="#" class="goiy" onclick="timSangtac()">Không biết ai sáng tác?</a>
         <label for="composer">Sáng tác *</label>
         <div class="input-with-btn">
-          <input type="text" id="composer" placeholder="Nhập tên người sáng tác" required autocomplete="off" />
-          <button type="button" class="btn btn-inline" onclick="autoFillArtistComposer('add')"
-            title="Tự tìm ca sĩ, sáng tác theo tên bài hát">✨</button>
+          <input type="text" id="composer" placeholder="Nhập tên người sáng tác" required />
+          <button type="button" class="btn btn-inline" onclick="autoFillArtistComposer('add')" title="Tự tìm ca sĩ, sáng tác theo tên bài hát">✨</button>
         </div>
-        <div id="composerSuggestions" class="search-suggestions"
-          style="display: none; z-index: 1001; max-height: 200px;"></div>
         <div class="error" id="error-composer"></div>
       </div>
       <div class="form-group">
-        <label
-          style="display: flex; align-items: center; gap: 10px; cursor: pointer; text-transform: none; font-size: 15px;">
-          <input type="checkbox" id="hasAlbum"
-            style="width: auto; cursor: pointer; accent-color: var(--accent-primary);">
+        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; text-transform: none; font-size: 15px;">
+          <input type="checkbox" id="hasAlbum" style="width: auto; cursor: pointer; accent-color: var(--accent-primary);">
           <span>Bài hát nằm trong album</span>
         </label>
       </div>
@@ -420,8 +410,7 @@
         <label for="releaseDate">Ngày phát hành *</label>
         <div style="display:flex; gap:8px">
           <input type="date" id="releaseDate" required />
-          <button type="button" class="btn" title="Tự tìm ngày phát hành theo tên bài hát"
-            onclick="autoFindReleaseDate()" style="padding: 0 14px">
+          <button type="button" class="btn" title="Tự tìm ngày phát hành theo tên bài hát" onclick="autoFindReleaseDate()" style="padding: 0 14px">
             🔍
           </button>
         </div>
@@ -433,8 +422,7 @@
         <label for="avatar">URL Avatar</label>
         <div class="input-with-btn">
           <input type="url" id="avatar" placeholder="Nhập link/url của ảnh" />
-          <button type="button" class="btn btn-inline" onclick="autoFillAvatar('add')"
-            title="Tự động tìm ảnh từ iTunes, YouTube">🖼️</button>
+          <button type="button" class="btn btn-inline" onclick="autoFillAvatar('add')" title="Tự động tìm ảnh từ iTunes, YouTube">🖼️</button>
         </div>
         <div class="error" id="error-avatar"></div>
       </div>
@@ -510,8 +498,7 @@
         <label for="editArtist">Ca sĩ *</label>
         <div class="input-with-btn">
           <input type="text" id="editArtist" required />
-          <button type="button" class="btn btn-inline" onclick="autoFillArtistComposer('edit')"
-            title="Tự tìm ca sĩ, sáng tác theo tên bài hát">✨</button>
+          <button type="button" class="btn btn-inline" onclick="autoFillArtistComposer('edit')" title="Tự tìm ca sĩ, sáng tác theo tên bài hát">✨</button>
         </div>
         <div class="error" id="error-editArtist"></div>
       </div>
@@ -519,16 +506,13 @@
         <label for="editComposer">Sáng tác *</label>
         <div class="input-with-btn">
           <input type="text" id="editComposer" required />
-          <button type="button" class="btn btn-inline" onclick="autoFillArtistComposer('edit')"
-            title="Tự tìm ca sĩ, sáng tác theo tên bài hát">✨</button>
+          <button type="button" class="btn btn-inline" onclick="autoFillArtistComposer('edit')" title="Tự tìm ca sĩ, sáng tác theo tên bài hát">✨</button>
         </div>
         <div class="error" id="error-editComposer"></div>
       </div>
       <div class="form-group">
-        <label
-          style="display: flex; align-items: center; gap: 10px; cursor: pointer; text-transform: none; font-size: 15px;">
-          <input type="checkbox" id="editHasAlbum"
-            style="width: auto; cursor: pointer; accent-color: var(--accent-primary);">
+        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; text-transform: none; font-size: 15px;">
+          <input type="checkbox" id="editHasAlbum" style="width: auto; cursor: pointer; accent-color: var(--accent-primary);">
           <span>Bài hát nằm trong album</span>
         </label>
       </div>
@@ -548,8 +532,7 @@
         <label for="editAvatar">URL Avatar</label>
         <div class="input-with-btn">
           <input type="url" id="editAvatar" />
-          <button type="button" class="btn btn-inline" onclick="autoFillAvatar('edit')"
-            title="Tự động tìm ảnh từ iTunes, YouTube">🖼️</button>
+          <button type="button" class="btn btn-inline" onclick="autoFillAvatar('edit')" title="Tự động tìm ảnh từ iTunes, YouTube">🖼️</button>
         </div>
         <div class="error" id="error-editAvatar"></div>
       </div>
@@ -558,7 +541,7 @@
         <textarea id="editLyric"></textarea>
         <div class="error" id="error-editLyric"></div>
       </div>
-
+      
       <div class="form-group">
         <a href="#" class="goiy" onclick="timTag2()">Tìm thể loại</a>
         <label>Tags (Chọn các tag phù hợp)</label>
@@ -622,7 +605,7 @@
     <form id="registerForm">
       <div class="form-group">
         <label for="regDisplayName">Tên hiển thị * (3~20 kí tự)</label>
-        <input type="text" id="regDisplayName" required placeholder="Nguyễn Văn A" minlength="3" maxlength="20" />
+        <input type="text" id="regDisplayName" required placeholder="Nguyễn Văn A" minlength="3" maxlength="20"/>
         <div class="error" id="error-regDisplayName"></div>
       </div>
       <div class="form-group">
@@ -681,8 +664,7 @@
       </div>
       <div style="display: flex; padding: 12px; border-bottom: 1px solid #2a2a33; align-items: center; gap: 12px;">
         <label style="flex: 0 0 100px; font-weight: 600; opacity: 0.7;">Avatar:</label>
-        <img id="viewAvatarImage" src="" alt="Avatar"
-          style="width: 44px; height: 44px; border-radius: 50%; object-fit: cover; border: 1px solid #2a2a33; display: none;">
+        <img id="viewAvatarImage" src="" alt="Avatar" style="width: 44px; height: 44px; border-radius: 50%; object-fit: cover; border: 1px solid #2a2a33; display: none;">
         <span id="viewAvatarText" style="font-size: 14px; opacity: 0.8;">Chưa cập nhật</span>
       </div>
       <div style="display: flex; padding: 12px; border-bottom: 1px solid #2a2a33;">
@@ -690,8 +672,7 @@
         <span>Qr đưới đây là thông tin liên hệ! Không phải Qr chuyển tiền hay thanh toán nên đừng lo.</span>
       </div>
       <br>
-      <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=https://www.facebook.com/nthdat.7"
-        alt="QR Facebook" style="text-align: center;padding: 20px; background-color: white;" />
+      <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=https://www.facebook.com/nthdat.7" alt="QR Facebook" style="text-align: center;padding: 20px; background-color: white;" />
       <div style="margin-top: 24px; text-align: center;">
         <button class="btn btn-submit" onclick="openGopyDialog()" style="margin-right: 8px;">
           <i class="fa-solid fa-comment"></i> Góp ý
@@ -794,16 +775,14 @@
         <div class="admin-recommendation-preview-text">
           <div class="alert-label" id="adminRecommendationPreviewLabel">Xem trước</div>
           <div class="alert-value" id="adminRecommendationPreviewTitle">---</div>
-          <div class="admin-recommendation-preview-subtitle" id="adminRecommendationPreviewSubtitle">Chưa có dữ liệu.
-          </div>
+          <div class="admin-recommendation-preview-subtitle" id="adminRecommendationPreviewSubtitle">Chưa có dữ liệu.</div>
         </div>
       </div>
 
       <div class="error" id="adminRecommendationError"></div>
 
       <div class="dialog-actions">
-        <button type="button" class="btn btn-secondary" id="adminRecommendationCancelButton"
-          onclick="adminRecommendationDialog.close()">
+        <button type="button" class="btn btn-secondary" id="adminRecommendationCancelButton" onclick="adminRecommendationDialog.close()">
           Hủy
         </button>
         <button type="submit" class="btn" id="adminRecommendationSaveButton">
@@ -821,14 +800,12 @@
     <form id="gopyForm">
       <div class="form-group">
         <label for="gopyDisplayName">Tên của bạn</label>
-        <input type="text" id="gopyDisplayName" readonly
-          style="background: #0f0f12; cursor: not-allowed; opacity: 0.7;" />
+        <input type="text" id="gopyDisplayName" readonly style="background: #0f0f12; cursor: not-allowed; opacity: 0.7;" />
       </div>
-
+      
       <div class="form-group">
         <label for="gopyTieude">Loại góp ý *</label>
-        <select id="gopyTieude" required
-          style="width: 100%; padding: 14px 18px; border: 2px solid var(--border-color); border-radius: 14px; background: rgba(255, 255, 255, 0.03); color: var(--text-primary); font-family: inherit; font-size: 16px;">
+        <select id="gopyTieude" required style="width: 100%; padding: 14px 18px; border: 2px solid var(--border-color); border-radius: 14px; background: rgba(255, 255, 255, 0.03); color: var(--text-primary); font-family: inherit; font-size: 16px;">
           <option value="" disabled selected>-- Chọn loại góp ý --</option>
           <option value="error">🐛 Error - Báo lỗi</option>
           <option value="lag">⏱️ Lag - Hiệu suất chậm</option>
@@ -838,27 +815,24 @@
       </div>
 
       <div class="form-group">
-        <label
-          style="display: flex; align-items: center; gap: 10px; cursor: pointer; text-transform: none; font-size: 15px;">
-          <input type="checkbox" id="gopyWantReply"
-            style="width: auto; cursor: pointer; accent-color: var(--accent-primary);">
+        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; text-transform: none; font-size: 15px;">
+          <input type="checkbox" id="gopyWantReply" style="width: auto; cursor: pointer; accent-color: var(--accent-primary);">
           <span>Đăng ký nhận phản hồi qua Email</span>
         </label>
       </div>
-
+      
       <div class="form-group" id="gopyEmailGroup" style="display: none;">
         <label for="gopyEmail">Email nhận phản hồi *</label>
         <input type="email" id="gopyEmail" placeholder="example@email.com" />
         <div class="error" id="error-gopyEmail"></div>
       </div>
-
+      
       <div class="form-group">
         <label for="gopyNoidung">Nội dung *</label>
-        <textarea id="gopyNoidung" required placeholder="Nhập nội dung góp ý của bạn..."
-          style="min-height: 200px;"></textarea>
+        <textarea id="gopyNoidung" required placeholder="Nhập nội dung góp ý của bạn..." style="min-height: 200px;"></textarea>
         <div class="error" id="error-gopyNoidung"></div>
       </div>
-
+      
       <div class="form-actions">
         <button type="button" class="btn btn-cancel" onclick="gopyDialog.close()">
           Hủy
@@ -874,9 +848,9 @@
     <button class="btn close" onclick="rankingDialog.close()">
       <span style="font-size:30px">+</span>
     </button>
-
+  
     <h2 id="rankingDialogTitle">🏆 Bảng xếp hạng đóng góp</h2>
-
+  
     <div style="padding: 24px">
       <ul id="rankingList"></ul>
       <hr>
@@ -889,7 +863,7 @@
       <span style="font-size: 30px;">+</span>
     </button>
     <h2 id="userSongsTitle">🎵 <span id="userSongsTitlePrefix">Bài hát của</span> <span id="userSongsName"></span></h2>
-
+    
     <div style="padding: 24px;">
       <div id="userSongsStats" style="
         padding: 16px 20px;
@@ -900,7 +874,7 @@
         text-align: center;
         font-weight: 600;
       "></div>
-
+      
       <div id="userSongsList" style="
         max-height: 500px;
         overflow-y: auto;
@@ -912,9 +886,9 @@
     <button class="btn close" onclick="favouriteDialog.close()">
       <span style="font-size: 30px;">+</span>
     </button>
-
+    
     <h2 id="favouriteDialogTitle">❤️ Bài Hát Yêu Thích</h2>
-
+    
     <div style="padding: 24px 32px 32px 32px;">
       <div id="favouriteStats" style="
         padding: 20px 24px;
@@ -931,13 +905,17 @@
         <div id="favouriteCount" style="font-size: 32px; font-weight: 800; color: #ef4444;">
           0
         </div>
-        <button type="button" class="btn-favourite-playlist" id="btnFavouritePlaylist"
-          onclick="startFavouritePlaylistFromDialog()">
+        <button
+          type="button"
+          class="btn-favourite-playlist"
+          id="btnFavouritePlaylist"
+          onclick="startFavouritePlaylistFromDialog()"
+        >
           <i class="fa-solid fa-play"></i>
           <span id="favouritePlaylistButtonText">Phát playlist</span>
         </button>
       </div>
-
+      
       <div id="favouriteList" style="max-height: 500px; overflow-y: auto;">
       </div>
     </div>
@@ -948,7 +926,7 @@
       <span style="font-size: 30px;">+</span>
     </button>
     <h2 id="guideDialogTitle">📖 Hướng dẫn sử dụng</h2>
-
+    
     <div style="padding: 24px 32px 32px 32px; max-height: 70vh; overflow-y: auto;">
       <div id="guideContent"></div>
     </div>
@@ -959,10 +937,10 @@
       <span style="font-size: 30px;">+</span>
     </button>
     <h2><i class="fa-brands fa-youtube"></i> <span id="youtubeVideoSongName"></span></h2>
-
+    
     <div class="youtube-dialog-body" style="padding: 24px 32px 32px 32px;">
       <div id="youtubeVideoIframe"></div>
-
+      
       <!-- Other Version Section -->
       <div style="margin-top: 20px;">
         <strong style="font-size: 16px; color: var(--text-primary);">Other Version:</strong>
@@ -971,10 +949,13 @@
           <div id="ytVersionLofi"></div>
         </div>
       </div>
-
+      
       <!-- Nút OTHER để hiển thị 3 video thay thế -->
       <div style="margin-top: 24px;">
-        <button id="btnShowOtherVideos" onclick="toggleOtherVideos()" style="
+        <button 
+          id="btnShowOtherVideos" 
+          onclick="toggleOtherVideos()" 
+          style="
             width: 100%;
             background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
             color: white;
@@ -990,11 +971,12 @@
             letter-spacing: 0.5px;
           "
           onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(245, 158, 11, 0.6)';"
-          onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(245, 158, 11, 0.4)';">
+          onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(245, 158, 11, 0.4)';"
+        >
           <i class="fa-solid fa-list"></i> Hiển thị các video khác
         </button>
       </div>
-
+      
       <!-- Container để hiển thị 3 video thay thế -->
       <div id="otherVideosContainer" style="display: none; margin-top: 24px;">
         <div style="
@@ -1048,7 +1030,7 @@
       <span style="font-size: 30px;">+</span>
     </button>
     <h2><i class="fa-brands fa-spotify"></i> <span id="spotifySongName"></span></h2>
-
+    
     <div style="padding: 24px 32px 32px 32px;">
       <div id="spotifyIframe"></div>
     </div>
@@ -1059,14 +1041,15 @@
       <span style="font-size: 30px;">+</span>
     </button>
     <h2>
-      <img src="https://apkcombo.vn/wp-content/uploads/2023/02/nct-nhaccuatui-nghe-mp3.png"
-        style="height: 32px; vertical-align: middle; margin-right: 8px;" alt="NCT">
+      <img src="https://apkcombo.vn/wp-content/uploads/2023/02/nct-nhaccuatui-nghe-mp3.png" 
+           style="height: 32px; vertical-align: middle; margin-right: 8px;" 
+           alt="NCT">
       <span id="nctMusicSongName"></span>
     </h2>
-
+    
     <div style="padding: 24px 32px 32px 32px;">
       <div id="nctMusicIframe"></div>
-
+      
       <!-- Other Version Section -->
       <div style="margin-top: 20px;">
         <strong style="font-size: 16px; color: var(--text-primary);">Other Version:</strong>
@@ -1075,10 +1058,13 @@
           <div id="nctVersionAcoustic"></div>
         </div>
       </div>
-
+      
       <!-- Nút OTHER để hiển thị 3 bài hát thay thế -->
       <div style="margin-top: 24px;">
-        <button id="btnShowOtherNctSongs" onclick="toggleOtherNctSongs()" style="
+        <button 
+          id="btnShowOtherNctSongs" 
+          onclick="toggleOtherNctSongs()" 
+          style="
             width: 100%;
             background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
             color: white;
@@ -1094,11 +1080,12 @@
             letter-spacing: 0.5px;
           "
           onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(245, 158, 11, 0.6)';"
-          onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(245, 158, 11, 0.4)';">
+          onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(245, 158, 11, 0.4)';"
+        >
           <i class="fa-solid fa-list"></i> Hiển thị các bài khác
         </button>
       </div>
-
+      
       <!-- Container để hiển thị 3 bài hát thay thế -->
       <div id="otherNctSongsContainer" style="display: none; margin-top: 24px;">
         <div style="
@@ -1131,12 +1118,12 @@
     <button class="btn close" onclick="settingsDialog.close()">
       <span style="font-size: 30px;">+</span>
     </button>
-
+    
     <h2 id="settingsDialogTitle"><i class="fa-solid fa-gear"></i> Cài đặt</h2>
-
+    
     <form id="settingsForm">
       <div style="padding: 24px 32px 32px 32px; max-height: 70vh; overflow-y: auto;">
-
+        
         <!-- THEME SECTION -->
         <div class="settings-section">
           <h3 id="settingsThemeTitle"><i class="fa-solid fa-palette"></i> Giao diện</h3>
@@ -1166,14 +1153,14 @@
             </select>
           </div>
         </div>
-
+  
         <!-- PERFORMANCE SECTION -->
         <div class="settings-section">
           <h3 id="settingsPerformanceTitle">
             <i class="fa-solid fa-gauge-high"></i> Hiệu suất
             <span class="performance-badge" id="settingsPerformanceBadge">Giảm lag</span>
           </h3>
-
+          
           <div class="setting-item">
             <div class="setting-label">
               <strong id="settingAnimationsLabel">Hiệu ứng chuyển động</strong>
@@ -1184,7 +1171,7 @@
               <span class="toggle-slider"></span>
             </label>
           </div>
-
+          
           <div class="setting-item">
             <div class="setting-label">
               <strong id="settingBackgroundEffectsLabel">Hiệu ứng nền gradient</strong>
@@ -1195,7 +1182,7 @@
               <span class="toggle-slider"></span>
             </label>
           </div>
-
+          
           <div class="setting-item">
             <div class="setting-label">
               <strong id="settingGlowEffectsLabel">Hiệu ứng phát sáng</strong>
@@ -1206,7 +1193,7 @@
               <span class="toggle-slider"></span>
             </label>
           </div>
-
+          
           <div class="setting-item">
             <div class="setting-label">
               <strong id="settingBackdropBlurLabel">Backdrop Blur</strong>
@@ -1217,7 +1204,7 @@
               <span class="toggle-slider"></span>
             </label>
           </div>
-
+          
           <div class="setting-item">
             <div class="setting-label">
               <strong id="settingBoxShadowsLabel">Box Shadows</strong>
@@ -1228,7 +1215,7 @@
               <span class="toggle-slider"></span>
             </label>
           </div>
-
+          
           <div class="setting-item">
             <div class="setting-label">
               <strong id="settingImageHoverLabel">Hiệu ứng hover ảnh</strong>
@@ -1239,7 +1226,7 @@
               <span class="toggle-slider"></span>
             </label>
           </div>
-
+          
           <div class="setting-item">
             <div class="setting-label">
               <strong id="settingTableHoverLabel">Hiệu ứng hover bảng</strong>
@@ -1250,7 +1237,7 @@
               <span class="toggle-slider"></span>
             </label>
           </div>
-
+          
           <div class="setting-item">
             <div class="setting-label">
               <strong id="settingDialogAnimationsLabel">Animation dialog</strong>
@@ -1262,22 +1249,20 @@
             </label>
           </div>
         </div>
-
+  
         <!-- INFO SECTION -->
-        <div class="settings-section"
-          style="background: rgba(16, 185, 129, 0.05); border-color: rgba(16, 185, 129, 0.3);">
+        <div class="settings-section" style="background: rgba(16, 185, 129, 0.05); border-color: rgba(16, 185, 129, 0.3);">
           <h3 id="settingsTipsTitle" style="color: #10b981;"><i class="fa-solid fa-circle-info"></i> Gợi ý</h3>
-          <p id="settingsTipsContent"
-            style="margin: 0; font-size: 14px; color: var(--text-secondary); line-height: 1.6;">
+          <p id="settingsTipsContent" style="margin: 0; font-size: 14px; color: var(--text-secondary); line-height: 1.6;">
             💡 <strong>Lag nhẹ:</strong> Tắt Backdrop Blur + Background Effects<br>
             🚀 <strong>Lag trung bình:</strong> Tắt thêm Box Shadows + Table Hover<br>
             ⚡ <strong>Lag nặng:</strong> Tắt hết tất cả (giảm lag lên đến 95%)<br>
             📌 Cài đặt tự động lưu và áp dụng mỗi khi mở web
           </p>
         </div>
-
+  
       </div>
-
+      
       <div class="settings-actions" style="padding: 20px 32px 32px 32px; border-top: 1px solid var(--border-color);">
         <button type="button" class="btn btn-reset" onclick="resetSettings()">
           <i class="fa-solid fa-rotate-left"></i> <span id="settingsResetButtonText">Đặt lại mặc định</span>
@@ -1293,13 +1278,13 @@
     <button class="btn close" onclick="historyDialog.close()">
       <span style="font-size: 30px;">+</span>
     </button>
-
+    
     <h2 id="historyDialogTitle"><i class="fa-solid fa-clock-rotate-left"></i> Lịch sử thêm bài hát</h2>
-
+    
     <div style="padding: 24px 32px 32px 32px;">
       <!-- Thống kê -->
       <div id="historyStats"></div>
-
+      
       <!-- Danh sách -->
       <div id="historyList"></div>
     </div>
@@ -1310,7 +1295,7 @@
       <span style="font-size: 30px;">+</span>
     </button>
     <h2 id="albumDialogTitle"><i class="fa-solid fa-compact-disc"></i> Danh sách Album</h2>
-
+    
     <div style="padding: 24px 32px 32px 32px;">
       <div id="albumStats"></div>
       <div id="albumList"></div>
@@ -1350,91 +1335,7 @@
           <button type="button" class="btn btn-cancel" id="hotQuoteNextButton" onclick="nextHotQuoteRound()">
             Câu khác
           </button>
-          <button type="button" class="btn" id="hotQuoteOpenSongButton" onclick="openHotQuoteSong()"
-            style="display: none;">
-            Mở bài hát
-          </button>
-        </div>
-      </div>
-    </div>
-  </dialog>
-
-  <dialog id="artistGuessGameDialog">
-    <button class="btn close" onclick="artistGuessGameDialog.close()">
-      <span style="font-size: 30px;">+</span>
-    </button>
-    <h2 id="artistGuessGameDialogTitle"><i class="fa-solid fa-microphone-lines"></i> Đoán tên ca sĩ qua gợi ý</h2>
-
-    <div class="minigame-dialog-body">
-      <div class="minigame-stats">
-        <div class="minigame-stat-card">
-          <span class="minigame-stat-label" id="artistGuessSolvedLabel">Đúng</span>
-          <strong class="minigame-stat-value" id="artistGuessSolvedValue">0</strong>
-        </div>
-        <div class="minigame-stat-card">
-          <span class="minigame-stat-label" id="artistGuessAttemptsLabel">Lượt chơi</span>
-          <strong class="minigame-stat-value" id="artistGuessAttemptsValue">0</strong>
-        </div>
-        <div class="minigame-stat-card">
-          <span class="minigame-stat-label" id="artistGuessAccuracyLabel">Tỉ lệ đúng</span>
-          <strong class="minigame-stat-value" id="artistGuessAccuracyValue">0%</strong>
-        </div>
-      </div>
-
-      <div class="minigame-panel">
-        <p class="minigame-subtitle" id="artistGuessPromptLabel">Đoán đúng ca sĩ qua tên bài, hot lyric hoặc audio.</p>
-        <div class="minigame-mode-switch" id="artistGuessModeSwitch">
-          <button type="button" class="minigame-mode-button is-active" id="artistGuessModeTitleButton"
-            onclick="setArtistGuessMode('title')">
-            Theo tên bài
-          </button>
-          <button type="button" class="minigame-mode-button" id="artistGuessModeHotButton"
-            onclick="setArtistGuessMode('hot')">
-            Theo hot lyric
-          </button>
-          <button type="button" class="minigame-mode-button" id="artistGuessModeAudioButton"
-            onclick="setArtistGuessMode('audio')">
-            Theo audio
-          </button>
-        </div>
-        <div class="minigame-clue-type-row">
-          <span class="minigame-clue-type-label" id="artistGuessClueTypeLabel">Gợi ý hiện tại</span>
-          <strong class="minigame-clue-type-badge" id="artistGuessClueTypeValue">---</strong>
-        </div>
-        <blockquote class="minigame-clue" id="artistGuessClue">Đang chuẩn bị câu hỏi...</blockquote>
-
-        <div class="intro-guess-player-shell" id="artistGuessAudioShell" style="display: none;">
-          <div class="intro-guess-player">
-            <div class="intro-guess-player-mask">
-              <div class="intro-guess-player-icon">
-                <i class="fa-solid fa-microphone-lines"></i>
-              </div>
-              <div class="intro-guess-player-audio artist-guess-player-audio"></div>
-              <div class="intro-guess-player-placeholder" id="artistGuessPlayerPlaceholder">Đang chuẩn bị audio...</div>
-            </div>
-          </div>
-          <div class="intro-guess-toolbar">
-            <div class="intro-guess-status" id="artistGuessStatus"></div>
-            <div class="intro-guess-progress">
-              <div class="intro-guess-progress-bar" id="artistGuessProgressBar"></div>
-            </div>
-          </div>
-        </div>
-
-        <div class="minigame-meta" id="artistGuessMeta"></div>
-        <div class="minigame-options" id="artistGuessOptions"></div>
-        <div class="minigame-result" id="artistGuessResult"></div>
-
-        <div class="minigame-actions">
-          <button type="button" class="btn" id="artistGuessPlayButton" onclick="playArtistGuessSnippet()"
-            style="display: none;">
-            Phát gợi ý
-          </button>
-          <button type="button" class="btn btn-cancel" id="artistGuessNextButton" onclick="nextArtistGuessRound()">
-            Câu khác
-          </button>
-          <button type="button" class="btn" id="artistGuessOpenSongButton" onclick="openArtistGuessSong()"
-            style="display: none;">
+          <button type="button" class="btn" id="hotQuoteOpenSongButton" onclick="openHotQuoteSong()" style="display: none;">
             Mở bài hát
           </button>
         </div>
@@ -1465,8 +1366,7 @@
       </div>
 
       <div class="minigame-panel">
-        <p class="minigame-subtitle" id="lyricOrderPromptLabel">Chọn các câu theo đúng thứ tự xuất hiện trong bài hát.
-        </p>
+        <p class="minigame-subtitle" id="lyricOrderPromptLabel">Chọn các câu theo đúng thứ tự xuất hiện trong bài hát.</p>
         <div class="minigame-board">
           <div class="minigame-column">
             <div class="minigame-column-label" id="lyricOrderSelectedLabel">Thứ tự bạn chọn</div>
@@ -1491,8 +1391,7 @@
           <button type="button" class="btn" id="lyricOrderNextButton" onclick="nextLyricOrderRound()">
             Bài khác
           </button>
-          <button type="button" class="btn" id="lyricOrderOpenSongButton" onclick="openLyricOrderSong()"
-            style="display: none;">
+          <button type="button" class="btn" id="lyricOrderOpenSongButton" onclick="openLyricOrderSong()" style="display: none;">
             Mở bài hát
           </button>
         </div>
@@ -1536,8 +1435,7 @@
           <button type="button" class="btn btn-cancel" id="lyricFillNextButton" onclick="nextLyricFillRound()">
             Bài khác
           </button>
-          <button type="button" class="btn" id="lyricFillOpenSongButton" onclick="openLyricFillSong()"
-            style="display: none;">
+          <button type="button" class="btn" id="lyricFillOpenSongButton" onclick="openLyricFillSong()" style="display: none;">
             Mở bài hát
           </button>
         </div>
@@ -1590,8 +1488,16 @@
         </div>
         <div class="intro-guess-volume">
           <label class="intro-guess-volume-label" for="introGuessVolume">Âm lượng</label>
-          <input type="range" id="introGuessVolume" class="intro-guess-volume-slider" min="0" max="100" step="1"
-            value="50" oninput="setIntroGuessVolume(this.value)" />
+          <input
+            type="range"
+            id="introGuessVolume"
+            class="intro-guess-volume-slider"
+            min="0"
+            max="100"
+            step="1"
+            value="50"
+            oninput="setIntroGuessVolume(this.value)"
+          />
           <span class="intro-guess-volume-value" id="introGuessVolumeValue">50%</span>
         </div>
         <div class="intro-guess-progress" aria-hidden="true">
@@ -1605,15 +1511,14 @@
           <button type="button" class="btn btn-cancel" id="introGuessNextButton" onclick="nextIntroGuessRound()">
             Bài khác
           </button>
-          <button type="button" class="btn" id="introGuessOpenSongButton" onclick="openIntroGuessSong()"
-            style="display: none;">
+          <button type="button" class="btn" id="introGuessOpenSongButton" onclick="openIntroGuessSong()" style="display: none;">
             Mở bài hát
           </button>
         </div>
       </div>
     </div>
   </dialog>
-
+  
   <!-- Ban User Dialogs -->
   <script>
     fetch('ban.html')
@@ -1624,7 +1529,7 @@
         document.body.appendChild(div);
       });
   </script>
-
+  
   <!-- Reject Song Dialogs -->
   <script>
     fetch('reject.html')
@@ -1636,81 +1541,81 @@
       });
   </script>
 
-  <!-- ===== THAY THẾ PHẦN CODE TỪ DÒNG 960-975 TRONG INDEX.HTML ===== -->
-  <!-- Xóa code cũ từ dòng 960-975 và thay bằng code này: -->
+<!-- ===== THAY THẾ PHẦN CODE TỪ DÒNG 960-975 TRONG INDEX.HTML ===== -->
+<!-- Xóa code cũ từ dòng 960-975 và thay bằng code này: -->
 
-  <script type="module">
-    import { supabase } from './js/supabase-client.js';
+<script type="module">
+  import { supabase } from './js/supabase-client.js';
 
-    // Wrap trong async IIFE để có thể dùng await
-    (async function () {
-      try {
-        const { data } = await supabase.auth.getUser();
-        if (!data || !data.user) {
-          console.log('No user logged in');
-          return;
-        }
-
-        // Kiểm tra ban status
-        const { data: profile, error } = await supabase
-          .from('profiles')
-          .select('ban, unban_date, reason_ban')
-          .eq('id', data.user.id)
-          .single();
-
-        if (error) {
-          console.error('Error checking ban status:', error);
-          return;
-        }
-
-        // Nếu user bị ban
-        if (profile && profile.ban) {
-          // Kiểm tra xem đã hết hạn chưa
-          if (profile.unban_date) {
-            const unbanDate = new Date(profile.unban_date);
-            const now = new Date();
-
-            if (now >= unbanDate) {
-              // Tự động unban
-              await supabase
-                .from('profiles')
-                .update({
-                  ban: false,
-                  unban_date: null,
-                  reason_ban: null
-                })
-                .eq('id', data.user.id);
-
-              console.log('User auto-unbanned');
-              return;
-            }
-          }
-
-          // Vẫn còn bị ban - hiển thị trang ban
-          // Import showBanPage từ ban.js sẽ được load sau
-          // Đợi DOM load xong
-          if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', () => {
-              showBanPageNow(profile.reason_ban, profile.unban_date, data.user.email);
-            });
-          } else {
-            showBanPageNow(profile.reason_ban, profile.unban_date, data.user.email);
-          }
-        }
-      } catch (err) {
-        console.error('Error in ban check:', err);
+  // Wrap trong async IIFE để có thể dùng await
+  (async function() {
+    try {
+      const { data } = await supabase.auth.getUser();
+      if (!data || !data.user) {
+        console.log('No user logged in');
+        return;
       }
-    })();
 
-    // Function để hiển thị ban page ngay lập tức
-    function showBanPageNow(reason, unbanDate, userEmail) {
-      // Xóa toàn bộ nội dung
-      document.body.innerHTML = '';
-      document.body.classList.add('banned');
+      // Kiểm tra ban status
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('ban, unban_date, reason_ban')
+        .eq('id', data.user.id)
+        .single();
 
-      // Thêm inline CSS
-      const style = document.createElement('style');
-      style.textContent = `
+      if (error) {
+        console.error('Error checking ban status:', error);
+        return;
+      }
+
+      // Nếu user bị ban
+      if (profile && profile.ban) {
+        // Kiểm tra xem đã hết hạn chưa
+        if (profile.unban_date) {
+          const unbanDate = new Date(profile.unban_date);
+          const now = new Date();
+          
+          if (now >= unbanDate) {
+            // Tự động unban
+            await supabase
+              .from('profiles')
+              .update({ 
+                ban: false, 
+                unban_date: null, 
+                reason_ban: null 
+              })
+              .eq('id', data.user.id);
+            
+            console.log('User auto-unbanned');
+            return;
+          }
+        }
+        
+        // Vẫn còn bị ban - hiển thị trang ban
+        // Import showBanPage từ ban.js sẽ được load sau
+        // Đợi DOM load xong
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', () => {
+            showBanPageNow(profile.reason_ban, profile.unban_date, data.user.email);
+          });
+        } else {
+          showBanPageNow(profile.reason_ban, profile.unban_date, data.user.email);
+        }
+      }
+    } catch (err) {
+      console.error('Error in ban check:', err);
+    }
+  })();
+
+  // Function để hiển thị ban page ngay lập tức
+  function showBanPageNow(reason, unbanDate, userEmail) {
+    // Xóa toàn bộ nội dung
+    document.body.innerHTML = '';
+    document.body.classList.add('banned');
+    
+    // Thêm inline CSS
+    const style = document.createElement('style');
+    style.textContent = `
       @keyframes fadeIn {
         from { opacity: 0; }
         to { opacity: 1; }
@@ -1735,30 +1640,30 @@
         padding: 0;
       }
     `;
-      document.head.appendChild(style);
-
-      // Ngăn mọi hành động
-      const preventAll = (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        e.stopImmediatePropagation();
-        return false;
-      };
-
-      document.addEventListener('keydown', preventAll, true);
-      document.addEventListener('click', preventAll, true);
-      document.addEventListener('contextmenu', preventAll, true);
-      document.addEventListener('mousedown', preventAll, true);
-
-      window.onbeforeunload = () => "Tài khoản của bạn đã bị khóa.";
-
-      const unbanText = unbanDate
-        ? `Bạn sẽ được mở khóa vào: <strong>${new Date(unbanDate).toLocaleString('vi-VN')}</strong>`
-        : 'Tài khoản của bạn bị khóa vĩnh viễn';
-
-      const banPage = document.createElement('div');
-      banPage.id = 'banPage';
-      banPage.style.cssText = `
+    document.head.appendChild(style);
+    
+    // Ngăn mọi hành động
+    const preventAll = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      return false;
+    };
+    
+    document.addEventListener('keydown', preventAll, true);
+    document.addEventListener('click', preventAll, true);
+    document.addEventListener('contextmenu', preventAll, true);
+    document.addEventListener('mousedown', preventAll, true);
+    
+    window.onbeforeunload = () => "Tài khoản của bạn đã bị khóa.";
+    
+    const unbanText = unbanDate 
+      ? `Bạn sẽ được mở khóa vào: <strong>${new Date(unbanDate).toLocaleString('vi-VN')}</strong>` 
+      : 'Tài khoản của bạn bị khóa vĩnh viễn';
+    
+    const banPage = document.createElement('div');
+    banPage.id = 'banPage';
+    banPage.style.cssText = `
       min-height: 100vh;
       display: flex;
       align-items: center;
@@ -1774,8 +1679,8 @@
       animation: fadeIn 0.5s ease-in-out;
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     `;
-
-      banPage.innerHTML = `
+    
+    banPage.innerHTML = `
       <div style="
         background: #1e1e43;
         backdrop-filter: blur(20px);
@@ -1887,569 +1792,572 @@
         </div>
       </div>
     `;
-
-      document.body.appendChild(banPage);
-
-      // Disable console
-      if (typeof console !== 'undefined') {
-        const noop = () => { };
-        ['log', 'warn', 'error', 'info', 'debug'].forEach(method => {
-          console[method] = noop;
-        });
-      }
+    
+    document.body.appendChild(banPage);
+    
+    // Disable console
+    if (typeof console !== 'undefined') {
+      const noop = () => {};
+      ['log', 'warn', 'error', 'info', 'debug'].forEach(method => {
+        console[method] = noop;
+      });
     }
-  </script>
+  }
+</script>
 
-  <!-- ===== CHAT BUTTON & DIALOG ===== -->
-  <!-- Nút chat có thể kéo thả -->
-  <button id="chatButton" class="chat-float-button" title="Mở Chat (Kéo để di chuyển)">
-    <i class="fa-solid fa-comments"></i>
+<!-- ===== CHAT BUTTON & DIALOG ===== -->
+<!-- Nút chat có thể kéo thả -->
+<button id="chatButton" class="chat-float-button" title="Mở Chat (Kéo để di chuyển)">
+  <i class="fa-solid fa-comments"></i>
+</button>
+
+<!-- Chat Dialog -->
+<dialog id="chatDialog" class="dialog-standard dialog-fullscreen">
+  <button class="btn-close-dialog" onclick="chatDialog.close()">
+    <span>×</span>
   </button>
-
-  <!-- Chat Dialog -->
-  <dialog id="chatDialog" class="dialog-standard dialog-fullscreen">
-    <button class="btn-close-dialog" onclick="chatDialog.close()">
-      <span>×</span>
-    </button>
-
-    <h2 class="dialog-header dialog-header-chat">
-      <i class="fa-solid fa-comments"></i>
-      Chat
-      <!-- Version Selector -->
-      <div class="chat-version-selector">
-        <button class="chat-version-btn" id="btnChatV1" onclick="switchChatVersion('v1')">
-          <i class="fa-solid fa-1"></i> Version 1
-        </button>
-        <button class="chat-version-btn active" id="btnChatV2" onclick="switchChatVersion('v2')">
-          <i class="fa-solid fa-2"></i> Version 2
-        </button>
-      </div>
-    </h2>
-
-
-    <div class="chat-iframe-container">
-      <iframe id="chatIframe" src="" frameborder="0" allow="microphone; camera" loading="lazy"></iframe>
+  
+  <h2 class="dialog-header dialog-header-chat">
+    <i class="fa-solid fa-comments"></i> 
+    Chat
+    <!-- Version Selector -->
+    <div class="chat-version-selector">
+      <button class="chat-version-btn" id="btnChatV1" onclick="switchChatVersion('v1')">
+        <i class="fa-solid fa-1"></i> Version 1
+      </button>
+      <button class="chat-version-btn active" id="btnChatV2" onclick="switchChatVersion('v2')">
+        <i class="fa-solid fa-2"></i> Version 2
+      </button>
     </div>
-  </dialog>
+  </h2>
+  
+  
+  <div class="chat-iframe-container">
+    <iframe 
+      id="chatIframe"
+      src=""
+      frameborder="0"
+      allow="microphone; camera"
+      loading="lazy"
+    ></iframe>
+  </div>
+</dialog>
 
-  <style>
-    /* ===== FLOATING CHAT BUTTON ===== */
-    .chat-float-button {
-      position: fixed;
-      bottom: 24px;
-      right: 24px;
-      width: 60px;
-      height: 60px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
-      border: none;
-      color: white;
-      font-size: 24px;
-      cursor: move;
-      box-shadow:
-        0 8px 30px rgba(99, 102, 241, 0.4),
-        0 0 0 1px rgba(255, 255, 255, 0.1);
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      z-index: 9999;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      animation: chatButtonPulse 2s infinite;
-      user-select: none;
-      touch-action: none;
-      -webkit-tap-highlight-color: transparent;
-    }
+<style>
+/* ===== FLOATING CHAT BUTTON ===== */
+.chat-float-button {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+  border: none;
+  color: white;
+  font-size: 24px;
+  cursor: move;
+  box-shadow: 
+    0 8px 30px rgba(99, 102, 241, 0.4),
+    0 0 0 1px rgba(255, 255, 255, 0.1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: chatButtonPulse 2s infinite;
+  user-select: none;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+}
 
-    .chat-float-button.dragging {
-      cursor: grabbing;
-      transform: scale(1.1);
-      animation: none;
-      box-shadow:
-        0 15px 50px rgba(99, 102, 241, 0.6),
-        0 0 0 1px rgba(255, 255, 255, 0.2);
-    }
+.chat-float-button.dragging {
+  cursor: grabbing;
+  transform: scale(1.1);
+  animation: none;
+  box-shadow: 
+    0 15px 50px rgba(99, 102, 241, 0.6),
+    0 0 0 1px rgba(255, 255, 255, 0.2);
+}
 
-    .chat-float-button:hover {
-      transform: scale(1.1) rotate(5deg);
-      box-shadow:
-        0 12px 40px rgba(99, 102, 241, 0.6),
-        0 0 0 1px rgba(255, 255, 255, 0.2);
-    }
+.chat-float-button:hover {
+  transform: scale(1.1) rotate(5deg);
+  box-shadow: 
+    0 12px 40px rgba(99, 102, 241, 0.6),
+    0 0 0 1px rgba(255, 255, 255, 0.2);
+}
 
-    .chat-float-button:active {
-      transform: scale(0.95);
-    }
+.chat-float-button:active {
+  transform: scale(0.95);
+}
 
-    /* Pulse animation */
-    @keyframes chatButtonPulse {
+/* Pulse animation */
+@keyframes chatButtonPulse {
+  0%, 100% {
+    box-shadow: 
+      0 8px 30px rgba(99, 102, 241, 0.4),
+      0 0 0 1px rgba(255, 255, 255, 0.1),
+      0 0 0 0 rgba(99, 102, 241, 0.4);
+  }
+  50% {
+    box-shadow: 
+      0 8px 30px rgba(99, 102, 241, 0.4),
+      0 0 0 1px rgba(255, 255, 255, 0.1),
+      0 0 0 20px rgba(99, 102, 241, 0);
+  }
+}
 
-      0%,
-      100% {
-        box-shadow:
-          0 8px 30px rgba(99, 102, 241, 0.4),
-          0 0 0 1px rgba(255, 255, 255, 0.1),
-          0 0 0 0 rgba(99, 102, 241, 0.4);
-      }
+/* ===== CHAT DIALOG ===== */
+.dialog-fullscreen {
+  width: min(1200px, 95vw);
+  height: 85vh;
+  max-height: 85vh;
+}
 
-      50% {
-        box-shadow:
-          0 8px 30px rgba(99, 102, 241, 0.4),
-          0 0 0 1px rgba(255, 255, 255, 0.1),
-          0 0 0 20px rgba(99, 102, 241, 0);
-      }
-    }
+.dialog-header-chat {
+  background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
 
-    /* ===== CHAT DIALOG ===== */
-    .dialog-fullscreen {
-      width: min(1200px, 95vw);
-      height: 85vh;
-      max-height: 85vh;
-    }
+/* Version Selector */
+.chat-version-selector {
+  display: flex;
+  gap: 8px;
+  padding: 8px 16px;
+  background: rgba(255, 255, 255, 0.03);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  justify-content: center;
+  border-radius: 25pc;
+}
 
-    .dialog-header-chat {
-      background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
+.chat-version-btn {
+  padding: 6px 16px;
+  border: 1.5px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  color: white;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
 
-    /* Version Selector */
-    .chat-version-selector {
-      display: flex;
-      gap: 8px;
-      padding: 8px 16px;
-      background: rgba(255, 255, 255, 0.03);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-      justify-content: center;
-      border-radius: 25pc;
-    }
-
-    .chat-version-btn {
-      padding: 6px 16px;
-      border: 1.5px solid rgba(255, 255, 255, 0.2);
-      border-radius: 8px;
-      background: rgba(255, 255, 255, 0.05);
-      color: white;
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    /* .chat-version-btn:hover {
+/* .chat-version-btn:hover {
   background: rgba(255, 255, 255, 0.1);
   border-color: rgba(255, 255, 255, 0.3);
   color: white !important;
   transform: translateY(-1px);
 } */
 
-    .chat-version-btn.active {
-      border-color: var(--accent-primary);
-      color: white;
-      box-shadow: 0 2px 10px rgba(99, 102, 241, 0.4);
-    }
+.chat-version-btn.active {
+  border-color: var(--accent-primary);
+  color: white;
+  box-shadow: 0 2px 10px rgba(99, 102, 241, 0.4);
+}
 
-    /* .chat-version-btn.active:hover {
+/* .chat-version-btn.active:hover {
   transform: translateY(-1px);
   box-shadow: 0 4px 15px rgba(99, 102, 241, 0.5);
   color: white !important;
 } */
 
-    .chat-iframe-container {
-      width: 100%;
-      height: calc(100% - 110px);
-      padding: 0;
-      overflow: hidden;
-      border-radius: 0 0 24px 24px;
+.chat-iframe-container {
+  width: 100%;
+  height: calc(100% - 110px);
+  padding: 0;
+  overflow: hidden;
+  border-radius: 0 0 24px 24px;
+}
+
+.chat-iframe-container iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  display: block;
+}
+
+/* Mobile responsive */
+@media screen and (max-width: 768px) {
+  .chat-float-button {
+    width: 56px;
+    height: 56px;
+    bottom: 20px;
+    right: 20px;
+    font-size: 22px;
+  }
+  
+  .dialog-fullscreen {
+    width: 100vw;
+    height: 100vh;
+    max-height: 100vh;
+    border-radius: 0;
+  }
+  
+  .chat-version-selector {
+    padding: 8px 12px;
+    gap: 6px;
+  }
+  
+  .chat-version-btn {
+    padding: 6px 12px;
+    font-size: 12px;
+    flex: 1;
+    gap: 4px;
+  }
+  
+  .chat-iframe-container {
+    height: calc(100% - 100px);
+    border-radius: 0;
+  }
+}
+
+/* Dark mode adjustments */
+[data-theme="light"] .chat-float-button {
+  box-shadow: 
+    0 8px 30px rgba(99, 102, 241, 0.3),
+    0 0 0 1px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="light"] .chat-float-button:hover {
+  box-shadow: 
+    0 12px 40px rgba(99, 102, 241, 0.5),
+    0 0 0 1px rgba(0, 0, 0, 0.15);
+}
+
+/* No animations mode */
+.no-animations .chat-float-button {
+  animation: none;
+}
+
+.no-animations .chat-float-button:hover {
+  transform: none;
+}
+</style>
+
+<script>
+// Chat version URLs
+const chatVersions = {
+  v1: 'https://chat-zkjh.onrender.com/',
+  v2: 'https://2937.vercel.app/TOOLS/chatv2'
+};
+
+// Function để lấy username hiện tại
+function getCurrentUsername() {
+  const userDisplayName = document.getElementById('userDisplayName');
+  if (userDisplayName && userDisplayName.textContent) {
+    // Lấy text trước role badge
+    const fullText = userDisplayName.textContent.trim();
+    const roleElement = document.getElementById('role');
+    if (roleElement) {
+      // Xóa phần role để lấy display name
+      return fullText.replace(roleElement.textContent, '').trim();
     }
+    return fullText;
+  }
+  return null;
+}
 
-    .chat-iframe-container iframe {
-      width: 100%;
-      height: 100%;
-      border: none;
-      display: block;
+// Switch chat version
+function switchChatVersion(version) {
+  const iframe = document.getElementById('chatIframe');
+  const btnV1 = document.getElementById('btnChatV1');
+  const btnV2 = document.getElementById('btnChatV2');
+  
+  // Lấy username hiện tại
+  const username = getCurrentUsername();
+  
+  if (version === 'v1') {
+    iframe.src = chatVersions.v1;
+    btnV1.classList.add('active');
+    btnV2.classList.remove('active');
+    // Lưu lựa chọn
+    localStorage.setItem('preferredChatVersion', 'v1');
+  } else {
+    // Thêm username vào URL cho chatv2
+    let url = chatVersions.v2;
+    if (username) {
+      url += `?q=${encodeURIComponent(username)}`;
     }
+    iframe.src = url;
+    btnV2.classList.add('active');
+    btnV1.classList.remove('active');
+    // Lưu lựa chọn
+    localStorage.setItem('preferredChatVersion', 'v2');
+  }
+}
 
-    /* Mobile responsive */
-    @media screen and (max-width: 768px) {
-      .chat-float-button {
-        width: 56px;
-        height: 56px;
-        bottom: 20px;
-        right: 20px;
-        font-size: 22px;
-      }
-
-      .dialog-fullscreen {
-        width: 100vw;
-        height: 100vh;
-        max-height: 100vh;
-        border-radius: 0;
-      }
-
-      .chat-version-selector {
-        padding: 8px 12px;
-        gap: 6px;
-      }
-
-      .chat-version-btn {
-        padding: 6px 12px;
-        font-size: 12px;
-        flex: 1;
-        gap: 4px;
-      }
-
-      .chat-iframe-container {
-        height: calc(100% - 100px);
-        border-radius: 0;
-      }
+// Open chat dialog
+function openChatDialog() {
+  const chatDialog = document.getElementById('chatDialog');
+  if (chatDialog) {
+    // Kiểm tra xem người dùng có lựa chọn version đã lưu không
+    const preferredVersion = localStorage.getItem('preferredChatVersion') || 'v2';
+    
+    // Load version đã lưu (mặc định là v2)
+    if (preferredVersion === 'v1') {
+      switchChatVersion('v1');
+    } else {
+      switchChatVersion('v2');
     }
+    
+    chatDialog.showModal();
+  }
+}
 
-    /* Dark mode adjustments */
-    [data-theme="light"] .chat-float-button {
-      box-shadow:
-        0 8px 30px rgba(99, 102, 241, 0.3),
-        0 0 0 1px rgba(0, 0, 0, 0.1);
+// Close dialog when clicking outside
+chatDialog.addEventListener('click', (e) => {
+  if (e.target === chatDialog) {
+    chatDialog.close();
+  }
+});
+
+// ===== DRAGGABLE CHAT BUTTON =====
+const chatButton = document.getElementById('chatButton');
+let isDragging = false;
+let dragStartTime = 0;
+let startX, startY;
+let initialX, initialY;
+let hasMoved = false;
+const dragThreshold = 10; // pixels
+const tapTimeout = 200; // milliseconds
+
+// Load saved position from localStorage
+function loadButtonPosition() {
+  const savedPosition = localStorage.getItem('chatButtonPosition');
+  if (savedPosition) {
+    const { x, y } = JSON.parse(savedPosition);
+    
+    // Kiểm tra xem vị trí có hợp lệ không
+    const windowWidth = window.innerWidth;
+    const windowHeight = window.innerHeight;
+    const buttonWidth = chatButton.offsetWidth;
+    const buttonHeight = chatButton.offsetHeight;
+    
+    // Nếu vị trí hợp lệ thì dùng
+    if (x >= 0 && y >= 0 && x <= windowWidth - buttonWidth && y <= windowHeight - buttonHeight) {
+      chatButton.style.left = x + 'px';
+      chatButton.style.top = y + 'px';
+      chatButton.style.right = 'auto';
+      chatButton.style.bottom = 'auto';
+    } else {
+      // Vị trí không hợp lệ, reset về default
+      resetToDefaultPosition();
     }
+  }
+  // Nếu chưa có vị trí lưu, giữ nguyên CSS default (bottom-right)
+}
 
-    [data-theme="light"] .chat-float-button:hover {
-      box-shadow:
-        0 12px 40px rgba(99, 102, 241, 0.5),
-        0 0 0 1px rgba(0, 0, 0, 0.15);
-    }
+// Reset về vị trí mặc định (góc dưới phải)
+function resetToDefaultPosition() {
+  chatButton.style.left = 'auto';
+  chatButton.style.top = 'auto';
+  chatButton.style.right = '24px';  
+  chatButton.style.bottom = '24px';
+  localStorage.removeItem('chatButtonPosition');
+}
 
-    /* No animations mode */
-    .no-animations .chat-float-button {
-      animation: none;
-    }
+// Save position to localStorage
+function saveButtonPosition() {
+  const rect = chatButton.getBoundingClientRect();
+  const position = {
+    x: rect.left,
+    y: rect.top
+  };
+  localStorage.setItem('chatButtonPosition', JSON.stringify(position));
+}
 
-    .no-animations .chat-float-button:hover {
-      transform: none;
-    }
-  </style>
-
-  <script>
-    // Chat version URLs
-    const chatVersions = {
-      v1: 'https://chat-zkjh.onrender.com/',
-      v2: 'https://2937.vercel.app/TOOLS/chatv2'
+// Get mouse/touch position
+function getEventPosition(e) {
+  if (e.type.startsWith('touch')) {
+    return {
+      x: e.touches[0].clientX,
+      y: e.touches[0].clientY
     };
+  }
+  return {
+    x: e.clientX,
+    y: e.clientY
+  };
+}
 
-    // Function để lấy username hiện tại
-    function getCurrentUsername() {
-      const userDisplayName = document.getElementById('userDisplayName');
-      if (userDisplayName && userDisplayName.textContent) {
-        // Lấy text trước role badge
-        const fullText = userDisplayName.textContent.trim();
-        const roleElement = document.getElementById('role');
-        if (roleElement) {
-          // Xóa phần role để lấy display name
-          return fullText.replace(roleElement.textContent, '').trim();
-        }
-        return fullText;
-      }
-      return null;
-    }
+// Drag start
+function dragStart(e) {
+  if (e.target === chatButton || e.target.parentElement === chatButton) {
+    const pos = getEventPosition(e);
+    const rect = chatButton.getBoundingClientRect();
+    
+    isDragging = true;
+    hasMoved = false;
+    dragStartTime = Date.now();
+    
+    // Lưu vị trí ban đầu
+    initialX = pos.x;
+    initialY = pos.y;
+    
+    // Lưu khoảng cách từ con trỏ đến góc trên trái của button
+    startX = pos.x - rect.left;
+    startY = pos.y - rect.top;
+    
+    chatButton.classList.add('dragging');
+    
+    // Chuyển sang position fixed và set vị trí hiện tại
+    // Điều này quan trọng để tránh nút biến mất khi click lần đầu
+    chatButton.style.position = 'fixed';
+    chatButton.style.left = rect.left + 'px';
+    chatButton.style.top = rect.top + 'px';
+    chatButton.style.right = 'auto';
+    chatButton.style.bottom = 'auto';
+    
+    e.preventDefault();
+  }
+}
 
-    // Switch chat version
-    function switchChatVersion(version) {
-      const iframe = document.getElementById('chatIframe');
-      const btnV1 = document.getElementById('btnChatV1');
-      const btnV2 = document.getElementById('btnChatV2');
+// Dragging
+function drag(e) {
+  if (!isDragging) return;
+  
+  e.preventDefault();
+  
+  const pos = getEventPosition(e);
+  
+  // Tính khoảng cách di chuyển từ vị trí ban đầu
+  const deltaX = Math.abs(pos.x - initialX);
+  const deltaY = Math.abs(pos.y - initialY);
+  const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+  
+  // Nếu di chuyển quá ngưỡng, coi là drag
+  if (distance > dragThreshold) {
+    hasMoved = true;
+    
+    // Tính toán vị trí mới
+    let newX = pos.x - startX;
+    let newY = pos.y - startY;
+    
+    // Lấy kích thước màn hình và button
+    const windowWidth = window.innerWidth;
+    const windowHeight = window.innerHeight;
+    const buttonWidth = chatButton.offsetWidth;
+    const buttonHeight = chatButton.offsetHeight;
+    
+    // Giới hạn biên
+    newX = Math.max(0, Math.min(windowWidth - buttonWidth, newX));
+    newY = Math.max(0, Math.min(windowHeight - buttonHeight, newY));
+    
+    // Set vị trí mới
+    chatButton.style.left = newX + 'px';
+    chatButton.style.top = newY + 'px';
+  }
+}
 
-      // Lấy username hiện tại
-      const username = getCurrentUsername();
-
-      if (version === 'v1') {
-        iframe.src = chatVersions.v1;
-        btnV1.classList.add('active');
-        btnV2.classList.remove('active');
-        // Lưu lựa chọn
-        localStorage.setItem('preferredChatVersion', 'v1');
-      } else {
-        // Thêm username vào URL cho chatv2
-        let url = chatVersions.v2;
-        if (username) {
-          url += `?q=${encodeURIComponent(username)}`;
-        }
-        iframe.src = url;
-        btnV2.classList.add('active');
-        btnV1.classList.remove('active');
-        // Lưu lựa chọn
-        localStorage.setItem('preferredChatVersion', 'v2');
-      }
-    }
-
-    // Open chat dialog
-    function openChatDialog() {
-      const chatDialog = document.getElementById('chatDialog');
-      if (chatDialog) {
-        // Kiểm tra xem người dùng có lựa chọn version đã lưu không
-        const preferredVersion = localStorage.getItem('preferredChatVersion') || 'v2';
-
-        // Load version đã lưu (mặc định là v2)
-        if (preferredVersion === 'v1') {
-          switchChatVersion('v1');
-        } else {
-          switchChatVersion('v2');
-        }
-
-        chatDialog.showModal();
-      }
-    }
-
-    // Close dialog when clicking outside
-    chatDialog.addEventListener('click', (e) => {
-      if (e.target === chatDialog) {
-        chatDialog.close();
-      }
-    });
-
-    // ===== DRAGGABLE CHAT BUTTON =====
-    const chatButton = document.getElementById('chatButton');
-    let isDragging = false;
-    let dragStartTime = 0;
-    let startX, startY;
-    let initialX, initialY;
-    let hasMoved = false;
-    const dragThreshold = 10; // pixels
-    const tapTimeout = 200; // milliseconds
-
-    // Load saved position from localStorage
-    function loadButtonPosition() {
-      const savedPosition = localStorage.getItem('chatButtonPosition');
-      if (savedPosition) {
-        const { x, y } = JSON.parse(savedPosition);
-
-        // Kiểm tra xem vị trí có hợp lệ không
-        const windowWidth = window.innerWidth;
-        const windowHeight = window.innerHeight;
-        const buttonWidth = chatButton.offsetWidth;
-        const buttonHeight = chatButton.offsetHeight;
-
-        // Nếu vị trí hợp lệ thì dùng
-        if (x >= 0 && y >= 0 && x <= windowWidth - buttonWidth && y <= windowHeight - buttonHeight) {
-          chatButton.style.left = x + 'px';
-          chatButton.style.top = y + 'px';
-          chatButton.style.right = 'auto';
-          chatButton.style.bottom = 'auto';
-        } else {
-          // Vị trí không hợp lệ, reset về default
-          resetToDefaultPosition();
-        }
-      }
-      // Nếu chưa có vị trí lưu, giữ nguyên CSS default (bottom-right)
-    }
-
-    // Reset về vị trí mặc định (góc dưới phải)
-    function resetToDefaultPosition() {
-      chatButton.style.left = 'auto';
-      chatButton.style.top = 'auto';
-      chatButton.style.right = '24px';
-      chatButton.style.bottom = '24px';
-      localStorage.removeItem('chatButtonPosition');
-    }
-
-    // Save position to localStorage
-    function saveButtonPosition() {
-      const rect = chatButton.getBoundingClientRect();
-      const position = {
-        x: rect.left,
-        y: rect.top
-      };
-      localStorage.setItem('chatButtonPosition', JSON.stringify(position));
-    }
-
-    // Get mouse/touch position
-    function getEventPosition(e) {
-      if (e.type.startsWith('touch')) {
-        return {
-          x: e.touches[0].clientX,
-          y: e.touches[0].clientY
-        };
-      }
-      return {
-        x: e.clientX,
-        y: e.clientY
-      };
-    }
-
-    // Drag start
-    function dragStart(e) {
-      if (e.target === chatButton || e.target.parentElement === chatButton) {
-        const pos = getEventPosition(e);
-        const rect = chatButton.getBoundingClientRect();
-
-        isDragging = true;
-        hasMoved = false;
-        dragStartTime = Date.now();
-
-        // Lưu vị trí ban đầu
-        initialX = pos.x;
-        initialY = pos.y;
-
-        // Lưu khoảng cách từ con trỏ đến góc trên trái của button
-        startX = pos.x - rect.left;
-        startY = pos.y - rect.top;
-
-        chatButton.classList.add('dragging');
-
-        // Chuyển sang position fixed và set vị trí hiện tại
-        // Điều này quan trọng để tránh nút biến mất khi click lần đầu
-        chatButton.style.position = 'fixed';
-        chatButton.style.left = rect.left + 'px';
-        chatButton.style.top = rect.top + 'px';
-        chatButton.style.right = 'auto';
-        chatButton.style.bottom = 'auto';
-
-        e.preventDefault();
-      }
-    }
-
-    // Dragging
-    function drag(e) {
-      if (!isDragging) return;
-
+// Drag end
+function dragEnd(e) {
+  if (!isDragging) return;
+  
+  const dragDuration = Date.now() - dragStartTime;
+  
+  isDragging = false;
+  chatButton.classList.remove('dragging');
+  
+  // Nếu có di chuyển thì lưu vị trí
+  if (hasMoved) {
+    saveButtonPosition();
+    e.preventDefault();
+    e.stopPropagation();
+  } else if (dragDuration < tapTimeout) {
+    // Nếu không di chuyển và thời gian ngắn -> coi là tap/click
+    // Trên mobile, click event không fire do preventDefault trong touchstart
+    // Nên mở dialog trực tiếp ở đây cho touch events
+    if (e.type === 'touchend') {
       e.preventDefault();
-
-      const pos = getEventPosition(e);
-
-      // Tính khoảng cách di chuyển từ vị trí ban đầu
-      const deltaX = Math.abs(pos.x - initialX);
-      const deltaY = Math.abs(pos.y - initialY);
-      const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-
-      // Nếu di chuyển quá ngưỡng, coi là drag
-      if (distance > dragThreshold) {
-        hasMoved = true;
-
-        // Tính toán vị trí mới
-        let newX = pos.x - startX;
-        let newY = pos.y - startY;
-
-        // Lấy kích thước màn hình và button
-        const windowWidth = window.innerWidth;
-        const windowHeight = window.innerHeight;
-        const buttonWidth = chatButton.offsetWidth;
-        const buttonHeight = chatButton.offsetHeight;
-
-        // Giới hạn biên
-        newX = Math.max(0, Math.min(windowWidth - buttonWidth, newX));
-        newY = Math.max(0, Math.min(windowHeight - buttonHeight, newY));
-
-        // Set vị trí mới
-        chatButton.style.left = newX + 'px';
-        chatButton.style.top = newY + 'px';
-      }
-    }
-
-    // Drag end
-    function dragEnd(e) {
-      if (!isDragging) return;
-
-      const dragDuration = Date.now() - dragStartTime;
-
-      isDragging = false;
-      chatButton.classList.remove('dragging');
-
-      // Nếu có di chuyển thì lưu vị trí
-      if (hasMoved) {
-        saveButtonPosition();
-        e.preventDefault();
-        e.stopPropagation();
-      } else if (dragDuration < tapTimeout) {
-        // Nếu không di chuyển và thời gian ngắn -> coi là tap/click
-        // Trên mobile, click event không fire do preventDefault trong touchstart
-        // Nên mở dialog trực tiếp ở đây cho touch events
-        if (e.type === 'touchend') {
-          e.preventDefault();
-          openChatDialog();
-        }
-        // Desktop vẫn dùng click event như bình thường
-      }
-
-      // Reset sau 150ms
-      setTimeout(() => {
-        hasMoved = false;
-      }, 150);
-    }
-
-    // Handle click
-    function handleChatButtonClick(e) {
-      // Nếu vừa drag thì không mở dialog
-      if (hasMoved) {
-        e.preventDefault();
-        e.stopPropagation();
-        return false;
-      }
-
-      // Mở dialog
       openChatDialog();
+    }
+    // Desktop vẫn dùng click event như bình thường
+  }
+  
+  // Reset sau 150ms
+  setTimeout(() => {
+    hasMoved = false;
+  }, 150);
+}
+
+// Handle click
+function handleChatButtonClick(e) {
+  // Nếu vừa drag thì không mở dialog
+  if (hasMoved) {
+    e.preventDefault();
+    e.stopPropagation();
+    return false;
+  }
+  
+  // Mở dialog
+  openChatDialog();
+  e.preventDefault();
+}
+
+// Event listeners
+chatButton.addEventListener('click', handleChatButtonClick);
+
+// Desktop events
+chatButton.addEventListener('mousedown', dragStart);
+document.addEventListener('mousemove', drag);
+document.addEventListener('mouseup', dragEnd);
+
+// Mobile events - quan trọng: phải preventDefault để tránh conflict
+chatButton.addEventListener('touchstart', dragStart, { passive: false });
+document.addEventListener('touchmove', drag, { passive: false });
+document.addEventListener('touchend', dragEnd, { passive: false });
+
+// Load saved position on page load
+window.addEventListener('DOMContentLoaded', loadButtonPosition);
+
+// Reset về vị trí mặc định khi xoay màn hình (mobile)
+let lastOrientation = window.innerWidth > window.innerHeight ? 'landscape' : 'portrait';
+
+function handleOrientationChange() {
+  const currentOrientation = window.innerWidth > window.innerHeight ? 'landscape' : 'portrait';
+  
+  // Chỉ reset khi orientation thực sự thay đổi
+  if (currentOrientation !== lastOrientation) {
+    lastOrientation = currentOrientation;
+    resetToDefaultPosition();
+  }
+}
+
+// Lắng nghe sự kiện xoay màn hình
+window.addEventListener('orientationchange', () => {
+  // Delay một chút để đợi browser cập nhật kích thước màn hình
+  setTimeout(handleOrientationChange, 100);
+});
+
+// Fallback cho các trình duyệt không hỗ trợ orientationchange
+window.addEventListener('resize', () => {
+  // Chỉ xử lý trên mobile (màn hình nhỏ)
+  if (window.innerWidth <= 1024) {
+    handleOrientationChange();
+  }
+});
+
+// Keyboard shortcut: Shift + C for chat
+document.addEventListener('keydown', (e) => {
+  if (e.shiftKey && e.key === 'C' && !e.ctrlKey && !e.altKey) {
+    const activeElement = document.activeElement;
+    const isInputFocused = activeElement.tagName === 'INPUT' || 
+                          activeElement.tagName === 'TEXTAREA' ||
+                          activeElement.isContentEditable;
+    
+    if (!isInputFocused) {
       e.preventDefault();
+      openChatDialog();
     }
-
-    // Event listeners
-    chatButton.addEventListener('click', handleChatButtonClick);
-
-    // Desktop events
-    chatButton.addEventListener('mousedown', dragStart);
-    document.addEventListener('mousemove', drag);
-    document.addEventListener('mouseup', dragEnd);
-
-    // Mobile events - quan trọng: phải preventDefault để tránh conflict
-    chatButton.addEventListener('touchstart', dragStart, { passive: false });
-    document.addEventListener('touchmove', drag, { passive: false });
-    document.addEventListener('touchend', dragEnd, { passive: false });
-
-    // Load saved position on page load
-    window.addEventListener('DOMContentLoaded', loadButtonPosition);
-
-    // Reset về vị trí mặc định khi xoay màn hình (mobile)
-    let lastOrientation = window.innerWidth > window.innerHeight ? 'landscape' : 'portrait';
-
-    function handleOrientationChange() {
-      const currentOrientation = window.innerWidth > window.innerHeight ? 'landscape' : 'portrait';
-
-      // Chỉ reset khi orientation thực sự thay đổi
-      if (currentOrientation !== lastOrientation) {
-        lastOrientation = currentOrientation;
-        resetToDefaultPosition();
-      }
-    }
-
-    // Lắng nghe sự kiện xoay màn hình
-    window.addEventListener('orientationchange', () => {
-      // Delay một chút để đợi browser cập nhật kích thước màn hình
-      setTimeout(handleOrientationChange, 100);
-    });
-
-    // Fallback cho các trình duyệt không hỗ trợ orientationchange
-    window.addEventListener('resize', () => {
-      // Chỉ xử lý trên mobile (màn hình nhỏ)
-      if (window.innerWidth <= 1024) {
-        handleOrientationChange();
-      }
-    });
-
-    // Keyboard shortcut: Shift + C for chat
-    document.addEventListener('keydown', (e) => {
-      if (e.shiftKey && e.key === 'C' && !e.ctrlKey && !e.altKey) {
-        const activeElement = document.activeElement;
-        const isInputFocused = activeElement.tagName === 'INPUT' ||
-          activeElement.tagName === 'TEXTAREA' ||
-          activeElement.isContentEditable;
-
-        if (!isInputFocused) {
-          e.preventDefault();
-          openChatDialog();
-        }
-      }
-    });
-  </script>
-
+  }
+});
+</script>
+  
   <script src="js/main.js"></script>
   <script src="js/guide.js"></script>
   <script src="js/settings.js"></script>
@@ -2458,7 +2366,7 @@
   <script type="module" src="js/rejection.js"></script>
   <script type="module" src="js/ban.js"></script>
   <script type="module" src="js/module.js"></script>
-  <script type="module" src="js/minigame.js?v=20260310-artist-guess-1"></script>
+  <script type="module" src="js/minigame.js"></script>
   <script type="module" src="js/update.js"></script>
 
 </body>
