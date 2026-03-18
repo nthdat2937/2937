@@ -1,11 +1,15 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ntd2937 Marketplace</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="icon"
+        href="https://gdbtjzebjwnbwbvktcue.supabase.co/storage/v1/object/public/images/chat-images/1773843617985-ebgw17.png">
     <style>
         /* ========== CSS VARIABLES - DARK THEME ========== */
         :root {
@@ -61,7 +65,7 @@
             content: '';
             position: fixed;
             inset: 0;
-            background: 
+            background:
                 radial-gradient(ellipse 80% 50% at 20% -20%, rgba(99, 102, 241, 0.25), transparent),
                 radial-gradient(ellipse 60% 40% at 80% 0%, rgba(139, 92, 246, 0.2), transparent),
                 radial-gradient(ellipse 50% 30% at 10% 60%, rgba(236, 72, 153, 0.15), transparent);
@@ -912,6 +916,7 @@
                 opacity: 0;
                 transform: translateY(10px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -1308,6 +1313,7 @@
                 opacity: 0;
                 transform: scale(0.8);
             }
+
             to {
                 opacity: 1;
                 transform: scale(1);
@@ -1507,6 +1513,7 @@
         }
     </style>
 </head>
+
 <body>
     <!-- Header -->
     <header class="header">
@@ -1523,7 +1530,7 @@
                     </button>
                 </div>
             </div>
-            
+
             <div class="search-box">
                 <input type="text" id="searchInput" placeholder="Tìm kiếm sản phẩm...">
                 <i class="fas fa-search"></i>
@@ -1575,7 +1582,7 @@
                 <i class="fas fa-shopping-cart"></i>
                 Giỏ hàng của bạn
             </h2>
-            
+
             <!-- Cart Tabs -->
             <div class="cart-tabs">
                 <button class="cart-tab active" onclick="switchCartTab('pending')">
@@ -1657,11 +1664,13 @@
                 </div>
                 <div class="form-group">
                     <label class="form-label">Mật khẩu</label>
-                    <input type="password" class="form-input" id="regPassword" placeholder="Nhập mật khẩu (tối thiểu 6 ký tự)" required minlength="6">
+                    <input type="password" class="form-input" id="regPassword"
+                        placeholder="Nhập mật khẩu (tối thiểu 6 ký tự)" required minlength="6">
                 </div>
                 <div class="form-group">
                     <label class="form-label">Xác nhận mật khẩu</label>
-                    <input type="password" class="form-input" id="regConfirmPassword" placeholder="Nhập lại mật khẩu" required>
+                    <input type="password" class="form-input" id="regConfirmPassword" placeholder="Nhập lại mật khẩu"
+                        required>
                 </div>
                 <button type="submit" class="submit-btn">
                     <i class="fas fa-user-plus"></i> Đăng ký
@@ -1802,15 +1811,18 @@
                     <div class="form-group">
                         <label class="form-label">Link Facebook</label>
                         <div class="input-with-button">
-                            <input type="url" class="form-input" id="paymentFacebook" placeholder="https://facebook.com/..." required>
-                            <a href="https://www.facebook.com/profile.php" target="_blank" class="facebook-link-btn" title="Mở Facebook để lấy link">
+                            <input type="url" class="form-input" id="paymentFacebook"
+                                placeholder="https://facebook.com/..." required>
+                            <a href="https://www.facebook.com/profile.php" target="_blank" class="facebook-link-btn"
+                                title="Mở Facebook để lấy link">
                                 <i class="fab fa-facebook"></i>
                             </a>
                         </div>
                     </div>
                     <div class="form-group">
                         <label class="form-label">Số điện thoại</label>
-                        <input type="tel" class="form-input" id="paymentPhone" placeholder="Xác nhận số điện thoại" required>
+                        <input type="tel" class="form-input" id="paymentPhone" placeholder="Xác nhận số điện thoại"
+                            required>
                     </div>
                     <div class="form-group">
                         <label class="form-label">Email</label>
@@ -1846,21 +1858,21 @@
         let currentProfile = null;
 
         // ========== AUTH FUNCTIONS ==========
-        
+
         // Check if user is logged in
         async function checkAuth() {
             const { data: { session } } = await supabaseClient.auth.getSession();
-            
+
             if (session) {
                 currentUser = session.user;
-                
+
                 // Load profile from database
                 const { data: profile } = await supabaseClient
                     .from('profiles')
                     .select('id, display_name, email, created_at, phone')
                     .eq('id', currentUser.id)
                     .single();
-                
+
                 if (profile) {
                     currentProfile = profile;
                     updateUIAfterLogin();
@@ -1871,7 +1883,7 @@
         // Handle Login
         async function handleLogin(e) {
             e.preventDefault();
-            
+
             const email = document.getElementById('loginUsername').value.trim();
             const password = document.getElementById('loginPassword').value;
 
@@ -1890,14 +1902,14 @@
 
                 if (data.user) {
                     currentUser = data.user;
-                    
+
                     // Load profile
                     const { data: profile } = await supabaseClient
                         .from('profiles')
                         .select('id, display_name, email, created_at, phone')
                         .eq('id', currentUser.id)
                         .single();
-                    
+
                     if (profile) {
                         currentProfile = profile;
                         loginDialog.close();
@@ -1914,7 +1926,7 @@
         // Handle Register
         async function handleRegister(e) {
             e.preventDefault();
-            
+
             const displayName = document.getElementById('regUsername').value.trim();
             const email = document.getElementById('regEmail').value.trim();
             const password = document.getElementById('regPassword').value;
@@ -1972,7 +1984,7 @@
 
                     alert('✅ Đăng ký thành công! Vui lòng kiểm tra email để xác thực tài khoản.');
                     switchToLogin();
-                    
+
                     // Auto-fill login form
                     document.getElementById('loginUsername').value = email;
                 }
@@ -1989,11 +2001,11 @@
                 await supabaseClient.auth.signOut();
                 currentUser = null;
                 currentProfile = null;
-                
+
                 // Update UI
                 document.getElementById('authButtons').style.display = 'flex';
                 document.getElementById('userInfo').classList.remove('active');
-                
+
                 alert('✅ Đã đăng xuất!');
             }
         }
@@ -2003,7 +2015,7 @@
             document.getElementById('authButtons').style.display = 'none';
             document.getElementById('userInfo').classList.add('active');
             document.getElementById('userDisplayName').textContent = currentProfile.display_name;
-            
+
             // Load user orders
             loadUserOrders();
         }
@@ -2015,8 +2027,8 @@
             document.getElementById('profileUsername').textContent = currentProfile.display_name;
             document.getElementById('profileEmail').textContent = currentProfile.email;
             document.getElementById('profilePhone').textContent = currentProfile.phone || 'Chưa cập nhật';
-            
-            const createdDate = currentProfile.created_at 
+
+            const createdDate = currentProfile.created_at
                 ? new Date(currentProfile.created_at).toLocaleDateString('vi-VN')
                 : 'Không rõ';
             document.getElementById('profileCreatedAt').textContent = createdDate;
@@ -2195,11 +2207,11 @@
                 demo_url: ""
             },
             // {
-                // title: "",
-                // date: "",
-                // price: "",
-                // image: "",
-                // badge: ""
+            // title: "",
+            // date: "",
+            // price: "",
+            // image: "",
+            // badge: ""
             // },
         ];
 
@@ -2214,7 +2226,7 @@
             const startIndex = (currentPage - 1) * itemsPerPage;
             const endIndex = startIndex + itemsPerPage;
             const currentProducts = filteredProducts.slice(startIndex, endIndex);
-            
+
             grid.innerHTML = currentProducts.map(product => `
                 <div class="product-card" onclick="viewProduct('${product.title}')">
                     <div class="product-image">
@@ -2243,15 +2255,15 @@
         function updatePagination() {
             const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
             const paginationContainer = document.querySelector('.pagination');
-            
+
             let paginationHTML = '';
-            
+
             paginationHTML += `<button class="page-btn" onclick="changePage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>Previous</button>`;
-            
+
             for (let i = 1; i <= totalPages; i++) {
                 if (
-                    i === 1 || 
-                    i === totalPages || 
+                    i === 1 ||
+                    i === totalPages ||
                     (i >= currentPage - 1 && i <= currentPage + 1)
                 ) {
                     paginationHTML += `<button class="page-btn ${i === currentPage ? 'active' : ''}" onclick="changePage(${i})">${i}</button>`;
@@ -2259,9 +2271,9 @@
                     paginationHTML += `<span style="padding: 0 8px; color: var(--text-muted);">...</span>`;
                 }
             }
-            
+
             paginationHTML += `<button class="page-btn" onclick="changePage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>Next</button>`;
-            
+
             paginationContainer.innerHTML = paginationHTML;
         }
 
@@ -2269,7 +2281,7 @@
         function changePage(page) {
             const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
             if (page < 1 || page > totalPages) return;
-            
+
             currentPage = page;
             loadProducts();
             window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -2284,25 +2296,25 @@
             document.getElementById('productDialogTitle').textContent = product.title;
             const productImage = document.getElementById('productDetailImage');
             productImage.src = product.image || '';
-            
+
             // Add click event to image for preview
-            productImage.onclick = function() {
+            productImage.onclick = function () {
                 openImagePreview(product.image);
             };
-            
+
             document.getElementById('productDetailBadge').textContent = product.badge || '';
             document.getElementById('productDetailName').textContent = product.title;
             document.getElementById('productDetailDate').textContent = product.date;
             document.getElementById('productDetailPrice').textContent = product.price;
-            
+
             // Set description (you can customize this based on product)
-            document.getElementById('productDetailDescription').textContent = 
+            document.getElementById('productDetailDescription').textContent =
                 `Đây là sản phẩm ${product.title}. Sản phẩm thuộc danh mục ${product.badge}.`;
 
             // Create action buttons based on price
             const actionsContainer = document.getElementById('productActions');
             const isFree = product.price.includes('Miễn phí');
-            
+
             if (isFree) {
                 // Free product: Show "Truy cập" and "Xem code" buttons
                 actionsContainer.innerHTML = `
@@ -2341,10 +2353,10 @@
         }
 
         // Close image preview when clicking on backdrop
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             const imagePreviewDialog = document.getElementById('imagePreviewDialog');
-            
-            imagePreviewDialog.addEventListener('click', function(event) {
+
+            imagePreviewDialog.addEventListener('click', function (event) {
                 const rect = imagePreviewDialog.getBoundingClientRect();
                 const isInDialog = (
                     event.clientX >= rect.left &&
@@ -2352,7 +2364,7 @@
                     event.clientY >= rect.top &&
                     event.clientY <= rect.bottom
                 );
-                
+
                 if (!isInDialog) {
                     imagePreviewDialog.close();
                 }
@@ -2397,7 +2409,7 @@
                 alert('❌ Không thể xác định giá sản phẩm!');
                 return;
             }
-            
+
             const priceNumber = priceMatch[0].replace(/\./g, '');
             const paymentInfo = `${product.id}-${currentUser.id}`;
 
@@ -2449,7 +2461,7 @@
             }
 
             const product = window.currentPurchaseProduct;
-            
+
             // Extract price number
             const priceMatch = product.price.match(/[\d.]+/);
             const priceNumber = parseInt(priceMatch[0].replace(/\./g, ''));
@@ -2480,11 +2492,11 @@
 
                 alert('✅ Đơn hàng của bạn đã được tạo!\n\nVui lòng chờ xác nhận từ người bán.');
                 paymentDialog.close();
-                
+
                 // Switch to cart tab to show pending order
                 switchTab('cart');
                 switchCartTab('pending');
-                
+
                 // Reload orders
                 loadUserOrders();
 
@@ -2521,7 +2533,7 @@
 
                 // Render pending orders
                 renderOrders(pendingOrders, 'pendingContent');
-                
+
                 // Render purchased orders
                 renderOrders(purchasedOrders, 'purchasedContent');
 
@@ -2533,19 +2545,19 @@
         // Render orders in the UI
         function renderOrders(orders, containerId) {
             const container = document.getElementById(containerId);
-            
+
             if (orders.length === 0) {
                 // Show empty state
                 let emptyIcon = 'fa-clock';
                 let emptyTitle = 'Chưa có đơn hàng nào chờ xác nhận';
                 let emptyDesc = 'Các đơn hàng đang chờ xác nhận sẽ hiển thị tại đây';
-                
+
                 if (containerId === 'purchasedContent') {
                     emptyIcon = 'fa-box';
                     emptyTitle = 'Chưa có sản phẩm đã mua';
                     emptyDesc = 'Các sản phẩm bạn đã mua sẽ hiển thị tại đây';
                 }
-                
+
                 container.innerHTML = `
                     <div class="empty-cart">
                         <i class="fas ${emptyIcon}"></i>
@@ -2601,7 +2613,7 @@
         const searchInput = document.getElementById('searchInput');
         searchInput.addEventListener('input', (e) => {
             const searchTerm = e.target.value.toLowerCase();
-            filteredProducts = products.filter(product => 
+            filteredProducts = products.filter(product =>
                 product.title.toLowerCase().includes(searchTerm)
             );
             currentPage = 1;
@@ -2614,9 +2626,9 @@
             btn.addEventListener('click', () => {
                 filterBtns.forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
-                
+
                 const filter = btn.textContent.trim();
-                
+
                 if (filter === 'All') {
                     filteredProducts = [...products];
                 } else if (filter === 'Free') {
@@ -2624,7 +2636,7 @@
                 } else if (filter === 'Paid') {
                     filteredProducts = products.filter(product => product.price.includes('VND'));
                 }
-                
+
                 currentPage = 1;
                 loadProducts();
             });
@@ -2637,15 +2649,15 @@
         });
 
         // ========== TAB SWITCHING ==========
-        
+
         // Switch between Marketplace and Cart
         function switchTab(tab) {
             const navTabs = document.querySelectorAll('.nav-tab');
             const marketplaceContainer = document.getElementById('marketplaceContainer');
             const cartContainer = document.getElementById('cartContainer');
-            
+
             navTabs.forEach(t => t.classList.remove('active'));
-            
+
             if (tab === 'marketplace') {
                 navTabs[0].classList.add('active');
                 marketplaceContainer.style.display = 'block';
@@ -2661,10 +2673,10 @@
         function switchCartTab(tab) {
             const cartTabs = document.querySelectorAll('.cart-tab');
             const cartContents = document.querySelectorAll('.cart-tab-content');
-            
+
             cartTabs.forEach(t => t.classList.remove('active'));
             cartContents.forEach(c => c.classList.remove('active'));
-            
+
             if (tab === 'pending') {
                 cartTabs[0].classList.add('active');
                 document.getElementById('pendingContent').classList.add('active');
@@ -2675,4 +2687,5 @@
         }
     </script>
 </body>
+
 </html>

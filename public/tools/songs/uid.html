@@ -1,21 +1,28 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Document</title>
+  <link rel="icon"
+    href="https://gdbtjzebjwnbwbvktcue.supabase.co/storage/v1/object/public/images/chat-images/1773843617985-ebgw17.png">
 </head>
+
 <body>
   <button onclick="btn_click(this)" class="MXH">Youtube</button>
   <button onclick="btn_click(this)" class="MXH">Facebook</button>
-    
-    <iframe id="myIframe" style="width: 100%; height: 90vh;" src="" title="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>    
+
+  <iframe id="myIframe" style="width: 100%; height: 90vh;" src="" title="" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
 </body>
-    <script>
-      function btn_click(el) {
-        const link = el.textContent
-        console.log(link)
-        document.getElementById("myIframe").src = `https://www.${link}.com`
-      }
-    </script>
+<script>
+  function btn_click(el) {
+    const link = el.textContent
+    console.log(link)
+    document.getElementById("myIframe").src = `https://www.${link}.com`
+  }
+</script>
+
 </html>

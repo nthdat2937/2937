@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -10,10 +11,13 @@
   <link rel="stylesheet" href="setting.css">
   <link rel="preconnect" href="https://fonts.gstatic.com">
   <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600&display=swap" rel="stylesheet">
+  <link rel="icon"
+    href="https://gdbtjzebjwnbwbvktcue.supabase.co/storage/v1/object/public/images/chat-images/1773843617985-ebgw17.png">
   <!-- Google Material Icons -->
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
   <style>
-    html, body {
+    html,
+    body {
       width: 100%;
       height: 100%;
       overflow: hidden;
@@ -144,7 +148,8 @@
       z-index: 30 !important;
     }
 
-    @media screen and (max-width: 900px), screen and (max-height: 720px) {
+    @media screen and (max-width: 900px),
+    screen and (max-height: 720px) {
       .container-wrap .card-wrap {
         width: calc(100vw - 16px) !important;
         height: calc(100dvh - 16px) !important;
@@ -251,7 +256,9 @@
       }
     }
 
-    @media screen and (max-width: 560px), screen and (max-height: 560px) {
+    @media screen and (max-width: 560px),
+    screen and (max-height: 560px) {
+
       .container-wrap .card-wrap,
       .container-wrap .card-wrap.playlist-open {
         width: calc(100vw - 8px) !important;
@@ -354,6 +361,7 @@
   </style>
   <title>Trình Phát Nhạc</title>
 </head>
+
 <body>
   <div class="container-wrap">
     <div id="bg" class="bg">
@@ -383,12 +391,14 @@
       <main class="card-body">
         <canvas id="music-canvas"></canvas>
         <div class="lrc-box">
-          <button type="button" class="lyric-size-btn lyric-size-btn--decrease" id="decreaseLyricSize" title="Giảm cỡ chữ lyric" aria-label="Giảm cỡ chữ lyric">-</button>
+          <button type="button" class="lyric-size-btn lyric-size-btn--decrease" id="decreaseLyricSize"
+            title="Giảm cỡ chữ lyric" aria-label="Giảm cỡ chữ lyric">-</button>
           <section id="music-lrc"></section>
-          <button type="button" class="lyric-size-btn lyric-size-btn--increase" id="increaseLyricSize" title="Tăng cỡ chữ lyric" aria-label="Tăng cỡ chữ lyric">+</button>
+          <button type="button" class="lyric-size-btn lyric-size-btn--increase" id="increaseLyricSize"
+            title="Tăng cỡ chữ lyric" aria-label="Tăng cỡ chữ lyric">+</button>
         </div>
       </main>
-      
+
       <!-- Player Controls ở dưới -->
       <footer class="player-controls">
         <div class="player-top">
@@ -413,7 +423,7 @@
             </div>
           </div>
         </div>
-        
+
         <div class="control-widget">
           <div class="control-btn" id="shuffleBtn" title="Phát ngẫu nhiên">
             <span class="material-icons">shuffle</span>
@@ -433,7 +443,7 @@
         </div>
       </footer>
     </div>
-    
+
     <!-- Menu danh sách phát -->
     <div class="playlist-menu" id="playlistMenu">
       <div class="playlist-header">
@@ -444,9 +454,10 @@
       </div>
     </div>
   </div>
-  
+
   <script src="DomVisual.js"></script>
   <script src="AudioVisual.js"></script>
   <script src="index.js"></script>
 </body>
+
 </html>

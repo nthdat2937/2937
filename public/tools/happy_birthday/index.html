@@ -1,9 +1,12 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ntdHBD</title>
+  <link rel="icon"
+    href="https://gdbtjzebjwnbwbvktcue.supabase.co/storage/v1/object/public/images/chat-images/1773843617985-ebgw17.png">
   <style>
     /* Reset & Base */
     * {
@@ -32,7 +35,7 @@
       left: 0;
       right: 0;
       bottom: 0;
-      background: 
+      background:
         radial-gradient(ellipse 80% 50% at 50% -20%, rgba(99, 102, 241, 0.15), transparent),
         radial-gradient(ellipse 60% 40% at 100% 0%, rgba(139, 92, 246, 0.1), transparent),
         radial-gradient(ellipse 60% 40% at 0% 100%, rgba(236, 72, 153, 0.1), transparent);
@@ -41,19 +44,19 @@
     }
 
     /* Form styling theo theme mới */
-    .tool-form .form-group { 
-      position: relative; 
-      margin-bottom: 1.5rem; 
+    .tool-form .form-group {
+      position: relative;
+      margin-bottom: 1.5rem;
     }
-    
-    .tool-form label { 
-      display: block; 
-      font-weight: 600; 
-      color: #ffffff; 
+
+    .tool-form label {
+      display: block;
+      font-weight: 600;
+      color: #ffffff;
       margin-bottom: 0.5rem;
       font-size: 0.95rem;
     }
-    
+
     .tool-form input[type="text"] {
       width: 100%;
       padding: 1rem 1.25rem;
@@ -66,24 +69,24 @@
       outline: none;
       font-weight: 500;
     }
-    
-    .tool-form input[type="text"]::placeholder { 
+
+    .tool-form input[type="text"]::placeholder {
       color: #71717a;
     }
-    
+
     .tool-form input[type="text"]:focus {
       background: #252535;
       border-color: #6366f1;
       box-shadow: 0 0 30px rgba(99, 102, 241, 0.5);
     }
 
-    .date-wrapper { 
-      position: relative; 
-      display: flex; 
-      gap: 0.75rem; 
+    .date-wrapper {
+      position: relative;
+      display: flex;
+      gap: 0.75rem;
     }
-    
-    .calendar-toggle { 
+
+    .calendar-toggle {
       border-radius: 12px;
       background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%);
       border: none;
@@ -94,7 +97,7 @@
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       white-space: nowrap;
     }
-    
+
     .calendar-toggle:hover {
       transform: scale(1.05);
       box-shadow: 0 10px 40px rgba(99, 102, 241, 0.5);
@@ -113,106 +116,127 @@
       display: none;
       width: 300px;
     }
-    .date-picker.active { 
-      display: block; 
-      animation: fadeIn 0.2s ease-out; 
+
+    .date-picker.active {
+      display: block;
+      animation: fadeIn 0.2s ease-out;
     }
-    .date-picker table { 
-      border-collapse: collapse; 
-      width: 100%; 
-      font-size: 0.95rem; 
+
+    .date-picker table {
+      border-collapse: collapse;
+      width: 100%;
+      font-size: 0.95rem;
     }
-    .date-picker th, .date-picker td { 
-      padding: 8px; 
-      text-align: center; 
+
+    .date-picker th,
+    .date-picker td {
+      padding: 8px;
+      text-align: center;
       color: #ffffff;
     }
-    .date-picker td { 
-      cursor: pointer; 
-      border-radius: 8px; 
-      transition: all 0.2s; 
+
+    .date-picker td {
+      cursor: pointer;
+      border-radius: 8px;
+      transition: all 0.2s;
     }
-    .date-picker td:hover { 
+
+    .date-picker td:hover {
       background: rgba(99, 102, 241, 0.2);
       color: #ffffff;
     }
-    .date-picker td.selected { 
+
+    .date-picker td.selected {
       background: linear-gradient(135deg, #6366f1, #8b5cf6);
-      color: #fff; 
+      color: #fff;
     }
-    .date-picker th button { 
-      padding: 6px 12px; 
-      margin: 0 5px; 
-      background: transparent; 
-      color: #ffffff; 
-      border: none; 
-      cursor: pointer; 
-      border-radius: 8px; 
+
+    .date-picker th button {
+      padding: 6px 12px;
+      margin: 0 5px;
+      background: transparent;
+      color: #ffffff;
+      border: none;
+      cursor: pointer;
+      border-radius: 8px;
       font-weight: 600;
     }
-    .date-picker th button:hover { 
+
+    .date-picker th button:hover {
       background: rgba(99, 102, 241, 0.2);
     }
 
-    .year-selector { 
-      position: absolute; 
-      top: 100%; 
-      left: 50%; 
-      transform: translateX(-50%); 
-      background: #1a1a25; 
+    .year-selector {
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1a1a25;
       border: 2px solid rgba(255, 255, 255, 0.1);
-      border-radius: 12px; 
+      border-radius: 12px;
       box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
-      padding: 10px; 
-      display: none; 
-      max-height: 200px; 
-      overflow-y: auto; 
-      width: 120px; 
-      z-index: 1001; 
+      padding: 10px;
+      display: none;
+      max-height: 200px;
+      overflow-y: auto;
+      width: 120px;
+      z-index: 1001;
     }
-    .year-selector.active { 
-      display: block; 
+
+    .year-selector.active {
+      display: block;
     }
-    .year-selector div { 
-      padding: 8px; 
-      cursor: pointer; 
-      text-align: center; 
+
+    .year-selector div {
+      padding: 8px;
+      cursor: pointer;
+      text-align: center;
       border-radius: 8px;
       color: #ffffff;
     }
-    .year-selector div:hover { 
+
+    .year-selector div:hover {
       background: rgba(99, 102, 241, 0.2);
     }
-    
+
     /* Scrollbar for year selector */
     .year-selector::-webkit-scrollbar {
       width: 6px;
     }
+
     .year-selector::-webkit-scrollbar-track {
       background: transparent;
     }
+
     .year-selector::-webkit-scrollbar-thumb {
       background: linear-gradient(135deg, #6366f1, #8b5cf6);
       border-radius: 999px;
     }
 
     @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(-8px); }
-      to   { opacity: 1; transform: translateY(0); }
+      from {
+        opacity: 0;
+        transform: translateY(-8px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
-    .tool-wrapper { 
-      width: 100%; 
-      max-width: 560px; 
+    .tool-wrapper {
+      width: 100%;
+      max-width: 560px;
     }
-    
-    .tool-actions { 
-      margin-top: 2rem; 
-      display: flex; 
-      gap: 1rem; 
+
+    .tool-actions {
+      margin-top: 2rem;
+      display: flex;
+      gap: 1rem;
     }
-    
-    .tool-actions .nav-btn { 
+
+    .tool-actions .nav-btn {
       width: 100%;
       padding: 1.2rem 2rem;
       border-radius: 12px;
@@ -225,13 +249,13 @@
       border: none;
       font-size: 1.05rem;
     }
-    
+
     .tool-actions .nav-btn.primary {
       background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%);
       color: white;
       box-shadow: 0 10px 30px rgba(99, 102, 241, 0.3);
     }
-    
+
     .tool-actions .nav-btn.primary::before {
       content: '';
       position: absolute;
@@ -239,14 +263,14 @@
       left: -100%;
       width: 100%;
       height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
       transition: 0.5s;
     }
-    
+
     .tool-actions .nav-btn.primary:hover::before {
       left: 100%;
     }
-    
+
     .tool-actions .nav-btn.primary:hover {
       transform: scale(1.05);
       box-shadow: 0 15px 40px rgba(99, 102, 241, 0.5);
@@ -262,7 +286,7 @@
       position: relative;
       z-index: 1;
     }
-    
+
     .setting-card {
       background: #1a1a25;
       backdrop-filter: blur(20px);
@@ -272,45 +296,52 @@
       box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
-    
+
     .setting-card:hover {
       border-color: rgba(99, 102, 241, 0.3);
       box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6);
       transform: translateY(-5px);
     }
-    
+
     /* Global scrollbar */
     ::-webkit-scrollbar {
       width: 10px;
     }
+
     ::-webkit-scrollbar-track {
       background: #0a0a0f;
     }
+
     ::-webkit-scrollbar-thumb {
       background: linear-gradient(135deg, #6366f1, #8b5cf6);
       border-radius: 999px;
     }
+
     ::-webkit-scrollbar-thumb:hover {
       background: linear-gradient(135deg, #8b5cf6, #ec4899);
     }
-    
+
     /* Responsive */
     @media (max-width: 768px) {
       .setting-card {
         padding: 2rem;
       }
+
       .tool-wrapper {
         max-width: 100%;
       }
+
       .date-wrapper {
         flex-direction: column;
       }
+
       .calendar-toggle {
         width: 100%;
       }
     }
   </style>
 </head>
+
 <body>
   <div class="auth-overlay">
     <div class="setting-card tool-wrapper">
@@ -322,7 +353,8 @@
         <div class="form-group">
           <label for="dob">Ngày sinh</label>
           <div class="date-wrapper">
-            <input type="text" id="dob" required placeholder="DD/MM/YYYY" maxlength="10" onkeyup="formatDateInput(this)" onblur="validateDate(this)" />
+            <input type="text" id="dob" required placeholder="DD/MM/YYYY" maxlength="10" onkeyup="formatDateInput(this)"
+              onblur="validateDate(this)" />
             <button type="button" class="calendar-toggle" onclick="toggleCalendar()">Chọn ngày</button>
             <div class="date-picker" id="datePicker"></div>
           </div>
@@ -459,7 +491,7 @@
     }
 
     function getMonthName(month) {
-      const months = ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6','Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'];
+      const months = ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6', 'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'];
       return months[month];
     }
 
@@ -506,4 +538,5 @@
     }
   </script>
 </body>
+
 </html>

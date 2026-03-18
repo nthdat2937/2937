@@ -9,6 +9,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Archivo+Black&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="icon"
+        href="https://gdbtjzebjwnbwbvktcue.supabase.co/storage/v1/object/public/images/chat-images/1773843617985-ebgw17.png">
     <style>
         :root {
             --bg-main: #000000;
@@ -2021,6 +2023,7 @@
                 opacity: 0;
                 transform: translateY(-10px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -3346,7 +3349,7 @@
                 } else if (updatedMessage.edited) {
                     // CẬP NHẬT TIN NHẮN ĐÃ CHỈNH SỬA
                     updateMessageDisplayAfterEdit(updatedMessage.id, updatedMessage.content);
-                    
+
                     // CẬP NHẬT CÁC TIN NHẮN TRẢ LỜI THAM CHIẾU ĐẾN TIN NHẮN NÀY
                     updateRepliedMessages(updatedMessage.id, updatedMessage.username, updatedMessage.content);
                 } else {
@@ -4921,7 +4924,7 @@
                     content = contentDiv.textContent.trim();
                 }
             }
-            
+
             // Gọi function replyTo với content hiện tại
             replyTo(messageId, username, content);
         }
@@ -4938,9 +4941,9 @@
         function editMessage(messageId) {
             const messageDiv = document.querySelector(`[data-message-id="${messageId}"]`);
             if (!messageDiv) return;
-            
+
             messageDiv.classList.add('editing');
-            
+
             const editInput = document.getElementById(`edit-input-${messageId}`);
             if (editInput) {
                 editInput.focus();
@@ -5034,7 +5037,7 @@
                 editedDiv = document.createElement('div');
                 editedDiv.className = 'message-edited';
                 editedDiv.textContent = '';
-                
+
                 // Insert after content
                 const editContainer = messageDiv.querySelector('.edit-container');
                 if (editContainer) {
@@ -5059,13 +5062,13 @@
         function updateRepliedMessages(originalMessageId, username, newContent) {
             // Tìm tất cả các tin nhắn có reply_to = originalMessageId
             const allMessages = document.querySelectorAll('.message');
-            
+
             allMessages.forEach(messageDiv => {
                 const replyDiv = messageDiv.querySelector('.replied-message');
                 if (replyDiv) {
                     // Kiểm tra xem reply này có phải reply đến tin nhắn vừa được chỉnh sửa không
                     const replyToId = messageDiv.getAttribute('data-reply-to');
-                    
+
                     if (replyToId && replyToId === originalMessageId.toString()) {
                         // Cập nhật nội dung reply preview
                         const replyContent = replyDiv.querySelector('.replied-content');

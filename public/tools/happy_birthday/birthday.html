@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,11 +9,15 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Happy Birthday | ntdHBD</title>
-        
+    <link rel="icon"
+        href="https://gdbtjzebjwnbwbvktcue.supabase.co/storage/v1/object/public/images/chat-images/1773843617985-ebgw17.png">
+
+
     <style>
         @import url("https://fonts.googleapis.com/css?family=Raleway:900&display=swap");
 
-        html, body {
+        html,
+        body {
             margin: 0;
             padding: 0;
             overflow: hidden;
@@ -59,11 +64,11 @@
         }
 
         .body--ready {
-            background: -webkit-linear-gradient(top, rgb(0, 0, 0) 0%, rgb(0,0,0) 120%);
-            background: -moz-linear-gradient(top, rgb(0, 0, 0) 0%, rgb(0,0,0) 120%);
-            background: -o-linear-gradient(top, rgb(0, 0, 0) 0%, rgb(0,0,0) 120%);
-            background: -ms-linear-gradient(top, rgb(0, 0, 0) 0%, rgb(0,0,0) 120%);
-            background: linear-gradient(top, rgb(0, 0, 0) 0%, rgb(0,0,0) 120%);
+            background: -webkit-linear-gradient(top, rgb(0, 0, 0) 0%, rgb(0, 0, 0) 120%);
+            background: -moz-linear-gradient(top, rgb(0, 0, 0) 0%, rgb(0, 0, 0) 120%);
+            background: -o-linear-gradient(top, rgb(0, 0, 0) 0%, rgb(0, 0, 0) 120%);
+            background: -ms-linear-gradient(top, rgb(0, 0, 0) 0%, rgb(0, 0, 0) 120%);
+            background: linear-gradient(top, rgb(0, 0, 0) 0%, rgb(0, 0, 0) 120%);
             transition: all 0.5s ease;
         }
 
@@ -140,9 +145,17 @@
         }
 
         @keyframes pulse {
-            0% { transform: translate(-50%, -50%) scale(1); }
-            50% { transform: translate(-50%, -50%) scale(1.05); }
-            100% { transform: translate(-50%, -50%) scale(1); }
+            0% {
+                transform: translate(-50%, -50%) scale(1);
+            }
+
+            50% {
+                transform: translate(-50%, -50%) scale(1.05);
+            }
+
+            100% {
+                transform: translate(-50%, -50%) scale(1);
+            }
         }
 
         #rotateAlert {
@@ -169,8 +182,15 @@
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateX(-50%) translateY(20px); }
-            to { opacity: 1; transform: translateX(-50%) translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
         }
 
         .main-content {
@@ -231,11 +251,11 @@
     <canvas id="fireworksCanvas"></canvas>
     <div class="sign">#nthdat</div>
     <div><span class="copy" onclick="copylink()">Copy link</span></div>
-    
+
     <div id="startButton">🎁 Mở món quà bí mật 💝</div>
-    
+
     <div id="loading" class="loading">Đợi chút nhá... ✨</div>
-    
+
     <div id="rotateAlert">
         <div class="rotateText">
             📱 Vui lòng xoay ngang màn hình để<br>
@@ -259,12 +279,12 @@
         function getDataFromURL() {
             const urlParams = new URLSearchParams(window.location.search);
             const data = urlParams.get('data');
-            
+
             if (data) {
                 try {
                     const decodedStr = decodeURIComponent(atob(data));
                     const [name, dob] = decodedStr.split(',');
-                    
+
                     if (name && dob) {
                         userName = name;
                         // Format date from yyyy-mm-dd to dd.mm.yyyy
@@ -296,35 +316,35 @@
         }
 
         function checkOrientation() {
-    if (isPortrait() && !isStarted) {
-        rotateAlert.style.display = 'flex';
-        if (startButton && startButton.parentElement) {
-            startButton.style.display = 'none';
+            if (isPortrait() && !isStarted) {
+                rotateAlert.style.display = 'flex';
+                if (startButton && startButton.parentElement) {
+                    startButton.style.display = 'none';
+                }
+            } else if (!isStarted) {
+                rotateAlert.style.display = 'none';
+                if (startButton && startButton.parentElement) {
+                    startButton.style.display = 'block';
+                }
+            }
         }
-    } else if (!isStarted) {
-        rotateAlert.style.display = 'none';
-        if (startButton && startButton.parentElement) {
-            startButton.style.display = 'block';
-        }
-    }
-}
 
         function startRainEffect() {
             function resizeRainCanvas() {
                 rainCanvas.width = window.innerWidth;
                 rainCanvas.height = window.innerHeight;
             }
-            
+
             resizeRainCanvas();
             rainCanvas.style.display = 'block';
-            
+
             window.addEventListener('resize', resizeRainCanvas);
 
             const matrix = "HAPPY BIRTHDAY".split('');
             const fontSize = 10;
             let drops = Math.floor(window.innerWidth / fontSize);
             const dropArray = Array(drops).fill(1);
-            
+
             const rainbowColors = [
                 'red', 'orange', 'yellow', 'green', 'blue', 'indigo', 'violet',
                 '#FF5733', '#33FF57', '#3357FF', '#FF33A1', '#A133FF', '#33FFA1', '#FF8C33', '#8CFF33', '#FF338C', '#338CFF', '#FF33FF',
@@ -339,14 +359,14 @@
                 for (let i = 0; i < dropArray.length; i++) {
                     const colorIndex = Math.floor(Math.random() * rainbowColors.length);
                     rainCtx.fillStyle = rainbowColors[colorIndex];
-                    
+
                     const text = matrix[Math.floor(Math.random() * matrix.length)];
-                    
+
                     rainCtx.shadowColor = rainbowColors[colorIndex];
                     rainCtx.shadowBlur = 10;
-                    
+
                     rainCtx.fillText(text, i * fontSize, dropArray[i] * fontSize);
-                    
+
                     rainCtx.shadowBlur = 0;
 
                     if (dropArray[i] * fontSize > rainCanvas.height || Math.random() > 0.95) {
@@ -373,7 +393,7 @@
                 const seconds = Math.floor((e_minsold - minsold) * 60);
             } catch (error) {
             }
-            
+
             setTimeout(show_date_time, 1000);
         }
 
@@ -381,9 +401,9 @@
             if (isStarted) return;
             isStarted = true;
 
-                // Ẩn nút ngay lập tức và không cho hiện lại
-    startButton.style.display = 'none';
-    startButton.remove(); // Xóa hoàn toàn khỏi DOM
+            // Ẩn nút ngay lập tức và không cho hiện lại
+            startButton.style.display = 'none';
+            startButton.remove(); // Xóa hoàn toàn khỏi DOM
 
             loading.style.display = 'block';
             startButton.style.display = 'none';
@@ -399,13 +419,13 @@
             setTimeout(() => {
                 loading.style.display = 'none';
                 rotateAlert.style.display = 'none';
-                
+
                 document.body.classList.add('body--ready');
                 mainContent.classList.add('active');
-                
+
                 startRainEffect();
                 show_date_time();
-                
+
                 setTimeout(() => {
                     try {
                         S.init();
@@ -436,13 +456,13 @@
         const particles = [];
 
         const colors = [
-            'rgb(255, 0, 0)', 
-            'rgb(255, 127, 0)', 
-            'rgb(255, 255, 0)',  
-            'rgb(0, 255, 0)',    
-            'rgb(0, 255, 255)',  
-            'rgb(0, 0, 255)',    
-            'rgb(127, 0, 255)' 
+            'rgb(255, 0, 0)',
+            'rgb(255, 127, 0)',
+            'rgb(255, 255, 0)',
+            'rgb(0, 255, 0)',
+            'rgb(0, 255, 255)',
+            'rgb(0, 0, 255)',
+            'rgb(127, 0, 255)'
         ];
 
         class Particle {
@@ -569,7 +589,7 @@
                     }
                 },
                 getArea: function () {
-                    return {w: canvas ? canvas.width : 800, h: canvas ? canvas.height : 600};
+                    return { w: canvas ? canvas.width : 800, h: canvas ? canvas.height : 600 };
                 },
                 drawCircle: function (p, c) {
                     if (context) {
@@ -585,22 +605,22 @@
 
         S.UI = (function () {
             var interval, currentAction, time, maxShapeSize = 30, sequence = [], cmd = '#';
-            
+
             function formatTime(date) {
                 var h = date.getHours(), m = date.getMinutes();
                 m = m < 10 ? '0' + m : m;
                 return h + ':' + m;
             }
-            
+
             function getValue(value) {
                 return value && value.split(' ')[1];
             }
-            
+
             function getAction(value) {
                 value = value && value.split(' ')[0];
                 return value && value[0] === cmd && value.substring(1);
             }
-            
+
             function timedAction(fn, delay, max, reverse) {
                 clearInterval(interval);
                 currentAction = reverse ? max : 1;
@@ -615,7 +635,7 @@
                     }, delay);
                 }
             }
-            
+
             function performAction(value) {
                 var action, current;
                 sequence = typeof (value) === 'object' ? value : sequence.concat(value.split('|'));
@@ -680,7 +700,7 @@
                     }
                 }, 2000, sequence.length);
             }
-            
+
             return {
                 simulate: function (action) {
                     performAction(action);
@@ -710,13 +730,13 @@
         };
 
         const rainbowColors = [
-            {r: 255, g: 0, b: 0},
-            {r: 255, g: 127, b: 0},
-            {r: 255, g: 255, b: 0},
-            {r: 0, g: 255, b: 0},
-            {r: 0, g: 0, b: 255},
-            {r: 75, g: 0, b: 130},
-            {r: 148, g: 0, b: 211}
+            { r: 255, g: 0, b: 0 },
+            { r: 255, g: 127, b: 0 },
+            { r: 255, g: 255, b: 0 },
+            { r: 0, g: 255, b: 0 },
+            { r: 0, g: 0, b: 255 },
+            { r: 75, g: 0, b: 130 },
+            { r: 148, g: 0, b: 211 }
         ];
 
         S.Dot = function (x, y) {
@@ -725,10 +745,10 @@
             });
             this.e = 0.07;
             this.s = true;
-            
+
             const randomColor = rainbowColors[Math.floor(Math.random() * rainbowColors.length)];
             this.rainbowColor = new S.Color(randomColor.r, randomColor.g, randomColor.b, 1);
-            
+
             this.c = new S.Color(255, 0, 85, this.p.a);
             this.t = this.clone();
             this.q = [];
@@ -785,7 +805,7 @@
                         } else {
                             const randomColor = rainbowColors[Math.floor(Math.random() * rainbowColors.length)];
                             this.rainbowColor = new S.Color(randomColor.r, randomColor.g, randomColor.b, 1);
-                            
+
                             this.move(new S.Point({
                                 x: this.p.x + (Math.random() * 50) - 25,
                                 y: this.p.y + (Math.random() * 50) - 25
@@ -833,7 +853,7 @@
                 var dots = [], x = 0, y = 0, fx = shapeCanvas.width, fy = shapeCanvas.height, w = 0, h = 0;
                 for (var p = 0; p < pixels.length; p += (4 * gap)) {
                     if (pixels[p + 3] > 0) {
-                        dots.push(new S.Point({x: x, y: y}));
+                        dots.push(new S.Point({ x: x, y: y }));
                         w = x > w ? x : w;
                         h = y > h ? y : h;
                         fx = x < fx ? x : fx;
@@ -846,7 +866,7 @@
                         p += gap * 4 * shapeCanvas.width;
                     }
                 }
-                return {dots: dots, w: w + fx, h: h + fy};
+                return { dots: dots, w: w + fx, h: h + fy };
             }
 
             function setFontSize(s) {
@@ -883,7 +903,7 @@
                     s = Math.min(fontSize,
                         (shapeCanvas.width / maxWidth) * 0.8 * fontSize,
                         (shapeCanvas.height / (lines.length * 0.45)) * fontSize);
-                    setFontSize(s * 0.6); 
+                    setFontSize(s * 0.6);
                     shapeContext.clearRect(0, 0, shapeCanvas.width, shapeCanvas.height);
                     lines.forEach((line, index) => {
                         shapeContext.fillText(line, shapeCanvas.width / 2, shapeCanvas.height / 2 + (index - (lines.length - 1) / 2) * s * 0.5);
@@ -905,12 +925,12 @@
             return {
                 switchShape: function (n, fast) {
                     if (!n || !n.dots) return;
-                    
+
                     var size, a = S.Drawing.getArea();
                     width = n.w;
                     height = n.h;
                     compensate();
-                    
+
                     var targetParticles = Math.max(n.dots.length * 1.5, 800);
                     if (targetParticles > dots.length) {
                         size = targetParticles - dots.length;
@@ -918,10 +938,10 @@
                             dots.push(new S.Dot(a.w / 2, a.h / 2));
                         }
                     }
-                    
+
                     var d = 0, i = 0;
                     var nDotsCopy = n.dots.slice();
-                    
+
                     while (nDotsCopy.length > 0 && d < dots.length) {
                         i = Math.floor(Math.random() * nDotsCopy.length);
                         dots[d].e = fast ? 0.25 : (dots[d].s ? 0.14 : 0.11);
@@ -936,15 +956,15 @@
                         nDotsCopy.splice(i, 1);
                         d++;
                     }
-                    
+
                     for (var j = d; j < dots.length; j++) {
                         if (dots[j].s) {
                             dots[j].s = false;
                             dots[j].e = 0.04;
-                            
+
                             const randomColor = rainbowColors[Math.floor(Math.random() * rainbowColors.length)];
                             dots[j].rainbowColor = new S.Color(randomColor.r, randomColor.g, randomColor.b, 1);
-                            
+
                             dots[j].move(new S.Point({
                                 x: Math.random() * a.w,
                                 y: Math.random() * a.h,
@@ -973,4 +993,5 @@
         }
     </script>
 </body>
+
 </html>

@@ -1,11 +1,15 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ntdVocab</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <link rel="icon"
+        href="https://gdbtjzebjwnbwbvktcue.supabase.co/storage/v1/object/public/images/chat-images/1773843617985-ebgw17.png">
     <style>
         :root {
             --bg-primary: #030014;
@@ -48,7 +52,7 @@
             content: '';
             position: fixed;
             inset: 0;
-            background: 
+            background:
                 radial-gradient(ellipse 80% 50% at 20% -20%, rgba(99, 102, 241, 0.25), transparent),
                 radial-gradient(ellipse 60% 40% at 80% 0%, rgba(139, 92, 246, 0.2), transparent),
                 radial-gradient(ellipse 50% 30% at 10% 60%, rgba(236, 72, 153, 0.15), transparent);
@@ -196,7 +200,7 @@
             content: '';
             position: absolute;
             inset: 0;
-            background: linear-gradient(135deg, rgba(255,255,255,0.2), transparent);
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), transparent);
             opacity: 0;
             transition: opacity 0.3s;
         }
@@ -357,6 +361,7 @@
                 opacity: 0;
                 transform: translate(-50%, -50%) scale(0.9);
             }
+
             to {
                 opacity: 1;
                 transform: translate(-50%, -50%) scale(1);
@@ -529,7 +534,8 @@
                 gap: 16px;
             }
 
-            th, td {
+            th,
+            td {
                 padding: 12px 10px;
                 font-size: 13px;
             }
@@ -540,10 +546,11 @@
         }
     </style>
 </head>
+
 <body>
     <header>
         <div class="logo">ntdVOCAB</div>
-        
+
         <div class="search-container">
             <input type="text" class="search-input" id="searchInput" placeholder="🔍 Tìm kiếm từ vựng...">
         </div>
@@ -607,7 +614,8 @@
                 <button type="submit" class="btn btn-submit">Đăng nhập</button>
             </div>
             <div class="switch-mode">
-                Chưa có tài khoản? <a href="#" onclick="event.preventDefault(); loginDialog.close(); registerDialog.showModal()">Đăng ký ngay</a>
+                Chưa có tài khoản? <a href="#"
+                    onclick="event.preventDefault(); loginDialog.close(); registerDialog.showModal()">Đăng ký ngay</a>
             </div>
         </form>
     </dialog>
@@ -642,7 +650,8 @@
                 <button type="submit" class="btn btn-submit">Đăng ký</button>
             </div>
             <div class="switch-mode">
-                Đã có tài khoản? <a href="#" onclick="event.preventDefault(); registerDialog.close(); loginDialog.showModal()">Đăng nhập</a>
+                Đã có tài khoản? <a href="#"
+                    onclick="event.preventDefault(); registerDialog.close(); loginDialog.showModal()">Đăng nhập</a>
             </div>
         </form>
     </dialog>
@@ -678,7 +687,7 @@
     <script>
         const SUPABASE_URL = 'https://ktqdzlhvdkerjajffgfi.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_1wm-eXETyu07vl61sY4mBQ_xwYZVOCj';
-        
+
         let allData = [];
         let currentUser = null;
         let userProfile = null;
@@ -697,7 +706,7 @@
             e.preventDefault();
             const email = document.getElementById('loginEmail').value;
             const password = document.getElementById('loginPassword').value;
-            
+
             try {
                 const response = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
                     method: 'POST',
@@ -709,7 +718,7 @@
                 });
 
                 const data = await response.json();
-                
+
                 if (!response.ok) {
                     throw new Error(data.error_description || 'Đăng nhập thất bại');
                 }
@@ -733,17 +742,17 @@
             const email = document.getElementById('regEmail').value;
             const password = document.getElementById('regPassword').value;
             const confirmPassword = document.getElementById('regConfirmPassword').value;
-            
+
             if (displayName.length < 3 || displayName.length > 20) {
                 showMessage('registerMessage', 'Tên hiển thị phải từ 3-20 ký tự', 'error');
                 return;
             }
-            
+
             if (!/^[0-9]{10,11}$/.test(phone)) {
                 showMessage('registerMessage', 'Số điện thoại không hợp lệ', 'error');
                 return;
             }
-            
+
             if (password !== confirmPassword) {
                 showMessage('registerMessage', 'Mật khẩu nhập lại không khớp', 'error');
                 return;
@@ -774,7 +783,7 @@
                 });
 
                 const data = await response.json();
-                
+
                 if (!response.ok) {
                     throw new Error(data.error_description || 'Đăng ký thất bại');
                 }
@@ -797,7 +806,7 @@
                 });
 
                 showMessage('registerMessage', 'Đăng ký thành công! Vui lòng đăng nhập.', 'success');
-                
+
                 setTimeout(() => {
                     registerDialog.close();
                     loginDialog.showModal();
@@ -810,7 +819,7 @@
 
         document.getElementById('addVocabForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            
+
             if (!userProfile || userProfile.role !== 'Admin') {
                 showMessage('addVocabMessage', 'Bạn không có quyền thêm từ vựng', 'error');
                 return;
@@ -840,9 +849,9 @@
                 }
 
                 showMessage('addVocabMessage', 'Thêm từ vựng thành công!', 'success');
-                
+
                 document.getElementById('addVocabForm').reset();
-                
+
                 setTimeout(() => {
                     addVocabDialog.close();
                     loadData();
@@ -884,13 +893,13 @@
         function showUserInfo() {
             document.getElementById('authButtons').style.display = 'none';
             document.getElementById('userInfo').style.display = 'flex';
-            
+
             const displayName = userProfile?.display_name || currentUser.user?.email || 'User';
             const role = userProfile?.role || 'Member';
-            
+
             document.getElementById('userName').textContent = displayName;
             document.getElementById('userRole').textContent = role;
-            
+
             if (role === 'Admin') {
                 document.getElementById('addVocabBtn').style.display = 'inline-block';
             }
@@ -909,7 +918,7 @@
         function getSession() {
             const stored = sessionStorage.getItem('supabase_session');
             if (!stored) return null;
-            
+
             const session = JSON.parse(stored);
             if (Date.now() > session.expires_at) {
                 clearSession();
@@ -953,7 +962,7 @@
         function renderTable(data) {
             const tbody = document.getElementById('tableBody');
             tbody.innerHTML = '';
-            
+
             data.forEach(item => {
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
@@ -976,7 +985,7 @@
 
         function searchVocab() {
             const searchTerm = normalizeVietnamese(document.getElementById('searchInput').value);
-            
+
             if (!searchTerm) {
                 renderTable(allData);
                 return;
@@ -994,4 +1003,5 @@
         document.getElementById('searchInput').addEventListener('input', searchVocab);
     </script>
 </body>
+
 </html>

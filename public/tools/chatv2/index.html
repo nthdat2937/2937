@@ -9,6 +9,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Archivo+Black&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="icon"
+        href="https://gdbtjzebjwnbwbvktcue.supabase.co/storage/v1/object/public/images/chat-images/1773843617985-ebgw17.png">
+
     <style>
         :root {
             --bg-main: #000000;
@@ -2366,6 +2369,7 @@
                 opacity: 0;
                 transform: translateY(-10px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -2544,7 +2548,8 @@
 
             <form id="loginForm" class="auth-form active" onsubmit="handleLogin(event)">
                 <input type="email" id="loginEmail" placeholder="Email" autocomplete="email" required>
-                <input type="password" id="loginPassword" placeholder="Mật khẩu" autocomplete="current-password" required>
+                <input type="password" id="loginPassword" placeholder="Mật khẩu" autocomplete="current-password"
+                    required>
                 <button type="submit">
                     <span>Đăng nhập</span>
                 </button>
@@ -2555,11 +2560,15 @@
             </form>
 
             <form id="registerForm" class="auth-form" onsubmit="handleRegister(event)">
-                <input type="text" id="registerDisplayName" placeholder="Tên hiển thị (3-20 ký tự)" maxlength="20" autocomplete="nickname" required>
+                <input type="text" id="registerDisplayName" placeholder="Tên hiển thị (3-20 ký tự)" maxlength="20"
+                    autocomplete="nickname" required>
                 <input type="email" id="registerEmail" placeholder="Email" autocomplete="email" required>
-                <input type="tel" id="registerPhone" placeholder="Số điện thoại (VD: 0912345678)" autocomplete="tel" required>
-                <input type="password" id="registerPassword" placeholder="Mật khẩu (tối thiểu 6 ký tự)" autocomplete="new-password" required>
-                <input type="password" id="registerConfirmPassword" placeholder="Nhập lại mật khẩu" autocomplete="new-password" required>
+                <input type="tel" id="registerPhone" placeholder="Số điện thoại (VD: 0912345678)" autocomplete="tel"
+                    required>
+                <input type="password" id="registerPassword" placeholder="Mật khẩu (tối thiểu 6 ký tự)"
+                    autocomplete="new-password" required>
+                <input type="password" id="registerConfirmPassword" placeholder="Nhập lại mật khẩu"
+                    autocomplete="new-password" required>
                 <button type="submit">
                     <span>Tạo tài khoản</span>
                 </button>
@@ -2602,33 +2611,36 @@
         <div id="onlineUsersList"></div>
     </div>
 
-        <div id="chatScreen">
-            <div class="chat-header">
-                <h2><i class="fas fa-circle" style="color: var(--accent);"></i> ntdChat v2</h2>
-                <div class="chat-actions-menu" id="adminControls">
-                    <button type="button" class="chat-actions-toggle" onclick="toggleChatActionsMenu(event)">
-                        <i class="fas fa-bars"></i> Menu
+    <div id="chatScreen">
+        <div class="chat-header">
+            <h2><i class="fas fa-circle" style="color: var(--accent);"></i> ntdChat v2</h2>
+            <div class="chat-actions-menu" id="adminControls">
+                <button type="button" class="chat-actions-toggle" onclick="toggleChatActionsMenu(event)">
+                    <i class="fas fa-bars"></i> Menu
+                </button>
+                <div class="chat-actions-dropdown" id="chatActionsDropdown">
+                    <button type="button" class="chat-actions-item"
+                        onclick="showSettingsModal(); closeChatActionsMenu();">
+                        <i class="fas fa-palette"></i> Cài đặt
                     </button>
-                    <div class="chat-actions-dropdown" id="chatActionsDropdown">
-                        <button type="button" class="chat-actions-item" onclick="showSettingsModal(); closeChatActionsMenu();">
-                            <i class="fas fa-palette"></i> Cài đặt
-                        </button>
-                        <button type="button" class="chat-actions-item" onclick="showRoomModal(); closeChatActionsMenu();">
-                            <i class="fas fa-door-open"></i> Phòng chat
-                        </button>
-                        <button type="button" class="chat-actions-item" onclick="backToMainRoom(); closeChatActionsMenu();">
-                            <i class="fas fa-home"></i> Phòng chính
-                        </button>
-                        <button type="button" class="chat-actions-item admin-only danger" onclick="showKickModal(); closeChatActionsMenu();">
-                            <i class="fas fa-exclamation-triangle"></i> Kick User
-                        </button>
-                        <button type="button" class="chat-actions-item admin-only" onclick="showUnbanModal(); closeChatActionsMenu();">
-                            <i class="fas fa-check-circle"></i> Unban
-                        </button>
-                    </div>
+                    <button type="button" class="chat-actions-item" onclick="showRoomModal(); closeChatActionsMenu();">
+                        <i class="fas fa-door-open"></i> Phòng chat
+                    </button>
+                    <button type="button" class="chat-actions-item" onclick="backToMainRoom(); closeChatActionsMenu();">
+                        <i class="fas fa-home"></i> Phòng chính
+                    </button>
+                    <button type="button" class="chat-actions-item admin-only danger"
+                        onclick="showKickModal(); closeChatActionsMenu();">
+                        <i class="fas fa-exclamation-triangle"></i> Kick User
+                    </button>
+                    <button type="button" class="chat-actions-item admin-only"
+                        onclick="showUnbanModal(); closeChatActionsMenu();">
+                        <i class="fas fa-check-circle"></i> Unban
+                    </button>
                 </div>
-                <div class="user-info">
-                    <span class="admin-badge" id="adminBadge">ADMIN</span>
+            </div>
+            <div class="user-info">
+                <span class="admin-badge" id="adminBadge">ADMIN</span>
                 <div class="user-avatar" id="userAvatarContainer">
                     <img id="userAvatar" alt="Avatar">
                     <span class="user-avatar-fallback" id="userAvatarFallback">U</span>
@@ -2780,7 +2792,8 @@
                 <label>Màu chủ đạo</label>
                 <div class="theme-color-controls">
                     <input type="color" id="themeColorPicker" value="#00ff41" oninput="handleThemeColorPickerInput()">
-                    <input type="text" id="themeColorHexInput" placeholder="#00FF41" maxlength="7" oninput="handleThemeColorHexInput()">
+                    <input type="text" id="themeColorHexInput" placeholder="#00FF41" maxlength="7"
+                        oninput="handleThemeColorHexInput()">
                 </div>
                 <div class="theme-settings-hint">
                     Hỗ trợ mã HEX dạng #RRGGBB. Bạn cũng có thể dùng lệnh <strong>/color #RRGGBB</strong>.
@@ -4637,7 +4650,7 @@
                 } else if (updatedMessage.edited) {
                     // CẬP NHẬT TIN NHẮN ĐÃ CHỈNH SỬA
                     updateMessageDisplayAfterEdit(updatedMessage.id, updatedMessage.content);
-                    
+
                     // CẬP NHẬT CÁC TIN NHẮN TRẢ LỜI THAM CHIẾU ĐẾN TIN NHẮN NÀY
                     updateRepliedMessages(updatedMessage.id, updatedMessage.username, updatedMessage.content);
                 } else {
@@ -6262,7 +6275,7 @@
                     content = contentDiv.textContent.trim();
                 }
             }
-            
+
             // Gọi function replyTo với content hiện tại
             replyTo(messageId, username, content);
         }
@@ -6279,9 +6292,9 @@
         function editMessage(messageId) {
             const messageDiv = document.querySelector(`[data-message-id="${messageId}"]`);
             if (!messageDiv) return;
-            
+
             messageDiv.classList.add('editing');
-            
+
             const editInput = document.getElementById(`edit-input-${messageId}`);
             if (editInput) {
                 editInput.focus();
@@ -6375,7 +6388,7 @@
                 editedDiv = document.createElement('div');
                 editedDiv.className = 'message-edited';
                 editedDiv.textContent = '';
-                
+
                 // Insert after content
                 const editContainer = messageDiv.querySelector('.edit-container');
                 if (editContainer) {
@@ -6400,13 +6413,13 @@
         function updateRepliedMessages(originalMessageId, username, newContent) {
             // Tìm tất cả các tin nhắn có reply_to = originalMessageId
             const allMessages = document.querySelectorAll('.message');
-            
+
             allMessages.forEach(messageDiv => {
                 const replyDiv = messageDiv.querySelector('.replied-message');
                 if (replyDiv) {
                     // Kiểm tra xem reply này có phải reply đến tin nhắn vừa được chỉnh sửa không
                     const replyToId = messageDiv.getAttribute('data-reply-to');
-                    
+
                     if (replyToId && replyToId === originalMessageId.toString()) {
                         // Cập nhật nội dung reply preview
                         const replyContent = replyDiv.querySelector('.replied-content');
