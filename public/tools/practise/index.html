@@ -1,0 +1,1348 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>한류클래스 — Luyện tập tiếng Hàn</title>
+    <meta name="description" content="Luyện tập tiếng Hàn với Hangeul, Từ vựng, Ngữ pháp, Hội thoại, Hán Hàn và TOPIK.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Noto+Sans+KR:wght@400;500;700;900&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        *,
+        *::before,
+        *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg: #ede9f8;
+            --surface: rgba(255, 255, 255, 0.75);
+            --surface-solid: #ffffff;
+            --text-main: #2e2b55;
+            --text-sub: #7875a8;
+            --text-muted: #aeacd0;
+            --border: rgba(180, 165, 230, 0.22);
+            --purple: #7c6ce0;
+            --purple-light: rgba(124, 108, 224, 0.12);
+            --shadow-sm: 0 4px 18px rgba(100, 80, 200, 0.08);
+            --shadow-md: 0 10px 36px rgba(100, 80, 200, 0.14);
+            --shadow-lg: 0 20px 60px rgba(100, 80, 200, 0.18);
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Nunito', 'Noto Sans KR', sans-serif;
+            background: var(--bg);
+            color: var(--text-main);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            width: 600px;
+            height: 600px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(175, 155, 235, 0.35), transparent 70%);
+            top: -150px;
+            left: -150px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            width: 500px;
+            height: 500px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(95, 210, 185, 0.22), transparent 70%);
+            bottom: -100px;
+            right: -100px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* ===== HEADER ===== */
+        .header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            align-items: center;
+            padding: 0 24px;
+            height: 62px;
+            background: rgba(237, 233, 248, 0.88);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+        }
+
+        .header-center {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 8px;
+        }
+
+        .logo-char {
+            font-size: 1.55rem;
+            font-weight: 900;
+            font-family: 'Noto Sans KR', sans-serif;
+            background: linear-gradient(135deg, #8b79de 30%, #5fd4b5 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1;
+        }
+
+        .logo-label {
+            font-size: 0.6rem;
+            font-weight: 700;
+            color: var(--text-sub);
+            letter-spacing: 0.04em;
+            margin-top: 1px;
+        }
+
+        /* Login button (guest) */
+        .btn-login-hdr {
+            padding: 7px 18px;
+            border: 1.5px solid rgba(124, 108, 224, 0.4);
+            border-radius: 50px;
+            background: transparent;
+            color: var(--purple);
+            font-family: inherit;
+            font-size: 0.82rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.25s;
+            text-decoration: none;
+        }
+
+        .btn-login-hdr:hover {
+            background: var(--purple-light);
+        }
+
+        /* Stat pills */
+        .stat-pill {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 6px 12px;
+            background: rgba(255, 255, 255, 0.65);
+            border: 1px solid rgba(200, 185, 235, 0.3);
+            border-radius: 50px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--text-sub);
+            box-shadow: 0 2px 8px rgba(100, 80, 200, 0.06);
+        }
+
+        /* User block (logged in) */
+        .user-block {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .user-avatar-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #b3a4ef, #7c6ce0);
+            border: 2px solid white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            font-weight: 800;
+            color: white;
+            cursor: pointer;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(124, 108, 224, 0.3);
+            transition: transform 0.2s;
+        }
+
+        .user-avatar-btn:hover {
+            transform: scale(1.08);
+        }
+
+        .user-avatar-btn img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .user-display-name {
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--text-main);
+            max-width: 90px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .btn-logout {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: rgba(255, 100, 100, 0.1);
+            border: none;
+            color: #e05;
+            font-size: 0.75rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+
+        .btn-logout:hover {
+            background: rgba(255, 50, 50, 0.2);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* ===== MAIN ===== */
+        main {
+            position: relative;
+            z-index: 1;
+            max-width: 540px;
+            margin: 0 auto;
+            padding: 28px 20px 80px;
+        }
+
+        /* ===== DAILY BANNER ===== */
+        .daily-banner {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 20px 24px;
+            margin-bottom: 40px;
+            backdrop-filter: blur(8px);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .banner-title {
+            font-size: 0.95rem;
+            font-weight: 800;
+            color: var(--text-main);
+            margin-bottom: 12px;
+        }
+
+        .banner-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .banner-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .brow-icon {
+            font-size: 0.9rem;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .brow-kr {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-main);
+            font-family: 'Noto Sans KR', sans-serif;
+            line-height: 1.55;
+        }
+
+        .brow-vn {
+            font-size: 0.82rem;
+            color: var(--text-sub);
+            font-weight: 600;
+            line-height: 1.55;
+        }
+
+        /* ===== MAIN CATEGORIES ===== */
+        .cats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px 20px;
+            margin-bottom: 32px;
+        }
+
+        .cat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .cat-item:hover {
+            transform: translateY(-6px);
+        }
+
+        .cat-circle {
+            position: relative;
+            width: 96px;
+            height: 96px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--shadow-md);
+            transition: box-shadow 0.3s;
+        }
+
+        .cat-item:hover .cat-circle {
+            box-shadow: var(--shadow-lg);
+        }
+
+        .cat-circle.hangeul {
+            background: linear-gradient(145deg, #b3a4ef, #8b79de);
+        }
+
+        .cat-circle.tuvung {
+            background: linear-gradient(145deg, #5fd4b5, #3ab89a);
+        }
+
+        .cat-circle.nguphap {
+            background: linear-gradient(145deg, #ffce5b, #f5a623);
+        }
+
+        .cat-circle.hoidai {
+            background: linear-gradient(145deg, #ffb06b, #f07d35);
+        }
+
+        .cat-circle.hanhan {
+            background: linear-gradient(145deg, #ff9eaa, #f0607a);
+        }
+
+        .cat-circle.topik {
+            background: linear-gradient(145deg, #6ed6f5, #38b4de);
+        }
+
+        .cat-circle-icon {
+            font-size: 2rem;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .cat-circle-icon.kr {
+            font-family: 'Noto Sans KR', sans-serif;
+            font-size: 2.3rem;
+            font-weight: 900;
+        }
+
+        .cat-circle-icon.hanja {
+            font-family: 'Noto Serif', serif;
+            font-size: 2.1rem;
+            font-weight: 900;
+        }
+
+        .lv-badge {
+            position: absolute;
+            bottom: 2px;
+            right: 2px;
+            min-width: 28px;
+            height: 18px;
+            padding: 0 5px;
+            border-radius: 9px;
+            font-size: 0.62rem;
+            font-weight: 800;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid rgba(255, 255, 255, 0.9);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+        }
+
+        .lv-badge.purple {
+            background: #7c6ce0;
+        }
+
+        .lv-badge.teal {
+            background: #3ab89a;
+        }
+
+        .lv-badge.orange {
+            background: #f5a623;
+        }
+
+        .lv-badge.red {
+            background: #f0607a;
+        }
+
+        .lv-badge.pink {
+            background: #e05080;
+        }
+
+        .lv-badge.cyan {
+            background: #38b4de;
+        }
+
+        .cat-name {
+            font-size: 0.95rem;
+            font-weight: 800;
+            color: var(--text-main);
+            text-align: center;
+        }
+
+        .cat-item:hover .cat-name {
+            color: var(--purple);
+        }
+
+        .cat-count {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-align: center;
+            margin-top: -6px;
+        }
+
+        /* ===== SECONDARY CARDS ===== */
+        .secondary-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 14px;
+            margin-bottom: 40px;
+        }
+
+        .sec-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 16px 14px 14px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .sec-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .sec-icon-wrap {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            color: white;
+        }
+
+        .sec-icon-wrap.video {
+            background: linear-gradient(135deg, #4fc3e8, #2e90d0);
+        }
+
+        .sec-icon-wrap.ai {
+            background: linear-gradient(135deg, #a78bfa, #7c6ce0);
+        }
+
+        .sec-icon-wrap.game {
+            background: linear-gradient(135deg, #b39deb, #8b79de);
+        }
+
+        .sec-name {
+            font-size: 0.82rem;
+            font-weight: 800;
+            color: var(--text-main);
+            text-align: center;
+            line-height: 1.3;
+        }
+
+        .sec-sub {
+            font-size: 0.71rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-align: center;
+            margin-top: -4px;
+        }
+
+        /* ===== LEADERBOARD ===== */
+        .lb-title {
+            font-size: 1rem;
+            font-weight: 800;
+            color: var(--text-main);
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .lb-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 22px;
+        }
+
+        .lb-tab {
+            padding: 7px 18px;
+            border-radius: 50px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: inherit;
+            background: rgba(255, 255, 255, 0.55);
+            color: var(--text-sub);
+            border: 1px solid var(--border);
+            transition: all 0.25s;
+        }
+
+        .lb-tab.active {
+            background: var(--purple);
+            color: white;
+            border-color: var(--purple);
+            box-shadow: 0 4px 14px rgba(124, 108, 224, 0.35);
+        }
+
+        .lb-tab:hover:not(.active) {
+            background: var(--purple-light);
+            color: var(--purple);
+        }
+
+        .podium {
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .podium-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            flex: 1;
+            max-width: 100px;
+        }
+
+        .podium-avatar-wrap {
+            position: relative;
+        }
+
+        .podium-rank-icon {
+            position: absolute;
+            top: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 1rem;
+        }
+
+        .podium-avatar {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: white;
+            border: 3px solid white;
+            box-shadow: 0 4px 14px rgba(100, 80, 200, 0.18);
+        }
+
+        .p1 .podium-avatar {
+            background: linear-gradient(135deg, #b3a4ef, #7c6ce0);
+        }
+
+        .p2 .podium-avatar {
+            background: linear-gradient(135deg, #ffce5b, #f5a623);
+        }
+
+        .p3 .podium-avatar {
+            background: linear-gradient(135deg, #6ed6f5, #38b4de);
+        }
+
+        .podium-name {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--text-main);
+            text-align: center;
+            max-width: 80px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .podium-xp {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--text-sub);
+            display: flex;
+            align-items: center;
+            gap: 3px;
+        }
+
+        .podium-xp i {
+            color: #8b79de;
+            font-size: 0.65rem;
+        }
+
+        .lb-list {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .lb-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border-radius: 14px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .lb-row:hover {
+            background: rgba(124, 108, 224, 0.06);
+        }
+
+        .lb-rank {
+            width: 22px;
+            text-align: center;
+            font-size: 0.85rem;
+            font-weight: 800;
+            color: var(--text-muted);
+            flex-shrink: 0;
+        }
+
+        .lb-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.95rem;
+            font-weight: 800;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .lb-av-a {
+            background: linear-gradient(135deg, #a78bfa, #7c6ce0);
+        }
+
+        .lb-av-b {
+            background: linear-gradient(135deg, #5fd4b5, #3ab89a);
+        }
+
+        .lb-name {
+            flex: 1;
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .lb-score {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--text-sub);
+        }
+
+        .lb-score i {
+            color: #8b79de;
+            font-size: 0.72rem;
+        }
+
+        .lb-login-prompt {
+            margin-top: 16px;
+            text-align: center;
+        }
+
+        .btn-lb-login {
+            display: inline-block;
+            padding: 10px 28px;
+            background: linear-gradient(135deg, #8b79de, #6a58d0);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-family: inherit;
+            font-size: 0.85rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 16px rgba(124, 108, 224, 0.35);
+            transition: all 0.25s;
+            text-decoration: none;
+        }
+
+        .btn-lb-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(124, 108, 224, 0.45);
+        }
+
+        /* ===== MODAL OVERLAY ===== */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 200;
+            background: rgba(30, 20, 60, 0.45);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.28s, visibility 0.28s;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-box {
+            background: linear-gradient(150deg, rgba(255, 255, 255, 0.97), rgba(240, 235, 255, 0.98));
+            border: 1px solid rgba(180, 165, 230, 0.3);
+            border-radius: 28px;
+            padding: 36px 32px 32px;
+            width: 100%;
+            max-width: 420px;
+            position: relative;
+            box-shadow: 0 30px 80px rgba(80, 60, 160, 0.22);
+            transform: scale(0.94) translateY(12px);
+            transition: transform 0.32s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .modal-overlay.active .modal-box {
+            transform: scale(1) translateY(0);
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: rgba(120, 100, 200, 0.08);
+            border: none;
+            color: var(--text-sub);
+            font-size: 1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+
+        .modal-close:hover {
+            background: rgba(240, 60, 100, 0.12);
+            color: #e04;
+        }
+
+        .modal-title {
+            font-size: 1.35rem;
+            font-weight: 900;
+            color: var(--text-main);
+            margin-bottom: 8px;
+            text-align: center;
+        }
+
+        .modal-subtitle {
+            font-size: 0.82rem;
+            color: var(--text-sub);
+            text-align: center;
+            margin-bottom: 26px;
+            font-weight: 600;
+        }
+
+        /* Form elements */
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--text-sub);
+            margin-bottom: 6px;
+            letter-spacing: 0.02em;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 11px 14px;
+            background: rgba(255, 255, 255, 0.8);
+            border: 1.5px solid rgba(180, 165, 230, 0.35);
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 0.9rem;
+            color: var(--text-main);
+            outline: none;
+            transition: border-color 0.25s, box-shadow 0.25s;
+        }
+
+        .form-input:focus {
+            border-color: var(--purple);
+            box-shadow: 0 0 0 3px rgba(124, 108, 224, 0.12);
+        }
+
+        .form-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .p-error {
+            font-size: 0.73rem;
+            color: #e84;
+            font-weight: 700;
+            margin-top: 4px;
+            min-height: 16px;
+            display: block;
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 13px;
+            background: linear-gradient(135deg, #8b79de, #6a58d0);
+            border: none;
+            border-radius: 14px;
+            color: white;
+            font-family: inherit;
+            font-size: 0.95rem;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.25s;
+            margin-top: 4px;
+            box-shadow: 0 6px 20px rgba(124, 108, 224, 0.35);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 28px rgba(124, 108, 224, 0.45);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.65;
+            transform: none;
+            cursor: not-allowed;
+        }
+
+        .modal-switch {
+            text-align: center;
+            margin-top: 18px;
+            font-size: 0.82rem;
+            color: var(--text-sub);
+            font-weight: 600;
+        }
+
+        .modal-switch a {
+            color: var(--purple);
+            font-weight: 800;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .modal-switch a:hover {
+            text-decoration: underline;
+        }
+
+        /* Profile modal */
+        .profile-info-row {
+            display: flex;
+            align-items: center;
+            padding: 11px 0;
+            border-bottom: 1px solid rgba(180, 165, 230, 0.15);
+            font-size: 0.88rem;
+        }
+
+        .profile-info-row:last-child {
+            border-bottom: none;
+        }
+
+        .profile-info-label {
+            width: 120px;
+            font-weight: 700;
+            color: var(--text-sub);
+            flex-shrink: 0;
+        }
+
+        .profile-info-value {
+            color: var(--text-main);
+            font-weight: 600;
+        }
+
+        .profile-avatar-big {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #b3a4ef, #7c6ce0);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            font-weight: 900;
+            color: white;
+            margin: 0 auto 20px;
+            box-shadow: 0 6px 20px rgba(124, 108, 224, 0.3);
+            overflow: hidden;
+        }
+
+        .profile-avatar-big img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .btn-logout-full {
+            width: 100%;
+            padding: 11px;
+            margin-top: 20px;
+            background: rgba(240, 80, 80, 0.08);
+            border: 1.5px solid rgba(240, 80, 80, 0.25);
+            border-radius: 12px;
+            color: #c03;
+            font-family: inherit;
+            font-size: 0.88rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.25s;
+        }
+
+        .btn-logout-full:hover {
+            background: rgba(240, 80, 80, 0.14);
+        }
+
+        /* ===== TOAST ===== */
+        .practise-toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            z-index: 500;
+            padding: 12px 24px;
+            border-radius: 50px;
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: white;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+            opacity: 0;
+            transition: opacity 0.3s, transform 0.3s;
+            white-space: nowrap;
+        }
+
+        .practise-toast--show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .practise-toast--success {
+            background: linear-gradient(135deg, #5fd4b5, #3ab89a);
+        }
+
+        .practise-toast--info {
+            background: linear-gradient(135deg, #8b79de, #6a58d0);
+        }
+
+        .practise-toast--error {
+            background: linear-gradient(135deg, #ff9eaa, #e05);
+        }
+
+        /* ===== ANIMATIONS ===== */
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-18px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .daily-banner {
+            animation: fadeInDown 0.5s ease;
+        }
+
+        .cat-item {
+            animation: fadeInUp 0.5s ease both;
+        }
+
+        .cat-item:nth-child(1) {
+            animation-delay: 0.05s;
+        }
+
+        .cat-item:nth-child(2) {
+            animation-delay: 0.10s;
+        }
+
+        .cat-item:nth-child(3) {
+            animation-delay: 0.15s;
+        }
+
+        .cat-item:nth-child(4) {
+            animation-delay: 0.20s;
+        }
+
+        .cat-item:nth-child(5) {
+            animation-delay: 0.25s;
+        }
+
+        .cat-item:nth-child(6) {
+            animation-delay: 0.30s;
+        }
+
+        .secondary-row,
+        .leaderboard {
+            animation: fadeInUp 0.5s ease 0.35s both;
+        }
+
+        ::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(124, 108, 224, 0.25);
+            border-radius: 99px;
+        }
+
+        @media (max-width: 480px) {
+            .header {
+                padding: 0 14px;
+            }
+
+            main {
+                padding: 20px 14px 60px;
+            }
+
+            .cat-circle {
+                width: 80px;
+                height: 80px;
+            }
+
+            .user-display-name {
+                display: none;
+            }
+
+            .secondary-row {
+                gap: 10px;
+            }
+
+            .modal-box {
+                padding: 28px 20px 24px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- HEADER -->
+    <header class="header">
+        <div class="header-left">
+            <!-- GUEST: login button -->
+            <button id="hdr-btn-login" class="btn-login-hdr" onclick="openLoginModal()">Đăng nhập</button>
+
+            <!-- LOGGED IN: user block -->
+            <div id="hdr-user-block" class="user-block hidden">
+                <div id="hdr-avatar" class="user-avatar-btn" onclick="openProfileModal()"></div>
+                <span id="hdr-display-name" class="user-display-name"></span>
+                <button class="btn-logout" onclick="handleLogout()" title="Đăng xuất">
+                    <i class="fas fa-sign-out-alt"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="header-center">
+            <div class="logo-char">한</div>
+            <div class="logo-label">한류클래스</div>
+        </div>
+
+        <div class="header-right">
+            <div class="stat-pill">💎 <span id="stat-diamonds">0</span></div>
+            <div class="stat-pill">⭐ <span id="stat-xp">0</span></div>
+        </div>
+    </header>
+
+    <!-- MAIN -->
+    <main>
+
+        <!-- Daily banner -->
+        <div class="daily-banner">
+            <div class="banner-title">🇰🇷 Hôm nay cùng học nhé</div>
+            <div class="banner-row">
+                <span class="brow-icon">🎙️</span>
+                <div class="brow-kr">읽은 문장을 바로 말해보세요.<br>그게 가장 빠른 말하기 연습입니다.</div>
+            </div>
+            <div class="banner-row">
+                <span class="brow-icon">✏️</span>
+                <div class="brow-vn">Hãy nói lại ngay câu vừa nghe.<br>Đó là cách luyện nói nhanh nhất.</div>
+            </div>
+        </div>
+
+        <!-- Main 6 categories -->
+        <div class="cats-grid">
+            <a class="cat-item" href="#hangeul">
+                <div class="cat-circle hangeul">
+                    <div class="cat-circle-icon kr">ㄱ</div>
+                    <div class="lv-badge purple">Lv.1</div>
+                </div>
+                <div class="cat-name">Hangeul</div>
+                <div class="cat-count">644 thẻ</div>
+            </a>
+            <a class="cat-item" href="vocabulary.html" id="cat-vocab">
+                <div class="cat-circle tuvung">
+                    <div class="cat-circle-icon"><i class="fas fa-layer-group"></i></div>
+                    <div class="lv-badge teal">Lv.2</div>
+                </div>
+                <div class="cat-name">Từ vựng</div>
+                <div class="cat-count" id="vocab-word-count">...</div>
+            </a>
+            <a class="cat-item" href="#nguphap">
+                <div class="cat-circle nguphap">
+                    <div class="cat-circle-icon"><i class="fas fa-chalkboard"></i></div>
+                    <div class="lv-badge orange">Lv.3</div>
+                </div>
+                <div class="cat-name">Ngữ pháp</div>
+                <div class="cat-count">4,960 thẻ</div>
+            </a>
+            <a class="cat-item" href="#hoidai">
+                <div class="cat-circle hoidai">
+                    <div class="cat-circle-icon"><i class="fas fa-comments"></i></div>
+                    <div class="lv-badge red">Lv.4</div>
+                </div>
+                <div class="cat-name">Hội thoại</div>
+                <div class="cat-count">5,152 thẻ</div>
+            </a>
+            <a class="cat-item" href="#hanhan">
+                <div class="cat-circle hanhan">
+                    <div class="cat-circle-icon hanja">漢</div>
+                    <div class="lv-badge pink">Lv.5</div>
+                </div>
+                <div class="cat-name">Hán Hàn</div>
+                <div class="cat-count">6,743 thẻ</div>
+            </a>
+            <a class="cat-item" href="#topik">
+                <div class="cat-circle topik">
+                    <div class="cat-circle-icon"><i class="fas fa-bullseye"></i></div>
+                    <div class="lv-badge cyan">Lv.6</div>
+                </div>
+                <div class="cat-name">TOPIK</div>
+                <div class="cat-count">1,488 thẻ</div>
+            </a>
+        </div>
+
+        <!-- Secondary 3 cards -->
+        <div class="secondary-row">
+            <a class="sec-card" href="#video">
+                <div class="sec-icon-wrap video"><i class="fas fa-video"></i></div>
+                <div class="sec-name">Học qua video</div>
+                <div class="sec-sub">304 thẻ</div>
+            </a>
+            <a class="sec-card" href="#ai">
+                <div class="sec-icon-wrap ai"><i class="fas fa-microphone-alt"></i></div>
+                <div class="sec-name">Nói chuyện với AI</div>
+                <div class="sec-sub">Luyện nói</div>
+            </a>
+            <a class="sec-card" href="#game">
+                <div class="sec-icon-wrap game"><i class="fas fa-star-of-life"></i></div>
+                <div class="sec-name">Hanexel</div>
+                <div class="sec-sub">Trò chơi từ vựng</div>
+            </a>
+        </div>
+
+        <!-- Leaderboard -->
+        <div class="leaderboard">
+            <div class="lb-title">🏆 Bảng xếp hạng</div>
+            <div class="lb-tabs" id="lb-tabs">
+                <button class="lb-tab active" data-metric="diamonds">Kim cương</button>
+                <button class="lb-tab" data-metric="topik_score">TOPIK</button>
+                <button class="lb-tab" data-metric="xp">XP</button>
+            </div>
+            <div class="podium" id="lb-podium">
+                <!-- Render Top 3 via JS -->
+            </div>
+            <div class="lb-list" id="lb-list">
+                <!-- Render Top 4-10 via JS -->
+            </div>
+            <div class="lb-login-prompt" id="lb-login-prompt">
+                <button class="btn-lb-login" onclick="openLoginModal()">Đăng nhập để xem thứ hạng của bạn</button>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- ===== LOGIN MODAL ===== -->
+    <div id="login-modal" class="modal-overlay" onclick="if(event.target===this) closeLoginModal()">
+        <div class="modal-box">
+            <button class="modal-close" onclick="closeLoginModal()"><i class="fas fa-times"></i></button>
+            <div class="modal-title">Đăng nhập</div>
+            <div class="modal-subtitle">Chào mừng trở lại! Học tiếng Hàn nào 🇰🇷</div>
+            <form id="login-form">
+                <div class="form-group">
+                    <label class="form-label" for="login-email">Email</label>
+                    <input type="email" id="login-email" class="form-input" placeholder="example@email.com" required>
+                    <span class="p-error" id="login-error"></span>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="login-password">Mật khẩu</label>
+                    <input type="password" id="login-password" class="form-input" placeholder="••••••••" required>
+                </div>
+                <button type="submit" id="login-submit-btn" class="btn-primary">Đăng nhập</button>
+            </form>
+            <div class="modal-switch">
+                Chưa có tài khoản? <a onclick="openRegModal()">Đăng ký ngay</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== REGISTER MODAL ===== -->
+    <div id="reg-modal" class="modal-overlay" onclick="if(event.target===this) closeRegModal()">
+        <div class="modal-box">
+            <button class="modal-close" onclick="closeRegModal()"><i class="fas fa-times"></i></button>
+            <div class="modal-title">Đăng ký tài khoản</div>
+            <div class="modal-subtitle">Bắt đầu hành trình học tiếng Hàn 🌸</div>
+            <form id="reg-form">
+                <div class="form-group">
+                    <label class="form-label" for="reg-name">Tên hiển thị <small>(3–20 ký tự)</small></label>
+                    <input type="text" id="reg-name" class="form-input" placeholder="Nguyễn Văn A" minlength="3"
+                        maxlength="20" required>
+                    <span class="p-error" id="reg-name-error"></span>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="reg-email">Email</label>
+                    <input type="email" id="reg-email" class="form-input" placeholder="example@email.com" required>
+                    <span class="p-error" id="reg-email-error"></span>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="reg-phone">Số điện thoại</label>
+                    <input type="tel" id="reg-phone" class="form-input" placeholder="0912345678" required>
+                    <span class="p-error" id="reg-phone-error"></span>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="reg-password">Mật khẩu <small>(tối thiểu 6 ký tự)</small></label>
+                    <input type="password" id="reg-password" class="form-input" placeholder="••••••••" required>
+                    <span class="p-error" id="reg-pw-error"></span>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="reg-confirm">Nhập lại mật khẩu</label>
+                    <input type="password" id="reg-confirm" class="form-input" placeholder="••••••••" required>
+                    <span class="p-error" id="reg-cpw-error"></span>
+                </div>
+                <button type="submit" id="reg-submit-btn" class="btn-primary">Đăng ký</button>
+            </form>
+            <div class="modal-switch">
+                Đã có tài khoản? <a onclick="openLoginModal()">Đăng nhập</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== PROFILE MODAL ===== -->
+    <div id="profile-modal" class="modal-overlay" onclick="if(event.target===this) closeProfileModal()">
+        <div class="modal-box">
+            <button class="modal-close" onclick="closeProfileModal()"><i class="fas fa-times"></i></button>
+            <div class="profile-avatar-big" id="profile-avatar-big">?</div>
+            <div class="modal-title" id="profile-name" style="margin-bottom:4px"></div>
+            <div class="modal-subtitle" id="profile-role-badge" style="margin-bottom:20px"></div>
+            <div class="profile-info-row">
+                <span class="profile-info-label">📧 Email</span>
+                <span class="profile-info-value" id="profile-email"></span>
+            </div>
+            <div class="profile-info-row">
+                <span class="profile-info-label">📱 Điện thoại</span>
+                <span class="profile-info-value" id="profile-phone"></span>
+            </div>
+            <div class="profile-info-row">
+                <span class="profile-info-label">🏅 Vai trò</span>
+                <span class="profile-info-value" id="profile-role"></span>
+            </div>
+            <div class="profile-info-row">
+                <span class="profile-info-label">🔥 Streak</span>
+                <span class="profile-info-value" id="profile-streak"></span>
+            </div>
+            <button class="btn-logout-full" onclick="handleLogout(); closeProfileModal()">
+                <i class="fas fa-sign-out-alt"></i> Đăng xuất
+            </button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+        const sb = createClient(
+            'https://ktqdzlhvdkerjajffgfi.supabase.co',
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt0cWR6bGh2ZGtlcmphamZmZ2ZpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc2OTgxNTMsImV4cCI6MjA4MzI3NDE1M30.6xz0SVuj6x72VcLZyJpVtNMMWSmyOEtGhmKiVMu46xI'
+        );
+        async function updateVocabCount() {
+            const { count } = await sb
+                .from('vocabulary_words')
+                .select('*', { count: 'exact', head: true });
+            const el = document.getElementById('vocab-word-count');
+            if (el && count !== null) {
+                el.textContent = count.toLocaleString('vi-VN') + ' thẻ';
+            }
+        }
+        document.addEventListener('DOMContentLoaded', updateVocabCount);
+    </script>
+    <script type="module" src="js/auth.js"></script>
+    <script type="module" src="js/leaderboard.js"></script>
+</body>
+
+</html>
