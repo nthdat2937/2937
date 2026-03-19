@@ -524,7 +524,7 @@ async function playNextFavouritePlaylistSong() {
   await window.startFavouritePlaylist(favouritePlaylistState.songs, nextIndex);
 }
 
-window.startFavouritePlaylist = async function(songs, startIndex = 0) {
+window.startFavouritePlaylist = async function (songs, startIndex = 0) {
   if (!Array.isArray(songs) || !songs.length) {
     alert(ytText('favouritePlaylistEmpty', {}, 'Chưa có bài yêu thích để phát.'));
     return;
@@ -550,7 +550,7 @@ window.startFavouritePlaylist = async function(songs, startIndex = 0) {
   await searchYoutubeVideo(songName, artist, { playlistMode: true });
 };
 
-window.playFavouritePlaylistSongAtIndex = async function(index) {
+window.playFavouritePlaylistSongAtIndex = async function (index) {
   if (!favouritePlaylistState.songs.length) return;
   await window.startFavouritePlaylist(favouritePlaylistState.songs, index);
 };
@@ -1473,7 +1473,7 @@ async function audioVisual() {
   }
 
   const songName = normalizeString(document.getElementById("dTitle").textContent);
-  const targetUrl = `https://2937.vercel.app/TOOLS/music/index.html?data=${songName}`;
+  const targetUrl = `https://2937.vercel.app/tools/music/index.html?data=${songName}`;
   const lyricText = document.getElementById('dLyric');
   const lyricEmbed = document.getElementById('dLyricEmbed');
   const lyricDialog = document.getElementById('lyricDialog');
