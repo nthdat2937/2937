@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>한류클래스 — Luyện tập tiếng Hàn</title>
+    <title>HanCode — Luyện tập tiếng Hàn</title>
     <meta name="description" content="Luyện tập tiếng Hàn với Hangeul, Từ vựng, Ngữ pháp, Hội thoại, Hán Hàn và TOPIK.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -112,7 +112,7 @@
         }
 
         .logo-char {
-            font-size: 1.55rem;
+            font-size: 2rem;
             font-weight: 900;
             font-family: 'Noto Sans KR', sans-serif;
             background: linear-gradient(135deg, #8b79de 30%, #5fd4b5 100%);
@@ -123,7 +123,7 @@
         }
 
         .logo-label {
-            font-size: 0.6rem;
+            font-size: 1rem;
             font-weight: 700;
             color: var(--text-sub);
             letter-spacing: 0.04em;
@@ -257,6 +257,7 @@
             font-weight: 800;
             color: var(--text-main);
             margin-bottom: 12px;
+            text-align: center;
         }
 
         .banner-row {
@@ -264,6 +265,7 @@
             align-items: flex-start;
             gap: 8px;
             margin-bottom: 8px;
+            justify-content: center;
         }
 
         .banner-row:last-child {
@@ -601,11 +603,11 @@
         }
 
         .podium-name {
-            font-size: 0.72rem;
+            font-size: 1rem;
             font-weight: 700;
             color: var(--text-main);
             text-align: center;
-            max-width: 80px;
+            max-width: 100px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -784,7 +786,7 @@
         }
 
         .modal-title {
-            font-size: 1.35rem;
+            font-size: 2.35rem;
             font-weight: 900;
             color: var(--text-main);
             margin-bottom: 8px;
@@ -1092,6 +1094,133 @@
                 padding: 28px 20px 24px;
             }
         }
+
+        /* ===== FOOTER ===== */
+        .site-footer {
+            position: relative;
+            z-index: 1;
+            margin-top: 48px;
+            border-top: 1px solid var(--border);
+            background: rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(12px);
+            padding: 36px 24px 28px;
+        }
+
+        .footer-inner {
+            max-width: 720px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .footer-brand {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .footer-logo {
+            font-size: 3.35rem;
+            font-weight: 900;
+            font-family: 'Noto Sans KR', sans-serif;
+            background: linear-gradient(135deg, #8b79de 30%, #5fd4b5 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .footer-tagline {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            letter-spacing: 0.03em;
+        }
+
+        .footer-links {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .footer-link {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-sub);
+            text-decoration: none;
+            padding: 4px 10px;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+        .footer-link:hover {
+            color: var(--purple);
+            background: var(--purple-light);
+        }
+
+        .footer-dot {
+            width: 3px;
+            height: 3px;
+            border-radius: 50%;
+            background: var(--text-muted);
+        }
+
+        .footer-divider {
+            width: 100%;
+            height: 1px;
+            background: var(--border);
+        }
+
+        .footer-bottom {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            text-align: center;
+        }
+
+        .footer-copyright {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-muted);
+        }
+
+        .footer-copyright strong {
+            color: var(--text-sub);
+        }
+
+        .footer-disclaimer {
+            font-size: 0.98rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            line-height: 1.6;
+            max-width: 720px;
+            text-align: center;
+        }
+
+        .footer-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: var(--purple-light);
+            color: var(--purple);
+            font-size: 0.68rem;
+            font-weight: 800;
+            padding: 3px 10px;
+            border-radius: 20px;
+            letter-spacing: 0.04em;
+            margin-top: 2px;
+        }
+
+        @media (max-width: 480px) {
+            .site-footer {
+                padding: 28px 16px 24px;
+            }
+        }
     </style>
 </head>
 
@@ -1107,6 +1236,10 @@
             <div id="hdr-user-block" class="user-block hidden">
                 <div id="hdr-avatar" class="user-avatar-btn" onclick="openProfileModal()"></div>
                 <span id="hdr-display-name" class="user-display-name"></span>
+                <div class="stat-pill" onclick="if(window.checkStreak) window.checkStreak()" style="cursor: pointer;"
+                    title="Điểm danh hàng ngày">
+                    🔥 <span id="hdr-streak-count">0</span>
+                </div>
                 <button class="btn-logout" onclick="handleLogout()" title="Đăng xuất">
                     <i class="fas fa-sign-out-alt"></i>
                 </button>
@@ -1114,8 +1247,8 @@
         </div>
 
         <div class="header-center">
-            <div class="logo-char">한</div>
-            <div class="logo-label">한류클래스</div>
+            <div class="logo-char">HanCode</div>
+            <div class="logo-label">한코드</div>
         </div>
 
         <div class="header-right">
@@ -1129,7 +1262,9 @@
 
         <!-- Daily banner -->
         <div class="daily-banner">
-            <div class="banner-title">🇰🇷 Hôm nay cùng học nhé</div>
+            <div class="banner-title">🇰🇷 Học tiếng Hàn cùng HanCode
+            </div>
+            <hr style="color: gray; width: 100%;"><br>
             <div class="banner-row">
                 <span class="brow-icon">🎙️</span>
                 <div class="brow-kr">읽은 문장을 바로 말해보세요.<br>그게 가장 빠른 말하기 연습입니다.</div>
@@ -1148,7 +1283,7 @@
                     <div class="lv-badge purple">Lv.1</div>
                 </div>
                 <div class="cat-name">Hangeul</div>
-                <div class="cat-count">644 thẻ</div>
+                <div class="cat-count">Coming soon...</div>
             </a>
             <a class="cat-item" href="vocabulary.html" id="cat-vocab">
                 <div class="cat-circle tuvung">
@@ -1164,7 +1299,7 @@
                     <div class="lv-badge orange">Lv.3</div>
                 </div>
                 <div class="cat-name">Ngữ pháp</div>
-                <div class="cat-count">4,960 thẻ</div>
+                <div class="cat-count">Coming soon...</div>
             </a>
             <a class="cat-item" href="#hoidai">
                 <div class="cat-circle hoidai">
@@ -1172,7 +1307,7 @@
                     <div class="lv-badge red">Lv.4</div>
                 </div>
                 <div class="cat-name">Hội thoại</div>
-                <div class="cat-count">5,152 thẻ</div>
+                <div class="cat-count">Coming soon...</div>
             </a>
             <a class="cat-item" href="#hanhan">
                 <div class="cat-circle hanhan">
@@ -1180,7 +1315,7 @@
                     <div class="lv-badge pink">Lv.5</div>
                 </div>
                 <div class="cat-name">Hán Hàn</div>
-                <div class="cat-count">6,743 thẻ</div>
+                <div class="cat-count">Coming soon...</div>
             </a>
             <a class="cat-item" href="#topik">
                 <div class="cat-circle topik">
@@ -1188,7 +1323,7 @@
                     <div class="lv-badge cyan">Lv.6</div>
                 </div>
                 <div class="cat-name">TOPIK</div>
-                <div class="cat-count">1,488 thẻ</div>
+                <div class="cat-count">Coming soon...</div>
             </a>
         </div>
 
@@ -1345,6 +1480,48 @@
     </script>
     <script type="module" src="js/auth.js"></script>
     <script type="module" src="js/leaderboard.js"></script>
+
+    <!-- ===== FOOTER ===== -->
+    <footer class="site-footer">
+        <div class="footer-inner">
+
+            <div class="footer-brand">
+                <div class="footer-logo">HanCode</div>
+                <div class="footer-tagline">Nền tảng luyện tập tiếng Hàn dành cho người Việt</div>
+            </div>
+
+            <div class="footer-links">
+                <a href="index.html" class="footer-link"><i class="fas fa-home"></i> Trang chủ</a>
+                <div class="footer-dot"></div>
+                <a href="vocabulary.html" class="footer-link"><i class="fas fa-book-open"></i> Từ vựng</a>
+                <div class="footer-dot"></div>
+                <a href="#" class="footer-link"><i class="fas fa-envelope"></i> Liên hệ</a>
+                <div class="footer-dot"></div>
+                <a href="admin.html" class="footer-link"><i class="fas fa-shield-halved"></i> Admin</a>
+            </div>
+
+            <div class="footer-divider"></div>
+
+            <div class="footer-bottom">
+                <div class="footer-copyright">
+                    © <span id="footer-year"></span> <strong>HanCode</strong>. Bảo lưu mọi quyền.
+                </div>
+                <div class="footer-disclaimer">
+                    Nội dung từ vựng và ngữ pháp được biên soạn dựa trên giáo trình Yonsei.
+                    Trang web được xây dựng phục vụ mục đích học tập, phi thương mại.
+                </div>
+                <div class="footer-badge">
+                    <i class="fas fa-heart"></i> Created by <a href="#">nthdat</a>
+                </div>
+            </div>
+
+        </div>
+    </footer>
+
+    <script>
+        document.getElementById('footer-year').textContent = new Date().getFullYear();
+    </script>
+
 </body>
 
 </html>

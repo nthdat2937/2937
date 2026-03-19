@@ -1079,6 +1079,13 @@
                                     <option value="">-- Chọn chủ đề --</option>
                                 </select>
                             </div>
+                            <div class="form-group">
+                                <label>Cuốn sách</label>
+                                <select id="w-book" onchange="onWordTopicChange()">
+                                    <option value="듣기읽기">🎧 듣기읽기 (Nghe &amp; Đọc)</option>
+                                    <option value="어휘문법">✏️ 어휘문법 (Từ vựng &amp; Ngữ pháp)</option>
+                                </select>
+                            </div>
                             <div class="form-row">
                                 <div class="form-group">
                                     <label>Từ vựng (Tiếng Việt)</label>
@@ -1116,12 +1123,22 @@
                                     <option value="">-- Chọn chủ đề --</option>
                                 </select>
                             </div>
-                            <div class="form-group">
-                                <label>Thứ tự bắt đầu</label>
-                                <input type="text" id="b-order-start" class="input-auto" readonly
-                                    placeholder="Chọn chủ đề để tự động điền..." />
-                                <div class="order-hint"><i class="fas fa-wand-magic-sparkles"></i> Tự động nối tiếp từ
-                                    cuối trong chủ đề</div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Cuốn sách</label>
+                                    <select id="b-book" onchange="onBulkTopicChange()">
+                                        <option value="듣기읽기">🎧 듣기읽기 (Nghe &amp; Đọc)</option>
+                                        <option value="어휘문법">✏️ 어휘문법 (Từ vựng &amp; Ngữ pháp)</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Thứ tự bắt đầu</label>
+                                    <input type="text" id="b-order-start" class="input-auto" readonly
+                                        placeholder="Chọn chủ đề để tự động điền..." />
+                                    <div class="order-hint"><i class="fas fa-wand-magic-sparkles"></i> Tự động nối tiếp
+                                        từ
+                                        cuối trong chủ đề</div>
+                                </div>
                             </div>
                             <div class="form-group">
                                 <label>Danh sách từ vựng</label>
@@ -1341,12 +1358,13 @@
         }
 
         // Lấy order_index tiếp theo cho từ trong 1 topic
-        async function getNextWordOrder(topicId) {
+        async function getNextWordOrder(topicId, book = null) {
             if (!topicId) return 1;
-            const { data } = await supabase
+            let query = supabase
                 .from('vocabulary_words').select('order_index')
-                .eq('topic_id', parseInt(topicId))
-                .order('order_index', { ascending: false }).limit(1);
+                .eq('topic_id', parseInt(topicId));
+            if (book) query = query.eq('book', book);
+            const { data } = await query.order('order_index', { ascending: false }).limit(1);
             return (data?.[0]?.order_index ?? 0) + 1;
         }
 
@@ -1359,18 +1377,20 @@
         // Khi chọn chủ đề ở tab Thêm từ đơn
         window.onWordTopicChange = async () => {
             const topicId = $('w-topic').value;
+            const book = $('w-book')?.value;
             if (!topicId) { $('w-order').placeholder = 'Chọn chủ đề để tự động điền...'; return; }
             $('w-order').placeholder = '...';
-            const next = await getNextWordOrder(topicId);
+            const next = await getNextWordOrder(topicId, book);
             $('w-order').placeholder = `Tự động: ${next}`;
         };
 
         // Khi chọn chủ đề ở tab Hàng loạt
         window.onBulkTopicChange = async () => {
             const topicId = $('b-topic').value;
+            const book = $('b-book')?.value;
             if (!topicId) { $('b-order-start').placeholder = 'Chọn chủ đề để tự động điền...'; return; }
             $('b-order-start').placeholder = '...';
-            const next = await getNextWordOrder(topicId);
+            const next = await getNextWordOrder(topicId, book);
             $('b-order-start').placeholder = `Bắt đầu từ: ${next}`;
         };
 
@@ -1382,10 +1402,12 @@
         window.resetWordForm = () => {
             $('w-vn').value = ''; $('w-kr').value = ''; $('w-topic').value = '';
             $('w-order').placeholder = 'Chọn chủ đề để tự động điền...';
+            $('w-book').value = '듣기읽기';
         };
         window.resetBulkForm = () => {
             $('b-words').value = ''; $('b-topic').value = '';
             $('b-order-start').placeholder = 'Chọn chủ đề để tự động điền...';
+            $('b-book').value = '듣기읽기';
         };
 
         // ── Add Topic ──
@@ -1426,8 +1448,9 @@
 
             const orderIndex = await getNextWordOrder(topicId);
 
+            const book = $('w-book').value;
             const { error } = await supabase.from('vocabulary_words').insert([{
-                topic_id: parseInt(topicId), word_vn: vn, word_kr: kr, order_index: orderIndex
+                topic_id: parseInt(topicId), word_vn: vn, word_kr: kr, order_index: orderIndex, book
             }]);
 
             btn.disabled = false; btn.innerHTML = '<i class="fas fa-plus"></i> Thêm từ vựng';
@@ -1467,8 +1490,9 @@
 
             const startOrder = await getNextWordOrder(topicId);
 
+            const book = $('b-book').value;
             const insertRows = rows.map((r, i) => ({
-                topic_id: parseInt(topicId), word_vn: r.vn, word_kr: r.kr, order_index: startOrder + i
+                topic_id: parseInt(topicId), word_vn: r.vn, word_kr: r.kr, order_index: startOrder + i, book
             }));
 
             const { error } = await supabase.from('vocabulary_words').insert(insertRows);

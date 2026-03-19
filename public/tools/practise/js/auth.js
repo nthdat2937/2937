@@ -25,6 +25,88 @@ export function showToast(msg, type = 'info') {
 function setError(id, msg) { const el = $(id); if (el) el.textContent = msg; }
 function clearErrors(formId) { document.querySelectorAll(`#${formId} .p-error`).forEach(e => e.textContent = ''); }
 
+function getVietnamDate() {
+  const now = new Date();
+  const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+  const vnTime = new Date(utc + (3600000 * 7));
+  return vnTime.toISOString().split('T')[0]; 
+}
+
+function daysDifference(date1, date2) {
+  const d1 = new Date(date1);
+  const d2 = new Date(date2);
+  if (isNaN(d1.getTime()) || isNaN(d2.getTime())) return 0;
+  const diffTime = Math.abs(d2 - d1);
+  return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+}
+
+window.checkStreak = async function(silent = false) {
+  if (!currentUser) return;
+
+  try {
+    const { data: profile, error: fetchError } = await supabase
+      .from('profiles')
+      .select('Streak, "Ngày cuối"')
+      .eq('id', currentUser.id)
+      .single();
+
+    if (fetchError) throw fetchError;
+
+    const today = getVietnamDate();
+    const lastDate = profile['Ngày cuối'];
+    let currentStreak = profile.Streak || 0;
+
+    if (!lastDate) {
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ Streak: 1, 'Ngày cuối': today })
+        .eq('id', currentUser.id);
+
+      if (updateError) throw updateError;
+      if (!silent) alert('🎉 Chúc mừng!\nBạn đã bắt đầu streak!\n\n🔥 Streak hiện tại: 1 ngày');
+      currentProfile.Streak = 1;
+      currentProfile['Ngày cuối'] = today;
+      updateAuthUI();
+      return;
+    }
+
+    if (lastDate === today) {
+      if (!silent) alert(`✅ Bạn đã điểm danh hôm nay rồi!\n\n🔥 Streak hiện tại: ${currentStreak} ngày\n💪 Hãy quay lại vào ngày mai!`);
+      return;
+    }
+
+    const daysDiff = daysDifference(lastDate, today);
+
+    if (daysDiff === 1) {
+      const newStreak = currentStreak + 1;
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ Streak: newStreak, 'Ngày cuối': today })
+        .eq('id', currentUser.id);
+
+      if (updateError) throw updateError;
+      if (!silent) alert(`🎉 Điểm danh thành công!\n\n🔥 Streak mới: ${newStreak} ngày\n⭐ Tiếp tục phát huy!`);
+      currentProfile.Streak = newStreak;
+      currentProfile['Ngày cuối'] = today;
+      updateAuthUI();
+    } else {
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ Streak: 1, 'Ngày cuối': today })
+        .eq('id', currentUser.id);
+
+      if (updateError) throw updateError;
+      if (!silent) alert(`😢 Rất tiếc!\nBạn đã bỏ lỡ ${daysDiff - 1} ngày.\n\nStreak đã được reset về 1.\n💪 Hãy cố gắng duy trì streak mới!`);
+      currentProfile.Streak = 1;
+      currentProfile['Ngày cuối'] = today;
+      updateAuthUI();
+    }
+  } catch (error) {
+    console.error('Lỗi khi cập nhật streak:', error);
+    if (!silent) showToast('Không thể cập nhật streak: ' + error.message, 'error');
+  }
+};
+
 export function updateAuthUI() {
   const hasUser = !!currentUser;
   const hasProfile = !!currentProfile;
@@ -47,6 +129,9 @@ export function updateAuthUI() {
       : `<span>${initial}</span>`;
   }
 
+  const streakEl = $('hdr-streak-count');
+  if (streakEl) streakEl.textContent = currentProfile?.Streak || 0;
+
   if (hasProfile) {
     const lb = currentProfile.leaderboard_stats || { diamonds: 0, xp: 0 };
     const dEl = $('stat-diamonds'); const xEl = $('stat-xp');
@@ -66,6 +151,7 @@ async function loadProfile(userId) {
       currentProfile = profile ? { ...profile, leaderboard_stats: lb } : null;
       window.currentUserProfile = currentProfile;
       updateAuthUI();
+      if (currentProfile) window.checkStreak(true); // Silent check on load
       window.dispatchEvent(new CustomEvent('auth-changed', { detail: { user: currentUser, profile: currentProfile } }));
     } catch (err) {
       console.error("AUTH: loadProfile error:", err);
