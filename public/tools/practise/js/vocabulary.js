@@ -30,7 +30,7 @@ let voiceObj = null;
 
 // ──────────── Utilities ────────────
 function setView(mode) {
-  ['view-books', 'view-topics', 'view-words', 'view-matching', 'view-rain'].forEach(id => {
+  ['view-books', 'view-topics', 'view-words', 'view-matching', 'view-rain', 'view-mcq', 'view-listen'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.classList.remove('active');
   });
@@ -52,6 +52,20 @@ function setView(mode) {
     navProgress().classList.add('hidden');
     btnGlobalBack().href = "javascript:void(0)";
     btnGlobalBack().onclick = (e) => { e.preventDefault(); setView('topics'); };
+  } else if (mode === 'mcq') {
+    document.getElementById('view-mcq')?.classList.add('active');
+    navProgress().classList.add('hidden');
+    btnGlobalBack().href = "javascript:void(0)";
+    btnGlobalBack().onclick = (e) => { e.preventDefault(); setView('topics'); };
+  } else if (mode === 'listen') {
+    document.getElementById('view-listen')?.classList.add('active');
+    navProgress().classList.add('hidden');
+    btnGlobalBack().href = "javascript:void(0)";
+    btnGlobalBack().onclick = (e) => {
+      e.preventDefault();
+      window.speechSynthesis?.cancel();
+      setView('topics');
+    };
   } else if (mode === 'rain') {
     document.getElementById('view-rain')?.classList.add('active');
     navProgress().classList.add('hidden');
@@ -330,7 +344,7 @@ window.applyCoupon = async () => {
     .eq('id', coupon.id);
 
   if (input) input.value = '';
-  showToast(`🎉 Mở khóa thành công ${topicIds.length} chủ đề!`, 'success');
+  showToast(`🎉 Mở khóa thành công ${topicIds.length} chủ đề! \nLượt dùng còn: ${coupon.max_uses - (coupon.used_count + 1)} / ${coupon.max_uses}`, 'success');
 
   // Reload topics ngay, không cần delay
   await loadTopics();
@@ -366,6 +380,14 @@ window.startGame = async (mode) => {
     setView('matching');
     await loadWords(pendingTopicId, true);
     renderMatching();
+  } else if (mode === 'mcq') {
+    setView('mcq');
+    await loadWords(pendingTopicId, true);
+    renderMCQ();
+  } else if (mode === 'listen') {
+    setView('listen');
+    await loadWords(pendingTopicId, true);
+    renderListen();
   } else {
     setView('words');
     await loadWords(pendingTopicId);
@@ -898,9 +920,15 @@ function rainInit() {
     </div>
   `;
 
-  document.addEventListener('focusin', e => {
-    if (e.target.id === 'rain-input' && window.KBD) KBD.open(e.target);
-  });
+  // Fix: Chỉ gắn listener một lần duy nhất (tránh duplicate mỗi lần rainInit)
+  if (!window._rainKbdListenerAttached) {
+    window._rainKbdListenerAttached = true;
+    document.addEventListener('focusin', e => {
+      if (e.target.id === 'rain-input' && window.KBD && window.KBD.isEnabled && window.KBD.isEnabled()) {
+        KBD.open(e.target);
+      }
+    });
+  }
 }
 
 window.rainStart = () => {
@@ -1112,3 +1140,307 @@ function rainGameOver(isDead) {
   `;
   container.appendChild(el);
 }
+
+// ──────────── MCQ Game (Trắc nghiệm 4 đáp án) ────────────
+let mcqState = {
+  pool: [],
+  current: 0,
+  correct: 0,
+  wrong: 0,
+  answered: false,
+};
+
+function renderMCQ() {
+  mcqState.pool = shuffle([...currentWords]);
+  mcqState.current = 0;
+  mcqState.correct = 0;
+  mcqState.wrong = 0;
+  mcqState.answered = false;
+
+  const area = document.getElementById('mcq-area');
+  if (!area) return;
+  mcqNextQuestion(area);
+}
+
+function mcqNextQuestion(area) {
+  const s = mcqState;
+  if (!area) area = document.getElementById('mcq-area');
+  if (!area) return;
+
+  if (s.current >= s.pool.length) {
+    mcqDone(area); return;
+  }
+
+  const word = s.pool[s.current];
+  s.answered = false;
+
+  // Tạo 3 distractor từ các từ khác trong pool (loại trừ từ hiện tại)
+  const others = s.pool.filter((_, i) => i !== s.current);
+  const distractors = shuffle(others).slice(0, 3).map(w => w.word_vn);
+  const choices = shuffle([word.word_vn, ...distractors]);
+
+  const progressPct = Math.round((s.current / s.pool.length) * 100);
+
+  area.innerHTML = `
+    <div class="mcq-meta">
+      <span class="mcq-badge">Câu ${s.current + 1}/${s.pool.length}</span>
+      <span class="mcq-score-text">✅ ${s.correct} &nbsp;❌ ${s.wrong}</span>
+    </div>
+    <div class="mcq-progress-bar"><div class="mcq-progress-fill" style="width:${progressPct}%"></div></div>
+    <div class="mcq-question-card">
+      <div class="mcq-lang-label">tiếng hàn</div>
+      <div class="mcq-question-kr">${word.word_kr}</div>
+      <button class="mcq-audio-btn" onclick="playAudio('${word.word_kr}')" title="Nghe phát âm">
+        <i class="fas fa-volume-up"></i>
+      </button>
+    </div>
+    <div class="mcq-prompt">Chọn nghĩa tiếng Việt đúng:</div>
+    <div class="mcq-choices" id="mcq-choices">
+      ${choices.map((c, i) => `
+        <button class="mcq-choice" id="mcq-c${i}" onclick="mcqSelect(${i}, '${c.replace(/'/g, "\\'")}', '${word.word_vn.replace(/'/g, "\\'")}')">${c}</button>
+      `).join('')}
+    </div>
+  `;
+}
+
+window.mcqSelect = (idx, chosen, correct) => {
+  if (mcqState.answered) return;
+  mcqState.answered = true;
+
+  const isCorrect = chosen === correct;
+  if (isCorrect) mcqState.correct++; else mcqState.wrong++;
+
+  // Highlight đáp án
+  document.querySelectorAll('.mcq-choice').forEach(btn => {
+    btn.disabled = true;
+    if (btn.textContent.trim() === correct) {
+      btn.classList.add('mcq-correct');
+    } else if (btn.id === `mcq-c${idx}` && !isCorrect) {
+      btn.classList.add('mcq-wrong');
+    }
+  });
+
+  if (isCorrect) {
+    // Hiệu ứng đúng + tự động qua câu tiếp
+    showRewardPopup(2, 1);
+    setTimeout(() => {
+      mcqState.current++;
+      mcqNextQuestion();
+    }, 900);
+  } else {
+    // Sai: hiện nút "Tiếp tục"
+    const area = document.getElementById('mcq-area');
+    if (area) {
+      const nextBtn = document.createElement('button');
+      nextBtn.className = 'mcq-next-btn';
+      nextBtn.innerHTML = 'Tiếp tục →';
+      nextBtn.onclick = () => { mcqState.current++; mcqNextQuestion(); };
+      area.appendChild(nextBtn);
+    }
+  }
+};
+
+function mcqDone(area) {
+  if (!area) area = document.getElementById('mcq-area');
+  if (!area) return;
+  const total = mcqState.pool.length;
+  const rate = mcqState.correct / total;
+  const stars = rate >= 0.9 ? '⭐⭐⭐' : rate >= 0.6 ? '⭐⭐' : '⭐';
+  area.innerHTML = `
+    <div class="match-done">
+      <div class="match-done-stars">${stars}</div>
+      <div class="match-done-title">Hoàn thành!</div>
+      <div class="match-done-sub">
+        ✅ Đúng: <strong>${mcqState.correct}/${total}</strong> &nbsp;·&nbsp;
+        ❌ Sai: <strong>${mcqState.wrong}</strong>
+      </div>
+      <button class="match-restart-btn" onclick="renderMCQ()">🔄 Chơi lại</button>
+    </div>
+  `;
+  rewardUser(mcqState.correct * 2, mcqState.correct);
+}
+
+window.renderMCQ = renderMCQ;
+
+// ──────────── Listen & Type Game (Nghe & Gõ) ────────────
+let listenState = {
+  pool: [],
+  current: 0,
+  correct: 0,
+  wrong: 0,
+  hintUsed: false,
+};
+
+function renderListen() {
+  listenState.pool = shuffle([...currentWords]);
+  listenState.current = 0;
+  listenState.correct = 0;
+  listenState.wrong = 0;
+
+  const area = document.getElementById('listen-area');
+  if (!area) return;
+  listenNextQuestion(area);
+}
+
+function listenNextQuestion(area) {
+  const s = listenState;
+  if (!area) area = document.getElementById('listen-area');
+  if (!area) return;
+
+  if (s.current >= s.pool.length) {
+    listenDone(area); return;
+  }
+
+  const word = s.pool[s.current];
+  s.hintUsed = false;
+  const progressPct = Math.round((s.current / s.pool.length) * 100);
+
+  // Auto-play TTS khi chuyển câu
+  setTimeout(() => playAudio(word.word_kr), 200);
+
+  area.innerHTML = `
+    <div class="mcq-meta">
+      <span class="mcq-badge">Câu ${s.current + 1}/${s.pool.length}</span>
+      <span class="mcq-score-text">✅ ${s.correct} &nbsp;❌ ${s.wrong}</span>
+    </div>
+    <div class="mcq-progress-bar"><div class="mcq-progress-fill" style="width:${progressPct}%"></div></div>
+
+    <div class="listen-card">
+      <div class="listen-wave" id="listen-wave">
+        <span></span><span></span><span></span><span></span><span></span>
+      </div>
+      <div class="listen-vn-hint">${word.word_vn}</div>
+      <div class="listen-btns">
+        <button class="listen-play-btn" onclick="playAudio('${word.word_kr}')">
+          <i class="fas fa-volume-up"></i> Nghe lại
+        </button>
+        <button class="listen-play-btn listen-slow-btn" onclick="listenPlaySlow('${word.word_kr}')">
+          <i class="fas fa-volume-down"></i> Chậm
+        </button>
+      </div>
+    </div>
+
+    <div class="listen-hint-wrap" id="listen-hint-wrap"></div>
+
+    <div class="listen-input-wrap">
+      <input type="text" id="listen-input" class="word-kr-input listen-input-el"
+             placeholder="Gõ tiếng Hàn bạn vừa nghe..."
+             inputmode="none"
+             autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+             onkeydown="if(event.key==='Enter') listenSubmit()" />
+      <div class="listen-action-row">
+        <button class="listen-hint-btn" onclick="listenShowHint('${word.word_kr.replace(/'/g, "\\'")}')">
+          💡 Gợi ý (-1 XP)
+        </button>
+        <button class="listen-submit-btn" onclick="listenSubmit()">Kiểm tra →</button>
+      </div>
+    </div>
+  `;
+
+  // Mở KBD cho ô nhập
+  setTimeout(() => {
+    const inp = document.getElementById('listen-input');
+    if (inp && window.KBD && window.KBD.isEnabled && window.KBD.isEnabled()) {
+      KBD.open(inp);
+    }
+  }, 300);
+
+  // Wave animation khi đang phát âm
+  activateWave(word.word_kr);
+}
+
+function activateWave(kr) {
+  const wave = document.getElementById('listen-wave');
+  if (!wave) return;
+  wave.classList.add('playing');
+  // Tắt sau khi âm thanh ước tính xong (~2s)
+  setTimeout(() => wave?.classList.remove('playing'), 2200);
+}
+
+window.listenPlaySlow = (kr) => {
+  const synth = window.speechSynthesis;
+  if (!synth) return;
+  synth.cancel();
+  setTimeout(() => {
+    const utt = new SpeechSynthesisUtterance(kr);
+    utt.lang = 'ko-KR'; utt.rate = 0.55; utt.pitch = 1.0; utt.volume = 1.0;
+    if (window.voiceObj) utt.voice = window.voiceObj;
+    synth.speak(utt);
+    activateWave(kr);
+  }, 50);
+};
+
+window.listenShowHint = (kr) => {
+  if (listenState.hintUsed) return;
+  listenState.hintUsed = true;
+  const hintWrap = document.getElementById('listen-hint-wrap');
+  if (!hintWrap) return;
+
+  // Hiện 50% chữ cái đầu, che phần còn lại bằng _
+  const chars = [...kr];
+  const showCount = Math.max(1, Math.ceil(chars.length / 2));
+  const hint = chars.map((c, i) => i < showCount ? `<span class="hint-shown">${c}</span>` : `<span class="hint-hidden">＿</span>`).join('');
+  hintWrap.innerHTML = `<div class="listen-hint-box">💡 ${hint}</div>`;
+
+  // Trừ 1 XP nhẹ (không trừ diamonds)
+  const xEl = document.getElementById('stat-xp');
+  if (xEl) {
+    const cur = parseInt(xEl.textContent) || 0;
+    if (cur > 0) xEl.textContent = cur - 1;
+  }
+};
+
+window.listenSubmit = () => {
+  const s = listenState;
+  const input = document.getElementById('listen-input');
+  if (!input || input.readOnly) return;
+  const val = input.value.trim();
+  if (!val) return;
+
+  const word = s.pool[s.current];
+  const isCorrect = val === word.word_kr;
+
+  input.readOnly = true;
+  input.classList.add(isCorrect ? 'success' : 'error');
+  if (!isCorrect) input.value = word.word_kr; // Hiện đáp án đúng
+
+  if (isCorrect) {
+    s.correct++;
+    const bonus = s.hintUsed ? 1 : 2;
+    rewardUser(bonus, bonus);
+    setTimeout(() => { s.current++; listenNextQuestion(); }, 900);
+  } else {
+    s.wrong++;
+    const area = document.getElementById('listen-area');
+    if (area) {
+      const nextBtn = document.createElement('button');
+      nextBtn.className = 'mcq-next-btn';
+      nextBtn.innerHTML = 'Tiếp tục →';
+      nextBtn.onclick = () => { s.current++; listenNextQuestion(); };
+      area.appendChild(nextBtn);
+    }
+  }
+};
+
+function listenDone(area) {
+  if (!area) area = document.getElementById('listen-area');
+  if (!area) return;
+  window.speechSynthesis?.cancel();
+  const total = listenState.pool.length;
+  const rate = listenState.correct / total;
+  const stars = rate >= 0.9 ? '⭐⭐⭐' : rate >= 0.6 ? '⭐⭐' : '⭐';
+  area.innerHTML = `
+    <div class="match-done">
+      <div class="match-done-stars">${stars}</div>
+      <div class="match-done-title">Hoàn thành!</div>
+      <div class="match-done-sub">
+        ✅ Đúng: <strong>${listenState.correct}/${total}</strong> &nbsp;·&nbsp;
+        ❌ Sai: <strong>${listenState.wrong}</strong>
+      </div>
+      <button class="match-restart-btn" onclick="renderListen()">🔄 Chơi lại</button>
+    </div>
+  `;
+  rewardUser(listenState.correct * 2, listenState.correct);
+}
+
+window.renderListen = renderListen;

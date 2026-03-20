@@ -1341,7 +1341,7 @@
                 .order('order_index', { ascending: true });
             if (error) { showToast('Lỗi tải chủ đề: ' + error.message, 'error'); return; }
             topicsCache = data || [];
-            const opts = topicsCache.map(t => `<option value="${t.id}">${t.title_vn} — ${t.title_kr}</option>`).join('');
+            const opts = topicsCache.map(t => `<option value="${t.id}">${t.id}. ${t.title_vn} — ${t.title_kr}</option>`).join('');
             const ph = '<option value="">-- Chọn chủ đề --</option>';
             $('w-topic').innerHTML = ph + opts;
             $('b-topic').innerHTML = ph + opts;

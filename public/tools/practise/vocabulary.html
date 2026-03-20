@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>한류클래스 — Từ vựng theo chủ đề</title>
+    <title>한코드 — Từ vựng theo chủ đề</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
@@ -1728,6 +1728,374 @@
         .btn-kb-toggle.kb-toggle-on .kb-toggle-dot {
             background: rgba(255, 255, 255, 0.8);
         }
+
+        /* ===== MCQ GAME ===== */
+        .mcq-area {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            width: 100%;
+        }
+
+        .mcq-meta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .mcq-badge {
+            font-size: 0.75rem;
+            font-weight: 800;
+            color: var(--purple);
+            background: var(--purple-light);
+            padding: 4px 12px;
+            border-radius: 20px;
+        }
+
+        .mcq-score-text {
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: var(--text-muted);
+        }
+
+        .mcq-progress-bar {
+            width: 100%;
+            height: 6px;
+            background: var(--border);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .mcq-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #7c6ce0, #3ab89a);
+            border-radius: 3px;
+            transition: width 0.4s ease;
+        }
+
+        .mcq-question-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 28px 20px 20px;
+            text-align: center;
+            box-shadow: var(--shadow-sm);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .mcq-lang-label {
+            font-size: 0.65rem;
+            font-weight: 900;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+        }
+
+        .mcq-question-kr {
+            font-family: 'Noto Sans KR', sans-serif;
+            font-size: 2rem;
+            font-weight: 900;
+            color: var(--text-main);
+            line-height: 1.2;
+        }
+
+        .mcq-audio-btn {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            border: none;
+            background: var(--bg);
+            color: var(--text-sub);
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 4px;
+        }
+
+        .mcq-audio-btn:hover {
+            background: var(--purple-light);
+            color: var(--purple);
+        }
+
+        .mcq-prompt {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--text-sub);
+            text-align: center;
+        }
+
+        .mcq-choices {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .mcq-choice {
+            padding: 16px 12px;
+            background: white;
+            border: 2px solid var(--border);
+            border-radius: 14px;
+            font-family: inherit;
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: var(--text-main);
+            cursor: pointer;
+            transition: all 0.18s;
+            text-align: center;
+            box-shadow: var(--shadow-sm);
+            line-height: 1.3;
+        }
+
+        .mcq-choice:hover:not(:disabled) {
+            border-color: var(--purple);
+            background: var(--purple-light);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .mcq-choice.mcq-correct {
+            border-color: var(--green) !important;
+            background: var(--green-light) !important;
+            color: #1a6b58 !important;
+        }
+
+        .mcq-choice.mcq-wrong {
+            border-color: #f0607a !important;
+            background: #fff0f2 !important;
+            color: #c03 !important;
+            animation: shake 0.38s ease;
+        }
+
+        .mcq-next-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #8b79de, #6a58d0);
+            border: none;
+            border-radius: 14px;
+            color: white;
+            font-family: inherit;
+            font-size: 0.95rem;
+            font-weight: 800;
+            cursor: pointer;
+            margin-top: 4px;
+            box-shadow: 0 6px 20px rgba(124, 108, 224, 0.35);
+            transition: all 0.2s;
+        }
+
+        .mcq-next-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 28px rgba(124, 108, 224, 0.45);
+        }
+
+        /* ===== LISTEN & TYPE GAME ===== */
+        .listen-area {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            width: 100%;
+        }
+
+        .listen-card {
+            background: linear-gradient(145deg, #1a1a3e, #16213e);
+            border-radius: 22px;
+            padding: 32px 24px 24px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 14px;
+            box-shadow: 0 8px 32px rgba(30, 20, 80, 0.25);
+        }
+
+        /* Sound wave animation */
+        .listen-wave {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            height: 40px;
+        }
+
+        .listen-wave span {
+            display: inline-block;
+            width: 5px;
+            border-radius: 3px;
+            background: rgba(124, 108, 224, 0.35);
+            height: 8px;
+            transition: background 0.3s;
+        }
+
+        .listen-wave.playing span {
+            background: var(--purple);
+            animation: waveBar 0.8s ease-in-out infinite;
+        }
+
+        .listen-wave.playing span:nth-child(1) {
+            animation-delay: 0s;
+            animation-duration: 0.9s;
+        }
+
+        .listen-wave.playing span:nth-child(2) {
+            animation-delay: 0.15s;
+            animation-duration: 0.7s;
+        }
+
+        .listen-wave.playing span:nth-child(3) {
+            animation-delay: 0.05s;
+            animation-duration: 1.0s;
+        }
+
+        .listen-wave.playing span:nth-child(4) {
+            animation-delay: 0.22s;
+            animation-duration: 0.75s;
+        }
+
+        .listen-wave.playing span:nth-child(5) {
+            animation-delay: 0.1s;
+            animation-duration: 0.85s;
+        }
+
+        @keyframes waveBar {
+
+            0%,
+            100% {
+                height: 8px;
+            }
+
+            50% {
+                height: 32px;
+            }
+        }
+
+        .listen-vn-hint {
+            font-size: 1rem;
+            font-weight: 800;
+            color: rgba(255, 255, 255, 0.85);
+            background: rgba(255, 255, 255, 0.08);
+            padding: 8px 20px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+        }
+
+        .listen-btns {
+            display: flex;
+            gap: 10px;
+        }
+
+        .listen-play-btn {
+            padding: 9px 18px;
+            border-radius: 12px;
+            border: none;
+            font-family: inherit;
+            font-size: 0.82rem;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: rgba(124, 108, 224, 0.25);
+            color: #c4b8ff;
+            border: 1px solid rgba(124, 108, 224, 0.3);
+        }
+
+        .listen-play-btn:hover {
+            background: rgba(124, 108, 224, 0.45);
+            transform: translateY(-1px);
+        }
+
+        .listen-slow-btn {
+            background: rgba(58, 184, 154, 0.2);
+            color: #7ee8d0;
+            border-color: rgba(58, 184, 154, 0.3);
+        }
+
+        .listen-slow-btn:hover {
+            background: rgba(58, 184, 154, 0.35);
+        }
+
+        .listen-hint-wrap {
+            min-height: 0;
+        }
+
+        .listen-hint-box {
+            background: rgba(255, 200, 80, 0.1);
+            border: 1px solid rgba(255, 200, 80, 0.25);
+            border-radius: 12px;
+            padding: 10px 16px;
+            font-family: 'Noto Sans KR', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+            text-align: center;
+            letter-spacing: 0.06em;
+        }
+
+        .hint-shown {
+            color: var(--text-main);
+        }
+
+        .hint-hidden {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        .listen-input-wrap {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .listen-input-el {
+            font-size: 1.05rem !important;
+            padding: 13px 16px !important;
+        }
+
+        .listen-action-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        .listen-hint-btn {
+            flex: 1;
+            padding: 12px;
+            background: rgba(255, 200, 80, 0.1);
+            border: 1.5px solid rgba(255, 200, 80, 0.3);
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: #a07828;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .listen-hint-btn:hover {
+            background: rgba(255, 200, 80, 0.2);
+        }
+
+        .listen-submit-btn {
+            flex: 2;
+            padding: 12px;
+            background: linear-gradient(135deg, #8b79de, #6a58d0);
+            border: none;
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 0.9rem;
+            font-weight: 800;
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 4px 14px rgba(124, 108, 224, 0.35);
+            transition: all 0.2s;
+        }
+
+        .listen-submit-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 20px rgba(124, 108, 224, 0.45);
+        }
     </style>
 </head>
 
@@ -1833,6 +2201,20 @@
             <div id="rain-container"></div>
         </div>
 
+        <!-- View 5: Trắc nghiệm MCQ -->
+        <div id="view-mcq" class="view-section">
+            <div class="mcq-area" id="mcq-area">
+                <div class="loader"><i class="fas fa-circle-notch fa-spin"></i> Đang tải...</div>
+            </div>
+        </div>
+
+        <!-- View 6: Nghe & Gõ -->
+        <div id="view-listen" class="view-section">
+            <div class="listen-area" id="listen-area">
+                <div class="loader"><i class="fas fa-circle-notch fa-spin"></i> Đang tải...</div>
+            </div>
+        </div>
+
     </main>
 
     <!-- ===== GAME PICKER MODAL ===== -->
@@ -1850,6 +2232,16 @@
                     <div class="game-card-icon teal">🎯</div>
                     <div class="game-card-name">Ghép thẻ</div>
                     <div class="game-card-desc">Ghép thẻ tiếng Hàn<br>với nghĩa tiếng Việt</div>
+                </div>
+                <div class="game-card" onclick="startGame('mcq')">
+                    <div class="game-card-icon" style="background:#e8f5e9;font-size:1.5rem">❓</div>
+                    <div class="game-card-name">Trắc nghiệm</div>
+                    <div class="game-card-desc">Chọn nghĩa đúng trong<br>4 đáp án</div>
+                </div>
+                <div class="game-card" onclick="startGame('listen')">
+                    <div class="game-card-icon" style="background:#fce4ec;font-size:1.5rem">🎧</div>
+                    <div class="game-card-name">Nghe &amp; Gõ</div>
+                    <div class="game-card-desc">Nghe phát âm tiếng Hàn<br>rồi gõ lại</div>
                 </div>
                 <div class="game-card" onclick="openRainDiffPicker()" style="grid-column:1/-1">
                     <div class="game-card-icon"
@@ -2328,7 +2720,7 @@
                 if (!kbEnabled) close();
             }
 
-            return { init, open, close, insertChar, toggleEnabled };
+            return { init, open, close, insertChar, toggleEnabled, isEnabled: () => kbEnabled };
         })();
 
         document.addEventListener('DOMContentLoaded', () => { KBD.init(); KBD.toggleEnabled && (KBD.toggleEnabled = KBD.toggleEnabled); });
