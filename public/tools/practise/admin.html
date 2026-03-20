@@ -692,6 +692,27 @@
             gap: 12px;
         }
 
+        .form-row-3 {
+            grid-template-columns: 1fr 1fr 1fr;
+        }
+
+        .label-required {
+            color: var(--red);
+            font-weight: 900;
+        }
+
+        .label-optional {
+            font-size: 0.62rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            background: rgba(180, 165, 230, 0.15);
+            border-radius: 4px;
+            padding: 1px 5px;
+            text-transform: none;
+            letter-spacing: 0;
+            vertical-align: middle;
+        }
+
         .form-group {
             display: flex;
             flex-direction: column;
@@ -770,6 +791,138 @@
             padding: 1px 5px;
             font-size: 0.7rem;
             color: var(--purple);
+        }
+
+        /* ===== BULK ROW INPUT ===== */
+        .bulk-row-header {
+            display: grid;
+            grid-template-columns: 28px 1fr 1fr 1fr 32px;
+            gap: 8px;
+            padding: 0 2px 6px;
+            border-bottom: 1.5px solid var(--border);
+            margin-bottom: 6px;
+        }
+
+        .bulk-col-num {
+            font-size: 0.68rem;
+            font-weight: 800;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .bulk-col {
+            font-size: 0.68rem;
+            font-weight: 800;
+            color: var(--text-sub);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .bulk-col-del {
+            width: 32px;
+        }
+
+        .bulk-word-row {
+            display: grid;
+            grid-template-columns: 28px 1fr 1fr 1fr 32px;
+            gap: 8px;
+            align-items: center;
+            margin-bottom: 6px;
+            animation: fadeUp 0.18s ease;
+        }
+
+        .bulk-row-num {
+            font-size: 0.75rem;
+            font-weight: 800;
+            color: var(--text-muted);
+            text-align: center;
+        }
+
+        .bulk-word-row input {
+            padding: 9px 12px;
+            border: 1.5px solid rgba(180, 165, 230, 0.35);
+            border-radius: 10px;
+            font-family: inherit;
+            font-size: 0.88rem;
+            color: var(--text-main);
+            background: rgba(237, 233, 248, 0.4);
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            width: 100%;
+        }
+
+        .bulk-word-row input:focus {
+            border-color: var(--purple);
+            box-shadow: 0 0 0 3px var(--purple-light);
+            background: white;
+        }
+
+        .bulk-word-row input.row-error {
+            border-color: var(--red);
+            background: rgba(239, 68, 68, 0.05);
+        }
+
+        .bulk-word-row input.kr-input {
+            font-family: 'Noto Sans KR', sans-serif;
+        }
+
+        .btn-del-row {
+            width: 30px;
+            height: 30px;
+            border-radius: 8px;
+            border: none;
+            background: rgba(239, 68, 68, 0.08);
+            color: var(--red);
+            font-size: 0.75rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+            flex-shrink: 0;
+        }
+
+        .btn-del-row:hover {
+            background: rgba(239, 68, 68, 0.18);
+        }
+
+        .btn-add-row {
+            width: 100%;
+            padding: 9px;
+            background: transparent;
+            border: 1.5px dashed rgba(124, 108, 224, 0.35);
+            border-radius: 10px;
+            font-family: inherit;
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--purple);
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .btn-add-row:hover {
+            background: var(--purple-light);
+            border-color: var(--purple);
+        }
+
+        .bulk-count {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            text-align: right;
+            margin-top: 4px;
         }
 
         .submit-row {
@@ -903,6 +1056,319 @@
                 padding: 32px 20px;
             }
         }
+
+        .btn-paste-trigger {
+            color: #16a34a;
+            border-color: rgba(22, 163, 74, 0.35) !important;
+        }
+
+        .btn-paste-trigger:hover {
+            background: rgba(22, 163, 74, 0.08) !important;
+            border-color: #16a34a !important;
+            color: #16a34a !important;
+        }
+
+        /* ===== PASTE DIALOG ===== */
+        .paste-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 400;
+            background: rgba(30, 20, 60, 0.5);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.25s, visibility 0.25s;
+        }
+
+        .paste-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .paste-box {
+            background: var(--surface-solid);
+            border: 1px solid var(--border);
+            border-radius: 22px;
+            width: 100%;
+            max-width: 520px;
+            box-shadow: var(--shadow-md);
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            transform: scale(0.95) translateY(10px);
+            transition: transform 0.28s cubic-bezier(0.34, 1.4, 0.64, 1);
+            overflow: hidden;
+        }
+
+        .paste-overlay.active .paste-box {
+            transform: scale(1) translateY(0);
+        }
+
+        .paste-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px 20px 14px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .paste-title {
+            font-size: 1rem;
+            font-weight: 800;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .paste-title i {
+            color: var(--purple);
+        }
+
+        .paste-close {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(120, 100, 200, 0.08);
+            color: var(--text-sub);
+            font-size: 0.82rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+
+        .paste-close:hover {
+            background: rgba(239, 68, 68, 0.12);
+            color: var(--red);
+        }
+
+        .paste-format-hint {
+            padding: 10px 20px;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            line-height: 1.7;
+            background: rgba(124, 108, 224, 0.04);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .paste-format-ex {
+            font-family: monospace;
+            background: rgba(124, 108, 224, 0.1);
+            color: var(--purple);
+            border-radius: 4px;
+            padding: 1px 6px;
+            font-size: 0.72rem;
+        }
+
+        .paste-textarea {
+            width: 100%;
+            min-height: 220px;
+            padding: 14px 20px;
+            border: none;
+            font-family: 'Noto Sans KR', monospace, sans-serif;
+            font-size: 0.88rem;
+            color: var(--text-main);
+            background: transparent;
+            resize: vertical;
+            outline: none;
+            line-height: 1.7;
+        }
+
+        .paste-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 20px 16px;
+            border-top: 1px solid var(--border);
+            gap: 12px;
+        }
+
+        .paste-count {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            white-space: nowrap;
+        }
+
+        /* ===== COUPON TABLE ===== */
+        .coupon-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.82rem;
+        }
+
+        .coupon-table th {
+            text-align: left;
+            padding: 8px 10px;
+            font-size: 0.68rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--text-sub);
+            border-bottom: 1.5px solid var(--border);
+            background: rgba(237, 233, 248, 0.4);
+        }
+
+        .coupon-table td {
+            padding: 10px 10px;
+            border-bottom: 1px solid var(--border);
+            vertical-align: middle;
+            color: var(--text-main);
+            font-weight: 600;
+        }
+
+        .coupon-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .coupon-table tr:hover td {
+            background: rgba(124, 108, 224, 0.04);
+        }
+
+        .cp-code-cell {
+            font-family: 'Courier New', monospace;
+            font-size: 0.88rem;
+            font-weight: 800;
+            color: var(--purple);
+            letter-spacing: 0.04em;
+        }
+
+        .cp-scope-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 9px;
+            border-radius: 20px;
+            font-size: 0.72rem;
+            font-weight: 800;
+        }
+
+        .cp-scope-badge.hanhan {
+            background: rgba(240, 96, 122, 0.1);
+            color: #c0304a;
+        }
+
+        .cp-scope-badge.topik {
+            background: rgba(124, 108, 224, 0.12);
+            color: var(--purple);
+        }
+
+        .cp-scope-badge.vocab {
+            background: rgba(58, 184, 154, 0.12);
+            color: #1a7a60;
+        }
+
+        .cp-scope-badge.all {
+            background: rgba(100, 80, 200, 0.1);
+            color: var(--text-sub);
+        }
+
+        .cp-status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 9px;
+            border-radius: 20px;
+            font-size: 0.72rem;
+            font-weight: 800;
+        }
+
+        .cp-status-badge.active {
+            background: rgba(34, 197, 94, 0.12);
+            color: #166534;
+        }
+
+        .cp-status-badge.inactive {
+            background: rgba(239, 68, 68, 0.1);
+            color: #991b1b;
+        }
+
+        .cp-status-badge.expired {
+            background: rgba(180, 165, 230, 0.18);
+            color: var(--text-muted);
+        }
+
+        .btn-cp-toggle {
+            padding: 4px 10px;
+            border-radius: 6px;
+            border: none;
+            font-size: 0.72rem;
+            font-weight: 800;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.18s;
+        }
+
+        .btn-cp-toggle.deactivate {
+            background: rgba(239, 68, 68, 0.1);
+            color: #c03;
+        }
+
+        .btn-cp-toggle.activate {
+            background: rgba(34, 197, 94, 0.1);
+            color: #166534;
+        }
+
+        .btn-cp-toggle:hover {
+            filter: brightness(0.88);
+        }
+
+        .btn-cp-delete {
+            width: 28px;
+            height: 28px;
+            border-radius: 7px;
+            border: none;
+            background: rgba(239, 68, 68, 0.08);
+            color: var(--red);
+            font-size: 0.72rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.18s;
+        }
+
+        .btn-cp-delete:hover {
+            background: rgba(239, 68, 68, 0.18);
+        }
+
+        .cp-uses-bar {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            min-width: 80px;
+        }
+
+        .cp-uses-track {
+            flex: 1;
+            height: 5px;
+            background: var(--border);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .cp-uses-fill {
+            height: 100%;
+            background: var(--purple);
+            border-radius: 3px;
+            transition: width 0.3s;
+        }
+
+        .cp-uses-text {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            white-space: nowrap;
+        }
     </style>
 </head>
 
@@ -1002,12 +1468,16 @@
                     <button class="nav-item" data-section="hanja" onclick="switchSection('hanja')">
                         <span class="nav-icon"><i class="fas fa-shapes"></i></span>
                         Hán Hàn
-                        <span class="nav-soon">SOON</span>
                     </button>
                     <button class="nav-item" data-section="topik" onclick="switchSection('topik')">
                         <span class="nav-icon"><i class="fas fa-graduation-cap"></i></span>
                         TOPIK
                         <span class="nav-soon">SOON</span>
+                    </button>
+                    <div class="nav-divider"></div>
+                    <button class="nav-item" data-section="coupon" onclick="switchSection('coupon')">
+                        <span class="nav-icon"><i class="fas fa-ticket"></i></span>
+                        Coupon
                     </button>
                 </nav>
             </aside>
@@ -1073,26 +1543,32 @@
                         <div class="card-title"><i class="fas fa-plus-circle"></i> Thêm từ vựng mới</div>
                         <hr class="divider" />
                         <div class="form-grid">
-                            <div class="form-group">
-                                <label>Chủ đề</label>
-                                <select id="w-topic" onchange="onWordTopicChange()">
-                                    <option value="">-- Chọn chủ đề --</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>Cuốn sách</label>
-                                <select id="w-book" onchange="onWordTopicChange()">
-                                    <option value="듣기읽기">🎧 듣기읽기 (Nghe &amp; Đọc)</option>
-                                    <option value="어휘문법">✏️ 어휘문법 (Từ vựng &amp; Ngữ pháp)</option>
-                                </select>
-                            </div>
                             <div class="form-row">
                                 <div class="form-group">
-                                    <label>Từ vựng (Tiếng Việt)</label>
+                                    <label>Chủ đề</label>
+                                    <select id="w-topic" onchange="onWordTopicChange()">
+                                        <option value="">-- Chọn chủ đề --</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Cuốn sách</label>
+                                    <select id="w-book" onchange="onWordTopicChange()">
+                                        <option value="듣기읽기">🎧 듣기읽기 (Nghe &amp; Đọc)</option>
+                                        <option value="어휘문법">✏️ 어휘문법 (Từ vựng &amp; Ngữ pháp)</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-row form-row-3">
+                                <div class="form-group">
+                                    <label>Tiếng Việt <span class="label-required">*</span></label>
                                     <input type="text" id="w-vn" placeholder="VD: Bố" />
                                 </div>
                                 <div class="form-group">
-                                    <label>Từ vựng (Tiếng Hàn)</label>
+                                    <label>Tiếng Anh <span class="label-optional">tùy chọn</span></label>
+                                    <input type="text" id="w-en" placeholder="VD: Father" />
+                                </div>
+                                <div class="form-group">
+                                    <label>Tiếng Hàn <span class="label-required">*</span></label>
                                     <input type="text" id="w-kr" placeholder="VD: 아버지" class="kr-input" />
                                 </div>
                             </div>
@@ -1117,13 +1593,13 @@
                         <div class="card-title"><i class="fas fa-list-ul"></i> Thêm từ vựng hàng loạt</div>
                         <hr class="divider" />
                         <div class="form-grid">
-                            <div class="form-group">
-                                <label>Chủ đề</label>
-                                <select id="b-topic" onchange="onBulkTopicChange()">
-                                    <option value="">-- Chọn chủ đề --</option>
-                                </select>
-                            </div>
                             <div class="form-row">
+                                <div class="form-group">
+                                    <label>Chủ đề</label>
+                                    <select id="b-topic" onchange="onBulkTopicChange()">
+                                        <option value="">-- Chọn chủ đề --</option>
+                                    </select>
+                                </div>
                                 <div class="form-group">
                                     <label>Cuốn sách</label>
                                     <select id="b-book" onchange="onBulkTopicChange()">
@@ -1131,30 +1607,37 @@
                                         <option value="어휘문법">✏️ 어휘문법 (Từ vựng &amp; Ngữ pháp)</option>
                                     </select>
                                 </div>
-                                <div class="form-group">
-                                    <label>Thứ tự bắt đầu</label>
-                                    <input type="text" id="b-order-start" class="input-auto" readonly
-                                        placeholder="Chọn chủ đề để tự động điền..." />
-                                    <div class="order-hint"><i class="fas fa-wand-magic-sparkles"></i> Tự động nối tiếp
-                                        từ
-                                        cuối trong chủ đề</div>
-                                </div>
                             </div>
-                            <div class="form-group">
-                                <label>Danh sách từ vựng</label>
-                                <textarea id="b-words" rows="10"
-                                    placeholder="Mỗi dòng một từ, định dạng:&#10;Tiếng Việt | 한국어&#10;&#10;Ví dụ:&#10;Bố | 아버지&#10;Mẹ | 어머니&#10;Anh trai | 형"></textarea>
-                                <div class="bulk-hint">
-                                    Mỗi dòng một cặp từ, ngăn cách bằng dấu <code>|</code><br>
-                                    Định dạng: <code>Tiếng Việt | 한국어</code>
-                                </div>
+
+                            <!-- Header labels -->
+                            <div class="bulk-row-header">
+                                <div class="bulk-col-num">#</div>
+                                <div class="bulk-col">Tiếng Hàn <span class="label-required">*</span></div>
+                                <div class="bulk-col">Tiếng Việt <span class="label-required">*</span></div>
+                                <div class="bulk-col">Tiếng Anh <span class="label-optional">tùy chọn</span></div>
+                                <div class="bulk-col-del"></div>
+                            </div>
+
+                            <!-- Danh sách hàng nhập -->
+                            <div id="bulk-rows"></div>
+
+                            <!-- Nút thêm hàng -->
+                            <div style="display:flex;gap:8px">
+                                <button class="btn-add-row" onclick="bulkAddRow()" style="flex:1">
+                                    <i class="fas fa-plus"></i> Thêm dòng
+                                </button>
+                                <button class="btn-add-row btn-paste-trigger" onclick="openPasteDialog()"
+                                    style="flex:1;border-style:dashed">
+                                    <i class="fas fa-paste"></i> Paste hàng loạt
+                                </button>
                             </div>
                         </div>
-                        <div class="submit-row">
+
+                        <div class="submit-row" style="margin-top:16px">
                             <button class="btn-reset" onclick="resetBulkForm()"><i class="fas fa-rotate-left"></i>
                                 Reset</button>
                             <button class="btn-submit" id="btn-add-bulk" onclick="addBulk()"><i
-                                    class="fas fa-upload"></i> Thêm tất cả</button>
+                                    class="fas fa-upload"></i> Lưu tất cả</button>
                         </div>
                     </div>
                 </div>
@@ -1191,10 +1674,101 @@
 
                 <!-- HANJA -->
                 <div id="section-hanja" class="section-panel">
-                    <div class="coming-soon-card">
-                        <div class="cs-icon">漢</div>
-                        <div class="cs-title">Hán Hàn — Sắp ra mắt</div>
-                        <div class="cs-sub">Chức năng quản lý từ Hán Hàn đang được xây dựng.<br>Vui lòng quay lại sau!
+                    <!-- Tab bar -->
+                    <div class="tab-bar">
+                        <button class="tab-btn active" id="hj-tab-single" onclick="switchHanjaTab('single')">
+                            <i class="fas fa-plus-circle"></i> Thêm từ
+                        </button>
+                        <button class="tab-btn" id="hj-tab-bulk" onclick="switchHanjaTab('bulk')">
+                            <i class="fas fa-list-ul"></i> Hàng loạt
+                        </button>
+                    </div>
+
+                    <!-- Pane: Thêm từ đơn -->
+                    <div id="hj-pane-single" class="card">
+                        <div class="card-title"><i class="fas fa-plus-circle"></i> Thêm từ Hán Hàn mới</div>
+                        <hr class="divider" />
+                        <div class="form-grid">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Phân loại <span class="label-required">*</span></label>
+                                    <select id="hj-type">
+                                        <option value="hanhan">漢 Hán Hàn</option>
+                                        <option value="topik">🎓 TOPIK</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-row form-row-3">
+                                <div class="form-group">
+                                    <label>Tiếng Hàn <span class="label-required">*</span></label>
+                                    <input type="text" id="hj-kr" placeholder="VD: 가족" class="kr-input" />
+                                </div>
+                                <div class="form-group">
+                                    <label>Chữ Hán <span class="label-optional">tùy chọn</span></label>
+                                    <input type="text" id="hj-hanja" placeholder="VD: 家族" />
+                                </div>
+                                <div class="form-group">
+                                    <label>Tiếng Việt <span class="label-required">*</span></label>
+                                    <input type="text" id="hj-vn" placeholder="VD: Gia đình" />
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Tiếng Anh <span class="label-optional">tùy chọn</span></label>
+                                <input type="text" id="hj-en" placeholder="VD: Family" />
+                            </div>
+                        </div>
+                        <div class="submit-row">
+                            <button class="btn-reset" onclick="resetHanjaForm()">
+                                <i class="fas fa-rotate-left"></i> Reset
+                            </button>
+                            <button class="btn-submit" id="btn-add-hanja" onclick="addHanjaWord()">
+                                <i class="fas fa-plus"></i> Thêm từ
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Pane: Hàng loạt -->
+                    <div id="hj-pane-bulk" class="card hidden">
+                        <div class="card-title"><i class="fas fa-list-ul"></i> Thêm từ Hán Hàn hàng loạt</div>
+                        <hr class="divider" />
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Phân loại <span class="label-required">*</span></label>
+                                <select id="hj-bulk-type">
+                                    <option value="hanhan">漢 Hán Hàn</option>
+                                    <option value="topik">🎓 TOPIK</option>
+                                </select>
+                            </div>
+
+                            <!-- Header labels -->
+                            <div class="bulk-row-header" style="grid-template-columns:28px 1fr 1fr 1fr 1fr 32px">
+                                <div class="bulk-col-num">#</div>
+                                <div class="bulk-col">Tiếng Hàn <span class="label-required">*</span></div>
+                                <div class="bulk-col">Chữ Hán <span class="label-optional">tùy</span></div>
+                                <div class="bulk-col">Tiếng Việt <span class="label-required">*</span></div>
+                                <div class="bulk-col">Tiếng Anh <span class="label-optional">tùy</span></div>
+                                <div class="bulk-col-del"></div>
+                            </div>
+
+                            <div id="hj-bulk-rows"></div>
+
+                            <div style="display:flex;gap:8px">
+                                <button class="btn-add-row" onclick="hjBulkAddRow()" style="flex:1">
+                                    <i class="fas fa-plus"></i> Thêm dòng
+                                </button>
+                                <button class="btn-add-row btn-paste-trigger" onclick="openHanjaPasteDialog()"
+                                    style="flex:1;border-style:dashed">
+                                    <i class="fas fa-paste"></i> Paste hàng loạt
+                                </button>
+                            </div>
+                        </div>
+                        <div class="submit-row" style="margin-top:16px">
+                            <button class="btn-reset" onclick="resetHanjaBulkForm()">
+                                <i class="fas fa-rotate-left"></i> Reset
+                            </button>
+                            <button class="btn-submit" id="btn-add-hanja-bulk" onclick="addHanjaBulk()">
+                                <i class="fas fa-upload"></i> Lưu tất cả
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -1208,6 +1782,111 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- COUPON -->
+                <div id="section-coupon" class="section-panel">
+
+                    <!-- Tạo coupon mới -->
+                    <div class="card" style="margin-bottom:18px">
+                        <div class="card-title"><i class="fas fa-plus-circle"></i> Tạo coupon mới</div>
+                        <hr class="divider" />
+                        <div class="form-grid">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Mã coupon <span class="label-required">*</span></label>
+                                    <input type="text" id="cp-code" placeholder="VD: HANCODE2025"
+                                        style="text-transform:uppercase"
+                                        oninput="this.value=this.value.toUpperCase()" />
+                                </div>
+                                <div class="form-group">
+                                    <label>Phạm vi mở khóa <span class="label-required">*</span></label>
+                                    <select id="cp-scope" onchange="onCpScopeChange()">
+                                        <option value="hanhan">漢 Hán Hàn 3000</option>
+                                        <option value="topik">🎓 Hán Hàn TOPIK</option>
+                                        <option value="vocab">📖 Từ vựng</option>
+                                        <option value="all">🌐 Tất cả</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Chọn topic — chỉ hiện khi scope = vocab -->
+                            <div class="form-group hidden" id="cp-topic-group">
+                                <label>Chủ đề được mở khóa <span class="label-required">*</span>
+                                    <span class="label-optional">giữ Ctrl/Cmd để chọn nhiều</span>
+                                </label>
+                                <select id="cp-topic-ids" multiple
+                                    style="height:140px;padding:8px 10px;border:1.5px solid rgba(180,165,230,0.35);border-radius:12px;font-family:inherit;font-size:0.85rem;color:var(--text-main);background:rgba(237,233,248,0.4);outline:none;width:100%">
+                                    <option disabled>Đang tải danh sách chủ đề...</option>
+                                </select>
+                                <div class="order-hint" style="margin-top:4px">
+                                    <i class="fas fa-info-circle"></i>
+                                    Không chọn gì = mở khóa <strong>tất cả</strong> chủ đề trong Từ vựng
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Số lần dùng tối đa <span class="label-optional">trống = không giới
+                                            hạn</span></label>
+                                    <input type="number" id="cp-maxuses" placeholder="VD: 100" min="1" />
+                                </div>
+                                <div class="form-group">
+                                    <label>Hết hạn <span class="label-optional">trống = vĩnh viễn</span></label>
+                                    <input type="datetime-local" id="cp-expires" />
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Ghi chú nội bộ <span class="label-optional">tùy chọn</span></label>
+                                <input type="text" id="cp-note" placeholder="VD: Coupon tặng học viên tháng 6" />
+                            </div>
+                        </div>
+                        <div class="submit-row">
+                            <button class="btn-reset" onclick="resetCouponForm()">
+                                <i class="fas fa-rotate-left"></i> Reset
+                            </button>
+                            <button class="btn-submit" id="btn-create-coupon" onclick="createCoupon()">
+                                <i class="fas fa-plus"></i> Tạo coupon
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Danh sách coupon hiện có -->
+                    <div class="card">
+                        <div class="card-title" style="justify-content:space-between">
+                            <span><i class="fas fa-list"></i> Danh sách coupon</span>
+                            <button onclick="loadCouponList()"
+                                style="background:var(--purple-light);border:none;color:var(--purple);font-size:0.78rem;font-weight:800;padding:4px 12px;border-radius:8px;cursor:pointer;font-family:inherit;">
+                                <i class="fas fa-rotate-right"></i> Làm mới
+                            </button>
+                        </div>
+                        <hr class="divider" />
+
+                        <!-- Filter -->
+                        <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
+                            <select id="cp-filter-scope" onchange="loadCouponList()"
+                                style="padding:7px 12px;border:1.5px solid rgba(180,165,230,0.35);border-radius:10px;font-family:inherit;font-size:0.82rem;color:var(--text-main);background:rgba(237,233,248,0.4);outline:none;cursor:pointer">
+                                <option value="">Tất cả phạm vi</option>
+                                <option value="hanhan">漢 Hán Hàn 3000</option>
+                                <option value="topik">🎓 Hán Hàn TOPIK</option>
+                                <option value="vocab">📖 Từ vựng</option>
+                                <option value="all">🌐 Tất cả</option>
+                            </select>
+                            <select id="cp-filter-status" onchange="loadCouponList()"
+                                style="padding:7px 12px;border:1.5px solid rgba(180,165,230,0.35);border-radius:10px;font-family:inherit;font-size:0.82rem;color:var(--text-main);background:rgba(237,233,248,0.4);outline:none;cursor:pointer">
+                                <option value="">Tất cả trạng thái</option>
+                                <option value="active">✅ Đang hoạt động</option>
+                                <option value="inactive">🚫 Đã tắt</option>
+                            </select>
+                        </div>
+
+                        <div id="coupon-list-wrap">
+                            <div
+                                style="text-align:center;padding:24px;color:var(--text-muted);font-size:0.82rem;font-weight:700">
+                                Nhấn "Làm mới" để tải danh sách</div>
+                        </div>
+                    </div>
+
+                </div><!-- /section-coupon -->
 
             </div><!-- /content -->
         </div><!-- /app-layout -->
@@ -1310,6 +1989,7 @@
             conversation: { title: 'Hội thoại 💬', sub: 'Quản lý đoạn hội thoại' },
             hanja: { title: 'Hán Hàn 漢', sub: 'Quản lý từ Hán Hàn' },
             topik: { title: 'TOPIK 🎓', sub: 'Quản lý đề thi TOPIK' },
+            coupon: { title: 'Coupon 🎟', sub: 'Tạo & quản lý mã coupon mở khóa nội dung' },
         };
 
         window.switchSection = (sec) => {
@@ -1386,31 +2066,179 @@
 
         // Khi chọn chủ đề ở tab Hàng loạt
         window.onBulkTopicChange = async () => {
-            const topicId = $('b-topic').value;
-            const book = $('b-book')?.value;
-            if (!topicId) { $('b-order-start').placeholder = 'Chọn chủ đề để tự động điền...'; return; }
-            $('b-order-start').placeholder = '...';
-            const next = await getNextWordOrder(topicId, book);
-            $('b-order-start').placeholder = `Bắt đầu từ: ${next}`;
+            // không cần làm gì thêm, order tính khi submit
         };
 
         // ── Resets ──
         window.resetTopicForm = async () => {
             $('t-vn').value = ''; $('t-kr').value = ''; $('t-locked').value = 'false';
+            $('t-order').value = '';
+            if ($('t-order-error')) $('t-order-error').textContent = '';
             await refreshTopicOrderHint();
         };
         window.resetWordForm = () => {
-            $('w-vn').value = ''; $('w-kr').value = ''; $('w-topic').value = '';
+            $('w-vn').value = ''; $('w-en').value = ''; $('w-kr').value = ''; $('w-topic').value = '';
             $('w-order').placeholder = 'Chọn chủ đề để tự động điền...';
             $('w-book').value = '듣기읽기';
         };
-        window.resetBulkForm = () => {
-            $('b-words').value = ''; $('b-topic').value = '';
-            $('b-order-start').placeholder = 'Chọn chủ đề để tự động điền...';
-            $('b-book').value = '듣기읽기';
+
+        // ── Bulk: quản lý hàng động ──
+        let bulkRowCount = 0;
+
+        function bulkAddRow(krVal = '', vnVal = '', enVal = '', focusKr = true) {
+            const container = document.getElementById('bulk-rows');
+            bulkRowCount++;
+            const idx = bulkRowCount;
+            const num = container.children.length + 1;
+
+            const row = document.createElement('div');
+            row.className = 'bulk-word-row';
+            row.id = `bulk-row-${idx}`;
+            row.innerHTML = `
+                <div class="bulk-row-num">${num}</div>
+                <input type="text" class="kr-input" placeholder="한국어"
+                    value="${krVal.replace(/"/g, '&quot;')}"
+                    onkeydown="bulkKeydown(event,${idx},'kr')" />
+                <input type="text" placeholder="Tiếng Việt"
+                    value="${vnVal.replace(/"/g, '&quot;')}"
+                    onkeydown="bulkKeydown(event,${idx},'vn')" />
+                <input type="text" placeholder="English"
+                    value="${enVal.replace(/"/g, '&quot;')}"
+                    onkeydown="bulkKeydown(event,${idx},'en')" />
+                <button class="btn-del-row" onclick="bulkDeleteRow(${idx})" title="Xóa dòng">
+                    <i class="fas fa-times"></i>
+                </button>`;
+            container.appendChild(row);
+            bulkUpdateCount();
+            if (focusKr) setTimeout(() => row.querySelector('input')?.focus(), 30);
+            return row;
+        }
+
+        window.bulkAddRow = bulkAddRow;
+
+        window.bulkDeleteRow = (idx) => {
+            document.getElementById(`bulk-row-${idx}`)?.remove();
+            bulkRenumber();
+            bulkUpdateCount();
         };
 
-        // ── Add Topic ──
+        function bulkRenumber() {
+            document.querySelectorAll('#bulk-rows .bulk-word-row').forEach((row, i) => {
+                row.querySelector('.bulk-row-num').textContent = i + 1;
+            });
+        }
+
+        function bulkUpdateCount() {
+            const n = document.querySelectorAll('#bulk-rows .bulk-word-row').length;
+            let el = document.getElementById('bulk-count');
+            if (!el) {
+                el = document.createElement('div');
+                el.id = 'bulk-count';
+                el.className = 'bulk-count';
+                document.getElementById('bulk-rows').after(el);
+            }
+            el.textContent = n > 0 ? `${n} từ` : '';
+        }
+
+        window.bulkKeydown = (e, idx, col) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                if (col === 'en') {
+                    // Enter ở EN → validate rồi tạo hàng mới
+                    const row = document.getElementById(`bulk-row-${idx}`);
+                    const [krIn, vnIn] = row.querySelectorAll('input');
+                    const kr = krIn.value.trim(), vn = vnIn.value.trim();
+                    if (kr && vn) {
+                        bulkAddRow('', '', '', true);
+                    } else {
+                        if (!kr) krIn.classList.add('row-error');
+                        if (!vn) vnIn.classList.add('row-error');
+                        setTimeout(() => {
+                            krIn.classList.remove('row-error');
+                            vnIn.classList.remove('row-error');
+                        }, 1200);
+                        (!kr ? krIn : vnIn).focus();
+                    }
+                } else {
+                    // Enter ở KR → qua VN, ở VN → qua EN
+                    const row = document.getElementById(`bulk-row-${idx}`);
+                    const inputs = row.querySelectorAll('input');
+                    inputs[col === 'kr' ? 1 : 2]?.focus();
+                }
+            } else if (e.key === 'Tab' && col === 'en' && !e.shiftKey) {
+                // Tab ở EN của hàng cuối → thêm hàng mới
+                const rows = document.querySelectorAll('#bulk-rows .bulk-word-row');
+                if (document.getElementById(`bulk-row-${idx}`) === rows[rows.length - 1]) {
+                    e.preventDefault();
+                    bulkAddRow('', '', '', true);
+                }
+            }
+        };
+
+        window.resetBulkForm = () => {
+            $('b-topic').value = '';
+            $('b-book').value = '듣기읽기';
+            document.getElementById('bulk-rows').innerHTML = '';
+            bulkRowCount = 0;
+            bulkUpdateCount();
+            bulkAddRow('', '', '', false);
+            bulkAddRow('', '', '', false);
+            bulkAddRow('', '', '', false);
+        };
+
+        // ── Add Bulk Words ──
+        window.addBulk = async () => {
+            const topicId = $('b-topic').value;
+            if (!topicId) { showToast('Vui lòng chọn chủ đề!', 'error'); return; }
+
+            const rowEls = document.querySelectorAll('#bulk-rows .bulk-word-row');
+            const rows = [], invalidNums = [];
+
+            rowEls.forEach((row, i) => {
+                const [krIn, vnIn, enIn] = row.querySelectorAll('input');
+                const kr = krIn.value.trim(), vn = vnIn.value.trim(), en = enIn.value.trim();
+                if (!kr && !vn && !en) return; // hàng trống hoàn toàn → bỏ qua
+                if (!kr || !vn) {
+                    invalidNums.push(i + 1);
+                    if (!kr) krIn.classList.add('row-error');
+                    if (!vn) vnIn.classList.add('row-error');
+                } else {
+                    rows.push({ kr, vn, en });
+                }
+            });
+
+            setTimeout(() => {
+                document.querySelectorAll('.bulk-word-row .row-error').forEach(el => el.classList.remove('row-error'));
+            }, 1500);
+
+            if (invalidNums.length > 0) {
+                showToast(`⚠️ Dòng ${invalidNums.join(', ')} thiếu tiếng Hàn hoặc tiếng Việt!`, 'error');
+                return;
+            }
+            if (rows.length === 0) { showToast('Vui lòng nhập ít nhất một từ!', 'error'); return; }
+
+            const btn = $('btn-add-bulk');
+            btn.disabled = true; btn.innerHTML = `<i class="fas fa-circle-notch fa-spin"></i> Đang lưu ${rows.length} từ...`;
+
+            const startOrder = await getNextWordOrder(topicId);
+            const book = $('b-book').value;
+
+            const insertRows = rows.map((r, i) => {
+                const row = { topic_id: parseInt(topicId), word_vn: r.vn, word_kr: r.kr, order_index: startOrder + i, book };
+                if (r.en) row.word_en = r.en;
+                return row;
+            });
+
+            const { error } = await supabase.from('vocabulary_words').insert(insertRows);
+
+            btn.disabled = false; btn.innerHTML = '<i class="fas fa-upload"></i> Lưu tất cả';
+
+            if (error) { showToast('Lỗi: ' + error.message, 'error'); return; }
+
+            const withEn = insertRows.filter(r => r.word_en).length;
+            showToast(`✅ Đã thêm ${rows.length} từ${withEn ? ` (${withEn} từ có tiếng Anh)` : ''}`, 'success');
+            resetBulkForm();
+        };
         window.addTopic = async () => {
             const vn = $('t-vn').value.trim();
             const kr = $('t-kr').value.trim();
@@ -1439,6 +2267,7 @@
         window.addWord = async () => {
             const topicId = $('w-topic').value;
             const vn = $('w-vn').value.trim();
+            const en = $('w-en').value.trim();
             const kr = $('w-kr').value.trim();
             if (!topicId) { showToast('Vui lòng chọn chủ đề!', 'error'); return; }
             if (!vn || !kr) { showToast('Vui lòng nhập đầy đủ từ vựng!', 'error'); return; }
@@ -1449,64 +2278,639 @@
             const orderIndex = await getNextWordOrder(topicId);
 
             const book = $('w-book').value;
-            const { error } = await supabase.from('vocabulary_words').insert([{
-                topic_id: parseInt(topicId), word_vn: vn, word_kr: kr, order_index: orderIndex, book
-            }]);
+            const row = { topic_id: parseInt(topicId), word_vn: vn, word_kr: kr, order_index: orderIndex, book };
+            if (en) row.word_en = en;
+
+            const { error } = await supabase.from('vocabulary_words').insert([row]);
 
             btn.disabled = false; btn.innerHTML = '<i class="fas fa-plus"></i> Thêm từ vựng';
 
             if (error) { showToast('Lỗi: ' + error.message, 'error'); return; }
 
-            showToast(`✅ Đã thêm "${vn} — ${kr}" (thứ tự ${orderIndex})`, 'success');
-            $('w-vn').value = ''; $('w-kr').value = '';
-            // Cập nhật hint: từ tiếp theo sẽ là orderIndex + 1
+            showToast(`✅ Đã thêm "${vn}${en ? ' / ' + en : ''} — ${kr}" (thứ tự ${orderIndex})`, 'success');
+            $('w-vn').value = ''; $('w-en').value = ''; $('w-kr').value = '';
             $('w-order').placeholder = `Tự động: ${orderIndex + 1}`;
             $('w-vn').focus();
         };
 
-        // ── Add Bulk Words ──
-        window.addBulk = async () => {
-            const topicId = $('b-topic').value;
-            const raw = $('b-words').value.trim();
-            if (!topicId) { showToast('Vui lòng chọn chủ đề!', 'error'); return; }
-            if (!raw) { showToast('Vui lòng nhập danh sách từ vựng!', 'error'); return; }
+        // ── Paste Dialog ──
+        window.openPasteDialog = () => {
+            const dialog = document.getElementById('paste-dialog');
+            dialog.classList.add('active');
+            const area = document.getElementById('paste-area');
+            area.value = '';
+            document.getElementById('paste-line-count').textContent = '';
+            setTimeout(() => area.focus(), 100);
+        };
 
-            const lines = raw.split('\n').map(l => l.trim()).filter(l => l);
-            const rows = [], invalid = [];
+        window.closePasteDialog = () => {
+            document.getElementById('paste-dialog').classList.remove('active');
+        };
 
-            lines.forEach((line, i) => {
-                const parts = line.split('|').map(p => p.trim());
-                if (parts.length < 2 || !parts[0] || !parts[1]) invalid.push(`dòng ${i + 1}`);
-                else rows.push({ vn: parts[0], kr: parts[1] });
+        // Live count khi gõ
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('paste-area')?.addEventListener('input', () => {
+                const lines = document.getElementById('paste-area').value
+                    .split('\n').map(l => l.trim()).filter(l => l);
+                const el = document.getElementById('paste-line-count');
+                el.textContent = lines.length > 0 ? `${lines.length} dòng` : '';
             });
+        });
 
-            if (invalid.length > 0) {
-                showToast(`⚠️ Sai định dạng: ${invalid.slice(0, 3).join(', ')}${invalid.length > 3 ? '...' : ''}`, 'error');
+        window.applyPaste = () => {
+            const raw = document.getElementById('paste-area').value;
+            const lines = raw.split('\n').map(l => l.trim()).filter(l => l);
+            if (lines.length === 0) {
+                showToast('Chưa có dữ liệu để điền!', 'error');
                 return;
             }
 
-            const btn = $('btn-add-bulk');
-            btn.disabled = true; btn.innerHTML = `<i class="fas fa-circle-notch fa-spin"></i> Đang thêm ${rows.length} từ...`;
+            const parsed = [], invalid = [];
+            lines.forEach((line, i) => {
+                const parts = line.split('|').map(p => p.trim());
+                if (!parts[0] || !parts[1]) {
+                    invalid.push(i + 1);
+                } else {
+                    parsed.push({ kr: parts[0], vn: parts[1], en: parts[2] || '' });
+                }
+            });
 
-            const startOrder = await getNextWordOrder(topicId);
+            if (invalid.length > 0) {
+                showToast(`⚠️ Dòng ${invalid.slice(0, 4).join(', ')}${invalid.length > 4 ? '...' : ''} thiếu dữ liệu, bỏ qua`, 'info');
+            }
 
-            const book = $('b-book').value;
-            const insertRows = rows.map((r, i) => ({
-                topic_id: parseInt(topicId), word_vn: r.vn, word_kr: r.kr, order_index: startOrder + i, book
-            }));
+            if (parsed.length === 0) {
+                showToast('Không có dòng hợp lệ nào!', 'error');
+                return;
+            }
 
-            const { error } = await supabase.from('vocabulary_words').insert(insertRows);
+            // Xóa các hàng trống hiện tại, giữ hàng đã có dữ liệu
+            const existingRows = [...document.querySelectorAll('#bulk-rows .bulk-word-row')];
+            existingRows.forEach(row => {
+                const inputs = row.querySelectorAll('input');
+                const isEmpty = [...inputs].every(inp => !inp.value.trim());
+                if (isEmpty) row.remove();
+            });
 
-            btn.disabled = false; btn.innerHTML = '<i class="fas fa-upload"></i> Thêm tất cả';
+            // Thêm các hàng mới từ paste
+            parsed.forEach(({ kr, vn, en }) => bulkAddRow(kr, vn, en, false));
+            bulkRenumber();
+            bulkUpdateCount();
+
+            closePasteDialog();
+            showToast(`✅ Đã điền ${parsed.length} từ vào bảng`, 'success');
+        };
+
+        // Khởi tạo bulk rows khi load
+        document.addEventListener('DOMContentLoaded', () => {
+            resetBulkForm();
+        });
+
+        // ==============================
+        // ===== HÁN HÀN ADMIN =====
+        // ==============================
+
+        // Lấy phụ âm đầu của từ Hàn
+        function hjGetInitial(word) {
+            if (!word) return '';
+            const firstChar = word[0];
+            const code = firstChar.charCodeAt(0);
+            if (code < 0xAC00 || code > 0xD7A3) return firstChar.toUpperCase();
+            const CHO = ['ㄱ', 'ㄲ', 'ㄴ', 'ㄷ', 'ㄸ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅃ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅉ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ'];
+            const normMap = { 'ㄲ': 'ㄱ', 'ㄸ': 'ㄷ', 'ㅃ': 'ㅂ', 'ㅆ': 'ㅅ', 'ㅉ': 'ㅈ' };
+            const idx = Math.floor((code - 0xAC00) / 588);
+            const cons = CHO[idx] || '';
+            return normMap[cons] || cons;
+        }
+
+        // ── Tab switch ──
+        window.switchHanjaTab = (tab) => {
+            ['single', 'bulk'].forEach(t => {
+                $(`hj-tab-${t}`).classList.toggle('active', t === tab);
+                $(`hj-pane-${t}`).classList.toggle('hidden', t !== tab);
+            });
+        };
+
+        // ── Reset forms ──
+        window.resetHanjaForm = () => {
+            $('hj-kr').value = ''; $('hj-hanja').value = '';
+            $('hj-vn').value = ''; $('hj-en').value = '';
+            $('hj-type').value = 'hanhan';
+        };
+
+        window.resetHanjaBulkForm = () => {
+            $('hj-bulk-type').value = 'hanhan';
+            $('hj-bulk-rows').innerHTML = '';
+            hjBulkRowCount = 0;
+            hjBulkUpdateCount();
+            hjBulkAddRow('', '', '', '', false);
+            hjBulkAddRow('', '', '', '', false);
+            hjBulkAddRow('', '', '', '', false);
+        };
+
+        // ── Check duplicate ──
+        async function hjCheckDuplicate(wordKr, type) {
+            const { data } = await supabase
+                .from('hanhan_words')
+                .select('id, word_kr')
+                .eq('word_kr', wordKr.trim())
+                .eq('type', type)
+                .maybeSingle();
+            return !!data;
+        }
+
+        // ── Add single word ──
+        window.addHanjaWord = async () => {
+            const kr = $('hj-kr').value.trim();
+            const hanja = $('hj-hanja').value.trim();
+            const vn = $('hj-vn').value.trim();
+            const en = $('hj-en').value.trim();
+            const type = $('hj-type').value;
+
+            if (!kr || !vn) { showToast('Vui lòng nhập đầy đủ tiếng Hàn và tiếng Việt!', 'error'); return; }
+
+            const btn = $('btn-add-hanja');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Đang kiểm tra...';
+
+            // Kiểm tra trùng
+            const isDup = await hjCheckDuplicate(kr, type);
+            if (isDup) {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-plus"></i> Thêm từ';
+                showToast(`⚠️ Từ "${kr}" đã tồn tại trong bảng ${type === 'hanhan' ? 'Hán Hàn' : 'TOPIK'}!`, 'error');
+                return;
+            }
+
+            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Đang thêm...';
+
+            const row = {
+                word_kr: kr,
+                word_vn: vn,
+                type,
+                initial: hjGetInitial(kr)
+            };
+            if (hanja) row.hanja = hanja;
+            if (en) row.word_en = en;
+
+            const { error } = await supabase.from('hanhan_words').insert([row]);
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-plus"></i> Thêm từ';
 
             if (error) { showToast('Lỗi: ' + error.message, 'error'); return; }
 
-            showToast(`✅ Đã thêm ${rows.length} từ (thứ tự ${startOrder}–${startOrder + rows.length - 1})`, 'success');
-            resetBulkForm();
+            showToast(`✅ Đã thêm "${kr}${hanja ? ' (' + hanja + ')' : ''} — ${vn}"`, 'success');
+            $('hj-kr').value = ''; $('hj-hanja').value = '';
+            $('hj-vn').value = ''; $('hj-en').value = '';
+            $('hj-kr').focus();
         };
 
+        // ── Bulk rows ──
+        let hjBulkRowCount = 0;
+
+        window.hjBulkAddRow = function hjBulkAddRow(krVal = '', hanjaVal = '', vnVal = '', enVal = '', focusFirst = true) {
+            const container = $('hj-bulk-rows');
+            hjBulkRowCount++;
+            const idx = hjBulkRowCount;
+            const num = container.children.length + 1;
+
+            const row = document.createElement('div');
+            row.className = 'bulk-word-row';
+            row.id = `hj-bulk-row-${idx}`;
+            row.style.gridTemplateColumns = '28px 1fr 1fr 1fr 1fr 32px';
+            row.innerHTML = `
+                <div class="bulk-row-num">${num}</div>
+                <input type="text" class="kr-input" placeholder="한국어" value="${krVal.replace(/"/g, '&quot;')}" />
+                <input type="text" placeholder="漢字 (tùy)" value="${hanjaVal.replace(/"/g, '&quot;')}" />
+                <input type="text" placeholder="Tiếng Việt" value="${vnVal.replace(/"/g, '&quot;')}" />
+                <input type="text" placeholder="English" value="${enVal.replace(/"/g, '&quot;')}" />
+                <button class="btn-del-row" onclick="hjBulkDeleteRow(${idx})" title="Xóa dòng">
+                    <i class="fas fa-times"></i>
+                </button>`;
+            container.appendChild(row);
+            hjBulkUpdateCount();
+            if (focusFirst) setTimeout(() => row.querySelector('input')?.focus(), 30);
+            return row;
+        };
+
+        window.hjBulkDeleteRow = (idx) => {
+            $(`hj-bulk-row-${idx}`)?.remove();
+            hjBulkRenumber();
+            hjBulkUpdateCount();
+        };
+
+        function hjBulkRenumber() {
+            document.querySelectorAll('#hj-bulk-rows .bulk-word-row').forEach((row, i) => {
+                row.querySelector('.bulk-row-num').textContent = i + 1;
+            });
+        }
+
+        function hjBulkUpdateCount() {
+            const n = document.querySelectorAll('#hj-bulk-rows .bulk-word-row').length;
+            let el = $('hj-bulk-count');
+            if (!el) {
+                el = document.createElement('div');
+                el.id = 'hj-bulk-count';
+                el.className = 'bulk-count';
+                $('hj-bulk-rows').after(el);
+            }
+            el.textContent = n > 0 ? `${n} từ` : '';
+        }
+
+        // ── Add Bulk Hanja ──
+        window.addHanjaBulk = async () => {
+            const type = $('hj-bulk-type').value;
+            const rowEls = document.querySelectorAll('#hj-bulk-rows .bulk-word-row');
+            const rows = [], invalidNums = [];
+
+            rowEls.forEach((row, i) => {
+                const [krIn, hanjaIn, vnIn, enIn] = row.querySelectorAll('input');
+                const kr = krIn.value.trim(), hanja = hanjaIn.value.trim();
+                const vn = vnIn.value.trim(), en = enIn.value.trim();
+                if (!kr && !vn) return; // hàng trống hoàn toàn → bỏ qua
+                if (!kr || !vn) {
+                    invalidNums.push(i + 1);
+                    if (!kr) krIn.classList.add('row-error');
+                    if (!vn) vnIn.classList.add('row-error');
+                } else {
+                    rows.push({ kr, hanja, vn, en });
+                }
+            });
+
+            setTimeout(() => {
+                document.querySelectorAll('#hj-bulk-rows .row-error').forEach(el => el.classList.remove('row-error'));
+            }, 1500);
+
+            if (invalidNums.length > 0) {
+                showToast(`⚠️ Dòng ${invalidNums.join(', ')} thiếu tiếng Hàn hoặc tiếng Việt!`, 'error');
+                return;
+            }
+            if (rows.length === 0) { showToast('Vui lòng nhập ít nhất một từ!', 'error'); return; }
+
+            const btn = $('btn-add-hanja-bulk');
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fas fa-circle-notch fa-spin"></i> Đang kiểm tra trùng...`;
+
+            // Kiểm tra trùng hàng loạt
+            const krList = rows.map(r => r.kr);
+            const { data: existing } = await supabase
+                .from('hanhan_words')
+                .select('word_kr')
+                .in('word_kr', krList)
+                .eq('type', type);
+
+            const existingSet = new Set((existing || []).map(e => e.word_kr));
+            const dupes = rows.filter(r => existingSet.has(r.kr));
+
+            if (dupes.length > 0) {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-upload"></i> Lưu tất cả';
+                showToast(`⚠️ ${dupes.length} từ đã tồn tại: ${dupes.map(d => d.kr).slice(0, 3).join(', ')}${dupes.length > 3 ? '...' : ''}`, 'error');
+                return;
+            }
+
+            btn.innerHTML = `<i class="fas fa-circle-notch fa-spin"></i> Đang lưu ${rows.length} từ...`;
+
+            const insertRows = rows.map(r => {
+                const row = {
+                    word_kr: r.kr,
+                    word_vn: r.vn,
+                    type,
+                    initial: hjGetInitial(r.kr)
+                };
+                if (r.hanja) row.hanja = r.hanja;
+                if (r.en) row.word_en = r.en;
+                return row;
+            });
+
+            const { error } = await supabase.from('hanhan_words').insert(insertRows);
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-upload"></i> Lưu tất cả';
+
+            if (error) { showToast('Lỗi: ' + error.message, 'error'); return; }
+
+            showToast(`✅ Đã thêm ${rows.length} từ ${type === 'hanhan' ? 'Hán Hàn' : 'TOPIK'}`, 'success');
+            resetHanjaBulkForm();
+        };
+
+        // ── Hanja Paste Dialog ──
+        window.openHanjaPasteDialog = () => {
+            $('hanja-paste-dialog').classList.add('active');
+            $('hanja-paste-area').value = '';
+            $('hanja-paste-count').textContent = '';
+            setTimeout(() => $('hanja-paste-area').focus(), 100);
+        };
+
+        window.closeHanjaPasteDialog = () => {
+            $('hanja-paste-dialog').classList.remove('active');
+        };
+
+        window.applyHanjaPaste = () => {
+            const raw = $('hanja-paste-area').value;
+            const lines = raw.split('\n').map(l => l.trim()).filter(l => l);
+            if (!lines.length) { showToast('Chưa có dữ liệu!', 'error'); return; }
+
+            const parsed = [], invalid = [];
+            lines.forEach((line, i) => {
+                // Format: 한국어 | 漢字 | Tiếng Việt  hoặc  한국어 | Tiếng Việt
+                const parts = line.split('|').map(p => p.trim());
+                if (parts.length >= 3) {
+                    // kr | hanja | vn | en?
+                    if (!parts[0] || !parts[2]) { invalid.push(i + 1); return; }
+                    parsed.push({ kr: parts[0], hanja: parts[1] || '', vn: parts[2], en: parts[3] || '' });
+                } else if (parts.length === 2) {
+                    // kr | vn
+                    if (!parts[0] || !parts[1]) { invalid.push(i + 1); return; }
+                    parsed.push({ kr: parts[0], hanja: '', vn: parts[1], en: '' });
+                } else { invalid.push(i + 1); }
+            });
+
+            if (invalid.length) showToast(`⚠️ Bỏ qua ${invalid.length} dòng không hợp lệ`, 'info');
+            if (!parsed.length) { showToast('Không có dòng hợp lệ nào!', 'error'); return; }
+
+            // Xóa các hàng trống
+            [...document.querySelectorAll('#hj-bulk-rows .bulk-word-row')].forEach(row => {
+                if ([...row.querySelectorAll('input')].every(i => !i.value.trim())) row.remove();
+            });
+
+            parsed.forEach(({ kr, hanja, vn, en }) => hjBulkAddRow(kr, hanja, vn, en, false));
+            hjBulkRenumber();
+            hjBulkUpdateCount();
+            closeHanjaPasteDialog();
+            showToast(`✅ Đã điền ${parsed.length} từ vào bảng`, 'success');
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            $('hanja-paste-area')?.addEventListener('input', () => {
+                const lines = $('hanja-paste-area').value.split('\n').map(l => l.trim()).filter(l => l);
+                $('hanja-paste-count').textContent = lines.length > 0 ? `${lines.length} dòng` : '';
+            });
+            resetHanjaBulkForm();
+        });
+
+        // ==============================
+        // ===== COUPON ADMIN =====
+        // ==============================
+
+        const SCOPE_LABELS = {
+            hanhan: '漢 Hán Hàn 3000',
+            topik: '🎓 TOPIK',
+            vocab: '📖 Từ vựng',
+            all: '🌐 Tất cả',
+        };
+
+        // Khi đổi scope → hiện/ẩn chọn topic
+        window.onCpScopeChange = async () => {
+            const scope = $('cp-scope').value;
+            const topicGroup = $('cp-topic-group');
+            if (scope === 'vocab') {
+                topicGroup.classList.remove('hidden');
+                await loadTopicsForCoupon();
+            } else {
+                topicGroup.classList.add('hidden');
+            }
+        };
+
+        // Load danh sách topic vào select
+        async function loadTopicsForCoupon() {
+            const sel = $('cp-topic-ids');
+            if (sel.children.length > 1 && sel.children[0].value) return; // đã load rồi
+            sel.innerHTML = '<option disabled>Đang tải...</option>';
+            const { data } = await supabase
+                .from('vocabulary_topics')
+                .select('id, title_vn, title_kr')
+                .order('order_index', { ascending: true });
+            if (!data || !data.length) {
+                sel.innerHTML = '<option disabled>Không có chủ đề nào</option>';
+                return;
+            }
+            sel.innerHTML = data.map(t =>
+                `<option value="${t.id}">${t.id}. ${t.title_vn} — ${t.title_kr}</option>`
+            ).join('');
+        }
+
+        window.resetCouponForm = () => {
+            $('cp-code').value = '';
+            $('cp-scope').value = 'hanhan';
+            $('cp-maxuses').value = '';
+            $('cp-expires').value = '';
+            $('cp-note').value = '';
+            $('cp-topic-group').classList.add('hidden');
+            // Bỏ chọn tất cả option trong multi-select
+            [...($('cp-topic-ids')?.options || [])].forEach(o => o.selected = false);
+        };
+
+        // Tạo coupon
+        window.createCoupon = async () => {
+            const code = $('cp-code').value.trim().toUpperCase();
+            const scope = $('cp-scope').value;
+            const maxUses = parseInt($('cp-maxuses').value) || null;
+            const expiresAt = $('cp-expires').value || null;
+            const note = $('cp-note').value.trim() || null;
+
+            if (!code) { showToast('Vui lòng nhập mã coupon!', 'error'); return; }
+            if (!/^[A-Z0-9_\-]{3,32}$/.test(code)) {
+                showToast('Mã chỉ gồm chữ IN HOA, số, dấu _ và - (3–32 ký tự)!', 'error'); return;
+            }
+
+            // Lấy danh sách topic_ids nếu scope = vocab
+            let topicIds = null;
+            if (scope === 'vocab') {
+                const sel = $('cp-topic-ids');
+                const selected = [...sel.selectedOptions].map(o => parseInt(o.value));
+                topicIds = selected.length > 0 ? selected : null; // null = mở tất cả topic
+            }
+
+            // Kiểm tra trùng
+            const { data: existing } = await supabase
+                .from('coupons').select('id').eq('code', code).maybeSingle();
+            if (existing) { showToast(`⚠️ Mã "${code}" đã tồn tại!`, 'error'); return; }
+
+            const btn = $('btn-create-coupon');
+            btn.disabled = true; btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Đang tạo...';
+
+            const row = { code, scope, is_active: true, used_count: 0 };
+            if (maxUses) row.max_uses = maxUses;
+            if (expiresAt) row.expires_at = new Date(expiresAt).toISOString();
+            if (note) row.note = note;
+            if (topicIds) row.topic_ids = topicIds;
+
+            const { error } = await supabase.from('coupons').insert([row]);
+            btn.disabled = false; btn.innerHTML = '<i class="fas fa-plus"></i> Tạo coupon';
+
+            if (error) { showToast('Lỗi: ' + error.message, 'error'); return; }
+
+            const topicInfo = topicIds ? ` (${topicIds.length} chủ đề)` : '';
+            showToast(`✅ Đã tạo "${code}" — ${SCOPE_LABELS[scope]}${topicInfo}`, 'success');
+            resetCouponForm();
+            loadCouponList();
+        };
+
+        // Load danh sách coupon
+        window.loadCouponList = async () => {
+            const wrap = $('coupon-list-wrap');
+            wrap.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-muted);font-size:0.82rem"><i class="fas fa-circle-notch fa-spin" style="color:var(--purple);margin-right:6px"></i>Đang tải...</div>`;
+
+            const filterScope = $('cp-filter-scope').value;
+            const filterStatus = $('cp-filter-status').value;
+
+            let q = supabase.from('coupons').select('*').order('created_at', { ascending: false });
+            if (filterScope) q = q.eq('scope', filterScope);
+            if (filterStatus === 'active') q = q.eq('is_active', true);
+            if (filterStatus === 'inactive') q = q.eq('is_active', false);
+
+            const { data, error } = await q;
+            if (error) { wrap.innerHTML = `<div style="color:var(--red);padding:16px;font-size:0.82rem">Lỗi: ${error.message}</div>`; return; }
+
+            if (!data || data.length === 0) {
+                wrap.innerHTML = `<div style="text-align:center;padding:32px;color:var(--text-muted);font-size:0.85rem;font-weight:700">Chưa có coupon nào.</div>`;
+                return;
+            }
+
+            const now = new Date();
+
+            const rows = data.map(cp => {
+                const isExpired = cp.expires_at && new Date(cp.expires_at) < now;
+                const isFull = cp.max_uses !== null && cp.used_count >= cp.max_uses;
+
+                let statusClass, statusLabel;
+                if (isExpired) { statusClass = 'expired'; statusLabel = '⏰ Hết hạn'; }
+                else if (isFull) { statusClass = 'expired'; statusLabel = '🔒 Đã đủ'; }
+                else if (!cp.is_active) { statusClass = 'inactive'; statusLabel = '🚫 Đã tắt'; }
+                else { statusClass = 'active'; statusLabel = '✅ Hoạt động'; }
+
+                const expiresStr = cp.expires_at
+                    ? new Date(cp.expires_at).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+                    : '∞';
+
+                const usedPct = cp.max_uses ? Math.min(100, Math.round(cp.used_count / cp.max_uses * 100)) : 0;
+                const usesHtml = cp.max_uses
+                    ? `<div class="cp-uses-bar">
+                        <div class="cp-uses-track"><div class="cp-uses-fill" style="width:${usedPct}%"></div></div>
+                        <span class="cp-uses-text">${cp.used_count}/${cp.max_uses}</span>
+                       </div>`
+                    : `<span class="cp-uses-text">${cp.used_count} lần</span>`;
+
+                // Hiển thị topic_ids nếu có
+                const topicBadge = (cp.scope === 'vocab' && cp.topic_ids?.length)
+                    ? `<br><span style="font-size:0.68rem;color:var(--text-muted);font-weight:600">${cp.topic_ids.length} chủ đề</span>`
+                    : '';
+
+                // Ghi chú
+                const noteHtml = cp.note
+                    ? `<br><span style="font-size:0.7rem;color:var(--text-muted);font-style:italic">${cp.note}</span>`
+                    : '';
+
+                const toggleDisabled = isExpired ? 'disabled title="Đã hết hạn"' : '';
+                const toggleLabel = (cp.is_active && !isExpired) ? 'Tắt' : 'Bật';
+                const toggleClass = (cp.is_active && !isExpired) ? 'deactivate' : 'activate';
+
+                return `
+                <tr>
+                    <td><span class="cp-code-cell">${cp.code}</span>${noteHtml}</td>
+                    <td><span class="cp-scope-badge ${cp.scope}">${SCOPE_LABELS[cp.scope] || cp.scope}</span>${topicBadge}</td>
+                    <td><span class="cp-status-badge ${statusClass}">${statusLabel}</span></td>
+                    <td>${usesHtml}</td>
+                    <td style="font-size:0.78rem;color:var(--text-muted)">${expiresStr}</td>
+                    <td>
+                        <div style="display:flex;gap:6px;align-items:center">
+                            <button class="btn-cp-toggle ${toggleClass}" ${toggleDisabled}
+                                onclick="toggleCoupon(${cp.id}, ${cp.is_active})">${toggleLabel}</button>
+                            <button class="btn-cp-delete" onclick="deleteCoupon(${cp.id}, '${cp.code}')" title="Xóa">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>`;
+            }).join('');
+
+            wrap.innerHTML = `
+            <div style="overflow-x:auto">
+                <table class="coupon-table">
+                    <thead>
+                        <tr>
+                            <th>Mã coupon</th>
+                            <th>Phạm vi</th>
+                            <th>Trạng thái</th>
+                            <th>Số lần dùng</th>
+                            <th>Hết hạn</th>
+                            <th>Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody>${rows}</tbody>
+                </table>
+            </div>`;
+        };
+
+        // Toggle active
+        window.toggleCoupon = async (id, currentActive) => {
+            const { error } = await supabase.from('coupons').update({ is_active: !currentActive }).eq('id', id);
+            if (error) { showToast('Lỗi: ' + error.message, 'error'); return; }
+            showToast(currentActive ? '🚫 Đã tắt coupon' : '✅ Đã bật coupon', 'success');
+            loadCouponList();
+        };
+
+        // Xóa coupon
+        window.deleteCoupon = async (id, code) => {
+            if (!confirm(`Xóa coupon "${code}"? Hành động này không thể hoàn tác.`)) return;
+            const { error } = await supabase.from('coupons').delete().eq('id', id);
+            if (error) { showToast('Lỗi: ' + error.message, 'error'); return; }
+            showToast(`🗑️ Đã xóa coupon "${code}"`, 'success');
+            loadCouponList();
+        };
+
+        // ==============================
         init();
     </script>
+    <!-- ===== HANJA PASTE DIALOG ===== -->
+    <div id="hanja-paste-dialog" class="paste-overlay" onclick="if(event.target===this)closeHanjaPasteDialog()">
+        <div class="paste-box">
+            <div class="paste-header">
+                <div class="paste-title"><i class="fas fa-paste"></i> Paste từ Hán Hàn hàng loạt</div>
+                <button class="paste-close" onclick="closeHanjaPasteDialog()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="paste-format-hint">
+                Mỗi dòng một từ, ngăn cách bằng <code>|</code><br>
+                <span class="paste-format-ex">한국어 | 漢字 | Tiếng Việt</span> &nbsp;hoặc&nbsp;
+                <span class="paste-format-ex">한국어 | Tiếng Việt</span>
+            </div>
+            <textarea id="hanja-paste-area" class="paste-textarea"
+                placeholder="Ví dụ:&#10;가족 | 家族 | Gia đình | Family&#10;학교 | 學校 | Trường học&#10;시간 | Thời gian"></textarea>
+            <div class="paste-footer">
+                <span id="hanja-paste-count" class="paste-count"></span>
+                <div style="display:flex;gap:8px">
+                    <button class="btn-reset" onclick="closeHanjaPasteDialog()">Hủy</button>
+                    <button class="btn-submit" onclick="applyHanjaPaste()"><i class="fas fa-check"></i> Điền vào
+                        bảng</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- ===== PASTE DIALOG ===== -->
+    <div id="paste-dialog" class="paste-overlay" onclick="if(event.target===this)closePasteDialog()">
+        <div class="paste-box">
+            <div class="paste-header">
+                <div class="paste-title"><i class="fas fa-paste"></i> Paste hàng loạt</div>
+                <button class="paste-close" onclick="closePasteDialog()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="paste-format-hint">
+                Mỗi dòng một từ, ngăn cách bằng <code>|</code><br>
+                <span class="paste-format-ex">한국어 | Tiếng Việt</span> &nbsp;hoặc&nbsp; <span class="paste-format-ex">한국어
+                    | Tiếng Việt | English</span>
+            </div>
+            <textarea id="paste-area" class="paste-textarea"
+                placeholder="Ví dụ:&#10;아버지 | Bố | Father&#10;어머니 | Mẹ | Mother&#10;친구 | Bạn bè"></textarea>
+            <div class="paste-footer">
+                <span id="paste-line-count" class="paste-count"></span>
+                <div style="display:flex;gap:8px">
+                    <button class="btn-reset" onclick="closePasteDialog()">Hủy</button>
+                    <button class="btn-submit" onclick="applyPaste()"><i class="fas fa-check"></i> Điền vào
+                        bảng</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </body>
 
 </html>

@@ -1,0 +1,1503 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>한코드 — Hán Hàn</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Noto+Sans+KR:wght@400;500;700;900&family=Noto+Serif+KR:wght@400;700;900&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="icon"
+        href="https://gdbtjzebjwnbwbvktcue.supabase.co/storage/v1/object/public/images/chat-images/1773843617985-ebgw17.png">
+    <style>
+        *,
+        *::before,
+        *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg: #f4f2fa;
+            --surface: #ffffff;
+            --text-main: #2e2b55;
+            --text-sub: #7875a8;
+            --text-muted: #aeacd0;
+            --border: rgba(180, 165, 230, 0.25);
+            --purple: #7c6ce0;
+            --purple-light: rgba(124, 108, 224, 0.12);
+            --pink: #f0607a;
+            --pink-light: rgba(240, 96, 122, 0.1);
+            --green: #3ab89a;
+            --green-light: #d1f0e6;
+            --shadow-sm: 0 4px 18px rgba(100, 80, 200, 0.06);
+            --shadow-md: 0 8px 30px rgba(100, 80, 200, 0.12);
+        }
+
+        body {
+            font-family: 'Nunito', 'Noto Sans KR', sans-serif;
+            background: var(--bg);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* ===== TOP NAV ===== */
+        .top-nav {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            width: 100%;
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            align-items: center;
+            height: 60px;
+            background: rgba(244, 242, 250, 0.92);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border-bottom: 1px solid var(--border);
+            padding: 0 20px;
+            gap: 8px;
+        }
+
+        .nav-left {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            min-width: 0;
+        }
+
+        .nav-center {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1px;
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 5px;
+        }
+
+        .btn-back {
+            flex-shrink: 0;
+            width: 32px;
+            height: 32px;
+            border-radius: 10px;
+            background: white;
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            color: var(--text-sub);
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: var(--shadow-sm);
+            font-family: inherit;
+        }
+
+        .btn-back:hover {
+            background: var(--purple-light);
+            color: var(--purple);
+            border-color: var(--purple);
+        }
+
+        .nav-title {
+            font-size: 0.9rem;
+            font-weight: 800;
+            color: var(--text-main);
+            background: white;
+            padding: 5px 14px;
+            border-radius: 50px;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-sm);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: min(420px, 42vw);
+        }
+
+        .nav-progress {
+            font-size: 0.8rem;
+            font-weight: 800;
+            color: var(--text-sub);
+            line-height: 1;
+        }
+
+        .stat-pill {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            background: white;
+            padding: 4px 9px;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-sm);
+            font-size: 0.85rem;
+            font-weight: 800;
+            color: var(--text-main);
+            white-space: nowrap;
+        }
+
+        .stat-pill i.fa-diamond {
+            color: lightblue;
+        }
+
+        .stat-pill i.fa-star {
+            color: #7c6ce0;
+        }
+
+        .btn-login-hdr {
+            padding: 5px 13px;
+            background: var(--purple-light);
+            border: none;
+            border-radius: 20px;
+            color: var(--purple);
+            font-size: 0.82rem;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+            font-family: inherit;
+        }
+
+        .btn-login-hdr:hover {
+            background: var(--purple);
+            color: white;
+        }
+
+        .user-block {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .user-avatar-btn {
+            flex-shrink: 0;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #b3a4ef, #7c6ce0);
+            border: 2px solid white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.72rem;
+            font-weight: 800;
+            color: white;
+            cursor: pointer;
+            overflow: hidden;
+            box-shadow: 0 2px 6px rgba(124, 108, 224, 0.3);
+            transition: transform 0.2s;
+        }
+
+        .user-avatar-btn:hover {
+            transform: scale(1.08);
+        }
+
+        .user-avatar-btn img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .user-display-name {
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--text-main);
+            max-width: 100px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .btn-logout {
+            flex-shrink: 0;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: rgba(255, 100, 100, 0.1);
+            border: none;
+            color: #e05;
+            font-size: 0.65rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+
+        .btn-logout:hover {
+            background: rgba(255, 50, 50, 0.2);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* ===== MAIN ===== */
+        main {
+            width: 100%;
+            max-width: 600px;
+            padding: 24px 20px 80px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        /* ===== VIEW SECTIONS ===== */
+        .view-section {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .view-section.active {
+            display: flex;
+            flex-direction: column;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .loader {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-muted);
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        .loader i {
+            color: var(--pink);
+            font-size: 1.5rem;
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        /* ===== VIEW 0: BOOK PICKER ===== */
+        .book-picker-wrap {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            padding: 8px 0;
+        }
+
+        .book-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 32px 16px;
+            background: white;
+            border: 2px solid var(--border);
+            border-radius: 22px;
+            cursor: pointer;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.22s;
+            text-align: center;
+        }
+
+        .book-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .book-card.b-hanhan:hover {
+            border-color: var(--pink);
+        }
+
+        .book-card.b-topik:hover {
+            border-color: var(--purple);
+        }
+
+        .book-icon {
+            font-size: 2.4rem;
+            font-family: 'Noto Serif KR', serif;
+            line-height: 1;
+        }
+
+        .book-title {
+            font-size: 1rem;
+            font-weight: 900;
+            color: var(--text-main);
+        }
+
+        .book-sub {
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: var(--text-sub);
+        }
+
+        /* ===== VIEW 1: CHAPTER LIST ===== */
+        .coupon-bar {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 4px;
+        }
+
+        .coupon-input {
+            flex: 1;
+            padding: 12px 16px;
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 0.9rem;
+            color: var(--text-main);
+            box-shadow: var(--shadow-sm);
+            outline: none;
+            transition: border 0.2s;
+        }
+
+        .coupon-input:focus {
+            border-color: var(--purple);
+        }
+
+        .btn-unlock {
+            padding: 0 20px;
+            background: var(--purple-light);
+            border: none;
+            border-radius: 12px;
+            color: var(--purple);
+            font-weight: 800;
+            font-family: inherit;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-unlock:hover {
+            background: var(--purple);
+            color: white;
+        }
+
+        .topic-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .topic-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px;
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            cursor: pointer;
+            box-shadow: var(--shadow-sm);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .topic-row:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-md);
+            border-color: rgba(124, 108, 224, 0.3);
+        }
+
+        .topic-idx {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: var(--purple-light);
+            color: var(--purple);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            font-weight: 800;
+            flex-shrink: 0;
+        }
+
+        .topic-title {
+            flex: 1;
+            font-size: 0.9rem;
+            font-weight: 800;
+            color: var(--text-sub);
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .topic-cons-badge {
+            font-family: 'Noto Sans KR', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 900;
+            color: var(--text-main);
+        }
+
+        .topic-count-badge {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            background: rgba(180, 165, 230, 0.12);
+            border-radius: 20px;
+            padding: 2px 9px;
+        }
+
+        .topic-lock {
+            font-size: 1.1rem;
+            color: #ffb06b;
+            flex-shrink: 0;
+        }
+
+        /* Unlocked */
+        .topic-row.unlocked {
+            background: var(--green-light);
+            border-color: var(--green);
+        }
+
+        .topic-row.unlocked .topic-title {
+            color: #2a8a73;
+        }
+
+        .topic-row.unlocked .topic-idx {
+            background: rgba(255, 255, 255, 0.6);
+            color: #2a8a73;
+        }
+
+        .topic-row.unlocked .topic-lock {
+            color: #f5a623;
+        }
+
+        /* Locked */
+        .topic-row.locked {
+            background: #fafafa;
+            border-color: rgba(180, 165, 230, 0.15);
+            cursor: not-allowed;
+            opacity: 0.72;
+        }
+
+        .topic-row.locked:hover {
+            transform: none;
+            box-shadow: var(--shadow-sm);
+            border-color: rgba(180, 165, 230, 0.15);
+        }
+
+        .topic-row.locked .topic-title {
+            color: var(--text-muted);
+        }
+
+        .topic-row.locked .topic-idx {
+            background: rgba(180, 165, 230, 0.1);
+            color: var(--text-muted);
+        }
+
+        .topic-row.locked .topic-lock {
+            color: #c8bfe8;
+        }
+
+        /* ===== VIEW 2: WORD LIST ===== */
+        .words-top-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 6px;
+            gap: 8px;
+        }
+
+        .chapter-label {
+            font-size: 0.82rem;
+            font-weight: 800;
+            color: var(--text-sub);
+            background: var(--purple-light);
+            border-radius: 20px;
+            padding: 4px 12px;
+        }
+
+        .word-count-label {
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: var(--text-muted);
+        }
+
+        .word-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .word-row {
+            display: flex;
+            align-items: stretch;
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            box-shadow: var(--shadow-sm);
+            overflow: hidden;
+            transition: box-shadow 0.2s;
+        }
+
+        .word-row:hover {
+            box-shadow: var(--shadow-md);
+        }
+
+        .word-num {
+            width: 42px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.82rem;
+            font-weight: 800;
+            color: var(--text-muted);
+            border-right: 1px solid var(--border);
+        }
+
+        .word-body {
+            flex: 1;
+            padding: 12px 14px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 0;
+        }
+
+        .hanja-char {
+            flex-shrink: 0;
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            background: linear-gradient(145deg, #fff0f4, #ffe4ea);
+            border: 1.5px solid rgba(240, 96, 122, 0.18);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Noto Serif KR', serif;
+            font-size: 1.4rem;
+            font-weight: 900;
+            color: var(--pink);
+        }
+
+        .hanja-char.no-hanja {
+            background: linear-gradient(145deg, #f0eeff, #e8e2ff);
+            border-color: rgba(124, 108, 224, 0.18);
+            font-family: 'Noto Sans KR', sans-serif;
+            font-size: 1.1rem;
+            color: var(--purple);
+        }
+
+        .word-text {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .word-kr {
+            font-family: 'Noto Sans KR', sans-serif;
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 2px;
+        }
+
+        .word-hanja-hint {
+            font-family: 'Noto Serif KR', serif;
+            font-size: 0.78em;
+            color: var(--pink);
+            opacity: 0.75;
+            margin-left: 4px;
+        }
+
+        .word-vn {
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--text-sub);
+        }
+
+        .word-en {
+            font-size: 0.74rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-top: 1px;
+        }
+
+        .word-actions {
+            display: flex;
+            align-items: center;
+            padding: 0 10px;
+            gap: 4px;
+            flex-shrink: 0;
+        }
+
+        .btn-audio {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            border: none;
+            background: var(--bg);
+            color: var(--text-sub);
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-audio:hover {
+            background: var(--purple-light);
+            color: var(--purple);
+        }
+
+        /* ===== TOAST ===== */
+        .practise-toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            z-index: 500;
+            padding: 10px 20px;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: white;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+            opacity: 0;
+            transition: opacity 0.3s, transform 0.3s;
+            white-space: nowrap;
+            pointer-events: none;
+        }
+
+        .practise-toast--show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .practise-toast--success {
+            background: linear-gradient(135deg, #5fd4b5, #3ab89a);
+        }
+
+        .practise-toast--info {
+            background: linear-gradient(135deg, #8b79de, #6a58d0);
+        }
+
+        .practise-toast--error {
+            background: linear-gradient(135deg, #ff9eaa, #e05);
+        }
+
+        /* ===== MODALS ===== */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 200;
+            background: rgba(30, 20, 60, 0.45);
+            backdrop-filter: blur(12px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.28s, visibility 0.28s;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-box {
+            background: linear-gradient(150deg, rgba(255, 255, 255, 0.97), rgba(240, 235, 255, 0.98));
+            border: 1px solid rgba(180, 165, 230, 0.3);
+            border-radius: 24px;
+            padding: 32px 28px 28px;
+            width: 100%;
+            max-width: 400px;
+            position: relative;
+            box-shadow: 0 30px 80px rgba(80, 60, 160, 0.22);
+            transform: scale(0.94) translateY(12px);
+            transition: transform 0.32s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .modal-overlay.active .modal-box {
+            transform: scale(1) translateY(0);
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: rgba(120, 100, 200, 0.08);
+            border: none;
+            color: var(--text-sub);
+            font-size: 1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+
+        .modal-close:hover {
+            background: rgba(240, 60, 100, 0.12);
+            color: #e04;
+        }
+
+        .modal-title {
+            font-size: 1.25rem;
+            font-weight: 900;
+            color: var(--text-main);
+            margin-bottom: 6px;
+            text-align: center;
+        }
+
+        .modal-subtitle {
+            font-size: 0.8rem;
+            color: var(--text-sub);
+            text-align: center;
+            margin-bottom: 24px;
+            font-weight: 600;
+        }
+
+        .form-group {
+            margin-bottom: 14px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--text-sub);
+            margin-bottom: 5px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 10px 14px;
+            background: rgba(255, 255, 255, 0.8);
+            border: 1.5px solid rgba(180, 165, 230, 0.35);
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 0.85rem;
+            color: var(--text-main);
+            outline: none;
+            transition: all 0.25s;
+        }
+
+        .form-input:focus {
+            border-color: var(--purple);
+            box-shadow: 0 0 0 3px rgba(124, 108, 224, 0.12);
+        }
+
+        .p-error {
+            font-size: 0.7rem;
+            color: #e84;
+            font-weight: 700;
+            margin-top: 4px;
+            min-height: 14px;
+            display: block;
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #8b79de, #6a58d0);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-family: inherit;
+            font-size: 0.9rem;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.25s;
+            margin-top: 4px;
+            box-shadow: 0 6px 20px rgba(124, 108, 224, 0.35);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 28px rgba(124, 108, 224, 0.45);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.65;
+            transform: none;
+            cursor: not-allowed;
+        }
+
+        .modal-switch {
+            text-align: center;
+            margin-top: 16px;
+            font-size: 0.8rem;
+            color: var(--text-sub);
+            font-weight: 600;
+        }
+
+        .modal-switch a {
+            color: var(--purple);
+            font-weight: 800;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .profile-avatar-big {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #b3a4ef, #7c6ce0);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 900;
+            color: white;
+            margin: 0 auto 16px;
+            box-shadow: 0 6px 16px rgba(124, 108, 224, 0.3);
+            overflow: hidden;
+        }
+
+        .profile-avatar-big img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .profile-info-row {
+            display: flex;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(180, 165, 230, 0.15);
+            font-size: 0.85rem;
+        }
+
+        .profile-info-label {
+            width: 110px;
+            font-weight: 700;
+            color: var(--text-sub);
+            flex-shrink: 0;
+        }
+
+        .profile-info-value {
+            color: var(--text-main);
+            font-weight: 600;
+        }
+
+        .btn-logout-full {
+            width: 100%;
+            padding: 10px;
+            margin-top: 18px;
+            background: rgba(240, 80, 80, 0.08);
+            border: 1.5px solid rgba(240, 80, 80, 0.25);
+            border-radius: 12px;
+            color: #c03;
+            font-family: inherit;
+            font-size: 0.85rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.25s;
+        }
+
+        @media (max-width: 480px) {
+            main {
+                padding: 16px 12px 60px;
+            }
+
+            .book-card {
+                padding: 24px 12px;
+            }
+
+            .hanja-char {
+                width: 38px;
+                height: 38px;
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- TOP NAV -->
+    <nav class="top-nav">
+        <div class="nav-left">
+            <button class="btn-back" id="btn-global-back" onclick="handleBack()">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+            <button id="hdr-btn-login" class="btn-login-hdr" onclick="openLoginModal()">Đăng nhập</button>
+            <div id="hdr-user-block" class="user-block hidden">
+                <div id="hdr-avatar" class="user-avatar-btn" onclick="openProfileModal()"></div>
+                <span id="hdr-display-name" class="user-display-name"></span>
+                <button class="btn-logout" onclick="handleLogout()"><i class="fas fa-sign-out-alt"></i></button>
+            </div>
+        </div>
+        <div class="nav-center">
+            <div class="nav-title" id="nav-title">Hanhan</div>
+            <div class="nav-progress hidden" id="nav-progress">0 từ</div>
+        </div>
+        <div class="nav-right">
+            <div class="stat-pill"><i class="fa-solid fa-diamond"></i><span id="stat-diamonds">0</span></div>
+            <div class="stat-pill"><i class="fas fa-star"></i><span id="stat-xp">0</span></div>
+        </div>
+    </nav>
+
+    <!-- MAIN -->
+    <main>
+
+        <!-- View 0: Chọn bộ -->
+        <div id="view-books" class="view-section active">
+            <div class="book-picker-wrap">
+                <div class="book-card b-hanhan" onclick="selectBook('hanhan')">
+                    <div class="book-icon">漢</div>
+                    <div class="book-title">Hán Hàn 3000</div>
+                    <div class="book-sub" id="count-hanhan">Đang tải...</div>
+                </div>
+                <div class="book-card b-topik" onclick="selectBook('topik')">
+                    <div class="book-icon">🎓</div>
+                    <div class="book-title">Hán Hàn TOPIK</div>
+                    <div class="book-sub" id="count-topik">Đang tải...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- View 1: Danh sách chương theo phụ âm -->
+        <div id="view-chapters" class="view-section">
+            <div class="coupon-bar">
+                <input type="text" id="coupon-input" class="coupon-input" placeholder="Nhập mã coupon"
+                    onkeydown="if(event.key==='Enter') applyCoupon()" />
+                <button class="btn-unlock" onclick="applyCoupon()">Mở khóa</button>
+            </div>
+            <div class="topic-list" id="chapter-list">
+                <div class="loader"><i class="fas fa-circle-notch fa-spin"></i> Đang tải...</div>
+            </div>
+        </div>
+
+        <!-- View 2: Danh sách từ -->
+        <div id="view-words" class="view-section">
+            <div class="words-top-bar">
+                <div class="chapter-label" id="chapter-label">ㄱ</div>
+                <div class="word-count-label" id="word-count-label">0 từ</div>
+            </div>
+            <div class="word-list" id="word-list">
+                <div class="loader"><i class="fas fa-circle-notch fa-spin"></i> Đang tải...</div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- LOGIN MODAL -->
+    <div id="login-modal" class="modal-overlay" onclick="if(event.target===this)closeLoginModal()">
+        <div class="modal-box">
+            <button class="modal-close" onclick="closeLoginModal()"><i class="fas fa-times"></i></button>
+            <div class="modal-title">Đăng nhập</div>
+            <div class="modal-subtitle">Chào mừng trở lại! Học tiếng Hàn nào 🇰🇷</div>
+            <div class="form-group">
+                <label class="form-label">Email</label>
+                <input type="email" id="login-email" class="form-input" placeholder="example@email.com">
+                <span class="p-error" id="login-error"></span>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Mật khẩu</label>
+                <input type="password" id="login-password" class="form-input" placeholder="••••••••"
+                    onkeydown="if(event.key==='Enter') doLogin()">
+            </div>
+            <button id="login-submit-btn" class="btn-primary" onclick="doLogin()">Đăng nhập</button>
+            <div class="modal-switch">Chưa có tài khoản? <a onclick="openRegModal()">Đăng ký ngay</a></div>
+        </div>
+    </div>
+
+    <!-- REGISTER MODAL -->
+    <div id="reg-modal" class="modal-overlay" onclick="if(event.target===this)closeRegModal()">
+        <div class="modal-box">
+            <button class="modal-close" onclick="closeRegModal()"><i class="fas fa-times"></i></button>
+            <div class="modal-title">Đăng ký tài khoản</div>
+            <div class="modal-subtitle">Bắt đầu hành trình học tiếng Hàn 🌸</div>
+            <div class="form-group">
+                <label class="form-label">Tên hiển thị</label>
+                <input type="text" id="reg-name" class="form-input" placeholder="Nguyễn Văn A">
+                <span class="p-error" id="reg-name-error"></span>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Email</label>
+                <input type="email" id="reg-email" class="form-input" placeholder="example@email.com">
+                <span class="p-error" id="reg-email-error"></span>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Số điện thoại</label>
+                <input type="tel" id="reg-phone" class="form-input" placeholder="0912345678">
+                <span class="p-error" id="reg-phone-error"></span>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Mật khẩu</label>
+                <input type="password" id="reg-password" class="form-input" placeholder="••••••••">
+                <span class="p-error" id="reg-pw-error"></span>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Nhập lại mật khẩu</label>
+                <input type="password" id="reg-confirm" class="form-input" placeholder="••••••••">
+                <span class="p-error" id="reg-cpw-error"></span>
+            </div>
+            <button id="reg-submit-btn" class="btn-primary" onclick="doRegister()">Đăng ký</button>
+            <div class="modal-switch">Đã có tài khoản? <a onclick="openLoginModal()">Đăng nhập</a></div>
+        </div>
+    </div>
+
+    <!-- PROFILE MODAL -->
+    <div id="profile-modal" class="modal-overlay" onclick="if(event.target===this)closeProfileModal()">
+        <div class="modal-box">
+            <button class="modal-close" onclick="closeProfileModal()"><i class="fas fa-times"></i></button>
+            <div class="profile-avatar-big" id="profile-avatar-big">?</div>
+            <div class="modal-title" id="profile-name"></div>
+            <div class="profile-info-row"><span class="profile-info-label">📧 Email</span><span
+                    class="profile-info-value" id="profile-email"></span></div>
+            <div class="profile-info-row"><span class="profile-info-label">📱 Điện thoại</span><span
+                    class="profile-info-value" id="profile-phone"></span></div>
+            <div class="profile-info-row"><span class="profile-info-label">🏅 Vai trò</span><span
+                    class="profile-info-value" id="profile-role"></span></div>
+            <div class="profile-info-row"><span class="profile-info-label">🔥 Streak</span><span
+                    class="profile-info-value" id="profile-streak"></span></div>
+            <button class="btn-logout-full" onclick="handleLogout();closeProfileModal()"><i
+                    class="fas fa-sign-out-alt"></i> Đăng xuất</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+        const SUPABASE_URL = 'https://ktqdzlhvdkerjajffgfi.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt0cWR6bGh2ZGtlcmphamZmZ2ZpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc2OTgxNTMsImV4cCI6MjA4MzI3NDE1M30.6xz0SVuj6x72VcLZyJpVtNMMWSmyOEtGhmKiVMu46xI';
+        const supabase = createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persistSession: true, detectSessionInUrl: true, autoRefreshToken: true } });
+
+        const $ = id => document.getElementById(id);
+
+        // ── Toast ──
+        function showToast(msg, type = 'info') {
+            const t = document.createElement('div');
+            t.className = `practise-toast practise-toast--${type}`;
+            t.textContent = msg;
+            document.body.appendChild(t);
+            requestAnimationFrame(() => t.classList.add('practise-toast--show'));
+            setTimeout(() => { t.classList.remove('practise-toast--show'); setTimeout(() => t.remove(), 400); }, 3200);
+        }
+
+        // ── State ──
+        let currentView = 'books';
+        let currentBook = '';
+        let currentUser = null;
+        let currentProfile = null;
+        let wordsCache = {};     // { hanhan: [...], topik: [...] }
+        let groupsCache = {};    // { hanhan: {ㄱ:[...], ...}, topik: {...} }
+
+        // Convention: dùng topic_id đặc biệt để đại diện cho từng bộ Hán Hàn
+        // 10001 = Hán Hàn 3000 (hanhan), 10002 = Hán Hàn TOPIK (topik)
+        const BOOK_TOPIC_ID = { hanhan: 10001, topik: 10002 };
+
+        // Cache trạng thái unlock trong session (tránh query DB liên tục)
+        const unlockedBooksCache = new Set(); // 'hanhan' | 'topik'
+
+        // Kiểm tra user đã unlock bộ này chưa (query DB)
+        async function checkUnlocked(book) {
+            if (unlockedBooksCache.has(book)) return true;
+            if (!currentUser) return false;
+            const topicId = BOOK_TOPIC_ID[book];
+            const { data } = await supabase
+                .from('user_unlocked_topics')
+                .select('id')
+                .eq('user_id', currentUser.id)
+                .eq('topic_id', topicId)
+                .maybeSingle();
+            if (data) unlockedBooksCache.add(book);
+            return !!data;
+        }
+
+        // Lưu unlock vào DB
+        async function saveUnlockToDB(book, couponCode) {
+            if (!currentUser) return;
+            const topicId = BOOK_TOPIC_ID[book];
+
+            // Dùng ignoreDuplicates thay vì upsert để tránh cần UPDATE policy
+            const { error } = await supabase.from('user_unlocked_topics').insert([{
+                user_id: currentUser.id,
+                topic_id: topicId,
+                coupon_code: couponCode,
+            }], { ignoreDuplicates: true });
+
+            if (error) {
+                console.error('saveUnlockToDB error:', error);
+                showToast('Lỗi lưu dữ liệu: ' + error.message, 'error');
+                return;
+            }
+            unlockedBooksCache.add(book);
+        }
+
+        // Preload unlock status cho cả 2 bộ vào cache
+        async function preloadUnlockStatus() {
+            if (!currentUser) return;
+            const { data } = await supabase
+                .from('user_unlocked_topics')
+                .select('topic_id')
+                .eq('user_id', currentUser.id)
+                .in('topic_id', [10001, 10002]);
+            (data || []).forEach(row => {
+                if (row.topic_id === 10001) unlockedBooksCache.add('hanhan');
+                if (row.topic_id === 10002) unlockedBooksCache.add('topik');
+            });
+        }
+
+        const CONS_ORDER = ['ㄱ', 'ㄴ', 'ㄷ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅅ', 'ㅇ', 'ㅈ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ'];
+
+        function getInitial(word) {
+            if (!word) return '';
+            const code = word.charCodeAt(0);
+            if (code < 0xAC00 || code > 0xD7A3) return word[0].toUpperCase();
+            const CHO = ['ㄱ', 'ㄲ', 'ㄴ', 'ㄷ', 'ㄸ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅃ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅉ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ'];
+            const NORM = { 'ㄲ': 'ㄱ', 'ㄸ': 'ㄷ', 'ㅃ': 'ㅂ', 'ㅆ': 'ㅅ', 'ㅉ': 'ㅈ' };
+            const c = CHO[Math.floor((code - 0xAC00) / 588)] || '';
+            return NORM[c] || c;
+        }
+
+        function groupByInitial(words) {
+            const g = {};
+            words.forEach(w => {
+                const k = w._initial || '#';
+                if (!g[k]) g[k] = [];
+                g[k].push(w);
+            });
+            const sorted = {};
+            CONS_ORDER.forEach(c => { if (g[c]) sorted[c] = g[c]; });
+            Object.keys(g).filter(k => !CONS_ORDER.includes(k)).forEach(k => sorted[k] = g[k]);
+            return sorted;
+        }
+
+        // ── View switcher ──
+        function showView(name) {
+            ['books', 'chapters', 'words'].forEach(v =>
+                $(`view-${v}`).classList.toggle('active', v === name)
+            );
+            currentView = name;
+        }
+
+        // ── Load counts for book picker ──
+        async function loadCounts() {
+            for (const t of ['hanhan', 'topik']) {
+                const { count } = await supabase
+                    .from('hanhan_words')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('type', t);
+                $(`count-${t}`).textContent = count != null ? `${count.toLocaleString('vi-VN')} từ` : '0 từ';
+            }
+        }
+
+        // ── Select book ──
+        window.selectBook = async function (type) {
+            // Yêu cầu đăng nhập
+            if (!currentUser) {
+                showToast('Vui lòng đăng nhập để xem nội dung!', 'info');
+                openLoginModal();
+                return;
+            }
+
+            currentBook = type;
+            $('nav-title').textContent = type === 'hanhan' ? 'Hán Hàn 3000' : 'Hán Hàn TOPIK';
+            $('nav-progress').classList.add('hidden');
+            showView('chapters');
+            $('chapter-list').innerHTML = `<div class="loader"><i class="fas fa-circle-notch fa-spin"></i> Đang tải dữ liệu...</div>`;
+
+            // Load words if not cached
+            if (!wordsCache[type]) {
+                const { data, error } = await supabase
+                    .from('hanhan_words').select('*').eq('type', type)
+                    .order('word_kr', { ascending: true });
+                if (error) {
+                    $('chapter-list').innerHTML = `<div class="loader">⚠️ Lỗi: ${error.message}</div>`;
+                    return;
+                }
+                wordsCache[type] = (data || []).map(w => ({ ...w, _initial: getInitial(w.word_kr) }));
+            }
+
+            const words = wordsCache[type];
+            if (!words.length) {
+                $('chapter-list').innerHTML = `<div class="loader">Chưa có từ nào trong bộ này.</div>`;
+                return;
+            }
+
+            groupsCache[type] = groupByInitial(words);
+            renderChapters(groupsCache[type]);
+        };
+
+        // ── Render chapter list ──
+        function renderChapters(groups) {
+            const isBookUnlocked = unlockedBooksCache.has(currentBook);
+            const keys = Object.keys(groups);
+            let html = '';
+            keys.forEach((cons, idx) => {
+                const count = groups[cons].length;
+                // Nếu bộ đã unlock → tất cả chương đều mở
+                const isUnlocked = isBookUnlocked;
+                const stateClass = isUnlocked ? 'unlocked' : 'locked';
+                const lockHtml = isUnlocked
+                    ? '<i class="fas fa-lock-open topic-lock"></i>'
+                    : '<i class="fas fa-lock topic-lock"></i>';
+                html += `
+                <div class="topic-row ${stateClass}" onclick="selectChapter('${cons}', ${idx}, ${isUnlocked})">
+                    <div class="topic-idx">${idx + 1}</div>
+                    <div class="topic-title">
+                        HÁN HÀN &nbsp;<span class="topic-cons-badge">"${cons}"</span>
+                        <span class="topic-count-badge">${count} từ</span>
+                    </div>
+                    ${lockHtml}
+                </div>`;
+            });
+            $('chapter-list').innerHTML = html;
+        }
+
+        // ── Select chapter ──
+        window.selectChapter = function (cons, idx, isUnlocked) {
+            if (!isUnlocked) {
+                showToast('🔒 Chương này đang bị khóa. Nhập mã coupon để mở!', 'info');
+                $('coupon-input').focus();
+                return;
+            }
+            const words = (wordsCache[currentBook] || []).filter(w => w._initial === cons);
+            $('nav-title').textContent = `HÁN HÀN "${cons}"`;
+            $('nav-progress').textContent = `${words.length} từ`;
+            $('nav-progress').classList.remove('hidden');
+            $('chapter-label').textContent = `Phụ âm đầu: ${cons}`;
+            $('word-count-label').textContent = `${words.length} từ`;
+            showView('words');
+            renderWords(words);
+        };
+
+        // ── Render words ──
+        function renderWords(words) {
+            if (!words.length) {
+                $('word-list').innerHTML = '<div class="loader">Không có từ nào.</div>';
+                return;
+            }
+            $('word-list').innerHTML = words.map((w, i) => {
+                const hanja = (w.hanja || '').trim();
+                const badgeClass = hanja ? '' : ' no-hanja';
+                const badge = hanja ? hanja[0] : (w.word_kr || '?')[0];
+                return `
+                <div class="word-row">
+                    <div class="word-num">${i + 1}</div>
+                    <div class="word-body">
+                        <div class="hanja-char${badgeClass}">${badge}</div>
+                        <div class="word-text">
+                            <div class="word-kr">${w.word_kr || ''}${hanja ? `<span class="word-hanja-hint">(${hanja})</span>` : ''}</div>
+                            <div class="word-vn">${w.word_vn || ''}</div>
+                            ${w.word_en ? `<div class="word-en">${w.word_en}</div>` : ''}
+                        </div>
+                    </div>
+                    <div class="word-actions">
+                        <button class="btn-audio" onclick="speakWord(event,'${(w.word_kr || '').replace(/'/g, "\\'")}')">
+                            <i class="fas fa-volume-up"></i>
+                        </button>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        // ── Back ──
+        window.handleBack = function () {
+            if (currentView === 'words') {
+                $('nav-title').textContent = currentBook === 'hanhan' ? 'Hán Hàn 3000' : 'Hán Hàn TOPIK';
+                $('nav-progress').classList.add('hidden');
+                showView('chapters');
+            } else if (currentView === 'chapters') {
+                $('nav-title').textContent = 'Hanhan';
+                showView('books');
+                currentBook = '';
+            } else {
+                window.location.href = 'index.html';
+            }
+        };
+
+        // ── Coupon ──
+        window.applyCoupon = async function () {
+            const code = ($('coupon-input').value || '').trim().toUpperCase();
+            if (!code) { showToast('Vui lòng nhập mã coupon!', 'error'); return; }
+
+            // Yêu cầu đăng nhập
+            if (!currentUser) {
+                showToast('Vui lòng đăng nhập để dùng coupon!', 'info');
+                openLoginModal();
+                return;
+            }
+
+            // Kiểm tra đã unlock rồi chưa
+            if (unlockedBooksCache.has(currentBook)) {
+                showToast('Bộ này đã được mở khóa rồi!', 'info');
+                return;
+            }
+
+            const btn = document.querySelector('.btn-unlock');
+            btn.disabled = true; btn.textContent = 'Đang kiểm tra...';
+
+            // Truy vấn DB
+            const { data: cp, error } = await supabase
+                .from('coupons')
+                .select('*')
+                .eq('code', code)
+                .eq('is_active', true)
+                .maybeSingle();
+
+            btn.disabled = false; btn.innerHTML = 'Mở khóa';
+
+            if (error || !cp) { showToast('❌ Mã coupon không hợp lệ hoặc đã bị tắt!', 'error'); return; }
+            if (cp.expires_at && new Date(cp.expires_at) < new Date()) { showToast('⏰ Mã coupon đã hết hạn!', 'error'); return; }
+            if (cp.max_uses !== null && cp.used_count >= cp.max_uses) { showToast('🔒 Mã coupon đã đạt giới hạn sử dụng!', 'error'); return; }
+
+            // Kiểm tra scope
+            const scopeValid = cp.scope === 'all' || cp.scope === currentBook;
+            if (!scopeValid) {
+                const scopeNames = { hanhan: 'Hán Hàn 3000', topik: 'Hán Hàn TOPIK', vocab: 'Từ vựng' };
+                showToast(`⚠️ Mã này chỉ dùng được cho: ${scopeNames[cp.scope] || cp.scope}`, 'error'); return;
+            }
+
+            // Lưu vào DB + tăng used_count
+            await saveUnlockToDB(currentBook, code);
+            await supabase.from('coupons').update({ used_count: (cp.used_count || 0) + 1 }).eq('id', cp.id);
+
+            const bookLabel = currentBook === 'hanhan' ? 'Hán Hàn 3000' : 'Hán Hàn TOPIK';
+            showToast(`✅ Mở khóa ${bookLabel} thành công!`, 'success');
+            renderChapters(groupsCache[currentBook] || {});
+            $('coupon-input').value = '';
+        };
+
+        // ── TTS ──
+        window.speakWord = function (e, text) {
+            e.stopPropagation();
+            if (!text || !window.speechSynthesis) return;
+            const u = new SpeechSynthesisUtterance(text);
+            u.lang = 'ko-KR'; u.rate = 0.9;
+            speechSynthesis.speak(u);
+        };
+
+        // ── Auth ──
+        async function initAuth() {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session?.user) { currentUser = session.user; await loadProfile(currentUser.id); }
+            else updateAuthUI();
+
+            supabase.auth.onAuthStateChange(async (event, session) => {
+                if (event === 'SIGNED_IN' && session?.user && currentUser?.id !== session.user.id) {
+                    currentUser = session.user; await loadProfile(currentUser.id);
+                } else if (event === 'SIGNED_OUT') {
+                    currentUser = null; currentProfile = null; updateAuthUI();
+                }
+            });
+        }
+
+        async function loadProfile(uid) {
+            const { data: p } = await supabase.from('profiles').select('*').eq('id', uid).single();
+            const { data: lb } = await supabase.from('leaderboard').select('diamonds,xp').eq('user_id', uid).maybeSingle();
+            currentProfile = p ? { ...p, lb } : null;
+            updateAuthUI();
+            // Load trạng thái unlock từ DB vào cache
+            await preloadUnlockStatus();
+        }
+
+        function updateAuthUI() {
+            const loggedIn = !!currentUser;
+            $('hdr-btn-login')?.classList.toggle('hidden', loggedIn);
+            $('hdr-user-block')?.classList.toggle('hidden', !loggedIn);
+            if (!loggedIn) return;
+            const name = currentProfile?.display_name || currentUser.email.split('@')[0];
+            $('hdr-display-name').textContent = name;
+            const avUrl = currentProfile?.avatar?.trim();
+            const init = name[0].toUpperCase();
+            $('hdr-avatar').innerHTML = avUrl ? `<img src="${avUrl}" onerror="this.outerHTML='<span>${init}</span>'" />` : `<span>${init}</span>`;
+            if (currentProfile?.lb) {
+                $('stat-diamonds').textContent = currentProfile.lb.diamonds ?? 0;
+                $('stat-xp').textContent = currentProfile.lb.xp ?? 0;
+            }
+        }
+
+        window.openLoginModal = () => { closeRegModal(); $('login-modal').classList.add('active'); };
+        window.closeLoginModal = () => $('login-modal').classList.remove('active');
+        window.openRegModal = () => { closeLoginModal(); $('reg-modal').classList.add('active'); };
+        window.closeRegModal = () => $('reg-modal').classList.remove('active');
+
+        window.openProfileModal = () => {
+            if (!currentProfile) return;
+            $('profile-name').textContent = currentProfile.display_name || '';
+            $('profile-email').textContent = currentUser?.email || '';
+            $('profile-phone').textContent = currentProfile.phone || '—';
+            $('profile-role').textContent = currentProfile.role || 'Member';
+            $('profile-streak').textContent = (currentProfile.Streak || 0) + ' ngày';
+            const avUrl = currentProfile.avatar?.trim();
+            const init = (currentProfile.display_name || '?')[0].toUpperCase();
+            $('profile-avatar-big').innerHTML = avUrl ? `<img src="${avUrl}" style="width:100%;height:100%;object-fit:cover;" />` : init;
+            $('profile-modal').classList.add('active');
+        };
+        window.closeProfileModal = () => $('profile-modal').classList.remove('active');
+
+        window.doLogin = async () => {
+            const email = $('login-email').value.trim(), pw = $('login-password').value;
+            $('login-error').textContent = '';
+            if (!email || !pw) { $('login-error').textContent = 'Vui lòng nhập đầy đủ!'; return; }
+            const btn = $('login-submit-btn'); btn.disabled = true; btn.textContent = 'Đang đăng nhập…';
+            const { error } = await supabase.auth.signInWithPassword({ email, password: pw });
+            btn.disabled = false; btn.textContent = 'Đăng nhập';
+            if (error) { $('login-error').textContent = 'Email hoặc mật khẩu không đúng!'; return; }
+            closeLoginModal();
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session?.user) { currentUser = session.user; await loadProfile(currentUser.id); }
+            showToast('Chào mừng trở lại! 👋', 'success');
+        };
+
+        window.doRegister = async () => {
+            const name = $('reg-name').value.trim(), email = $('reg-email').value.trim();
+            const phone = $('reg-phone').value.trim(), pw = $('reg-password').value, cpw = $('reg-confirm').value;
+            ['reg-name-error', 'reg-email-error', 'reg-phone-error', 'reg-pw-error', 'reg-cpw-error'].forEach(id => $(id).textContent = '');
+            let ok = true;
+            if (name.length < 3) { $('reg-name-error').textContent = 'Tên tối thiểu 3 ký tự'; ok = false; }
+            if (!/^0\d{9}$/.test(phone)) { $('reg-phone-error').textContent = 'Số điện thoại không hợp lệ'; ok = false; }
+            if (pw.length < 6) { $('reg-pw-error').textContent = 'Mật khẩu tối thiểu 6 ký tự'; ok = false; }
+            if (pw !== cpw) { $('reg-cpw-error').textContent = 'Mật khẩu không khớp'; ok = false; }
+            if (!ok) return;
+            const btn = $('reg-submit-btn'); btn.disabled = true; btn.textContent = 'Đang đăng ký…';
+            const { data: authData, error: authErr } = await supabase.auth.signUp({ email, password: pw, options: { data: { display_name: name, phone }, emailRedirectTo: window.location.origin } });
+            btn.disabled = false; btn.textContent = 'Đăng ký';
+            if (authErr) { $('reg-email-error').textContent = authErr.message.includes('already registered') ? 'Email đã được đăng ký!' : 'Lỗi: ' + authErr.message; return; }
+            await new Promise(r => setTimeout(r, 500));
+            const uid = authData.user?.id;
+            if (uid) {
+                const { data: ex } = await supabase.from('profiles').select('id').eq('id', uid).maybeSingle();
+                if (!ex) {
+                    await supabase.from('profiles').insert([{ id: uid, display_name: name, email, phone, role: 'Member' }]);
+                    await supabase.from('leaderboard').insert([{ user_id: uid, diamonds: 0, topik_score: 0, xp: 0 }]);
+                }
+            }
+            closeRegModal(); showToast('Đăng ký thành công! 🎉', 'success');
+        };
+
+        window.handleLogout = async () => {
+            if (!confirm('Bạn có chắc muốn đăng xuất?')) return;
+            await supabase.auth.signOut(); showToast('Đã đăng xuất!', 'info');
+        };
+
+        // ── Init ──
+        document.addEventListener('DOMContentLoaded', () => { initAuth(); loadCounts(); });
+    </script>
+
+</body>
+
+</html>

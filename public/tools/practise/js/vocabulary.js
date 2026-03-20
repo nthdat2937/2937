@@ -2,6 +2,47 @@ import { supabase, showToast } from './auth.js';
 
 const $ = id => document.getElementById(id);
 
+// ──────────── Ngôn ngữ hiển thị (VI / EN) ────────────
+let currentLang = localStorage.getItem('vocab-lang') || 'vi';
+
+/** Lấy nhãn từ vựng theo ngôn ngữ hiện tại. Fallback về word_vn nếu word_en trống. */
+function getLabel(word) {
+  if (currentLang === 'en' && word.word_en) return word.word_en;
+  return word.word_vn ?? '';
+}
+
+/** Lấy tên chủ đề theo ngôn ngữ hiện tại. */
+function getTopicLabel(topic) {
+  if (currentLang === 'en' && topic.title_en) return topic.title_en;
+  return topic.title_vn ?? '';
+}
+
+/** Đổi ngôn ngữ và re-render view hiện tại. */
+window.switchLang = (lang) => {
+  if (lang === currentLang) return;
+  currentLang = lang;
+  localStorage.setItem('vocab-lang', lang);
+  updateLangUI();
+
+  // Re-render view đang active
+  const active = ['view-topics', 'view-words', 'view-matching', 'view-mcq', 'view-listen']
+    .find(id => document.getElementById(id)?.classList.contains('active'));
+  if (active === 'view-topics') renderTopics();
+  else if (active === 'view-words') renderWords();
+  else if (active === 'view-matching') renderMatching();
+  else if (active === 'view-mcq') renderMCQ();
+  else if (active === 'view-listen') renderListen();
+};
+
+function updateLangUI() {
+  const btnVI = $('lang-btn-vi');
+  const btnEN = $('lang-btn-en');
+  const header = $('wh-meaning');
+  if (btnVI) btnVI.classList.toggle('lang-btn-active', currentLang === 'vi');
+  if (btnEN) btnEN.classList.toggle('lang-btn-active', currentLang === 'en');
+  if (header) header.textContent = currentLang === 'en' ? 'English' : 'Tiếng Việt';
+}
+
 // ──────────── DOM ELs (lazy — tránh null khi module load trước DOM) ────────────
 const viewBooks = () => $('view-books');
 const viewTopics = () => $('view-topics');
@@ -56,7 +97,12 @@ function setView(mode) {
     document.getElementById('view-mcq')?.classList.add('active');
     navProgress().classList.add('hidden');
     btnGlobalBack().href = "javascript:void(0)";
-    btnGlobalBack().onclick = (e) => { e.preventDefault(); setView('topics'); };
+    btnGlobalBack().onclick = (e) => {
+      e.preventDefault();
+      if (window._mcqKeyHandler) document.removeEventListener('keydown', window._mcqKeyHandler);
+      if (window._mcqNextKeyHandler) document.removeEventListener('keydown', window._mcqNextKeyHandler);
+      setView('topics');
+    };
   } else if (mode === 'listen') {
     document.getElementById('view-listen')?.classList.add('active');
     navProgress().classList.add('hidden');
@@ -244,11 +290,11 @@ function renderTopics() {
       : '<i class="fa-solid fa-crown"></i>';
 
     html += `
-      <div class="topic-row ${lockCls}" onclick="onTopicClick(${t.id}, '${t.title_vn}', '${t.title_kr}', ${isLocked})">
+      <div class="topic-row ${lockCls}" onclick="onTopicClick(${t.id}, '${getTopicLabel(t)}', '${t.title_kr}', ${isLocked})">
         <div class="topic-idx">${t.order_index}과</div>
         <div class="topic-title">
            ${t.title_kr} <span style="font-size:0.75rem; color:var(--text-muted); font-weight:700">-</span>
-           <span class="topic-kr-hint">${t.title_vn}</span>
+           <span class="topic-kr-hint">${getTopicLabel(t)}</span>
         </div>
         <div class="topic-lock">${lockIcon}</div>
       </div>
@@ -304,11 +350,17 @@ window.applyCoupon = async () => {
     }
   }
 
+  // Kiểm tra scope — coupon hanhan không được dùng ở trang từ vựng
+  if (coupon.scope !== 'vocab' && coupon.scope !== 'all') {
+    showToast('⚠️ Mã này không dùng được cho phần Từ vựng!', 'error');
+    return;
+  }
+
   // Xác định topic cần unlock
-  // topic_ids = null → mở tất cả topic đang bị lock
+  // topic_ids = null → mở tất cả topic đang bị lock VÀ user chưa unlock
   let topicIds = coupon.topic_ids;
   if (!topicIds || topicIds.length === 0) {
-    // Lấy tất cả id của topic đang bị lock
+    // Lấy tất cả id của topic đang bị lock trong DB
     const { data: lockedTopics } = await supabase
       .from('vocabulary_topics')
       .select('id')
@@ -316,8 +368,19 @@ window.applyCoupon = async () => {
     topicIds = (lockedTopics || []).map(t => t.id);
   }
 
+  // Loại trừ topic user đã unlock rồi — tránh lỗi và toast sai số
+  if (topicIds.length > 0) {
+    const { data: alreadyUnlocked } = await supabase
+      .from('user_unlocked_topics')
+      .select('topic_id')
+      .eq('user_id', user.id)
+      .in('topic_id', topicIds);
+    const unlockedSet = new Set((alreadyUnlocked || []).map(r => r.topic_id));
+    topicIds = topicIds.filter(id => !unlockedSet.has(id));
+  }
+
   if (topicIds.length === 0) {
-    showToast('Không có chủ đề nào cần mở khóa!', 'info');
+    showToast('✅ Bạn đã mở khóa tất cả chủ đề rồi!', 'info');
     return;
   }
 
@@ -344,7 +407,12 @@ window.applyCoupon = async () => {
     .eq('id', coupon.id);
 
   if (input) input.value = '';
-  showToast(`🎉 Mở khóa thành công ${topicIds.length} chủ đề! \nLượt dùng còn: ${coupon.max_uses - (coupon.used_count + 1)} / ${coupon.max_uses}`, 'success');
+
+  // Toast — tránh crash khi max_uses = null
+  const remaining = coupon.max_uses != null
+    ? ` — Còn lại: ${coupon.max_uses - (coupon.used_count + 1)} lượt`
+    : '';
+  showToast(`🎉 Mở khóa thành công ${topicIds.length} chủ đề!${remaining}`, 'success');
 
   // Reload topics ngay, không cần delay
   await loadTopics();
@@ -428,7 +496,7 @@ function renderWords() {
         <div class="word-idx">${idx + 1}</div>
         
         <div class="word-vn-block">
-            <div class="w-vn-txt">${w.word_vn}</div>
+            <div class="w-vn-txt">${getLabel(w)}</div>
             <button class="btn-audio" onclick="playAudio('${w.word_kr}')" title="Nghe phát âm">
                <i class="fas fa-volume-up"></i>
             </button>
@@ -663,7 +731,7 @@ function startMatchRound() {
   const cards = [];
   slice.forEach(w => {
     cards.push({ id: w.id, text: w.word_kr, side: 'kr', elId: `mc-kr-${w.id}` });
-    cards.push({ id: w.id, text: w.word_vn, side: 'vn', elId: `mc-vn-${w.id}` });
+    cards.push({ id: w.id, text: getLabel(w), side: 'vn', elId: `mc-vn-${w.id}` });
   });
 
   s.cards = shuffle(cards);
@@ -686,7 +754,7 @@ function renderMatchBoard() {
   const cardsHtml = s.cards.map(c => `
     <button class="match-card match-card-${c.side}" id="${c.elId}"
             onclick="selectCard('${c.side}','${c.id}','${c.elId}')">
-      <span class="match-card-lang">${c.side === 'kr' ? '한' : 'VI'}</span>
+      <span class="match-card-lang">${c.side === 'kr' ? '한' : currentLang.toUpperCase()}</span>
       <span class="match-card-text">${c.text}</span>
     </button>`).join('');
 
@@ -834,6 +902,7 @@ async function startApp() {
     }
 
     console.log("DEBUG VOCAB: App started successfully.");
+    updateLangUI();
   } catch (err) {
     console.error("DEBUG VOCAB: CRITICAL ERROR DURING START:", err);
     if (topicContainer) {
@@ -920,15 +989,6 @@ function rainInit() {
     </div>
   `;
 
-  // Fix: Chỉ gắn listener một lần duy nhất (tránh duplicate mỗi lần rainInit)
-  if (!window._rainKbdListenerAttached) {
-    window._rainKbdListenerAttached = true;
-    document.addEventListener('focusin', e => {
-      if (e.target.id === 'rain-input' && window.KBD && window.KBD.isEnabled && window.KBD.isEnabled()) {
-        KBD.open(e.target);
-      }
-    });
-  }
 }
 
 window.rainStart = () => {
@@ -947,7 +1007,13 @@ window.rainStart = () => {
   }
 
   rainState.tickTimer = setInterval(rainTick, 300);
-  setTimeout(() => document.getElementById('rain-input')?.focus(), 100);
+  setTimeout(() => {
+    const inp = document.getElementById('rain-input');
+    if (inp) {
+      inp.focus();
+      if (window.KBD) KBD.open(inp);
+    }
+  }, 100);
 };
 
 window.rainTogglePause = () => {
@@ -973,7 +1039,11 @@ window.rainTogglePause = () => {
     document.getElementById('rain-pause-ol')?.remove();
     field?.querySelectorAll('.rain-word').forEach(el => el.style.animationPlayState = 'running');
     if (btn) btn.textContent = '⏸';
-    document.getElementById('rain-input')?.focus();
+    const inp = document.getElementById('rain-input');
+    if (inp) {
+      inp.focus();
+      if (window.KBD) KBD.open(inp);
+    }
   }
 };
 
@@ -993,7 +1063,7 @@ function rainSpawnWord() {
   el.className = 'rain-word';
   el.id = `rw-${word.id}-${Date.now()}`;
   el.style.left = x + 'px';
-  el.innerHTML = `<div class="rain-word-text">${word.word_vn}</div>`;
+  el.innerHTML = `<div class="rain-word-text">${getLabel(word)}</div>`;
   field.appendChild(el);
 
   const animEnd = Date.now() + 15000;
@@ -1176,8 +1246,8 @@ function mcqNextQuestion(area) {
 
   // Tạo 3 distractor từ các từ khác trong pool (loại trừ từ hiện tại)
   const others = s.pool.filter((_, i) => i !== s.current);
-  const distractors = shuffle(others).slice(0, 3).map(w => w.word_vn);
-  const choices = shuffle([word.word_vn, ...distractors]);
+  const distractors = shuffle(others).slice(0, 3).map(w => getLabel(w));
+  const choices = shuffle([getLabel(word), ...distractors]);
 
   const progressPct = Math.round((s.current / s.pool.length) * 100);
 
@@ -1188,7 +1258,7 @@ function mcqNextQuestion(area) {
     </div>
     <div class="mcq-progress-bar"><div class="mcq-progress-fill" style="width:${progressPct}%"></div></div>
     <div class="mcq-question-card">
-      <div class="mcq-lang-label">tiếng hàn</div>
+      <div class="mcq-lang-label">korean</div>
       <div class="mcq-question-kr">${word.word_kr}</div>
       <button class="mcq-audio-btn" onclick="playAudio('${word.word_kr}')" title="Nghe phát âm">
         <i class="fas fa-volume-up"></i>
@@ -1197,23 +1267,53 @@ function mcqNextQuestion(area) {
     <div class="mcq-prompt">Chọn nghĩa tiếng Việt đúng:</div>
     <div class="mcq-choices" id="mcq-choices">
       ${choices.map((c, i) => `
-        <button class="mcq-choice" id="mcq-c${i}" onclick="mcqSelect(${i}, '${c.replace(/'/g, "\\'")}', '${word.word_vn.replace(/'/g, "\\'")}')">${c}</button>
+        <button class="mcq-choice" id="mcq-c${i}" data-label="${c.replace(/"/g, '&quot;')}" onclick="mcqSelect(${i}, '${c.replace(/'/g, "\\'")}', '${getLabel(word).replace(/'/g, "\\'")}')">
+          <span class="mcq-key-badge">${i + 1}</span>${c}
+        </button>
       `).join('')}
     </div>
   `;
+
+  // Gắn keyboard listener 1–4
+  mcqAttachKeyListener(choices, getLabel(word));
+}
+
+function mcqAttachKeyListener(choices, correct) {
+  // Xóa listener cũ nếu có
+  if (window._mcqKeyHandler) {
+    document.removeEventListener('keydown', window._mcqKeyHandler);
+  }
+  window._mcqKeyHandler = (e) => {
+    const idx = ['1', '2', '3', '4'].indexOf(e.key);
+    if (idx === -1 || mcqState.answered) return;
+    // Flash hiệu ứng nhấn phím
+    const btn = document.getElementById(`mcq-c${idx}`);
+    if (btn) {
+      btn.classList.add('mcq-key-pressed');
+      setTimeout(() => btn.classList.remove('mcq-key-pressed'), 150);
+      mcqSelect(idx, choices[idx], correct);
+    }
+  };
+  document.addEventListener('keydown', window._mcqKeyHandler);
 }
 
 window.mcqSelect = (idx, chosen, correct) => {
   if (mcqState.answered) return;
   mcqState.answered = true;
 
+  // Tắt key listener ngay khi đã trả lời — tránh Enter/số kích hoạt nút tiếp tục
+  if (window._mcqKeyHandler) {
+    document.removeEventListener('keydown', window._mcqKeyHandler);
+    window._mcqKeyHandler = null;
+  }
+
   const isCorrect = chosen === correct;
   if (isCorrect) mcqState.correct++; else mcqState.wrong++;
 
-  // Highlight đáp án
+  // Highlight đáp án — dùng data-label thay vì textContent (vì có badge số bên trong)
   document.querySelectorAll('.mcq-choice').forEach(btn => {
     btn.disabled = true;
-    if (btn.textContent.trim() === correct) {
+    if (btn.dataset.label === correct) {
       btn.classList.add('mcq-correct');
     } else if (btn.id === `mcq-c${idx}` && !isCorrect) {
       btn.classList.add('mcq-wrong');
@@ -1221,21 +1321,32 @@ window.mcqSelect = (idx, chosen, correct) => {
   });
 
   if (isCorrect) {
-    // Hiệu ứng đúng + tự động qua câu tiếp
     showRewardPopup(2, 1);
     setTimeout(() => {
       mcqState.current++;
       mcqNextQuestion();
     }, 900);
   } else {
-    // Sai: hiện nút "Tiếp tục"
     const area = document.getElementById('mcq-area');
     if (area) {
       const nextBtn = document.createElement('button');
       nextBtn.className = 'mcq-next-btn';
       nextBtn.innerHTML = 'Tiếp tục →';
-      nextBtn.onclick = () => { mcqState.current++; mcqNextQuestion(); };
+      // Dùng setTimeout để tránh Enter đang giữ trigger ngay lập tức
+      nextBtn.addEventListener('click', () => { mcqState.current++; mcqNextQuestion(); });
       area.appendChild(nextBtn);
+      // Gắn Enter để qua câu tiếp — nhưng chỉ sau 300ms (tránh bắt Enter vừa nhấn)
+      setTimeout(() => {
+        window._mcqNextKeyHandler = (e) => {
+          if (e.key === 'Enter') {
+            document.removeEventListener('keydown', window._mcqNextKeyHandler);
+            window._mcqNextKeyHandler = null;
+            mcqState.current++;
+            mcqNextQuestion();
+          }
+        };
+        document.addEventListener('keydown', window._mcqNextKeyHandler);
+      }, 300);
     }
   }
 };
@@ -1309,7 +1420,7 @@ function listenNextQuestion(area) {
       <div class="listen-wave" id="listen-wave">
         <span></span><span></span><span></span><span></span><span></span>
       </div>
-      <div class="listen-vn-hint">${word.word_vn}</div>
+      <div class="listen-vn-hint">${getLabel(word)}</div>
       <div class="listen-btns">
         <button class="listen-play-btn" onclick="playAudio('${word.word_kr}')">
           <i class="fas fa-volume-up"></i> Nghe lại

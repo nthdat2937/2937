@@ -1068,6 +1068,8 @@
             padding-bottom: 260px;
         }
 
+        /* Rain game: rain-container tự điều chỉnh qua JS (xem KBD open/close) */
+
         /* ===== GAME PICKER MODAL ===== */
         .game-picker-overlay {
             position: fixed;
@@ -1838,7 +1840,7 @@
         }
 
         .mcq-choice {
-            padding: 16px 12px;
+            padding: 16px 12px 16px 44px;
             background: white;
             border: 2px solid var(--border);
             border-radius: 14px;
@@ -1848,9 +1850,10 @@
             color: var(--text-main);
             cursor: pointer;
             transition: all 0.18s;
-            text-align: center;
+            text-align: left;
             box-shadow: var(--shadow-sm);
             line-height: 1.3;
+            position: relative;
         }
 
         .mcq-choice:hover:not(:disabled) {
@@ -1858,6 +1861,49 @@
             background: var(--purple-light);
             transform: translateY(-2px);
             box-shadow: var(--shadow-md);
+        }
+
+        .mcq-key-badge {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 22px;
+            height: 22px;
+            border-radius: 6px;
+            background: var(--bg);
+            border: 1.5px solid var(--border);
+            font-size: 0.72rem;
+            font-weight: 900;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: all 0.15s;
+        }
+
+        .mcq-choice:hover:not(:disabled) .mcq-key-badge {
+            background: var(--purple-light);
+            border-color: var(--purple);
+            color: var(--purple);
+        }
+
+        .mcq-choice.mcq-key-pressed {
+            transform: scale(0.97);
+            box-shadow: none;
+        }
+
+        .mcq-choice.mcq-correct .mcq-key-badge {
+            background: var(--green-light);
+            border-color: var(--green);
+            color: #1a6b58;
+        }
+
+        .mcq-choice.mcq-wrong .mcq-key-badge {
+            background: #fff0f2;
+            border-color: #f0607a;
+            color: #c03;
         }
 
         .mcq-choice.mcq-correct {
@@ -2096,6 +2142,41 @@
             transform: translateY(-1px);
             box-shadow: 0 8px 20px rgba(124, 108, 224, 0.45);
         }
+
+        /* ===== LANG SWITCHER ===== */
+        .lang-switcher {
+            display: flex;
+            align-items: center;
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 2px;
+            gap: 2px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .lang-btn {
+            padding: 3px 10px;
+            border-radius: 16px;
+            border: none;
+            background: transparent;
+            font-family: inherit;
+            font-size: 0.72rem;
+            font-weight: 800;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.18s;
+            letter-spacing: 0.04em;
+        }
+
+        .lang-btn:hover {
+            color: var(--purple);
+        }
+
+        .lang-btn-active {
+            background: var(--purple) !important;
+            color: white !important;
+        }
     </style>
 </head>
 
@@ -2125,8 +2206,12 @@
             <div class="nav-progress hidden" id="nav-progress">0 / 0</div>
         </div>
 
-        <!-- Cột phải: stats -->
+        <!-- Cột phải: stats + lang switcher -->
         <div class="nav-right">
+            <div class="lang-switcher">
+                <button id="lang-btn-vi" class="lang-btn lang-btn-active" onclick="switchLang('vi')">VI</button>
+                <button id="lang-btn-en" class="lang-btn" onclick="switchLang('en')">EN</button>
+            </div>
             <button class="btn-kb-toggle" id="btn-kb-toggle" onclick="KBD.toggleEnabled()"
                 title="Bật/tắt bàn phím tiếng Hàn">
                 <span class="kb-toggle-dot"></span>
@@ -2181,7 +2266,7 @@
         <div id="view-words" class="view-section">
             <div class="words-header">
                 <div>#</div>
-                <div>Tiếng Việt</div>
+                <div id="wh-meaning">Tiếng Việt</div>
                 <div class="wh-kr">Tiếng Hàn</div>
             </div>
             <div class="word-list" id="word-list-container">
@@ -2675,15 +2760,25 @@
                 activeInput = inputEl;
                 document.getElementById('kr-keyboard').classList.add('kb-visible');
                 document.body.classList.add('kb-open');
-                // Scroll input vào view, tránh bị bàn phím che
-                setTimeout(() => {
-                    inputEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }, 80);
+                // Đo chiều cao KBD thực tế và thu nhỏ rain-container nếu đang ở rain game
+                requestAnimationFrame(() => {
+                    const kbEl = document.getElementById('kr-keyboard');
+                    const kbH = kbEl ? kbEl.offsetHeight : 260;
+                    const rc = document.getElementById('rain-container');
+                    if (rc) rc.style.height = `calc(100vh - 60px - ${kbH}px)`;
+                    // Scroll input vào view, tránh bị bàn phím che
+                    setTimeout(() => {
+                        inputEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }, 80);
+                });
             }
 
             function close() {
                 document.getElementById('kr-keyboard').classList.remove('kb-visible');
                 document.body.classList.remove('kb-open');
+                // Khôi phục rain-container về full height
+                const rc = document.getElementById('rain-container');
+                if (rc) rc.style.height = '';
                 activeInput = null;
             }
 
@@ -2692,14 +2787,18 @@
                 updateToggleUI();
                 // Hook all kr inputs (present + future via delegation)
                 document.addEventListener('focusin', e => {
-                    if (e.target.classList.contains('word-kr-input') && !e.target.readOnly) {
+                    const isKrInput = e.target.classList.contains('word-kr-input') && !e.target.readOnly;
+                    const isRainInput = e.target.id === 'rain-input';
+                    if (isKrInput || isRainInput) {
                         open(e.target);
                     }
                 });
                 // Đóng bàn phím khi click ra ngoài (không phải input hoặc keyboard)
                 document.addEventListener('click', e => {
                     const kb = document.getElementById('kr-keyboard');
-                    if (!e.target.classList.contains('word-kr-input') && !kb.contains(e.target)) {
+                    const isKrInput = e.target.classList.contains('word-kr-input');
+                    const isRainInput = e.target.id === 'rain-input';
+                    if (!isKrInput && !isRainInput && !kb.contains(e.target)) {
                         close();
                     }
                 });

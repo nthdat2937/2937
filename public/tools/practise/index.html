@@ -1309,13 +1309,13 @@
                 <div class="cat-name">Hội thoại</div>
                 <div class="cat-count">Coming soon...</div>
             </a>
-            <a class="cat-item" href="#hanhan">
+            <a class="cat-item" href="hanhan.html">
                 <div class="cat-circle hanhan">
                     <div class="cat-circle-icon hanja">漢</div>
                     <div class="lv-badge pink">Lv.5</div>
                 </div>
                 <div class="cat-name">Hán Hàn</div>
-                <div class="cat-count">Coming soon...</div>
+                <div class="cat-count" id="hanhan-word-count">...</div>
             </a>
             <a class="cat-item" href="#topik">
                 <div class="cat-circle topik">
@@ -1476,7 +1476,22 @@
                 el.textContent = count.toLocaleString('vi-VN') + ' thẻ';
             }
         }
-        document.addEventListener('DOMContentLoaded', updateVocabCount);
+        async function updateHanhanCount() {
+            const { count } = await sb
+                .from('hanhan_words')
+                .select('*', { count: 'exact', head: true })
+                .eq('type', 'hanhan');
+            const el = document.getElementById('hanhan-word-count');
+            if (el && count !== null) {
+                el.textContent = count.toLocaleString('vi-VN') + ' từ';
+            } else if (el) {
+                el.textContent = '0 từ';
+            }
+        }
+        document.addEventListener('DOMContentLoaded', () => {
+            updateVocabCount();
+            updateHanhanCount();
+        });
     </script>
     <script type="module" src="js/auth.js"></script>
     <script type="module" src="js/leaderboard.js"></script>
