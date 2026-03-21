@@ -10,30 +10,30 @@ window.addEventListener('DOMContentLoaded', () => {
   if (savedTheme === 'light') {
     icon.className = 'fa-solid fa-sun';
     const sidebarIcon = document.getElementById('themeIconSidebar');
-    if (sidebarIcon) sidebarIcon.className = 'fa-solid fa-sun'; 
+    if (sidebarIcon) sidebarIcon.className = 'fa-solid fa-sun';
   };
 
   const rankBtn = document.getElementById("btn-ranking");
-if (rankBtn) {
-  rankBtn.addEventListener("click", openRankingDialog);
-}
+  if (rankBtn) {
+    rankBtn.addEventListener("click", openRankingDialog);
+  }
 
   // Lấy search query từ URL
   const urlParams = new URLSearchParams(window.location.search);
   const searchQuery = urlParams.get('search') || urlParams.get('q');
-  
+
   if (searchQuery) {
     // Lưu vào biến global để dùng sau khi load songs xong
     urlSearchQuery = decodeURIComponent(searchQuery);
-    
+
     // Lưu vào sessionStorage để persist
     sessionStorage.setItem('currentSearch', urlSearchQuery);
-    
+
     // Xóa params khỏi URL (optional - giữ URL sạch)
     const cleanURL = window.location.pathname;
     window.history.replaceState({}, document.title, cleanURL);
   }
-  
+
   // Gọi loadSongs() SAU KHI đã set urlSearchQuery
   loadSongs();
 
@@ -140,11 +140,11 @@ function parseSongComments(rawComments) {
     } catch {
       source = source.trim()
         ? [{
-            id: `legacy-${Date.now()}`,
-            displayName: 'Unknown',
-            content: source.trim(),
-            createdAt: new Date().toISOString()
-          }]
+          id: `legacy-${Date.now()}`,
+          displayName: 'Unknown',
+          content: source.trim(),
+          createdAt: new Date().toISOString()
+        }]
         : [];
     }
   }
@@ -293,20 +293,20 @@ function renderSongComments(song) {
   lyricCommentList.innerHTML = comments.length === 0
     ? `<div class="song-comments-empty">${escapeHtml(tr('commentsEmpty'))}</div>`
     : comments.map((comment) => {
-        const initial = escapeHtml(comment.displayName.charAt(0).toUpperCase() || '?');
-        const commentTime = escapeHtml(formatCommentTime(comment.createdAt));
-        const deleteLabel = escapeHtml(tr('commentsDelete'));
-        const avatarUrl = getCommentAvatarUrl(comment);
-        const avatarMarkup = avatarUrl
-          ? `<img class="song-comment-avatar song-comment-avatar-image" src="${escapeHtml(avatarUrl)}" alt="${escapeHtml(comment.displayName)}">`
-          : `<span class="song-comment-avatar">${initial}</span>`;
-        const deleteButton = canDeleteComment(comment)
-          ? `<button type="button" class="song-comment-delete" data-comment-id="${escapeHtml(comment.id)}" aria-label="${deleteLabel}" title="${deleteLabel}">
+      const initial = escapeHtml(comment.displayName.charAt(0).toUpperCase() || '?');
+      const commentTime = escapeHtml(formatCommentTime(comment.createdAt));
+      const deleteLabel = escapeHtml(tr('commentsDelete'));
+      const avatarUrl = getCommentAvatarUrl(comment);
+      const avatarMarkup = avatarUrl
+        ? `<img class="song-comment-avatar song-comment-avatar-image" src="${escapeHtml(avatarUrl)}" alt="${escapeHtml(comment.displayName)}">`
+        : `<span class="song-comment-avatar">${initial}</span>`;
+      const deleteButton = canDeleteComment(comment)
+        ? `<button type="button" class="song-comment-delete" data-comment-id="${escapeHtml(comment.id)}" aria-label="${deleteLabel}" title="${deleteLabel}">
               <i class="fa-solid fa-trash-can" aria-hidden="true"></i>
             </button>`
-          : '';
+        : '';
 
-        return `
+      return `
           <article class="song-comment-item">
             <div class="song-comment-top">
               <div class="song-comment-author">
@@ -323,7 +323,7 @@ function renderSongComments(song) {
             </div>
           </article>
         `;
-      }).join('');
+    }).join('');
 
   preloadCommentAvatars(song, comments);
 }
@@ -640,7 +640,7 @@ function getAdminRecommendationPayloadFromSong(song) {
   };
 }
 
-window.openAdminRecommendation = function() {
+window.openAdminRecommendation = function () {
   const recommendation = resolveAdminRecommendation();
   if (!recommendation) {
     alert(tr('adminRecommendationEmpty'));
@@ -662,7 +662,7 @@ window.openAdminRecommendation = function() {
   }
 };
 
-window.openAdminRecommendationDialog = function() {
+window.openAdminRecommendationDialog = function () {
   if (window.currentUserRole !== 'Admin') {
     alert(tr('adminRecommendationAdminOnly'));
     return;
@@ -798,7 +798,7 @@ adminRecommendationDialog?.addEventListener('click', (event) => {
   }
 });
 
-window.alertLyricVolumeWarning = function() {
+window.alertLyricVolumeWarning = function () {
   alert(tr('lyricVolumeWarning'));
 };
 
@@ -817,14 +817,14 @@ async function loadSongs() {
   }));
   populateAdminRecommendationSongOptions(currentAdminRecommendation?.songId);
   await loadAdminRecommendation();
-  
+
   // Xác định search query từ nhiều nguồn (theo thứ tự ưu tiên):
   // 1. URL parameter (urlSearchQuery)
   // 2. Giá trị hiện tại trong search input
   // 3. Session storage (để persist qua các reload)
   let searchQuery = urlSearchQuery;
   const searchInput = document.getElementById('searchInput');
-  
+
   if (!searchQuery && searchInput) {
     // Kiểm tra giá trị trong search input
     if (searchInput.value.trim()) {
@@ -837,7 +837,7 @@ async function loadSongs() {
       }
     }
   }
-  
+
   // Xử lý search query TRƯỚC KHI render
   let songsToRender = data;
   if (searchQuery) {
@@ -846,10 +846,10 @@ async function loadSongs() {
       if (!searchInput.value) {
         searchInput.value = searchQuery;
       }
-      
+
       // Lưu vào session storage
       sessionStorage.setItem('currentSearch', searchQuery);
-      
+
       // Filter songs
       const query = searchQuery.toLowerCase().trim();
       songsToRender = window._songs.filter(song =>
@@ -858,14 +858,14 @@ async function loadSongs() {
         removeDiacritics(song['Sáng tác']).includes(removeDiacritics(query)) ||
         removeDiacritics(song['Lyric'] || '').includes(removeDiacritics(query))
       );
-      
+
       // Focus vào search input nếu đến từ URL
       if (urlSearchQuery) {
         setTimeout(() => {
           searchInput.focus();
         }, 300);
       }
-      
+
       // Clear biến global URL search query
       urlSearchQuery = null;
     }
@@ -873,11 +873,11 @@ async function loadSongs() {
     // Không có search query, xóa session storage
     sessionStorage.removeItem('currentSearch');
   }
-  
+
   // Chỉ render 1 lần với kết quả đã filter (nếu có)
   renderSongs(songsToRender);
   updateStats(songsToRender);
-  
+
   // Initialize filters
   initializeTagFilter();
   initializeArtistFilter();
@@ -886,16 +886,16 @@ async function loadSongs() {
 function renderSongs(songs) {
   const isAdmin = window.currentUserRole === 'Admin';
   const favourites = window.userFavourites || [];
-  
+
   list.innerHTML = songs.map(song => {
     const hotLines = (song['Lyric'] || '').split('\n').filter(line => line.includes('--hot')).map(line => line.replace('--hot', '').trim());
     const hotText = hotLines.length > 0 ? hotLines.join(' | ') : tr('noHot');
     const isFavourite = favourites.includes(song.Id.toString());
-    
-    return `<tr data-song-id="${song.Id}"><td class="song-clickable">${song.avatar?`<img src="${song.avatar}" loading="lazy" alt="avatar" style="width:60px;
+
+    return `<tr data-song-id="${song.Id}"><td class="song-clickable">${song.avatar ? `<img src="${song.avatar}" loading="lazy" alt="avatar" style="width:60px;
                 height:60px;
                 object-fit:cover;
-                border-radius:8px">`:''}</td><td class="song-clickable" style="font-weight: bold; font-size: 20px;" title="${song['Tên']}">${song['Tên']}</td><td class="song-clickable" title="${song['Ca sĩ']}">${song['Ca sĩ']}</td><td class="song-clickable" title="${song['Sáng tác']||''}">${song['Sáng tác']||''}</td><td class="song-clickable" title="${song['Ngày phát hành']||''}">${song['Ngày phát hành']||''}</td><td class="song-clickable" style="overflow:hidden;
+                border-radius:8px">`: ''}</td><td class="song-clickable" style="font-weight: bold; font-size: 20px;" title="${song['Tên']}">${song['Tên']}</td><td class="song-clickable" title="${song['Ca sĩ']}">${song['Ca sĩ']}</td><td class="song-clickable" title="${song['Sáng tác'] || ''}">${song['Sáng tác'] || ''}</td><td class="song-clickable" title="${song['lyric_visual'] || ''}">${song['lyric_visual'] || ''}</td><td class="song-clickable" style="overflow:hidden;
                 text-overflow:ellipsis;
                 white-space:normal;
                 word-break:break-word" title="${hotText}"><span style="color:#fbbf24;
@@ -936,10 +936,10 @@ window.renderSongs = renderSongs;
 list.addEventListener('click', (e) => {
   const row = e.target.closest('tr');
   if (!row) return;
-  
+
   const songId = parseInt(row.dataset.songId);
   const button = e.target.closest('button');
-  
+
   if (button) {
     const action = button.dataset.action;
     if (action === 'edit') openEditDialog(songId);
@@ -965,7 +965,7 @@ searchInput.addEventListener('input', (e) => {
 
     // Lưu vào session storage
     sessionStorage.setItem('currentSearch', query);
-    
+
     const filtered = window._songs.filter(song =>
       removeDiacritics(song['Tên']).includes(removeDiacritics(query)) ||
       removeDiacritics(song['Ca sĩ']).includes(removeDiacritics(query)) ||
@@ -979,23 +979,23 @@ searchInput.addEventListener('input', (e) => {
 window.showLyric = id => {
   window.currentSongId = id;
   const s = window._songs.find(x => x.Id === id);
-  
-  
+
+
   const updates = {
     title: s['Tên'],
     artist: `${s['Ca sĩ']}ㅤ`,
-    date: `${s['Ngày phát hành']||''}`,
+    date: `${s['Ngày phát hành'] || ''}`,
     ...buildLyricDialogMeta(s),
     lyric: (s['Lyric'] || '').split('\n').map(line => {
       const cleanLine = line.replace('--hot', '').trim();
       const hasHot = line.includes('--hot');
-      return `<span class="motLyric">${cleanLine}${hasHot?' 🔥':''}</span>`
+      return `<span class="motLyric">${cleanLine}${hasHot ? ' 🔥' : ''}</span>`
     }).join('\n') || `<span>${tr('noLyricsYet')}</span>`,
     avatarSrc: s.avatar,
     avatarDisplay: s.avatar ? 'block' : 'none'
   };
-  
-  
+
+
   requestAnimationFrame(() => {
     lyricDialog.classList.remove('lyric-embed-active');
     dTitle.textContent = updates.title;
@@ -1015,7 +1015,7 @@ window.showLyric = id => {
     }
     dAvatar.src = updates.avatarSrc || '';
     dAvatar.style.display = updates.avatarDisplay;
-    
+
     // Update favourite button
     const btnFav = document.getElementById('btnFavouriteLyric');
     if (btnFav) {
@@ -1026,19 +1026,19 @@ window.showLyric = id => {
         btnFav.classList.remove('active');
       }
     }
-    
+
     lyricDialog.showModal();
   });
 }
 
 window.openEditDialog = id => {
-  
+
   if (!currentUser) {
     alert('Vui lòng đăng nhập để chỉnh sửa!');
     return;
   }
 
-  
+
   if (window.currentUserRole !== 'Admin') {
     alert('Chỉ Admin mới có quyền chỉnh sửa bài hát!');
     return;
@@ -1059,8 +1059,8 @@ window.openEditDialog = id => {
 
   clearEditErrors();
   // Set selected tags
-setSelectedTags('editTagSelector', s.tag || []);
-document.getElementById('editSelectedTags').value = s.tag ? JSON.stringify(s.tag) : '[]';
+  setSelectedTags('editTagSelector', s.tag || []);
+  document.getElementById('editSelectedTags').value = s.tag ? JSON.stringify(s.tag) : '[]';
   editSongDialog.showModal()
 }
 addSongDialog.addEventListener('click', async (e) => {
@@ -1091,13 +1091,13 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 });
 window.deleteSong = async id => {
-  
+
   if (!currentUser) {
     alert('Vui lòng đăng nhập để xóa!');
     return;
   }
 
-  
+
   if (window.currentUserRole !== 'Admin') {
     alert('Chỉ Admin mới có quyền xóa bài hát!');
     return;
@@ -1245,14 +1245,14 @@ songForm.addEventListener('submit', async (e) => {
     showError('artist', 'Vui lòng nhập tên ca sĩ');
     isValid = false
   }
-  
+
   // Nếu không có sáng tác, tự động điền ca sĩ
   if (!composer) {
     composer = artist;
     document.getElementById('composer').value = artist;
     alert('ℹ️ Không tìm thấy thông tin sáng tác!\n\nHệ thống đã tự động điền ca sĩ vào mục sáng tác.\nBạn có thể chỉnh sửa nếu cần.');
   }
-  
+
   if (!releaseDate) {
     showError('releaseDate', 'Vui lòng chọn ngày phát hành');
     isValid = false
@@ -1261,22 +1261,22 @@ songForm.addEventListener('submit', async (e) => {
   const correctAdminCode = 'xm1689';
   const isVerified = adminCode === correctAdminCode;
   const selectedTagsStr = document.getElementById('selectedTags').value;
-const selectedTags = selectedTagsStr ? JSON.parse(selectedTagsStr) : [];
+  const selectedTags = selectedTagsStr ? JSON.parse(selectedTagsStr) : [];
 
-const {
-  error
-} = await supabase.from('songs').insert([{
-  'Tên': songName,
-  'Ca sĩ': artist,
-  'Sáng tác': composer,
-  'Ngày phát hành': releaseDate,
-  'avatar': avatar || null,
-  'Lyric': lyric,
-  'Xác minh': isVerified,
-  'add_by': addedBy,
-  'album': document.getElementById('hasAlbum').checked ? document.getElementById('album').value.trim() : null,
-  'tag': selectedTags.length > 0 ? selectedTags : null
-}]);
+  const {
+    error
+  } = await supabase.from('songs').insert([{
+    'Tên': songName,
+    'Ca sĩ': artist,
+    'Sáng tác': composer,
+    'Ngày phát hành': releaseDate,
+    'avatar': avatar || null,
+    'Lyric': lyric,
+    'Xác minh': isVerified,
+    'add_by': addedBy,
+    'album': document.getElementById('hasAlbum').checked ? document.getElementById('album').value.trim() : null,
+    'tag': selectedTags.length > 0 ? selectedTags : null
+  }]);
   if (error) {
     console.error(error);
     alert('Lỗi khi thêm bài hát: ' + error.message);
@@ -1310,34 +1310,34 @@ editSongForm.addEventListener('submit', async (e) => {
     showEditError('editArtist', 'Vui lòng nhập tên ca sĩ');
     isValid = false
   }
-  
+
   // Nếu không có sáng tác, tự động điền ca sĩ
   if (!composer) {
     composer = artist;
     document.getElementById('editComposer').value = artist;
     alert('ℹ️ Không tìm thấy thông tin sáng tác!\n\nHệ thống đã tự động điền ca sĩ vào mục sáng tác.\nBạn có thể chỉnh sửa nếu cần.');
   }
-  
+
   if (!releaseDate) {
     showEditError('editReleaseDate', 'Vui lòng chọn ngày phát hành');
     isValid = false
   }
   if (!isValid) return;
   const selectedTagsStr = document.getElementById('editSelectedTags').value;
-const selectedTags = selectedTagsStr ? JSON.parse(selectedTagsStr) : [];
+  const selectedTags = selectedTagsStr ? JSON.parse(selectedTagsStr) : [];
 
-const {
-  error
-} = await supabase.from('songs').update({
-  'Tên': songName,
-  'Ca sĩ': artist,
-  'Sáng tác': composer,
-  'Ngày phát hành': releaseDate,
-  'avatar': avatar || null,
-  'Lyric': lyric,
-  'album': document.getElementById('editHasAlbum').checked ? document.getElementById('editAlbum').value.trim() : null,
-  'tag': selectedTags.length > 0 ? selectedTags : null
-}).eq('Id', currentEditId);
+  const {
+    error
+  } = await supabase.from('songs').update({
+    'Tên': songName,
+    'Ca sĩ': artist,
+    'Sáng tác': composer,
+    'Ngày phát hành': releaseDate,
+    'avatar': avatar || null,
+    'Lyric': lyric,
+    'album': document.getElementById('editHasAlbum').checked ? document.getElementById('editAlbum').value.trim() : null,
+    'tag': selectedTags.length > 0 ? selectedTags : null
+  }).eq('Id', currentEditId);
   if (error) {
     console.error(error);
     alert('Lỗi khi cập nhật bài hát: ' + error.message);
@@ -1369,14 +1369,14 @@ function removeDiacritics(str) {
   if (diacriticsCache.has(str)) {
     return diacriticsCache.get(str);
   }
-  
+
   const result = str
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .replace(/đ/g, 'd')
     .replace(/Đ/g, 'D')
     .toLowerCase();
-  
+
   diacriticsCache.set(str, result);
   return result;
 }
@@ -1387,9 +1387,9 @@ function buildRanking(songs) {
   const map = {};
 
   songs.forEach(song => {
-    
+
     if (!song.add_by) return;
-    
+
     const name = song.add_by.trim();
     map[name] = (map[name] || 0) + 1;
   });
@@ -1411,9 +1411,9 @@ window.openRankingDialog = async function () {
   }
 
   rankingList.innerHTML = "<li>Đang tải...</li>";
-  
+
   try {
-    
+
     const { data: allSongs, error } = await supabase
       .from('songs')
       .select('*')
@@ -1422,8 +1422,8 @@ window.openRankingDialog = async function () {
     if (error) throw error;
 
     const ranking = buildRanking(allSongs);
-    
-    
+
+
     let myName = "Khách";
     if (currentUser) {
       const { data: profile } = await supabase
@@ -1431,29 +1431,29 @@ window.openRankingDialog = async function () {
         .select('display_name')
         .eq('id', currentUser.id)
         .single();
-      
+
       if (profile) {
         myName = profile.display_name;
       }
     }
 
     rankingList.innerHTML = "";
-    
-    
-ranking.forEach((u, i) => {
-  const li = document.createElement("li");
-  li.textContent = `${i + 1}. ${u.name} — ${u.count} bài`;
-  
-  
-  li.style.cursor = "pointer";
-  li.onclick = () => showUserSongs(u.name);
-  
-  if (u.name === myName) {
-    li.style.fontWeight = "bold";
-    li.style.color = "var(--accent-primary)";
-  }
-  rankingList.appendChild(li);
-});
+
+
+    ranking.forEach((u, i) => {
+      const li = document.createElement("li");
+      li.textContent = `${i + 1}. ${u.name} — ${u.count} bài`;
+
+
+      li.style.cursor = "pointer";
+      li.onclick = () => showUserSongs(u.name);
+
+      if (u.name === myName) {
+        li.style.fontWeight = "bold";
+        li.style.color = "var(--accent-primary)";
+      }
+      rankingList.appendChild(li);
+    });
 
     const me = ranking.find(u => u.name === myName);
     currentUserRank.textContent = me
@@ -1461,7 +1461,7 @@ ranking.forEach((u, i) => {
       : `👤 Bạn (${myName}): chưa thêm bài nào`;
 
     dialog.showModal();
-    
+
   } catch (error) {
     console.error('Lỗi khi tải ranking:', error);
     rankingList.innerHTML = "<li style='color: #ef4444'>Lỗi khi tải dữ liệu</li>";
@@ -1472,7 +1472,7 @@ ranking.forEach((u, i) => {
 
 const YOUTUBE_API_KEY = "AIzaSyAS6c7bto_vvZ60g_FsdA60od3Fgw0y67g";
 
-window.extractVideoId = function(url) {
+window.extractVideoId = function (url) {
   const match = url.match(/(?:v=|\/)([0-9A-Za-z_-]{11})/);
   return match ? match[1] : null;
 };
@@ -1505,7 +1505,7 @@ function parseArtistAndSongFromTitle(title, knownSongName = '') {
 }
 
 /** Tự động tìm và điền URL ảnh từ các nguồn uy tín */
-window.autoFillAvatar = async function(type) {
+window.autoFillAvatar = async function (type) {
   const isAdd = type === 'add';
   const songNameInput = document.getElementById(isAdd ? 'songName' : 'editSongName');
   const artistInput = document.getElementById(isAdd ? 'artist' : 'editArtist');
@@ -1543,13 +1543,13 @@ window.autoFillAvatar = async function(type) {
         `https://itunes.apple.com/search?term=${encodeURIComponent(searchQuery)}&media=music&limit=5&country=VN`
       );
       const itunesData = await itunesRes.json();
-      
+
       if (itunesData.results?.length > 0) {
         const q = removeDiacritics(songName);
         const best = itunesData.results.find(r =>
           removeDiacritics(r.trackName || '').includes(q) || q.includes(removeDiacritics(r.trackName || ''))
         ) || itunesData.results[0];
-        
+
         // iTunes trả về ảnh 100x100, ta thay thế thành 600x600 cho chất lượng cao hơn
         if (best.artworkUrl100) {
           imageUrl = best.artworkUrl100.replace('100x100bb', '600x600bb');
@@ -1569,7 +1569,7 @@ window.autoFillAvatar = async function(type) {
           `&key=${YOUTUBE_API_KEY}`
         );
         const searchData = await searchRes.json();
-        
+
         if (searchData.items?.length > 0) {
           const snippet = searchData.items[0].snippet;
           // Ưu tiên maxres (1280x720) > high (480x360) > medium (320x180)
@@ -1591,7 +1591,7 @@ window.autoFillAvatar = async function(type) {
     if (imageUrl) {
       avatarInput.value = imageUrl;
       avatarInput.disabled = false;
-      
+
       // Hiển thị preview ảnh (nếu có thể)
       showImagePreview(imageUrl, type);
     } else {
@@ -1613,10 +1613,10 @@ function showImagePreview(imageUrl, type) {
   const isAdd = type === 'add';
   const formId = isAdd ? 'addSongDialog' : 'editSongDialog';
   const avatarInputId = isAdd ? 'avatar' : 'editAvatar';
-  
+
   // Tìm hoặc tạo preview container
   let previewContainer = document.getElementById(`${avatarInputId}-preview`);
-  
+
   if (!previewContainer) {
     const avatarInput = document.getElementById(avatarInputId);
     previewContainer = document.createElement('div');
@@ -1631,7 +1631,7 @@ function showImagePreview(imageUrl, type) {
     `;
     avatarInput.parentElement.appendChild(previewContainer);
   }
-  
+
   previewContainer.innerHTML = `
     <img src="${imageUrl}" 
          alt="Preview" 
@@ -1646,7 +1646,7 @@ function showImagePreview(imageUrl, type) {
 
 /** Tự động tìm và điền lời bài hát */
 /** Tự động điền ca sĩ, sáng tác bằng tìm kiếm theo tên bài hát (iTunes API + YouTube fallback) */
-window.autoFillArtistComposer = async function(type) {
+window.autoFillArtistComposer = async function (type) {
   const isAdd = type === 'add';
   const songNameInput = document.getElementById(isAdd ? 'songName' : 'editSongName');
   const artistInput = document.getElementById(isAdd ? 'artist' : 'editArtist');
@@ -1661,7 +1661,7 @@ window.autoFillArtistComposer = async function(type) {
   // Kiểm tra xem đã có giá trị chưa
   const hasExistingArtist = artistInput.value.trim();
   const hasExistingComposer = composerInput.value.trim();
-  
+
   if (hasExistingArtist || hasExistingComposer) {
     const confirmOverwrite = confirm(
       'Đã có thông tin trong ô Ca sĩ hoặc Sáng tác.\n\n' +
@@ -1684,7 +1684,7 @@ window.autoFillArtistComposer = async function(type) {
       const best = itunesData.results.find(r =>
         removeDiacritics(r.trackName || '').includes(q) || q.includes(removeDiacritics(r.trackName || ''))
       ) || itunesData.results[0];
-      
+
       if (best.artistName) {
         foundArtist = best.artistName;
         artistInput.value = best.artistName;
@@ -1737,7 +1737,7 @@ window.autoFillArtistComposer = async function(type) {
       `Nhưng không tìm được thông tin sáng tác.\n\n` +
       `Bạn có muốn điền ca sĩ vào ô Sáng tác không?`
     );
-    
+
     if (useArtistAsComposer) {
       composerInput.value = foundArtist;
     }
@@ -1747,19 +1747,19 @@ window.autoFillArtistComposer = async function(type) {
   }
 };
 
-window.fetchYoutubeDate = async function(type) {
+window.fetchYoutubeDate = async function (type) {
   if (isFetchingYoutube) return;
   isFetchingYoutube = true;
-  
+
   const linkInput =
     type === 'add' ?
-    document.getElementById('youtubeLinkAdd') :
-    document.getElementById('youtubeLinkEdit');
+      document.getElementById('youtubeLinkAdd') :
+      document.getElementById('youtubeLinkEdit');
 
   const dateInput =
     type === 'add' ?
-    document.getElementById('releaseDate') :
-    document.getElementById('editReleaseDate');
+      document.getElementById('releaseDate') :
+      document.getElementById('editReleaseDate');
 
   const videoId = extractVideoId(linkInput?.value?.trim() || '');
   if (!videoId) {
@@ -1799,7 +1799,7 @@ window.fetchYoutubeDate = async function(type) {
   isFetchingYoutube = false;
 };
 
-window.autoFindReleaseDate = async function() {
+window.autoFindReleaseDate = async function () {
   const title = document.getElementById('songName').value.trim();
   const artistInput = document.getElementById('artist');
   const artist = artistInput.value.trim();
@@ -1945,12 +1945,12 @@ async function loadUserProfile() {
     commentAvatarCache.set(data.id, getProfileAvatarUrl(data));
     renderUserDisplay(data);
     window.currentUserRole = data.role;
-    
+
     // Load favourites của user
     if (window.loadUserFavourites) {
       await window.loadUserFavourites();
     }
-    
+
     if (window._songs && window._songs.length > 0) {
       renderSongs(window._songs);
     }
@@ -1997,7 +1997,7 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
     isValid = false;
   }
 
-  
+
   const { data: existingUsers, error: checkError } = await supabase
     .from('profiles')
     .select('display_name')
@@ -2091,7 +2091,7 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
     alert('Đăng ký thành công! Chào mừng bạn đến với ntdMUSIC! 🎵');
     document.getElementById('registerForm').reset();
     registerDialog.close();
-    
+
   } catch (error) {
     console.error('Lỗi:', error);
     alert('Có lỗi xảy ra: ' + error.message);
@@ -2116,8 +2116,8 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
     if (error.message === "Invalid login credentials") {
       alert('Lỗi đăng nhập: Thông tin đăng nhập sai!');
     } else (
-      alert('Lỗi đăng nhập: '+error.messages)
-    ) 
+      alert('Lỗi đăng nhập: ' + error.messages)
+    )
     return;
   }
 
@@ -2130,10 +2130,10 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
   loginDialog.close();
 
   alert('Đăng nhập thành công!');
-  loadSongs(); 
+  loadSongs();
 });
 
-window.handleLogout = async function() {
+window.handleLogout = async function () {
   if (!confirm('Bạn có chắc muốn đăng xuất?')) return;
 
   try {
@@ -2142,7 +2142,7 @@ window.handleLogout = async function() {
     if (error) throw error;
   } catch (error) {
     console.warn('SignOut API failed, clearing local session:', error);
-    
+
     // Fallback: Clear localStorage tokens
     const keys = Object.keys(localStorage);
     keys.forEach(key => {
@@ -2152,7 +2152,7 @@ window.handleLogout = async function() {
     });
     sessionStorage.clear();
   }
-  
+
   // Always clear app state and reload
   currentUser = null;
   window.currentUser = null;
@@ -2173,45 +2173,45 @@ supabase.auth.onAuthStateChange((event, session) => {
   }
 });
 
-let currentmfySong = null; 
+let currentmfySong = null;
 
 function updateStats(songs) {
-  
+
   document.getElementById('totalSongs').textContent = `${songs.length} bài`;
   renderAdminRecommendationCard();
-  
-  
+
+
   const now = new Date();
   const dayOfYear = Math.floor((now - new Date(now.getFullYear(), 0, 0)) / 86400000);
   const mfyIndex = dayOfYear % songs.length;
   const mfySong = songs[mfyIndex];
-  
+
   if (mfySong) {
-    currentmfySong = mfySong; 
+    currentmfySong = mfySong;
     document.getElementById('mfySong').textContent = mfySong['Tên'];
-    
-    
+
+
     const iconEl = document.querySelector('.mfy-card .stat-icon');
     if (mfySong.avatar) {
       iconEl.innerHTML = `<img src="${mfySong.avatar}" alt="avatar" style="width: 64px; height: 64px; border-radius: 12px; object-fit: cover; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">`;
     } else {
       iconEl.textContent = '⭐';
     }
-    
-    
+
+
     const lyricEl = document.getElementById('mfyLyric');
-    
+
     if (mfySong['Lyric']) {
-      
+
       const hotLines = mfySong['Lyric'].split('\n')
         .filter(line => line.includes('--hot'))
         .map(line => line.replace('--hot', '').trim());
-      
+
       if (hotLines.length > 0) {
-        
+
         lyricEl.innerHTML = '🔥 ' + hotLines.slice(0, 4).join('<br>🔥 ');
       } else {
-        
+
         const lines = mfySong['Lyric'].split('\n')
           .map(line => line.trim())
           .filter(line => line.length > 0)
@@ -2229,56 +2229,56 @@ function updateStats(songs) {
   }
 }
 
-window.showmfyDetail = function() {
+window.showmfyDetail = function () {
   if (currentmfySong) {
     showLyric(currentmfySong.Id);
   }
 };
 
-window.openGopyDialog = async function() {
+window.openGopyDialog = async function () {
   if (!currentUser) {
     alert('Vui lòng đăng nhập để góp ý!');
     return;
   }
-  
-  
+
+
   const { data } = await supabase
     .from('profiles')
     .select('display_name')
     .eq('id', currentUser.id)
     .single();
-  
+
   if (data) {
     document.getElementById('gopyDisplayName').value = data.display_name;
   }
-  
-  
+
+
   document.getElementById('gopyTieude').value = '';
   document.getElementById('gopyNoidung').value = '';
   document.querySelectorAll('#gopyForm .error').forEach(el => el.textContent = '');
-  
+
   viewProfileDialog.close();
-  
-document.getElementById('gopyWantReply').checked = false;
-document.getElementById('gopyEmailGroup').style.display = 'none';
-document.getElementById('gopyEmail').value = '';
+
+  document.getElementById('gopyWantReply').checked = false;
+  document.getElementById('gopyEmailGroup').style.display = 'none';
+  document.getElementById('gopyEmail').value = '';
   gopyDialog.showModal();
 };
 
 
-document.getElementById('gopyWantReply').addEventListener('change', async function() {
+document.getElementById('gopyWantReply').addEventListener('change', async function () {
   const emailGroup = document.getElementById('gopyEmailGroup');
   const emailInput = document.getElementById('gopyEmail');
-  
+
   emailGroup.style.display = this.checked ? 'block' : 'none';
-  
+
   if (this.checked) {
-    
+
     if (currentUser && currentUser.email) {
       emailInput.value = currentUser.email;
     }
   } else {
-    
+
     emailInput.value = '';
     document.getElementById('error-gopyEmail').textContent = '';
   }
@@ -2286,23 +2286,23 @@ document.getElementById('gopyWantReply').addEventListener('change', async functi
 
 document.getElementById('gopyForm').addEventListener('submit', async (e) => {
   e.preventDefault();
-  
-  
+
+
   document.querySelectorAll('#gopyForm .error').forEach(el => el.textContent = '');
-  
+
   const tieude = document.getElementById('gopyTieude').value.trim();
   const noidung = document.getElementById('gopyNoidung').value.trim();
   const displayName = document.getElementById('gopyDisplayName').value;
   const wantReply = document.getElementById('gopyWantReply').checked;
-const email = document.getElementById('gopyEmail').value.trim();
-  
+  const email = document.getElementById('gopyEmail').value.trim();
+
   let isValid = true;
-  
+
   if (!tieude) {
     document.getElementById('error-gopyTieude').textContent = 'Vui lòng nhập tiêu đề';
     isValid = false;
   }
-  
+
   if (!noidung) {
     document.getElementById('error-gopyNoidung').textContent = 'Vui lòng nhập nội dung';
     isValid = false;
@@ -2312,25 +2312,25 @@ const email = document.getElementById('gopyEmail').value.trim();
     document.getElementById('error-gopyEmail').textContent = 'Vui lòng nhập email để nhận phản hồi';
     isValid = false;
   }
-  
+
   if (!isValid) return;
-  
+
   try {
     const { error } = await supabase
-  .from('gopy')
-  .insert([{
-    display_name: displayName,
-    tieude: tieude,
-    noidung: noidung,
-    want_reply: wantReply,
-    reply_email: wantReply ? email : null
-  }]);
-    
+      .from('gopy')
+      .insert([{
+        display_name: displayName,
+        tieude: tieude,
+        noidung: noidung,
+        want_reply: wantReply,
+        reply_email: wantReply ? email : null
+      }]);
+
     if (error) throw error;
-    
+
     alert('Cảm ơn bạn đã góp ý! 💬\nChúng tôi sẽ xem xét và phản hồi sớm nhất.');
     gopyDialog.close();
-    
+
   } catch (error) {
     console.error('Lỗi khi gửi góp ý:', error);
     alert('Có lỗi xảy ra: ' + error.message);
@@ -2345,50 +2345,50 @@ gopyDialog.addEventListener('click', (e) => {
 });
 
 
-window.showUserSongs = async function(userName) {
+window.showUserSongs = async function (userName) {
   const dialog = document.getElementById("userSongsDialog");
   const nameEl = document.getElementById("userSongsName");
   const statsEl = document.getElementById("userSongsStats");
   const listEl = document.getElementById("userSongsList");
-  
+
   if (!dialog || !nameEl || !statsEl || !listEl) {
     console.error('Không tìm thấy elements');
     return;
   }
-  
+
   nameEl.textContent = userName;
   listEl.innerHTML = "<div style='text-align: center; padding: 20px; color: var(--text-muted);'>Đang tải...</div>";
-  
+
   try {
-    
+
     const { data: userSongs, error } = await supabase
       .from('songs')
       .select('*')
       .eq('add_by', userName)
       .eq('Xác minh', true)
       .order('Ngày phát hành', { ascending: false });
-    
+
     if (error) throw error;
-    
-    
+
+
     statsEl.innerHTML = `📊 Tổng số bài đã thêm: <span style="color: var(--accent-primary); font-size: 20px;">${userSongs.length}</span> bài`;
-    
-    
+
+
     if (userSongs.length === 0) {
       listEl.innerHTML = "<div style='text-align: center; padding: 40px; color: var(--text-muted);'>Chưa có bài hát nào được xác minh</div>";
     } else {
-      
-listEl.innerHTML = userSongs.map(song => {
-  
-  const addedDate = song['Ngày thêm'] 
-    ? new Date(song['Ngày thêm']).toLocaleDateString('vi-VN', { 
-        year: 'numeric', 
-        month: '2-digit', 
-        day: '2-digit' 
-      })
-    : 'N/A';
-  
-  return `
+
+      listEl.innerHTML = userSongs.map(song => {
+
+        const addedDate = song['Ngày thêm']
+          ? new Date(song['Ngày thêm']).toLocaleDateString('vi-VN', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit'
+          })
+          : 'N/A';
+
+        return `
     <div class="user-song-item" onclick="showLyric(${song.Id})">
       ${song.avatar ? `<img src="${song.avatar}" alt="avatar">` : '<div style="width: 50px; height: 50px; background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary)); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 24px;">🎵</div>'}
       <div class="user-song-info">
@@ -2398,11 +2398,11 @@ listEl.innerHTML = userSongs.map(song => {
       <div class="user-song-date">📅 ${addedDate}</div>
     </div>
   `;
-}).join('');
+      }).join('');
     }
-    
+
     dialog.showModal();
-    
+
   } catch (error) {
     console.error('Lỗi khi tải bài hát:', error);
     listEl.innerHTML = "<div style='text-align: center; padding: 20px; color: #ef4444;'>❌ Lỗi khi tải dữ liệu</div>";
@@ -2417,7 +2417,7 @@ function getVietnamDate() {
   const now = new Date();
   const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
   const vnTime = new Date(utc + (3600000 * 7));
-  return vnTime.toISOString().split('T')[0]; 
+  return vnTime.toISOString().split('T')[0];
 }
 
 
@@ -2429,14 +2429,14 @@ function daysDifference(date1, date2) {
 }
 
 
-window.checkStreak = async function() {
+window.checkStreak = async function () {
   if (!currentUser) {
     alert('Vui lòng đăng nhập để sử dụng tính năng này!');
     return;
   }
 
   try {
-    
+
     const { data: profile, error: fetchError } = await supabase
       .from('profiles')
       .select('Streak, "Ngày cuối"')
@@ -2449,7 +2449,7 @@ window.checkStreak = async function() {
     const lastDate = profile['Ngày cuối'];
     let currentStreak = profile.Streak || 0;
 
-    
+
     if (!lastDate) {
       const { error: updateError } = await supabase
         .from('profiles')
@@ -2466,19 +2466,19 @@ window.checkStreak = async function() {
       return;
     }
 
-    
+
     if (lastDate === today) {
       alert(`✅ Bạn đã điểm danh hôm nay rồi!\n\n🔥 Streak hiện tại: ${currentStreak} ngày\n💪 Hãy quay lại vào ngày mai!`);
       return;
     }
 
-    
+
     const daysDiff = daysDifference(lastDate, today);
 
-    
+
     if (daysDiff === 1) {
       const newStreak = currentStreak + 1;
-      
+
       const { error: updateError } = await supabase
         .from('profiles')
         .update({
@@ -2491,9 +2491,9 @@ window.checkStreak = async function() {
 
       alert(`🎉 Điểm danh thành công!\n\n🔥 Streak mới: ${newStreak} ngày\n⭐ Tiếp tục phát huy!`);
       updateStreakCard(newStreak);
-      
+
     } else {
-      
+
       const { error: updateError } = await supabase
         .from('profiles')
         .update({
@@ -2540,7 +2540,7 @@ async function loadStreakCard() {
     if (data) {
       const streak = data.Streak || 0;
       updateStreakCard(streak);
-      updateStreakDisplay(streak); 
+      updateStreakDisplay(streak);
     } else {
       updateStreakCard(0);
     }
@@ -2569,7 +2569,7 @@ function updateStreakCard(streakCount) {
   const streakLabel = document.getElementById('streakLabel');
   const streakValue = document.getElementById('streakValue');
   window.currentStreakCount = streakCount;
-  
+
   if (streakLabel && streakValue) {
     streakLabel.textContent = getStreakTitle(streakCount);
     streakValue.textContent = getStreakValueText(streakCount);
@@ -2581,7 +2581,7 @@ let selectedTags = [];
 
 function initializeTagFilter() {
   if (!window._songs || window._songs.length === 0) return;
-  
+
   // Lấy tất cả unique tags
   const allTags = new Set();
   window._songs.forEach(song => {
@@ -2589,7 +2589,7 @@ function initializeTagFilter() {
       song.tag.forEach(tag => allTags.add(tag));
     }
   });
-  
+
   // Tạo tag filter buttons
   const container = document.getElementById('tagFilterOptions');
   container.innerHTML = Array.from(allTags)
@@ -2599,7 +2599,7 @@ function initializeTagFilter() {
         ${tag}
       </div>
     `).join('');
-  
+
   // Add event listeners
   container.querySelectorAll('.tag-filter-item').forEach(item => {
     item.addEventListener('click', () => toggleTagFilter(item));
@@ -2608,7 +2608,7 @@ function initializeTagFilter() {
 
 function toggleTagFilter(element) {
   const tag = element.dataset.tag;
-  
+
   if (selectedTags.includes(tag)) {
     selectedTags = selectedTags.filter(t => t !== tag);
     element.classList.remove('active');
@@ -2616,11 +2616,11 @@ function toggleTagFilter(element) {
     selectedTags.push(tag);
     element.classList.add('active');
   }
-  
+
   // Show/hide clear button
-  document.getElementById('btnClearTagFilter').style.display = 
+  document.getElementById('btnClearTagFilter').style.display =
     selectedTags.length > 0 ? 'block' : 'none';
-  
+
   applyFilters();
 }
 
@@ -2665,11 +2665,11 @@ function getUniqueArtistNames(songs) {
 
 function initializeArtistFilter() {
   if (!window._songs || window._songs.length === 0) return;
-  
+
   const selectedValue = document.getElementById('artistFilter').value;
   const normalizedSelectedValue = normalizeArtistName(selectedValue);
   const artists = getUniqueArtistNames(window._songs);
-  
+
   const select = document.getElementById('artistFilter');
   select.innerHTML = `<option value="">${tr('artistAll')}</option>` +
     artists.map(artist => `<option value="${artist}">${artist}</option>`).join('');
@@ -2687,7 +2687,7 @@ document.getElementById('artistFilter').addEventListener('change', applyFilters)
 // ===== COMBINED FILTER FUNCTION =====
 function applyFilters() {
   let filtered = window._songs;
-  
+
   // Filter by tags
   if (selectedTags.length > 0) {
     filtered = filtered.filter(song => {
@@ -2695,7 +2695,7 @@ function applyFilters() {
       return selectedTags.every(tag => song.tag.includes(tag));
     });
   }
-  
+
   // Filter by artist
   const selectedArtist = document.getElementById('artistFilter').value;
   if (selectedArtist) {
@@ -2704,7 +2704,7 @@ function applyFilters() {
       extractArtistNames(song['Ca sĩ']).some((artist) => normalizeArtistName(artist) === normalizedSelectedArtist)
     );
   }
-  
+
   // Filter by search query
   const searchQuery = document.getElementById('searchInput').value.toLowerCase().trim();
   if (searchQuery) {
@@ -2715,7 +2715,7 @@ function applyFilters() {
       removeDiacritics(song['Lyric'] || '').includes(removeDiacritics(searchQuery))
     );
   }
-  
+
   renderSongs(filtered);
 }
 
@@ -2791,7 +2791,7 @@ window.viewProfileDialog.addEventListener('click', async (e) => {
   viewProfileDialog.close();
 });
 
-window.showViewProfile = async function() {
+window.showViewProfile = async function () {
   if (!currentUser) return;
 
   const {
@@ -2815,7 +2815,7 @@ window.showViewProfile = async function() {
   viewProfileDialog.showModal();
 }
 
-window.openEditProfileDialog = async function() {
+window.openEditProfileDialog = async function () {
   viewProfileDialog.close();
 
   const {
@@ -2862,7 +2862,7 @@ document.getElementById('editProfileForm').addEventListener('submit', async (e) 
     isValid = false;
   }
 
-  
+
   const { data: existingUsers, error: checkError } = await supabase
     .from('profiles')
     .select('id, display_name')
@@ -2871,7 +2871,7 @@ document.getElementById('editProfileForm').addEventListener('submit', async (e) 
   if (checkError) {
     console.error('Lỗi kiểm tra tên:', checkError);
   } else if (existingUsers && existingUsers.length > 0) {
-    
+
     const isDuplicate = existingUsers.some(user => user.id !== currentUser.id);
     if (isDuplicate) {
       document.getElementById('error-editDisplayName').textContent = 'Tên này đã được sử dụng bởi người khác!';
@@ -2973,16 +2973,16 @@ window.addEventListener('DOMContentLoaded', () => {
 
 // ===== LỊCH SỬ THÊM BÀI HÁT =====
 
-window.openHistoryDialog = async function() {
+window.openHistoryDialog = async function () {
   const dialog = document.getElementById("historyDialog");
   const listEl = document.getElementById("historyList");
   const statsEl = document.getElementById("historyStats");
-  
+
   if (!dialog || !listEl || !statsEl) {
     console.error('Không tìm thấy elements');
     return;
   }
-  
+
   // Hiển thị loading
   listEl.innerHTML = `
     <div style="text-align: center; padding: 60px 20px; color: var(--text-muted);">
@@ -2990,18 +2990,18 @@ window.openHistoryDialog = async function() {
       <p>Đang tải lịch sử...</p>
     </div>
   `;
-  
+
   dialog.showModal();
-  
+
   try {
     // Lấy TOÀN BỘ bài hát (cả đã xác minh, chờ duyệt và bị từ chối)
     const { data: allSongs, error } = await supabase
       .from('songs')
       .select('*')
       .order('Ngày thêm', { ascending: false });
-    
+
     if (error) throw error;
-    
+
     if (!allSongs || allSongs.length === 0) {
       listEl.innerHTML = `
         <div style="text-align: center; padding: 60px 20px; color: var(--text-muted);">
@@ -3012,12 +3012,12 @@ window.openHistoryDialog = async function() {
       statsEl.innerHTML = '📊 Tổng: 0 bài';
       return;
     }
-    
+
     // Đếm số bài theo trạng thái
     const verifiedCount = allSongs.filter(s => s['Xác minh'] === true).length;
     const rejectedCount = allSongs.filter(s => s['Xác minh'] === false && s.rejection_status === 'rejected').length;
     const pendingCount = allSongs.filter(s => s['Xác minh'] === false && (!s.rejection_status || s.rejection_status === 'pending')).length;
-    
+
     // Cập nhật thống kê
     statsEl.innerHTML = `
       <div style="display: flex; gap: 24px; flex-wrap: wrap; justify-content: center;">
@@ -3039,29 +3039,29 @@ window.openHistoryDialog = async function() {
         </div>
       </div>
     `;
-    
+
     // Render danh sách
     listEl.innerHTML = allSongs.map((song, index) => {
-      const addedDate = song['Ngày thêm'] 
+      const addedDate = song['Ngày thêm']
         ? new Date(song['Ngày thêm']).toLocaleString(getCurrentLocale(), {
-            year: 'numeric', 
-            month: '2-digit', 
-            day: '2-digit',
-            hour: '2-digit',
-            minute: '2-digit'
-          })
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit'
+        })
         : 'N/A';
-      
+
       const releaseDate = song['Ngày phát hành'] || 'N/A';
       const isVerified = song['Xác minh'] === true;
       const isRejected = song['Xác minh'] === false && song.rejection_status === 'rejected';
       const addedBy = song['add_by'] || 'Không rõ';
-      
+
       // Xác định trạng thái
       let statusClass = 'status-pending';
       let statusText = '⏳ Chờ duyệt';
       let itemClass = 'pending';
-      
+
       if (isVerified) {
         statusClass = 'status-verified';
         statusText = '✅ Đã duyệt';
@@ -3071,27 +3071,27 @@ window.openHistoryDialog = async function() {
         statusText = '❌ Từ chối';
         itemClass = 'rejected';
       }
-      
+
       // Badge cho top 3
       let badge = '';
       if (index === 0) badge = '<span style="background: linear-gradient(135deg, #ffd700, #ffb300); color: white; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; margin-left: 8px;">🥇 MỚI NHẤT</span>';
       else if (index === 1) badge = '<span style="background: linear-gradient(135deg, #c0c0c0, #a9a9a9); color: white; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; margin-left: 8px;">🥈 THỨ 2</span>';
       else if (index === 2) badge = '<span style="background: linear-gradient(135deg, #cd7f32, #b87333); color: white; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; margin-left: 8px;">🥉 THỨ 3</span>';
-      
+
       // Hiển thị lý do từ chối nếu có
-      const rejectionReason = isRejected && song.rejection_reason 
+      const rejectionReason = isRejected && song.rejection_reason
         ? `<div class="rejection-reason-history">
              <i class="fa-solid fa-circle-info"></i> 
              <strong>Lý do:</strong> ${song.rejection_reason}
            </div>`
         : '';
-      
+
       return `
         <div class="history-item ${itemClass}" onclick="showLyric(${song.Id})">
           <div class="history-left">
-            ${song.avatar 
-              ? `<img src="${song.avatar}" alt="avatar">` 
-              : '<div class="history-no-avatar">🎵</div>'}
+            ${song.avatar
+          ? `<img src="${song.avatar}" alt="avatar">`
+          : '<div class="history-no-avatar">🎵</div>'}
             <div class="history-info">
               <div class="history-title">
                 ${song['Tên']}
@@ -3137,7 +3137,7 @@ window.openHistoryDialog = async function() {
         </div>
       `;
     }).join('');
-    
+
   } catch (error) {
     console.error('Lỗi khi tải lịch sử:', error);
     listEl.innerHTML = `
@@ -3150,23 +3150,23 @@ window.openHistoryDialog = async function() {
 };
 
 
-window.openAlbumDialog = async function() {
+window.openAlbumDialog = async function () {
   const dialog = document.getElementById("albumDialog");
   const listEl = document.getElementById("albumList");
   const statsEl = document.getElementById("albumStats");
-  
+
   listEl.innerHTML = `<div style="text-align: center; padding: 60px 20px; color: var(--text-muted);"><i class="fa-solid fa-spinner fa-spin" style="font-size: 48px; margin-bottom: 20px;"></i><p>Đang tải...</p></div>`;
   dialog.showModal();
-  
+
   try {
     const { data: allSongs, error } = await supabase
       .from('songs')
       .select('*')
       .eq('Xác minh', true)
       .not('album', 'is', null);
-    
+
     if (error) throw error;
-    
+
     // Nhóm theo album
     const albumMap = {};
     allSongs.forEach(song => {
@@ -3176,18 +3176,18 @@ window.openAlbumDialog = async function() {
       }
       albumMap[albumName].push(song);
     });
-    
+
     const albums = Object.entries(albumMap)
       .map(([name, songs]) => ({ name, songs, count: songs.length }))
       .sort((a, b) => b.count - a.count);
-    
+
     statsEl.innerHTML = `<div style="text-align: center; padding: 20px; background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(139, 92, 246, 0.1)); border: 1px solid var(--accent-primary); border-radius: 16px; margin-bottom: 24px;"><div style="font-size: 28px; font-weight: 700; color: var(--accent-primary);">${albums.length}</div><div style="font-size: 13px; color: var(--text-muted);">Tổng số Album</div></div>`;
-    
+
     if (albums.length === 0) {
       listEl.innerHTML = `<div style="text-align: center; padding: 60px 20px; color: var(--text-muted);"><i class="fa-solid fa-compact-disc" style="font-size: 48px; margin-bottom: 20px; opacity: 0.5;"></i><p>Chưa có album nào</p></div>`;
       return;
     }
-    
+
     listEl.innerHTML = albums.map((album, index) => `
       <div class="history-item" onclick="showAlbumSongs('${album.name.replace(/'/g, "\\'")}')">
         <div class="history-left">
@@ -3202,7 +3202,7 @@ window.openAlbumDialog = async function() {
         </div>
       </div>
     `).join('');
-    
+
   } catch (error) {
     console.error('Lỗi:', error);
     listEl.innerHTML = `<div style="text-align: center; padding: 60px 20px; color: #ef4444;"><p>Có lỗi xảy ra</p></div>`;
@@ -3233,18 +3233,18 @@ document.addEventListener('app-languagechange', () => {
   }
 });
 
-window.showAlbumSongs = async function(albumName) {
+window.showAlbumSongs = async function (albumName) {
   const { data: songs, error } = await supabase
     .from('songs')
     .select('*')
     .eq('album', albumName)
     .eq('Xác minh', true);
-  
+
   if (error) {
     console.error(error);
     return;
   }
-  
+
   const listHtml = songs.map(song => `
     <div class="user-song-item" onclick="showLyric(${song.Id})">
       ${song.avatar ? `<img src="${song.avatar}" alt="avatar">` : '<div style="width: 50px; height: 50px; background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary)); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 24px;">🎵</div>'}
@@ -3254,9 +3254,9 @@ window.showAlbumSongs = async function(albumName) {
       </div>
     </div>
   `).join('');
-  
+
   albumDialog.close();
-  
+
   const tempDialog = document.createElement('dialog');
   tempDialog.style.cssText = document.getElementById('userSongsDialog').style.cssText;
   tempDialog.innerHTML = `
@@ -3273,28 +3273,28 @@ window.showAlbumSongs = async function(albumName) {
   tempDialog.showModal();
 };
 
-window.rejectSongFromHistory = async function(songId) {
+window.rejectSongFromHistory = async function (songId) {
   if (!window.currentUser) {
     alert('Vui lòng đăng nhập!');
     return;
   }
-  
+
   if (window.currentUserRole !== 'Admin') {
     alert('Chỉ Admin mới có quyền từ chối bài!');
     return;
   }
-  
+
   const reason = prompt('Nhập lý do từ chối (tối thiểu 10 ký tự):');
-  
+
   if (!reason) return;
-  
+
   if (reason.trim().length < 10) {
     alert('Lý do quá ngắn! Vui lòng nhập ít nhất 10 ký tự.');
     return;
   }
-  
+
   if (!confirm('Bạn chắc chắn muốn từ chối bài hát này?')) return;
-  
+
   try {
     const { error } = await supabase
       .from('songs')
@@ -3304,12 +3304,12 @@ window.rejectSongFromHistory = async function(songId) {
         'rejection_reason': reason.trim()
       })
       .eq('Id', songId);
-    
+
     if (error) throw error;
-    
+
     alert('✅ Đã từ chối bài hát!');
     openHistoryDialog(); // Reload lịch sử
-    
+
   } catch (error) {
     console.error('Error:', error);
     alert('❌ Có lỗi xảy ra: ' + error.message);

@@ -4,88 +4,108 @@ window.onload = function () {
     {
       id: "moiem", // Thêm id để mapping với URL
       title: "MOIEM - DANGRANGTO",
-      url: "nhac/moiem.mp3",
-      cover: "image/moiem.png",
-      lrc: "lyric/moiem.lrc"
+      url: "data/moiem.mp3",
+      cover: "data/moiem.png",
+      lrc: "data/moiem.lrc"
     },
     {
       id: "exitsign", // Thêm id cho bài Exit Sign
       title: "Exit Sign - HIEUTHUHAI",
-      url: "nhac/exitsign.mp3",
-      cover: "image/exitsign.png",
-      lrc: "lyric/exitsign.lrc"
+      url: "data/exitsign.mp3",
+      cover: "data/exitsign.png",
+      lrc: "data/exitsign.lrc"
     },
     {
       id: "12",
       title: "1/2 - DANGRANGTO",
-      url: "nhac/12.mp3",
-      cover: "image/12.png",
-      lrc: "lyric/12.lrc"
+      url: "data/12.mp3",
+      cover: "data/12.png",
+      lrc: "data/12.lrc"
     },
     {
       id: "enjoycaimomentnay",
       title: "Enjoy Cái Moment Này - TEZ",
-      url: "nhac/enjoycaimomentnay.mp3",
-      cover: "image/enjoycaimomentnay.png",
-      lrc: "lyric/enjoycaimomentnay.lrc"
+      url: "data/enjoycaimomentnay.mp3",
+      cover: "data/enjoycaimomentnay.png",
+      lrc: "data/enjoycaimomentnay.lrc"
     },
     {
       id: "144",
       title: "144 - Wren Evans",
-      url: "nhac/144.mp3",
-      cover: "image/144.png",
-      lrc: "lyric/144.lrc"
+      url: "data/144.mp3",
+      cover: "data/144.png",
+      lrc: "data/144.lrc"
     },
     {
       id: "congidephon",
       title: "Còn Gì Đẹp Hơn - Nguyễn Hùng",
-      url: "nhac/congidephon.mp3",
-      cover: "image/congidephon.png",
-      lrc: "lyric/congidephon.lrc"
+      url: "data/congidephon.mp3",
+      cover: "data/congidephon.png",
+      lrc: "data/congidephon.lrc"
     },
     {
       id: "mashuprockthiephong",
       title: "Mashup Rock Thiệp Hồng - Đào Tử, Yeolan, Mười, Maiqueen, Tóc Tiên",
-      url: "nhac/mashuprockthiephong.mp3",
-      cover: "image/mashuprockthiephong.png",
-      lrc: "lyric/mashuprockthiephong.lrc"
+      url: "data/mashuprockthiephong.mp3",
+      cover: "data/mashuprockthiephong.png",
+      lrc: "data/mashuprockthiephong.lrc"
     },
     {
       id: "haruharu",
       title: "하루하루 - BIGBANG",
-      url: "nhac/하루하루.mp3",
-      cover: "image/하루하루.png",
-      lrc: "lyric/하루하루.lrc"
+      url: "data/하루하루.mp3",
+      cover: "data/하루하루.png",
+      lrc: "data/하루하루.lrc"
     },
     {
       id: "vuatimthaydadanhmat",
       title: "Vừa Tìm Thấy Đã Đánh Mất - Wren Evans",
-      url: "nhac/vuatimthaydadanhmat.mp3",
-      cover: "image/vuatimthaydadanhmat.png",
-      lrc: "lyric/vuatimthaydadanhmat.lrc"
+      url: "data/vuatimthaydadanhmat.mp3",
+      cover: "data/vuatimthaydadanhmat.png",
+      lrc: "data/vuatimthaydadanhmat.lrc"
     },
     {
       id: "anhlathangtoi",
       title: "Anh Là Thằng Tồi - Phùng Khánh Linh",
-      url: "nhac/anhlathangtoi.mp3",
-      cover: "image/anhlathangtoi.png",
-      lrc: "lyric/anhlathangtoi.lrc"
+      url: "data/anhlathangtoi.mp3",
+      cover: "data/anhlathangtoi.png",
+      lrc: "data/anhlathangtoi.lrc"
     },
     {
       id: "tinhminhlaki",
       title: "Tình Mình Lạ Kì - L Zpoet",
-      url: "nhac/tinhminhlaki.mp3",
-      cover: "image/tinhminhlaki.png",
-      lrc: "lyric/tinhminhlaki.lrc"
+      url: "data/tinhminhlaki.mp3",
+      cover: "data/tinhminhlaki.png",
+      lrc: "data/tinhminhlaki.lrc"
+    },
+    {
+      id: "tinhyeubuongthachochungta",
+      title: "Tình Yêu Buông Tha Cho Chúng Ta - Trungg I.U, Lâm Bảo Ngọc",
+      url: "data/tinhyeubuongthachochungta.mp3",
+      cover: "data/tinhyeubuongthachochungta.png",
+      lrc: "data/tinhyeubuongthachochungta.lrc"
+    },
+    {
+      id: "luachoncuaem",
+      title: "Lựa Chọn Của Em - buitruonglinh",
+      url: "data/luachoncuaem.mp3",
+      cover: "data/luachoncuaem.png",
+      lrc: "data/luachoncuaem.lrc"
+    },
+    {
+      id: "duemtungyeu",
+      title: "Dù Em Từng Yêu - buitruonglinh",
+      url: "data/duemtungyeu.mp3",
+      cover: "data/duemtungyeu.png",
+      lrc: "data/duemtungyeu.lrc"
     },
     // {
     // id: "*",
     // title: "",
-    // url: "nhac/*.mp3",
-    // cover: "image/*.png",
-    // lrc: "lyric/*.lrc"
+    // url: "data/*.mp3",
+    // cover: "data/*.png",
+    // lrc: "data/*.lrc"
     // },
-    // Thêm các bài hát khác ở đây với id tương ứng
   ];
 
   if (!PLAY_LIST) return alert('Không thể tải thông tin bài hát!');

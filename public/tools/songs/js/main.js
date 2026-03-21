@@ -1468,6 +1468,8 @@ async function audioVisual() {
     return input
       .normalize("NFD")                 // tách dấu tiếng Việt
       .replace(/[\u0300-\u036f]/g, "")  // xoá dấu
+      .replace(/đ/g, "d")               // xử lý riêng chữ đ
+      .replace(/Đ/g, "D")
       .replace(/[^a-zA-Z0-9]/g, "")     // xoá ký tự đặc biệt, khoảng trắng
       .toLowerCase();                   // chuyển về chữ thường
   }
