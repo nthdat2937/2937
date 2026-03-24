@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ô Chữ - Triết Học Mác Lênin</title>
+<link href="https://fonts.googleapis.com/css2?family=Boogaloo&family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0d0b2b;
+  --purple: #7c3aed;
+  --purple2: #a855f7;
+  --gold: #fbbf24;
+  --cyan: #06b6d4;
+  --green: #10b981;
+  --red: #ef4444;
+  --cell: 58px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  background-image:
+    radial-gradient(ellipse at 15% 20%, rgba(124,58,237,.18) 0%, transparent 55%),
+    radial-gradient(ellipse at 85% 75%, rgba(6,182,212,.12) 0%, transparent 55%);
+  font-family: 'Nunito', sans-serif;
+  color: #f1f5f9;
+  min-height: 100vh;
+}
+.screen { display: none; }
+.screen.on { display: flex; }
+
+/* ── TITLE ── */
+#s-title {
+  flex-direction: column; align-items: center; justify-content: center;
+  min-height: 100vh; gap: 28px; text-align: center; padding: 24px;
+}
+.badge {
+  background: linear-gradient(135deg,var(--purple),var(--cyan));
+  border-radius: 40px; padding: 7px 22px;
+  font-size: 12px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase;
+}
+.big-title {
+  font-family: 'Boogaloo', cursive;
+  font-size: clamp(52px,9vw,96px); line-height: 1;
+  background: linear-gradient(135deg,var(--gold) 0%,#fde68a 40%,#fff 60%,var(--purple2) 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  animation: float 3s ease-in-out infinite;
+}
+@keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+.sub-title { font-size: 17px; color: rgba(241,245,249,.65); font-weight: 700; letter-spacing: 1px; }
+.rules {
+  background: rgba(255,255,255,.05); border: 1px solid rgba(168,85,247,.35);
+  border-radius: 18px; padding: 22px 28px; max-width: 460px; text-align: left;
+}
+.rules h3 { color: var(--gold); font-size: 13px; letter-spacing: 2.5px; text-transform: uppercase; margin-bottom: 12px; }
+.rules ul { list-style: none; }
+.rules li { display: flex; gap: 10px; font-size: 14px; color: rgba(241,245,249,.8); line-height: 1.5; margin-bottom: 8px; }
+.rn { background: var(--purple); color: #fff; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; }
+.btn-start {
+  background: linear-gradient(135deg,var(--purple),var(--purple2));
+  border: none; color: #fff;
+  font-family: 'Boogaloo', cursive; font-size: 26px; letter-spacing: 2px;
+  padding: 15px 58px; border-radius: 60px; cursor: pointer;
+  box-shadow: 0 8px 32px rgba(124,58,237,.55); transition: all .25s;
+}
+.btn-start:hover { transform: translateY(-3px) scale(1.04); }
+
+/* ── GAME ── */
+#s-game {
+  flex-direction: column; align-items: center;
+  min-height: 100vh; padding: 18px 16px 40px; gap: 14px;
+}
+.g-header { display: flex; align-items: center; justify-content: space-between; width: 100%; max-width: 900px; }
+.g-title {
+  font-family: 'Boogaloo', cursive; font-size: 22px;
+  background: linear-gradient(90deg,var(--gold),var(--purple2));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.g-score {
+  background: rgba(124,58,237,.22); border: 1px solid rgba(168,85,247,.4);
+  border-radius: 30px; padding: 5px 18px; font-size: 14px; font-weight: 700; color: var(--gold);
+}
+.btn-home {
+  background: rgba(255,255,255,.09); border: 1px solid rgba(255,255,255,.2);
+  color: #fff; padding: 5px 15px; border-radius: 30px; cursor: pointer;
+  font-family: 'Nunito',sans-serif; font-size: 13px; transition: background .2s;
+}
+.btn-home:hover { background: rgba(255,255,255,.18); }
+
+/* GRID */
+.grid-wrap { width: 100%; max-width: 900px; overflow-x: auto; padding-bottom: 4px; }
+.grid-tbl { border-collapse: separate; border-spacing: 3px; margin: 0 auto; }
+
+/* Số thứ tự */
+.rnum {
+  width: 44px; min-width: 44px; height: var(--cell);
+  font-family: 'Boogaloo',cursive; font-size: 22px;
+  color: rgba(241,245,249,.4); text-align: center; vertical-align: middle;
+  cursor: pointer; border-radius: 8px;
+  background: rgba(255,255,255,.04); border: 1.5px solid rgba(255,255,255,.1);
+  transition: all .2s; user-select: none;
+}
+.rnum:hover { color: var(--gold); background: rgba(251,191,36,.12); border-color: rgba(251,191,36,.4); }
+.rnum.sel  { color: var(--gold); background: rgba(251,191,36,.18); border-color: var(--gold); box-shadow: 0 0 10px rgba(251,191,36,.25); }
+.rnum.done { color: var(--green); background: rgba(16,185,129,.12); border-color: rgba(16,185,129,.4); cursor: default; font-size: 16px; }
+
+/* Ô chữ */
+.lc {
+  width: var(--cell); height: var(--cell); min-width: var(--cell);
+  border-radius: 7px; text-align: center; vertical-align: middle;
+  font-family: 'Boogaloo',cursive; font-size: 22px;
+  color: transparent; user-select: none; transition: all .3s;
+}
+.lc.norm { background: rgba(20,14,70,.9);       border: 2px solid rgba(168,85,247,.22); }
+.lc.kw   { background: rgba(124,58,237,.35);    border: 2px solid rgba(168,85,247,.7); }
+.lc.pad  { background: transparent; border: none; } /* ô đệm trái/phải */
+
+.lc.norm.hi { background: rgba(251,191,36,.13); border-color: rgba(251,191,36,.5); }
+.lc.kw.hi   { background: rgba(124,58,237,.55); border-color: var(--gold); box-shadow: 0 0 10px rgba(251,191,36,.3); }
+
+.lc.show { color: #fff; animation: pop .4s cubic-bezier(.34,1.56,.64,1); }
+.lc.norm.show { background: rgba(16,185,129,.25); border-color: rgba(16,185,129,.7); }
+.lc.kw.show   { background: linear-gradient(135deg,rgba(124,58,237,.7),rgba(168,85,247,.4)); border-color: var(--purple2); text-shadow: 0 0 8px rgba(255,255,255,.5); }
+
+@keyframes pop { 0%{transform:scale(.3) rotate(-10deg);opacity:0} 100%{transform:scale(1) rotate(0);opacity:1} }
+
+/* BOTTOM */
+.bottom { width: 100%; max-width: 900px; display: flex; flex-direction: column; gap: 12px; }
+
+/* ── Q DIALOG ── */
+.qdlg-overlay {
+  display: none; position: fixed; inset: 0; z-index: 200;
+  background: rgba(5,3,20,.78); backdrop-filter: blur(8px);
+  align-items: center; justify-content: center; padding: 20px;
+}
+.qdlg-overlay.open { display: flex; }
+.qdlg {
+  background: linear-gradient(160deg,#1e1560,#100d3a);
+  border: 1.5px solid rgba(168,85,247,.55);
+  border-radius: 24px; padding: 36px 32px 28px;
+  width: 100%; max-width: 560px;
+  display: flex; flex-direction: column; gap: 18px;
+  box-shadow: 0 30px 90px rgba(0,0,0,.6), 0 0 0 1px rgba(168,85,247,.15);
+  animation: dlg-in .35s cubic-bezier(.34,1.4,.64,1);
+  position: relative;
+}
+.qdlg-close {
+  position: absolute; top: 14px; right: 16px;
+  background: rgba(255,255,255,.08); border: none; color: rgba(241,245,249,.5);
+  width: 30px; height: 30px; border-radius: 50%; font-size: 15px;
+  cursor: pointer; transition: all .2s; display: flex; align-items: center; justify-content: center;
+}
+.qdlg-close:hover { background: rgba(255,255,255,.18); color: #fff; }
+.qdlg-num {
+  font-family: 'Boogaloo',cursive; font-size: 16px; letter-spacing: 2.5px;
+  text-transform: uppercase; color: var(--gold); font-weight: 700;
+}
+.qdlg-q { font-size: 20px; line-height: 1.7; color: #f1f5f9; }
+.qdlg-hint { font-size: 16px; color: rgba(241,245,249,.45); }
+.qdlg-inp-row { display: flex; gap: 8px; margin-top: 4px; }
+.ans-inp {
+  flex: 1; background: rgba(255,255,255,.07); border: 2px solid rgba(168,85,247,.35);
+  border-radius: 12px; padding: 11px 16px; color: #fff;
+  font-family: 'Boogaloo',cursive; font-size: 26px; letter-spacing: 2px;
+  outline: none; transition: all .2s; text-transform: uppercase;
+}
+.ans-inp:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(251,191,36,.12); }
+.ans-inp::placeholder { color: rgba(255,255,255,.2); font-size: 13px; letter-spacing: 0; font-family:'Nunito',sans-serif; }
+.btn-ans {
+  background: linear-gradient(135deg,var(--gold),#f59e0b);
+  border: none; border-radius: 12px; padding: 13px 26px;
+  color: #1a0f00; font-family:'Boogaloo',cursive; font-size: 20px; font-weight: 700;
+  cursor: pointer; transition: all .2s; white-space: nowrap;
+}
+.btn-ans:hover { transform: scale(1.04); box-shadow: 0 4px 16px rgba(251,191,36,.4); }
+.fb { font-size: 16px; font-weight: 700; text-align: center; min-height: 24px; }
+.fb.ok  { color: var(--green); }
+.fb.err { color: var(--red); }
+
+/* KEYWORD ROW (các ô hiện dần) */
+.kw-row {
+  background: rgba(124,58,237,.1); border: 1px solid rgba(168,85,247,.28);
+  border-radius: 14px; padding: 14px 16px;
+  display: flex; flex-direction: column; gap: 10px;
+}
+.kw-top { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.kw-lbl { font-size: 14px; letter-spacing: 2.5px; text-transform: uppercase; color: var(--purple2); font-weight: 700; white-space: nowrap; }
+.kw-cells { display: flex; gap: 5px; flex-wrap: wrap; }
+.kw-c {
+  width: 42px; height: 46px; border-radius: 8px;
+  background: rgba(124,58,237,.28); border: 2px solid rgba(168,85,247,.45);
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Boogaloo',cursive; font-size: 21px; color: transparent; transition: all .4s;
+}
+.kw-c.show {
+  color: #fff; background: linear-gradient(135deg,rgba(124,58,237,.65),rgba(168,85,247,.4));
+  border-color: var(--purple2); box-shadow: 0 0 10px rgba(168,85,247,.4);
+  animation: pop .4s cubic-bezier(.34,1.56,.64,1);
+}
+
+/* Nút mở dialog đoán từ khóa */
+.btn-kw-open {
+  align-self: flex-start; margin-top: 4px;
+  background: linear-gradient(135deg,var(--purple),var(--purple2));
+  border: none; border-radius: 10px; padding: 7px 18px;
+  color: #fff; font-family:'Boogaloo',cursive; font-size: 17px; letter-spacing: 1px;
+  cursor: pointer; transition: all .2s;
+}
+.btn-kw-open:hover { transform: scale(1.05); box-shadow: 0 4px 16px rgba(124,58,237,.45); }
+
+/* ── DIALOG ── */
+.dialog-overlay {
+  display: none; position: fixed; inset: 0; z-index: 200;
+  background: rgba(5,3,20,.78); backdrop-filter: blur(8px);
+  align-items: center; justify-content: center; padding: 20px;
+}
+.dialog-overlay.open { display: flex; }
+.dialog {
+  background: linear-gradient(160deg,#1e1560,#100d3a);
+  border: 1.5px solid rgba(168,85,247,.55);
+  border-radius: 24px; padding: 36px 32px 28px;
+  width: 100%; max-width: 420px;
+  display: flex; flex-direction: column; gap: 16px; align-items: center;
+  box-shadow: 0 30px 90px rgba(0,0,0,.6), 0 0 0 1px rgba(168,85,247,.15);
+  animation: dlg-in .35s cubic-bezier(.34,1.4,.64,1);
+  position: relative;
+}
+@keyframes dlg-in { from{transform:scale(.82) translateY(24px);opacity:0} to{transform:scale(1) translateY(0);opacity:1} }
+.dialog-close {
+  position: absolute; top: 14px; right: 16px;
+  background: rgba(255,255,255,.08); border: none; color: rgba(241,245,249,.5);
+  width: 30px; height: 30px; border-radius: 50%; font-size: 15px;
+  cursor: pointer; transition: all .2s; display: flex; align-items: center; justify-content: center;
+}
+.dialog-close:hover { background: rgba(255,255,255,.18); color: #fff; }
+.dialog-icon { font-size: 48px; }
+.dialog-title {
+  font-family: 'Boogaloo',cursive; font-size: 30px; text-align: center;
+  background: linear-gradient(90deg,var(--gold),var(--purple2));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.dialog-sub { font-size: 15px; color: rgba(241,245,249,.5); text-align: center; line-height: 1.55; }
+.kw-inp-wrap { display: flex; gap: 8px; width: 100%; }
+.kw-guess-inp {
+  flex: 1; background: rgba(124,58,237,.18); border: 2px solid rgba(168,85,247,.4);
+  border-radius: 12px; padding: 11px 16px; color: #fff;
+  font-family: 'Boogaloo',cursive; font-size: 26px; letter-spacing: 3px;
+  outline: none; transition: border-color .2s; text-transform: uppercase; width: 100%;
+}
+.kw-guess-inp:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(251,191,36,.15); }
+.kw-guess-inp::placeholder { color: rgba(255,255,255,.2); font-size: 14px; letter-spacing: 0; font-family:'Nunito',sans-serif; }
+.btn-kw {
+  background: linear-gradient(135deg,var(--gold),#f59e0b);
+  border: none; border-radius: 12px; padding: 13px 24px;
+  color: #1a0f00; font-family:'Boogaloo',cursive; font-size: 20px; font-weight: 700;
+  cursor: pointer; transition: all .2s; white-space: nowrap;
+}
+.btn-kw:hover { transform: scale(1.04); box-shadow: 0 4px 16px rgba(251,191,36,.4); }
+.kw-fb { font-size: 16px; font-weight: 700; text-align: center; min-height: 24px; width: 100%; }
+.kw-fb.ok  { color: var(--green); }
+.kw-fb.err { color: var(--red); }
+
+/* ── WIN ── */
+#s-win {
+  flex-direction: column; align-items: center; justify-content: center;
+  min-height: 100vh; gap: 26px; text-align: center; padding: 24px;
+}
+.win-icon { font-size: 80px; animation: float 1s ease-in-out infinite; }
+.win-title {
+  font-family: 'Boogaloo',cursive; font-size: clamp(44px,7vw,72px);
+  background: linear-gradient(135deg,var(--gold),var(--purple2));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.win-box {
+  background: rgba(124,58,237,.18); border: 2px solid rgba(168,85,247,.5);
+  border-radius: 20px; padding: 20px 40px; display: flex; flex-direction: column; gap: 6px;
+}
+.win-box-lbl { font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: rgba(241,245,249,.55); }
+.win-word {
+  font-family: 'Boogaloo',cursive; font-size: 46px; letter-spacing: 5px;
+  background: linear-gradient(90deg,var(--gold),var(--purple2));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.btn-replay {
+  background: linear-gradient(135deg,var(--purple),var(--cyan));
+  border: none; color: #fff;
+  font-family: 'Boogaloo',cursive; font-size: 26px; letter-spacing: 2px;
+  padding: 14px 50px; border-radius: 50px; cursor: pointer; transition: all .2s;
+}
+.btn-replay:hover { transform: scale(1.05); box-shadow: 0 8px 32px rgba(124,58,237,.5); }
+
+/* confetti */
+.cf { position: fixed; border-radius: 2px; animation: cfall linear forwards; pointer-events: none; z-index: 999; }
+@keyframes cfall { 0%{transform:translateY(-20px) rotate(0deg);opacity:1} 100%{transform:translateY(110vh) rotate(720deg);opacity:0} }
+</style>
+</head>
+<body>
+
+<!-- TITLE -->
+<div id="s-title" class="screen on">
+  <div class="badge">🧩 Trò Chơi</div>
+  <h1 class="big-title">GIẢI MÃ Ô CHỮ</h1>
+  <p class="sub-title">CHỦ ĐỀ: TRIẾT HỌC MÁC-LÊNIN</p>
+  <div class="rules">
+    <h3>📋 Luật Chơi</h3>
+    <ul>
+      <li><span class="rn">1</span>Bấm số thứ tự đầu hàng để chọn câu hỏi</li>
+      <li><span class="rn">2</span>Nhập câu trả lời theo số ký tự gợi ý</li>
+      <li><span class="rn">3</span>Tiếp tục trả lời các câu còn lại</li>
+      <li><span class="rn">4</span>Dựa vào cột tím dọc để đoán từ khóa cuối</li>
+    </ul>
+  </div>
+  <button class="btn-start" onclick="startGame()">🚀 BẮT ĐẦU</button>
+</div>
+
+<!-- GAME -->
+<div id="s-game" class="screen">
+  <div class="g-header">
+    <div class="g-title">🧩 Ô Chữ Triết Học</div>
+    <div class="g-score">✅ <span id="score">0</span> / 9</div>
+    <button class="btn-home" onclick="goHome()">🏠 Trang chủ</button>
+  </div>
+
+  <div class="grid-wrap">
+    <table class="grid-tbl" id="grid"></table>
+  </div>
+
+  <div class="bottom">
+    <!-- Keyword zone only -->
+    <div class="kw-row">
+      <div class="kw-top">
+        <span class="kw-lbl">🔑 Từ khóa hàng dọc</span>
+        <div class="kw-cells" id="kw-cells"></div>
+      </div>
+      <button class="btn-kw-open" onclick="openKWDialog()">🔮 Đoán từ khóa bí mật</button>
+    </div>
+  </div>
+</div>
+
+<!-- DIALOG câu hỏi -->
+<div class="qdlg-overlay" id="q-dialog" onclick="if(event.target===this)closeQDialog()">
+  <div class="qdlg">
+    <button class="qdlg-close" onclick="closeQDialog()">✕</button>
+    <div class="qdlg-num" id="qdlg-num">Câu 1</div>
+    <div class="qdlg-q" id="qdlg-q"></div>
+    <div class="qdlg-hint" id="qdlg-hint"></div>
+    <div class="qdlg-inp-row">
+      <input class="ans-inp" id="inp" type="text" placeholder="Nhập câu trả lời..."
+             onkeydown="if(event.key==='Enter')checkAns()">
+      <button class="btn-ans" onclick="checkAns()">Trả lời</button>
+    </div>
+    <div class="fb" id="fb"></div>
+  </div>
+</div>
+
+<!-- DIALOG đoán từ khóa -->
+<div class="dialog-overlay" id="kw-dialog" onclick="if(event.target===this)closeDialog()">
+  <div class="dialog">
+    <button class="dialog-close" onclick="closeDialog()">✕</button>
+    <div class="dialog-icon">🔮</div>
+    <div class="dialog-title">Đoán Từ Khóa Bí Mật</div>
+    <div class="dialog-sub">Dựa vào các chữ cái cột tím đã giải mã,<br>bạn đoán được từ khóa là gì?</div>
+    <div class="kw-inp-wrap">
+      <input class="kw-guess-inp" id="kw-inp" type="text" placeholder="Nhập từ khóa..."
+             onkeydown="if(event.key==='Enter')checkKW()">
+      <button class="btn-kw" onclick="checkKW()">Đoán</button>
+    </div>
+    <div class="kw-fb" id="kw-fb"></div>
+  </div>
+</div>
+
+<!-- WIN -->
+<div id="s-win" class="screen">
+  <div class="win-icon">🏆</div>
+  <h2 class="win-title">CHÚC MỪNG!</h2>
+  <p style="color:rgba(241,245,249,.65);font-size:16px">Bạn đã giải mã thành công tất cả ô chữ!</p>
+  <div class="win-box">
+    <div class="win-box-lbl">Từ khóa bí mật</div>
+    <div class="win-word">BIỆN CHỨNG</div>
+  </div>
+  <p style="color:rgba(241,245,249,.55);font-size:14px;max-width:400px;line-height:1.65">
+    <strong style="color:var(--purple2)">Biện chứng</strong> — Phương pháp triết học xem xét sự vật trong mối liên hệ và sự phát triển không ngừng.
+  </p>
+  <button class="btn-replay" onclick="resetGame()">🔄 CHƠI LẠI</button>
+</div>
+
+<script>
+// ════════════════════════════════════════════════════════
+//  DATA — letters KHÔNG có space, kwIdx là vị trí chữ dọc
+// ════════════════════════════════════════════════════════
+const DATA = [
+  { q:"Theo Triết học, bộ phận cơ thể nào giúp con người nhận thức thế giới?",
+    hint:"5 ký tự", answer:"BỘ NÃO",
+    letters:["B","Ộ","N","Ã","O"], kwIdx:0 },          // B
+
+  { q:"Nhân tố nào ảnh hưởng trực tiếp đến quá trình nhận thức của con người ngoài bộ não?",
+    hint:"5 ký tự", answer:"XÃ HỘI",
+    letters:["X","Ã","H","Ộ","I"], kwIdx:4 },           // I
+
+  { q:"Khái niệm chỉ mối quan hệ giữa nguyên nhân và kết quả là gì?",
+    hint:"6 ký tự", answer:"LIÊN HỆ",
+    letters:["L","I","Ê","N","H","Ệ"], kwIdx:5 },       // Ệ
+
+  { q:"Theo Triết học, con người thể hiện ý thức và tác động vào hiện thực thông qua gì?",
+    hint:"8 ký tự", answer:"HÀNH ĐỘNG",
+    letters:["H","À","N","H","Đ","Ộ","N","G"], kwIdx:3 }, // N
+
+  { q:"Nguyên liệu cơ bản của thế giới khách quan mà ý thức con người phản ánh là gì?",
+    hint:"7 ký tự", answer:"VẬT CHẤT",
+    letters:["V","Ậ","T","C","H","Ấ","T"], kwIdx:3 },   // C
+
+  { q:"Khả năng tự giác thực hiện hành vi không bị động trước hoàn cảnh là gì?",
+    hint:"7 ký tự", answer:"CHỦ ĐỘNG",
+    letters:["C","H","Ủ","Đ","Ộ","N","G"], kwIdx:1 },   // H
+
+  { q:"Nhân tố tinh thần giúp con người phản ánh hiện thực một cách có mục đích là gì?",
+    hint:"5 ký tự", answer:"Ý THỨC",
+    letters:["Ý","T","H","Ứ","C"], kwIdx:3 },            // Ứ
+
+  { q:"Sự tồn tại phát triển không phụ thuộc vào cảm giác hay suy nghĩ của con người gọi là gì?",
+    hint:"9 ký tự", answer:"KHÁCH QUAN",
+    letters:["K","H","Á","C","H","Q","U","A","N"], kwIdx:8 }, // N
+
+  { q:"Khả năng tạo ra những giá trị mới không có sẵn trong thực tại gọi là gì?",
+    hint:"7 ký tự", answer:"SÁNG TẠO",
+    letters:["S","Á","N","G","T","Ạ","O"], kwIdx:3 }    // G
+];
+
+// Từ khóa dọc theo thứ tự hàng: BIỆN CHỨNG (bỏ space = 9 chữ)
+const KEYWORD     = ["B","I","Ệ","N","C","H","Ứ","N","G"];
+const KEYWORD_ANS = "BIỆN CHỨNG";
+
+// Tính offset để căn thẳng cột dọc
+const maxKwIdx   = Math.max(...DATA.map(d => d.kwIdx));
+const OFFSET     = DATA.map(d => maxKwIdx - d.kwIdx);
+const KW_COL     = maxKwIdx;
+const TOTAL_COLS = Math.max(...DATA.map((d,i) => OFFSET[i] + d.letters.length));
+
+// State
+let solved  = Array(9).fill(false);
+let current = null;
+let score   = 0;
+
+// ════════════════════════════════════════════════════════
+//  BUILD GRID
+// ════════════════════════════════════════════════════════
+function buildGrid() {
+  const tbl = document.getElementById('grid');
+  tbl.innerHTML = '';
+
+  for (let r = 0; r < 9; r++) {
+    const d   = DATA[r];
+    const off = OFFSET[r];
+    const tr  = document.createElement('tr');
+
+    // Số thứ tự
+    const tdN = document.createElement('td');
+    tdN.className   = 'rnum';
+    tdN.id          = `rn${r}`;
+    tdN.textContent = r + 1;
+    tdN.onclick     = () => selectQ(r);
+    tr.appendChild(tdN);
+
+    // Ô chữ (không có space)
+    for (let c = 0; c < TOTAL_COLS; c++) {
+      const td = document.createElement('td');
+      const li = c - off;  // vị trí trong letters[]
+
+      if (li >= 0 && li < d.letters.length) {
+        const isKW = (c === KW_COL);
+        td.className  = isKW ? 'lc kw' : 'lc norm';
+        td.id         = `lc${r}_${c}`;
+        td.dataset.ch = d.letters[li];
+      } else {
+        // ô đệm — trong suốt
+        td.className = 'lc pad';
+      }
+      tr.appendChild(td);
+    }
+
+    tbl.appendChild(tr);
+  }
+}
+
+// ════════════════════════════════════════════════════════
+//  BUILD KEYWORD STRIP
+// ════════════════════════════════════════════════════════
+function buildKW() {
+  const wrap = document.getElementById('kw-cells');
+  wrap.innerHTML = '';
+  KEYWORD.forEach((_, i) => {
+    const div = document.createElement('div');
+    div.className = 'kw-c';
+    div.id = `kw${i}`;
+    wrap.appendChild(div);
+  });
+}
+
+// ════════════════════════════════════════════════════════
+//  SELECT QUESTION
+// ════════════════════════════════════════════════════════
+function selectQ(idx) {
+  if (solved[idx]) return;
+
+  // highlight hàng (bỏ cũ nếu có)
+  if (current !== null) {
+    document.getElementById(`rn${current}`)?.classList.remove('sel');
+    setRowHi(current, false);
+  }
+  current = idx;
+  document.getElementById(`rn${idx}`).classList.add('sel');
+  setRowHi(idx, true);
+
+  // mở dialog câu hỏi
+  const d = DATA[idx];
+  document.getElementById('qdlg-num').textContent  = `Câu ${idx + 1}`;
+  document.getElementById('qdlg-q').textContent    = d.q;
+  document.getElementById('qdlg-hint').textContent = `🔤 Gợi ý: ${d.hint}`;
+  const inp = document.getElementById('inp');
+  inp.value = '';
+  setFb('', '');
+  document.getElementById('q-dialog').classList.add('open');
+  setTimeout(() => inp.focus(), 60);
+}
+
+function closeQDialog() {
+  document.getElementById('q-dialog').classList.remove('open');
+}
+
+function setRowHi(r, on) {
+  const off = OFFSET[r];
+  DATA[r].letters.forEach((_, li) => {
+    const el = document.getElementById(`lc${r}_${off + li}`);
+    if (!el) return;
+    if (on) el.classList.add('hi');
+    else    el.classList.remove('hi');
+  });
+}
+
+// ════════════════════════════════════════════════════════
+//  NORMALIZE (hỗ trợ gõ không dấu, gõ đ/Đ, v.v.)
+// ════════════════════════════════════════════════════════
+function norm(s) {
+  return s
+    .toUpperCase()
+    .replace(/[đĐ]/g, 'D')
+    .replace(/[ƠơỞởỠỡỢợỚớ]/g,'O')
+    .replace(/[ƯưỪừỬửỮữỰựỨứ]/g,'U')
+    .replace(/[ĂăẮắẶặẰằẲẳẴẵ]/g,'A')
+    .replace(/[ÂâẤấẦầẨẩẪẫẬậ]/g,'A')
+    .replace(/[ÊêẾếỀềỂểỄễỆệ]/g,'E')
+    .replace(/[ÔôỐốỒồỔổỖỗỘộ]/g,'O')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/\s+/g,'').trim();
+}
+
+// ════════════════════════════════════════════════════════
+//  CHECK ANSWER (câu hỏi ngang)
+// ════════════════════════════════════════════════════════
+function checkAns() {
+  if (current === null) return;
+  const val = document.getElementById('inp').value.trim();
+  if (!val) return;
+
+  if (norm(val) === norm(DATA[current].answer)) {
+    onCorrect(current);
+  } else {
+    onWrong();
+  }
+}
+
+function onCorrect(idx) {
+  setFb('✅ Chính xác!', 'ok');
+
+  // đóng dialog sau 900ms để người chơi thấy feedback
+  setTimeout(() => closeQDialog(), 900);
+
+  revealRow(idx);
+  setTimeout(() => revealKWCell(idx), 500);
+
+  solved[idx] = true;
+  score++;
+  document.getElementById('score').textContent = score;
+
+  const rn = document.getElementById(`rn${idx}`);
+  rn.className   = 'rnum done';
+  rn.onclick     = null;
+  rn.textContent = '✓';
+
+  setRowHi(idx, false);
+  current = null;
+  document.getElementById('inp').value = '';
+}
+
+function onWrong() {
+  setFb('❌ Sai rồi, thử lại!', 'err');
+  const inp = document.getElementById('inp');
+  inp.style.borderColor = 'var(--red)';
+  setTimeout(() => { inp.style.borderColor = ''; }, 700);
+}
+
+function revealRow(r) {
+  const off = OFFSET[r];
+  DATA[r].letters.forEach((ch, li) => {
+    const el = document.getElementById(`lc${r}_${off + li}`);
+    if (!el) return;
+    setTimeout(() => {
+      el.classList.remove('hi');
+      el.classList.add('show');
+      el.textContent = ch;
+    }, li * 75);
+  });
+}
+
+function revealKWCell(r) {
+  const el = document.getElementById(`kw${r}`);
+  if (!el) return;
+  el.classList.add('show');
+  el.textContent = KEYWORD[r];
+}
+
+function setFb(msg, cls) {
+  const fb = document.getElementById('fb');
+  fb.textContent = msg;
+  fb.className   = 'fb ' + cls;
+}
+
+// ════════════════════════════════════════════════════════
+//  DIALOG
+// ════════════════════════════════════════════════════════
+function openKWDialog() {
+  document.getElementById('kw-dialog').classList.add('open');
+  const inp = document.getElementById('kw-inp');
+  inp.value = '';
+  document.getElementById('kw-fb').textContent = '';
+  document.getElementById('kw-fb').className = 'kw-fb';
+  setTimeout(() => inp.focus(), 50);
+}
+
+function closeDialog() {
+  document.getElementById('kw-dialog').classList.remove('open');
+}
+
+// ════════════════════════════════════════════════════════
+//  CHECK KEYWORD (đoán từ khóa bí mật)
+// ════════════════════════════════════════════════════════
+function checkKW() {
+  const val = document.getElementById('kw-inp').value.trim();
+  if (!val) return;
+  const kwFb = document.getElementById('kw-fb');
+
+  if (norm(val) === norm(KEYWORD_ANS)) {
+    // Hiện hết tất cả ô keyword chưa sáng
+    KEYWORD.forEach((ch, i) => {
+      const el = document.getElementById(`kw${i}`);
+      if (el && !el.classList.contains('show')) {
+        setTimeout(() => {
+          el.classList.add('show');
+          el.textContent = ch;
+        }, i * 80);
+      }
+    });
+    kwFb.textContent = '🎉 Chính xác! Từ khóa: BIỆN CHỨNG';
+    kwFb.className   = 'kw-fb ok';
+    setTimeout(() => { closeDialog(); win(); }, 1400);
+  } else {
+    kwFb.textContent = '❌ Chưa đúng, thử lại!';
+    kwFb.className   = 'kw-fb err';
+    const inp = document.getElementById('kw-inp');
+    inp.style.borderColor = 'var(--red)';
+    setTimeout(() => { inp.style.borderColor = ''; }, 700);
+  }
+}
+
+// ════════════════════════════════════════════════════════
+//  SCREENS
+// ════════════════════════════════════════════════════════
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('on'));
+  document.getElementById(id).classList.add('on');
+}
+
+function startGame() {
+  show('s-game');
+  buildGrid();
+  buildKW();
+}
+
+function goHome() {
+  if (confirm('Về trang chủ? Tiến trình sẽ bị mất.')) resetGame();
+}
+
+function resetGame() {
+  solved = Array(9).fill(false); current = null; score = 0;
+  document.getElementById('score').textContent = '0';
+  show('s-title');
+}
+
+function win() {
+  show('s-win');
+  launchConfetti();
+}
+
+// ════════════════════════════════════════════════════════
+//  CONFETTI
+// ════════════════════════════════════════════════════════
+function launchConfetti() {
+  const cols = ['#fbbf24','#a855f7','#06b6d4','#10b981','#ef4444','#f472b6','#fff'];
+  for (let i = 0; i < 90; i++) {
+    const p = document.createElement('div');
+    p.className = 'cf';
+    p.style.cssText = `
+      left:${Math.random()*100}vw;top:-20px;
+      background:${cols[i%cols.length]};
+      width:${Math.random()*9+5}px;height:${Math.random()*9+5}px;
+      animation-duration:${Math.random()*2.5+1.8}s;
+      animation-delay:${Math.random()*1.5}s;
+      border-radius:${Math.random()>.5?'50%':'3px'};
+    `;
+    document.body.appendChild(p);
+    setTimeout(() => p.remove(), 5500);
+  }
+}
+</script>
+</body>
+</html>

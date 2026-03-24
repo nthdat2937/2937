@@ -174,7 +174,6 @@ async function initAuth() {
 
   // Bước 2: Đăng ký listener để bắt các sự kiện tiếp theo (login/logout)
   supabase.auth.onAuthStateChange(async (event, session) => {
-    console.log("AUTH:", event, session?.user?.email ?? 'no user');
     if (event === 'SIGNED_IN' && session?.user) {
       // Chỉ xử lý nếu là user mới (tránh duplicate với getSession ở trên)
       if (currentUser?.id !== session.user.id) {

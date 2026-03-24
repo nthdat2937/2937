@@ -88,7 +88,6 @@ class AudioVisual {
       xhr.onload = () => {
         // Kiểm tra xem đây có còn là bài hát hiện tại không
         if (this.currentSongUrl !== currentUrl) {
-          console.log('Bài hát đã thay đổi, bỏ qua request cũ');
           return;
         }
         
@@ -139,7 +138,6 @@ class AudioVisual {
       audio.controls = false;
       
       audio.oncanplaythrough = () => {
-        console.log('Đã tải file nhạc bằng Audio element');
         // Kết nối với AudioContext
         if (!this.mediaSource) {
           this.mediaSource = this.ac.createMediaElementSource(audio);
@@ -195,7 +193,6 @@ class AudioVisual {
       
       // Kiểm tra lại trước khi decode
       if (this.currentSongUrl !== currentUrl) {
-        console.log('Bài hát đã thay đổi trong lúc decode, bỏ qua');
         return;
       }
       
@@ -204,7 +201,6 @@ class AudioVisual {
       ac.decodeAudioData(arrayBuffer, buffer => {
         // Kiểm tra lại sau khi decode xong
         if (this.currentSongUrl !== currentUrl) {
-          console.log('Bài hát đã thay đổi sau khi decode, bỏ qua');
           return;
         }
         
@@ -234,7 +230,6 @@ class AudioVisual {
   }
 
   stop () {
-    console.log('Đang dừng nhạc...');
     
     let { source, started } = this
     
@@ -249,7 +244,6 @@ class AudioVisual {
           source.disconnect()
         }
       } catch (e) {
-        console.log('Source đã dừng rồi');
       }
     }
     
@@ -266,14 +260,12 @@ class AudioVisual {
       try {
         this.mediaSource.disconnect();
       } catch (e) {
-        console.log('MediaSource đã disconnect rồi');
       }
     }
     
     this.started = false
     this.loading = false
     
-    console.log('Đã dừng nhạc');
   }
 
   play (music, isReload = true) {
@@ -575,7 +567,6 @@ class AudioVisual {
         this.source.onended = null; // Xóa event handler cũ
         this.source.stop();
       } catch(e) {
-        console.log('Source đã dừng rồi');
       }
       
       // Tạo source mới
@@ -647,6 +638,5 @@ class AudioVisual {
   // Cập nhật màu cho visualizer
   setColor(color) {
     this.dynamicColor = color;
-    console.log('Cập nhật màu visualizer:', `rgb(${color.r}, ${color.g}, ${color.b})`);
   }
 }

@@ -219,7 +219,6 @@ class DomVisual {
     }
     
     const colorStr = `rgb(${color.r}, ${color.g}, ${color.b})`;
-    console.log('Màu chủ đạo cho visualizer:', colorStr);
   }
 
   removePlayAnimation (dom) {
@@ -345,7 +344,6 @@ class DomVisual {
 
   loadBG () {
     // Không cần làm gì ở đây nữa, background sẽ được set khi phát bài hát
-    console.log('Background sẽ được cập nhật theo ảnh bài hát');
   }
 
   async loadData (url) {
@@ -354,7 +352,6 @@ class DomVisual {
     this.currentLyricsUrl = requestUrl;
     
     if (!url) {
-      console.log('Không có URL cho file lời bài hát');
       // Chỉ cập nhật nếu đây vẫn là request hiện tại
       if (this.currentLyricsUrl === requestUrl) {
         this.lrcList = [[0, 'Đang phát file nhạc local, không có lời bài hát']];
@@ -363,11 +360,9 @@ class DomVisual {
       return;
     }
     
-    console.log('Đang tải file lời bài hát từ:', url);
     
     // Kiểm tra cache trước
     if (this.lyricsCache[url]) {
-      console.log('Sử dụng lời bài hát từ cache');
       // Chỉ cập nhật nếu đây vẫn là request hiện tại
       if (this.currentLyricsUrl === requestUrl) {
         this.lrcList = this.lyricsCache[url];
@@ -383,26 +378,21 @@ class DomVisual {
     let fixedUrl = url;
     if (url.startsWith('./')) {
       // Thêm đường dẫn tương đối đến thư mục gốc nếu cần
-      console.log('Đường dẫn ban đầu:', url);
       
       // Nếu không tìm thấy file ở vị trí hiện tại, thử đường dẫn khác
       if (url.includes('/lrc/')) {
         // Thử sửa lại đường dẫn, ví dụ: "./lrc/tiengtrung.lrc" -> "nhạcmới/lrc/tiengtrung.lrc"
         fixedUrl = url.replace('./lrc/', './nhạcmới/lrc/');
-        console.log('Thử với đường dẫn mới:', fixedUrl);
       }
     }
     
-    console.log('Đang tải file lời bài hát từ:', fixedUrl);
     
     try {
       let list = [];
       if (fixedUrl.startsWith('http')) {
         // Tải từ URL
-        console.log('Tải lời từ URL');
         const response = await fetch(fixedUrl);
         const text = await response.text();
-        console.log('Nội dung lời bài hát:', text.substring(0, 100) + '...');
         if (text) {
           let lines = text.split('\n');
           for (let i = 0; i < lines.length; i++) {
@@ -421,15 +411,12 @@ class DomVisual {
         }
       } else {
         // Thử cả hai đường dẫn: đường dẫn ban đầu và đường dẫn đã sửa
-        console.log('Thử tải lời từ đường dẫn gốc và đường dẫn đã sửa');
         
         const loadFromPath = async (path) => {
           try {
             const response = await fetch(path);
             if (response.ok) {
               const text = await response.text();
-              console.log(`Tải thành công từ ${path}`);
-              console.log('Nội dung lời bài hát:', text.substring(0, 100) + '...');
               return text;
             }
             return null;
@@ -451,7 +438,6 @@ class DomVisual {
         let lyrics = null;
         
         for (const path of potentialPaths) {
-          console.log('Thử tải từ:', path);
           lyrics = await loadFromPath(path);
           if (lyrics) break;
         }
@@ -476,7 +462,6 @@ class DomVisual {
           try {
             // Lấy tên file từ đường dẫn
             const fileName = url.split('/').pop();
-            console.log('Thử tìm trực tiếp file:', fileName);
             
             // Thử một số đường dẫn cục bộ
             const basePaths = [
@@ -488,7 +473,6 @@ class DomVisual {
             
             for (const basePath of basePaths) {
               const fullPath = basePath + fileName;
-              console.log('Thử đường dẫn:', fullPath);
               const lyricsText = await loadFromPath(fullPath);
               if (lyricsText) {
                 let lines = lyricsText.split('\n');
@@ -514,7 +498,6 @@ class DomVisual {
           
           // Nếu vẫn không có lời, thêm lời mặc định
           if (list.length === 0) {
-            console.log('Không thể tìm thấy file lời bài hát, thêm lời mặc định');
             list.push([0, 'Đang phát file nhạc local']);
             list.push([5, 'Không thể tải file lời bài hát']);
             list.push([10, 'Hãy tận hưởng âm nhạc...']);
@@ -525,11 +508,9 @@ class DomVisual {
       // Sắp xếp lời bài hát theo thời gian
       list.sort((a, b) => a[0] - b[0]);
       
-      console.log('Số dòng lời bài hát đã tải:', list.length);
       
       // QUAN TRỌNG: Chỉ cập nhật nếu đây vẫn là request hiện tại
       if (this.currentLyricsUrl !== requestUrl) {
-        console.log('Request lyrics đã bị hủy, bỏ qua kết quả này');
         this.isLoadingLyrics = false;
         return;
       }
@@ -538,7 +519,6 @@ class DomVisual {
       
       // Lưu vào cache
       if (list.length > 0 && url) {
-        console.log('Lưu lời bài hát vào cache');
         this.lyricsCache[url] = list;
       }
       
@@ -560,8 +540,6 @@ class DomVisual {
     const { lrcIndex, lrcList } = this
     let lrcContainer = this.getContainerDom('#music-lrc')
     
-    console.log('Đang tạo DOM cho lời bài hát');
-    console.log('Tổng số dòng lời:', lrcList.length);
     
     // Xóa nội dung cũ
     lrcContainer.innerHTML = ""
@@ -577,7 +555,6 @@ class DomVisual {
       lrcContainer.appendChild(p);
     }
     
-    console.log('Đã tạo xong DOM lời bài hát, số phần tử:', lrcContainer.childElementCount);
     
     // Cuộn đến dòng lời hiện tại
     this.rollLrc();
@@ -603,11 +580,9 @@ class DomVisual {
     const { lrcIndex, lrcList } = this
     // Cho phép chuyển đến dòng cuối cùng
     if (lrcIndex >= lrcList.length - 1) {
-      console.log('Đã đến dòng lời cuối cùng');
       return;
     }
     
-    console.log('Đang chuyển sang dòng lời tiếp theo:', lrcIndex + 1);
     
     // Cập nhật chỉ số
     this.lrcIndex = this.lrcIndex + 1
@@ -645,7 +620,6 @@ class DomVisual {
     // Đặt vị trí cuộn để dòng hiện tại ở giữa container
     const scrollY = elementTop - (containerHeight / 2) + (elementHeight / 2);
     
-    console.log('Cuộn lời bài hát đến vị trí:', scrollY, 'px, dòng:', lrcIndex);
     
     // Áp dụng cuộn mượt
     lrcContainer.style.transform = `translateY(-${scrollY}px)`;
@@ -770,7 +744,6 @@ class DomVisual {
     // Giới hạn phần trăm từ 0-1
     const percent = Math.max(0, Math.min(1, percentClicked));
     
-    console.log(`Đang tìm vị trí: ${percent * 100}%`);
     
     // Cập nhật thanh tiến trình ngay lập tức
     this.updateProgressBar(percent);
@@ -784,7 +757,6 @@ class DomVisual {
       newTime = audioElement.duration * percent;
       audioElement.currentTime = newTime;
       seekSuccess = true;
-      console.log(`Đã seek audio element đến: ${newTime}s`);
     } 
     // Nếu không có audio element, thử BufferSource
     else if (window.av && window.av.source && window.av.source.buffer) {
@@ -802,7 +774,6 @@ class DomVisual {
           window.av.source.stop();
           window.av.source.disconnect();
         } catch (e) {
-          console.log('Source đã dừng rồi');
         }
       }
       
@@ -828,11 +799,9 @@ class DomVisual {
       }
       
       seekSuccess = true;
-      console.log(`Đã seek BufferSource đến: ${newTime}s`);
     }
     
     if (!seekSuccess) {
-      console.log('Không tìm thấy phần tử audio hoặc source để seek');
       return;
     }
     
@@ -852,12 +821,10 @@ class DomVisual {
     // Nếu thời gian hiện tại vượt qua thời gian của dòng lời tiếp theo
     const nextTime = this.nextLrcTime();
     if (nextTime !== null && currentTime >= nextTime) {
-      console.log(`Thời gian hiện tại (${currentTime}) >= thời gian dòng tiếp theo (${nextTime})`);
       this.nextLrc();
     } 
     // Kiểm tra nếu thời gian bị tua lùi, cần tìm dòng lời phù hợp
     else if (lrcIndex > 0 && currentTime < lrcList[lrcIndex][0]) {
-      console.log(`Thời gian hiện tại (${currentTime}) < thời gian dòng hiện tại (${lrcList[lrcIndex][0]}), đang tìm dòng phù hợp`);
       
       // Tìm dòng lời phù hợp với thời gian hiện tại
       let foundIndex = 0;
@@ -875,7 +842,6 @@ class DomVisual {
       
       // Nếu cần phải cập nhật lại dòng lời
       if (foundIndex !== lrcIndex) {
-        console.log(`Cập nhật lại dòng lời: ${lrcIndex} -> ${foundIndex}`);
         this.lrcIndex = foundIndex;
         
         // Cập nhật lại hiển thị

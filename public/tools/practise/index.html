@@ -38,6 +38,52 @@
             --shadow-lg: 0 20px 60px rgba(100, 80, 200, 0.18);
         }
 
+        /* Popup */
+        #px-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(6px);opacity:0;pointer-events:none;transition:opacity .25s;z-index:9998}
+    #px-backdrop.on{opacity:1;pointer-events:all}
+    #px-box{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%) scale(.9);opacity:0;pointer-events:none;transition:transform .3s cubic-bezier(.34,1.56,.64,1),opacity .22s;z-index:9999;width:min(92vw,480px);background:#fff;border:.5px solid #e0e0e0;border-radius:20px;overflow:hidden;font-family:system-ui,sans-serif}
+    #px-box.on{transform:translate(-50%,-50%) scale(1);opacity:1;pointer-events:all}
+    #px-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px 0}
+    #px-title{font-size:16px;font-weight:500;color:#111}
+    #px-close{width:28px;height:28px;border-radius:50%;border:.5px solid #e0e0e0;background:#f5f5f5;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;color:#888;transition:background .15s}
+    #px-close:hover{background:#eaeaea}
+    #px-body{padding:14px 20px 20px;color:#555;font-size:14px;line-height:1.7;max-height:70vh;overflow-y:auto}
+    #px-body p{margin:6px 0}
+    #px-body img{max-width:100%;border-radius:10px;margin:8px 0;display:block}
+    #px-body h1,#px-body h2,#px-body h3{color:#111;margin:12px 0 6px;font-weight:500}
+    #px-body ul,#px-body ol{padding-left:18px;margin:6px 0}
+    #px-body table{width:100%;border-collapse:collapse;font-size:13px;margin:10px 0}
+    #px-body th{text-align:left;padding:7px 10px;background:#f7f7f7;color:#333;font-weight:500;border-bottom:.5px solid #e0e0e0}
+    #px-body td{padding:7px 10px;border-bottom:.5px solid #f0f0f0}
+    #px-body pre{background:#f7f7f7;border:.5px solid #e8e8e8;border-radius:10px;padding:12px 14px;overflow-x:auto;margin:10px 0}
+    #px-body code{font-family:monospace;font-size:12.5px;background:#f2f2f2;border:.5px solid #e8e8e8;border-radius:5px;padding:1px 5px}
+    #px-body pre code{background:none;border:none;padding:0}
+    #px-body a{text-decoration:none;color:#111;}
+    #px-body a:hover{text-shadow: 0 0 9px #111;}
+    #px-footer{display:flex;gap:8px;padding:14px 20px 18px;border-top:.5px solid #f0f0f0}
+    #px-footer:empty{display:none}
+    .px-btn{flex:1;padding:9px 16px;border-radius:10px;font-size:13.5px;font-weight:500;cursor:pointer;transition:opacity .15s,transform .1s;font-family:inherit;border:.5px solid #e0e0e0;background:#f5f5f5;color:#333}
+    .px-btn:hover{opacity:.8}
+    .px-btn:active{transform:scale(.97)}
+    .px-btn.primary{background:#111;color:#fff;border-color:transparent}
+
+    /* @media(prefers-color-scheme:dark){
+      #px-box{background:#1c1c1e;border-color:#3a3a3c}
+      #px-title{color:#f5f5f5}
+      #px-close{background:#2c2c2e;border-color:#3a3a3c;color:#aaa}
+      #px-body{color:#aaa}
+      #px-body h1,#px-body h2,#px-body h3{color:#f0f0f0}
+      #px-body th{background:#2c2c2e;color:#e0e0e0;border-color:#3a3a3c}
+      #px-body td{border-color:#2c2c2e}
+      #px-body pre{background:#2c2c2e;border-color:#3a3a3c}
+      #px-body code{background:#2c2c2e;border-color:#3a3a3c;color:#e0e0e0}
+      #px-footer{border-color:#3a3a3c}
+      #px-body a{text-decoration:none;color:white;}
+      #px-body a:hover{text-shadow: 0 0 9px white;}
+      .px-btn{background:#2c2c2e;border-color:#3a3a3c;color:#ddd}
+      .px-btn.primary{background:#f5f5f5;color:#111}
+    } */
+
         html {
             scroll-behavior: smooth;
         }
@@ -1277,7 +1323,7 @@
 
         <!-- Main 6 categories -->
         <div class="cats-grid">
-            <a class="cat-item" href="#hangeul">
+            <a class="cat-item" href="#hangeul" onclick="showPopup('popup-comingsoon')">
                 <div class="cat-circle hangeul">
                     <div class="cat-circle-icon kr">ㄱ</div>
                     <div class="lv-badge purple">Lv.1</div>
@@ -1293,7 +1339,7 @@
                 <div class="cat-name">Từ vựng</div>
                 <div class="cat-count" id="vocab-word-count">...</div>
             </a>
-            <a class="cat-item" href="#nguphap">
+            <a class="cat-item" href="#nguphap" onclick="showPopup('popup-comingsoon')">
                 <div class="cat-circle nguphap">
                     <div class="cat-circle-icon"><i class="fas fa-chalkboard"></i></div>
                     <div class="lv-badge orange">Lv.3</div>
@@ -1301,7 +1347,7 @@
                 <div class="cat-name">Ngữ pháp</div>
                 <div class="cat-count">Coming soon...</div>
             </a>
-            <a class="cat-item" href="#hoidai">
+            <a class="cat-item" href="#hoidai" onclick="showPopup('popup-comingsoon')">
                 <div class="cat-circle hoidai">
                     <div class="cat-circle-icon"><i class="fas fa-comments"></i></div>
                     <div class="lv-badge red">Lv.4</div>
@@ -1317,7 +1363,7 @@
                 <div class="cat-name">Hán Hàn</div>
                 <div class="cat-count" id="hanhan-word-count">...</div>
             </a>
-            <a class="cat-item" href="#topik">
+            <a class="cat-item" href="#topik" onclick="showPopup('popup-comingsoon')">
                 <div class="cat-circle topik">
                     <div class="cat-circle-icon"><i class="fas fa-bullseye"></i></div>
                     <div class="lv-badge cyan">Lv.6</div>
@@ -1496,6 +1542,37 @@
     <script type="module" src="js/auth.js"></script>
     <script type="module" src="js/leaderboard.js"></script>
 
+    <!-- ===== POPUP =====-->
+     <div id="popup-comingsoon" hidden>
+        <h2>Thông báo</h2>
+        <ul>
+            <li>Tính năng hiện không có sẵn hoặc chưa hoàn thiện.</li>
+            <li>Vui lòng chọn tính năng khác.</li>
+            <li>Xin lỗi vì sự bất tiện.</li>
+        </ul>
+     </div>
+
+     <div id="popup-contact" hidden>
+        <h2>Liên hệ qua</h2>
+        <ul>
+            <li>Facebook: <code><a href="https://www.facebook.com/nthdat.7" target="_blank">#nthdat.7</a></code></li>
+            <li>Youtube: <code><a href="https://www.youtube.com/@nthdat.7" target="_blank">@nthdat.7</a></code></li>
+            <li>Gmail: <code><a href="mailto:nthdat.2937@gmail.com" target="_blank">nthdat.7</a></code></li>
+            <li>Website: <code><a href="https://2937.vercel.app" target="_blank">2937.vercel.app</a></code></li>
+        </ul>
+     </div>
+
+     <!-- Popup engine HTML -->
+  <div id="px-backdrop" onclick="closePopup()"></div>
+  <div id="px-box">
+    <div id="px-header">
+      <div id="px-title"></div>
+      <button id="px-close" onclick="closePopup()">✕</button>
+    </div>
+    <div id="px-body"></div>
+    <div id="px-footer"></div>
+  </div>
+
     <!-- ===== FOOTER ===== -->
     <footer class="site-footer">
         <div class="footer-inner">
@@ -1510,7 +1587,7 @@
                 <div class="footer-dot"></div>
                 <a href="vocabulary.html" class="footer-link"><i class="fas fa-book-open"></i> Từ vựng</a>
                 <div class="footer-dot"></div>
-                <a href="#" class="footer-link"><i class="fas fa-envelope"></i> Liên hệ</a>
+                <a href="#" class="footer-link" onclick="showPopup('popup-contact')"><i class="fas fa-envelope"></i> Liên hệ</a>
                 <div class="footer-dot"></div>
                 <a href="admin.html" class="footer-link"><i class="fas fa-shield-halved"></i> Admin</a>
             </div>
@@ -1535,6 +1612,45 @@
 
     <script>
         document.getElementById('footer-year').textContent = new Date().getFullYear();
+
+        // Hàm popup
+        function showPopup(sourceId, { title = '', buttons = [] } = {}) {
+      const source = document.getElementById(sourceId);
+      if (!source) return console.warn('Không tìm thấy:', sourceId);
+
+      // Lấy tiêu đề từ thẻ h1/h2/h3 bên trong nếu không truyền title
+      const heading = source.querySelector('h1, h2, h3');
+      document.getElementById('px-title').textContent = title || heading?.textContent || '';
+
+      // Clone nội dung (không xoá bản gốc)
+      const clone = source.cloneNode(true);
+      if (heading) clone.querySelector('h1, h2, h3')?.remove(); // tránh hiện 2 lần title
+      document.getElementById('px-body').innerHTML = clone.innerHTML;
+
+      // Nút footer
+      const footer = document.getElementById('px-footer');
+      footer.innerHTML = '';
+      const defaultBtns = buttons.length ? buttons : [{ label: 'Đóng', primary: true, onClick: closePopup }];
+      defaultBtns.forEach(b => {
+        const btn = document.createElement('button');
+        btn.className = 'px-btn' + (b.primary ? ' primary' : '');
+        btn.textContent = b.label;
+        btn.onclick = b.onClick || closePopup;
+        footer.appendChild(btn);
+      });
+
+      document.getElementById('px-backdrop').classList.add('on');
+      document.getElementById('px-box').classList.add('on');
+      document.addEventListener('keydown', _escClose);
+    }
+
+    function closePopup() {
+      document.getElementById('px-backdrop').classList.remove('on');
+      document.getElementById('px-box').classList.remove('on');
+      document.removeEventListener('keydown', _escClose);
+    }
+
+    function _escClose(e) { if (e.key === 'Escape') closePopup(); }
     </script>
 
 </body>

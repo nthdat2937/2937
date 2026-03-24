@@ -99,6 +99,55 @@ window.onload = function () {
       cover: "data/duemtungyeu.png",
       lrc: "data/duemtungyeu.lrc"
     },
+    {
+    id: "manhba",
+    title: "Mạnh Bà - Linh Hương Luz",
+    url: "data/manhba.mp3",
+    cover: "data/manhba.png",
+    lrc: "data/manhba.lrc"
+    },
+    {
+    id: "davu",
+    title: "Dạ Vũ - Tăng Duy Tân",
+    url: "data/davu.mp3",
+    cover: "data/davu.png",
+    lrc: "data/davu.lrc"
+    },
+    {
+    id: "boconganh",
+    title: "Bồ Công Anh - Phong Max",
+    url: "data/boconganh.mp3",
+    cover: "data/boconganh.png",
+    lrc: "data/boconganh.lrc"
+    },
+     {
+    id: "stay",
+    title: "STAY - THE KID LAROI, JUSTIN BIEBER",
+    url: "data/stay.mp3",
+    cover: "data/stay.png",
+    lrc: "data/stay.lrc"
+    },
+    {
+    id: "henhonhungkhongyeu",
+    title: "Hẹn Hò Nhưng Không Yêu - Wendy Thảo",
+    url: "data/henhonhungkhongyeu.mp3",
+    cover: "data/henhonhungkhongyeu.png",
+    lrc: "data/henhonhungkhongyeu.lrc"
+    },
+    {
+    id: "emdau",
+    title: "Em Đau - Phùng Khánh Linh",
+    url: "data/emdau.mp3",
+    cover: "data/emdau.png",
+    lrc: "data/emdau.lrc"
+    },
+    {
+    id: "camtucau",
+    title: "Cẩm Tú Cầu - RayO",
+    url: "data/camtucau.mp3",
+    cover: "data/camtucau.png",
+    lrc: "data/camtucau.lrc"
+    },
     // {
     // id: "*",
     // title: "",
@@ -128,9 +177,7 @@ window.onload = function () {
     const foundIndex = PLAY_LIST.findIndex(song => song.id === songId);
     if (foundIndex !== -1) {
       i = foundIndex;
-      console.log(`Phát bài hát: ${PLAY_LIST[i].title} từ URL parameter`);
     } else {
-      console.log(`Không tìm thấy bài hát với id: ${songId}, sẽ phát bài ngẫu nhiên`);
       i = Math.floor(Math.random() * PLAY_LIST.length);
     }
   } else {
@@ -174,12 +221,9 @@ window.onload = function () {
 
   // Đăng ký sự kiện cho phím tắt
   eventBus.on('seek', (seconds) => {
-    console.log('Event seek nhận được:', seconds);
     if (av && av.started) {
-      console.log('Gọi av.seek với:', seconds);
       av.seek(seconds);
     } else {
-      console.log('av chưa started:', av?.started);
     }
   });
 
@@ -323,7 +367,6 @@ window.onload = function () {
       // Cập nhật UI
       updateLoopButton();
 
-      console.log('Chế độ lặp:', loopMode);
     });
   }
 
@@ -358,7 +401,6 @@ window.onload = function () {
       // Cập nhật UI
       updateShuffleButton();
 
-      console.log('Chế độ shuffle:', shuffleMode);
     });
   }
 
@@ -445,7 +487,6 @@ window.onload = function () {
     const keyActions = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', ' '];
     if (keyActions.includes(e.key)) {
       e.preventDefault();
-      console.log('Phím được nhấn:', e.key, 'Ctrl:', e.ctrlKey);
     }
 
     // Shift - Toggle danh sách phát
@@ -454,50 +495,42 @@ window.onload = function () {
       playlistMenu.classList.toggle('show');
       playlistToggle.classList.toggle('active');
       cardWrap.classList.toggle('playlist-open');
-      console.log('Toggle playlist');
       return;
     }
 
     // Ctrl + mũi tên trái/phải để chuyển bài
     if (!isSingleSongMode && e.ctrlKey && e.key === 'ArrowLeft') {
-      console.log('Emit: prev');
       eventBus.emit('prev');
       return;
     }
 
     if (!isSingleSongMode && e.ctrlKey && e.key === 'ArrowRight') {
-      console.log('Emit: next');
       eventBus.emit('next');
       return;
     }
 
     switch (e.key) {
       case ' ': // Space - Phát/Tạm dừng
-        console.log('Emit: play');
         eventBus.emit('play');
         break;
 
       case 'ArrowLeft': // Mũi tên trái - Lùi 5 giây
         if (!e.ctrlKey) {
-          console.log('Emit: seek -5');
           eventBus.emit('seek', -5);
         }
         break;
 
       case 'ArrowRight': // Mũi tên phải - Tiến 5 giây
         if (!e.ctrlKey) {
-          console.log('Emit: seek +5');
           eventBus.emit('seek', 5);
         }
         break;
 
       case 'ArrowUp': // Mũi tên lên - Tăng âm lượng
-        console.log('Emit: volume up');
         eventBus.emit('volume', 'up');
         break;
 
       case 'ArrowDown': // Mũi tên xuống - Giảm âm lượng
-        console.log('Emit: volume down');
         eventBus.emit('volume', 'down');
         break;
     }
