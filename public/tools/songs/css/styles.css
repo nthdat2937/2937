@@ -309,6 +309,12 @@ header > div:first-child > span:first-child {
   font-size: 14px;
 }
 
+.btn-lyric-visual {
+  background: linear-gradient(135deg, #52af00, #58ff45);
+  padding: 8px 14px;
+  font-size: 14px;
+}
+
 .btn-submit {
   background: linear-gradient(135deg, #10b981, #059669);
   box-shadow: 0 4px 20px rgba(16, 185, 129, 0.35);
@@ -384,7 +390,7 @@ tbody tr:nth-child(even) {
 
 tbody tr:hover {
   background: linear-gradient(135deg, rgba(99, 102, 241, 0.08), rgba(139, 92, 246, 0.05));
-  transform: scale(1.01);
+  transform: scale(1.05);
 }
 
 tbody tr:hover td:first-child::before {
@@ -413,9 +419,17 @@ tbody tr td:first-child img {
 }
 
 tbody tr:hover td:first-child img {
-  transform: scale(1.15) rotate(-5deg);
+  transform: scale(1.15) rotate(-5deg) translateX(1.5rem);
   border-color: var(--accent-primary);
   box-shadow: 0 8px 30px rgba(99, 102, 241, 0.4);
+}
+
+tbody tr:hover td:nth-child(2) {
+  transform: translateX(2rem);
+}
+
+tbody tr:hover td:nth-child(7) {
+  transform: translateX(-2rem);
 }
 
 .actions-cell {
@@ -608,6 +622,7 @@ dialog > div::-webkit-scrollbar-thumb,
   box-shadow: 
     0 25px 60px rgba(99, 102, 241, 0.4),
     0 0 0 3px var(--accent-primary);
+  transform: translateY(10px);
 }
 
 .lyric-avatar hr {

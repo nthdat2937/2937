@@ -895,7 +895,7 @@ function renderSongs(songs) {
     return `<tr data-song-id="${song.Id}"><td class="song-clickable">${song.avatar ? `<img src="${song.avatar}" loading="lazy" alt="avatar" style="width:60px;
                 height:60px;
                 object-fit:cover;
-                border-radius:8px">`: ''}</td><td class="song-clickable" style="font-weight: bold; font-size: 20px;" title="${song['Tên']}">${song['Tên']}</td><td class="song-clickable" title="${song['Ca sĩ']}">${song['Ca sĩ']}</td><td class="song-clickable" title="${song['Sáng tác'] || ''}">${song['Sáng tác'] || ''}</td><td class="song-clickable" title="${song['lyric_visual'] || ''}">${song['lyric_visual'] || ''}</td><td class="song-clickable" style="overflow:hidden;
+                border-radius:8px">`: ''}</td><td class="song-clickable" style="font-weight: bold; font-size: 20px;" title="${song['Tên']}">${song['Tên']}</td><td class="song-clickable" title="${song['Ca sĩ']}">${song['Ca sĩ']}</td><td class="song-clickable" title="${song['Sáng tác'] || ''}">${song['Sáng tác'] || ''}</td><td class="song-clickable" title="${song['Ngày phát hành'] || ''}">${song['Ngày phát hành'] || ''}</td><td class="song-clickable" style="overflow:hidden;
                 text-overflow:ellipsis;
                 white-space:normal;
                 word-break:break-word" title="${hotText}"><span style="color:#fbbf24;
@@ -920,6 +920,9 @@ function renderSongs(songs) {
   </button>
   <button class="btn btn-lyric" data-action="lyric" title="${tr('lyricTitle')}">
     <i class="fa-solid fa-music"></i>
+  </button>
+  <button class="btn btn-lyric-visual" onclick="openAudioVisual(${song.Id}); stopNct(); stopYoutube();" title="Audio Visual">
+    <i class="fa-solid fa-bars"></i>
   </button>
 </div></td>
                 

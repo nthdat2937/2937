@@ -1507,3 +1507,16 @@ async function audioVisual() {
 }
 
 window.addEventListener('resize', updateLyricEmbedScale);
+
+// Mở Audio Visual trực tiếp từ danh sách bài hát (không cần mở lyric dialog trước)
+window.openAudioVisual = function(songId) {
+  if (window.showLyric) {
+    window.showLyric(songId);
+  }
+  // Đợi lyric dialog mở và DOM cập nhật xong rồi mới gọi audioVisual()
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      audioVisual();
+    });
+  });
+};
