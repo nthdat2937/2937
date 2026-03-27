@@ -1284,7 +1284,7 @@
                 <span id="hdr-display-name" class="user-display-name"></span>
                 <div class="stat-pill" onclick="if(window.checkStreak) window.checkStreak()" style="cursor: pointer;"
                     title="Điểm danh hàng ngày">
-                    🔥 <span id="hdr-streak-count">0</span>
+                    <i class="fas fa-fire" style="color:#ff6b35"></i> <span id="hdr-streak-count">0</span>
                 </div>
                 <button class="btn-logout" onclick="handleLogout()" title="Đăng xuất">
                     <i class="fas fa-sign-out-alt"></i>
@@ -1298,8 +1298,8 @@
         </div>
 
         <div class="header-right">
-            <div class="stat-pill">💎 <span id="stat-diamonds">0</span></div>
-            <div class="stat-pill">⭐ <span id="stat-xp">0</span></div>
+            <div class="stat-pill"><i class="fa-solid fa-diamond" style="color:#7c6ce0"></i> <span id="stat-diamonds">0</span></div>
+            <div class="stat-pill"><i class="fas fa-star" style="color:#f5a623"></i> <span id="stat-xp">0</span></div>
         </div>
     </header>
 
@@ -1308,15 +1308,15 @@
 
         <!-- Daily banner -->
         <div class="daily-banner">
-            <div class="banner-title">🇰🇷 Học tiếng Hàn cùng HanCode
+            <div class="banner-title"><i class="fas fa-flag" style="color:#e05"></i> Học tiếng Hàn cùng HanCode
             </div>
             <hr style="color: gray; width: 100%;"><br>
             <div class="banner-row">
-                <span class="brow-icon">🎙️</span>
+                <span class="brow-icon"><i class="fas fa-microphone" style="color:var(--purple)"></i></span>
                 <div class="brow-kr">읽은 문장을 바로 말해보세요.<br>그게 가장 빠른 말하기 연습입니다.</div>
             </div>
             <div class="banner-row">
-                <span class="brow-icon">✏️</span>
+                <span class="brow-icon"><i class="fas fa-pen" style="color:var(--purple)"></i></span>
                 <div class="brow-vn">Hãy nói lại ngay câu vừa nghe.<br>Đó là cách luyện nói nhanh nhất.</div>
             </div>
         </div>
@@ -1394,7 +1394,7 @@
 
         <!-- Leaderboard -->
         <div class="leaderboard">
-            <div class="lb-title">🏆 Bảng xếp hạng</div>
+            <div class="lb-title"><i class="fas fa-trophy" style="color:#f5a623"></i> Bảng xếp hạng</div>
             <div class="lb-tabs" id="lb-tabs">
                 <button class="lb-tab active" data-metric="diamonds">Kim cương</button>
                 <button class="lb-tab" data-metric="topik_score">TOPIK</button>
@@ -1418,7 +1418,7 @@
         <div class="modal-box">
             <button class="modal-close" onclick="closeLoginModal()"><i class="fas fa-times"></i></button>
             <div class="modal-title">Đăng nhập</div>
-            <div class="modal-subtitle">Chào mừng trở lại! Học tiếng Hàn nào 🇰🇷</div>
+            <div class="modal-subtitle">Chào mừng trở lại! Học tiếng Hàn nào <i class="fas fa-flag" style="color:#e05"></i></div>
             <form id="login-form">
                 <div class="form-group">
                     <label class="form-label" for="login-email">Email</label>
@@ -1442,7 +1442,7 @@
         <div class="modal-box">
             <button class="modal-close" onclick="closeRegModal()"><i class="fas fa-times"></i></button>
             <div class="modal-title">Đăng ký tài khoản</div>
-            <div class="modal-subtitle">Bắt đầu hành trình học tiếng Hàn 🌸</div>
+            <div class="modal-subtitle">Bắt đầu hành trình học tiếng Hàn <i class="fas fa-heart" style="color:#f0607a"></i></div>
             <form id="reg-form">
                 <div class="form-group">
                     <label class="form-label" for="reg-name">Tên hiển thị <small>(3–20 ký tự)</small></label>
@@ -1486,19 +1486,19 @@
             <div class="modal-title" id="profile-name" style="margin-bottom:4px"></div>
             <div class="modal-subtitle" id="profile-role-badge" style="margin-bottom:20px"></div>
             <div class="profile-info-row">
-                <span class="profile-info-label">📧 Email</span>
+                <span class="profile-info-label"><i class="fas fa-envelope" style="color:var(--purple)"></i> Email</span>
                 <span class="profile-info-value" id="profile-email"></span>
             </div>
             <div class="profile-info-row">
-                <span class="profile-info-label">📱 Điện thoại</span>
+                <span class="profile-info-label"><i class="fas fa-mobile-alt" style="color:var(--purple)"></i> Điện thoại</span>
                 <span class="profile-info-value" id="profile-phone"></span>
             </div>
             <div class="profile-info-row">
-                <span class="profile-info-label">🏅 Vai trò</span>
+                <span class="profile-info-label"><i class="fas fa-medal" style="color:var(--purple)"></i> Vai trò</span>
                 <span class="profile-info-value" id="profile-role"></span>
             </div>
             <div class="profile-info-row">
-                <span class="profile-info-label">🔥 Streak</span>
+                <span class="profile-info-label"><i class="fas fa-fire" style="color:#ff6b35"></i> Streak</span>
                 <span class="profile-info-value" id="profile-streak"></span>
             </div>
             <button class="btn-logout-full" onclick="handleLogout(); closeProfileModal()">
@@ -1567,7 +1567,7 @@
   <div id="px-box">
     <div id="px-header">
       <div id="px-title"></div>
-      <button id="px-close" onclick="closePopup()">✕</button>
+      <button id="px-close" onclick="closePopup()"><i class="fas fa-times"></i></button>
     </div>
     <div id="px-body"></div>
     <div id="px-footer"></div>

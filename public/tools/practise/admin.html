@@ -1382,7 +1382,7 @@
     <!-- Access Denied -->
     <div id="access-denied" class="hidden">
         <div class="denied-card">
-            <div class="denied-icon">🔐</div>
+            <div class="denied-icon"><i class="fas fa-lock" style="color:var(--purple);font-size:3rem"></i></div>
             <div class="denied-title">Không có quyền truy cập</div>
             <div class="denied-sub">Trang này chỉ dành cho tài khoản <strong>Admin</strong>.<br>Vui lòng liên hệ quản
                 trị viên nếu cần.</div>
@@ -1645,7 +1645,7 @@
                 <!-- HANGEUL -->
                 <div id="section-hangeul" class="section-panel">
                     <div class="coming-soon-card">
-                        <div class="cs-icon">🔤</div>
+                        <div class="cs-icon"><i class="fas fa-font" style="color:var(--purple)"></i></div>
                         <div class="cs-title">Hangeul — Sắp ra mắt</div>
                         <div class="cs-sub">Chức năng quản lý bài học Hangeul đang được xây dựng.<br>Vui lòng quay lại
                             sau!</div>
@@ -1655,7 +1655,7 @@
                 <!-- GRAMMAR -->
                 <div id="section-grammar" class="section-panel">
                     <div class="coming-soon-card">
-                        <div class="cs-icon">✍️</div>
+                        <div class="cs-icon"><i class="fas fa-pen-nib" style="color:var(--purple)"></i></div>
                         <div class="cs-title">Ngữ pháp — Sắp ra mắt</div>
                         <div class="cs-sub">Chức năng quản lý điểm ngữ pháp đang được xây dựng.<br>Vui lòng quay lại
                             sau!</div>
@@ -1665,7 +1665,7 @@
                 <!-- CONVERSATION -->
                 <div id="section-conversation" class="section-panel">
                     <div class="coming-soon-card">
-                        <div class="cs-icon">💬</div>
+                        <div class="cs-icon"><i class="fas fa-comments" style="color:var(--purple)"></i></div>
                         <div class="cs-title">Hội thoại — Sắp ra mắt</div>
                         <div class="cs-sub">Chức năng quản lý đoạn hội thoại đang được xây dựng.<br>Vui lòng quay lại
                             sau!</div>
@@ -1776,7 +1776,7 @@
                 <!-- TOPIK -->
                 <div id="section-topik" class="section-panel">
                     <div class="coming-soon-card">
-                        <div class="cs-icon">🎓</div>
+                        <div class="cs-icon"><i class="fas fa-graduation-cap" style="color:var(--purple)"></i></div>
                         <div class="cs-title">TOPIK — Sắp ra mắt</div>
                         <div class="cs-sub">Chức năng quản lý đề thi TOPIK đang được xây dựng.<br>Vui lòng quay lại sau!
                         </div>
@@ -1983,13 +1983,13 @@
 
         // ── Section switcher ──
         const sectionMeta = {
-            vocab: { title: 'Từ vựng 📖', sub: 'Thêm chủ đề hoặc từ vựng mới vào cơ sở dữ liệu' },
-            hangeul: { title: 'Hangeul 🔤', sub: 'Quản lý bài học Hangeul' },
-            grammar: { title: 'Ngữ pháp ✍️', sub: 'Quản lý điểm ngữ pháp' },
-            conversation: { title: 'Hội thoại 💬', sub: 'Quản lý đoạn hội thoại' },
+            vocab: { title: 'Từ vựng', sub: 'Thêm chủ đề hoặc từ vựng mới vào cơ sở dữ liệu' },
+            hangeul: { title: 'Hangeul', sub: 'Quản lý bài học Hangeul' },
+            grammar: { title: 'Ngữ pháp', sub: 'Quản lý điểm ngữ pháp' },
+            conversation: { title: 'Hội thoại', sub: 'Quản lý đoạn hội thoại' },
             hanja: { title: 'Hán Hàn 漢', sub: 'Quản lý từ Hán Hàn' },
-            topik: { title: 'TOPIK 🎓', sub: 'Quản lý đề thi TOPIK' },
-            coupon: { title: 'Coupon 🎟', sub: 'Tạo & quản lý mã coupon mở khóa nội dung' },
+            topik: { title: 'TOPIK', sub: 'Quản lý đề thi TOPIK' },
+            coupon: { title: 'Coupon', sub: 'Tạo & quản lý mã coupon mở khóa nội dung' },
         };
 
         window.switchSection = (sec) => {

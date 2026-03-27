@@ -519,8 +519,12 @@
         .book-picker-wrap {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 16px;
+            gap: 12px;
             padding: 8px 0;
+        }
+
+        .book-picker-wrap .custom-practice-card {
+            grid-column: 1 / -1;
         }
 
         .book-card {
@@ -2143,6 +2147,174 @@
             box-shadow: 0 8px 20px rgba(124, 108, 224, 0.45);
         }
 
+        /* ===== CUSTOM PRACTICE ===== */
+        .custom-practice-card {
+            display: flex !important;
+            grid-column: 1 / -1;
+            margin-top: 0;
+        }
+
+        .book-picker-wrap {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            padding: 8px 0;
+        }
+
+        .custom-book-btn {
+            padding: 10px 12px;
+            border-radius: 12px;
+            background: var(--bg);
+            border: 2px solid var(--border);
+            font-size: 0.82rem;
+            font-weight: 800;
+            color: var(--text-sub);
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.18s;
+        }
+
+        .custom-book-btn:hover {
+            border-color: var(--purple);
+            color: var(--purple);
+        }
+
+        .custom-book-btn.active-book {
+            background: var(--purple-light);
+            border-color: var(--purple);
+            color: var(--purple);
+        }
+
+        .custom-topic-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 9px 12px;
+            border-radius: 10px;
+            border: 1.5px solid var(--border);
+            background: var(--bg);
+            cursor: pointer;
+            transition: all 0.18s;
+            user-select: none;
+        }
+
+        .custom-topic-item:hover {
+            border-color: var(--purple);
+            background: var(--purple-light);
+        }
+
+        .custom-topic-item.selected {
+            background: var(--purple-light);
+            border-color: var(--purple);
+        }
+
+        .custom-topic-item.locked-topic {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .custom-topic-item.locked-topic:hover {
+            border-color: var(--border);
+            background: var(--bg);
+        }
+
+        .custom-topic-check {
+            width: 18px;
+            height: 18px;
+            border-radius: 5px;
+            border: 2px solid var(--border);
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.65rem;
+            color: white;
+            flex-shrink: 0;
+            transition: all 0.15s;
+        }
+
+        .custom-topic-item.selected .custom-topic-check {
+            background: var(--purple);
+            border-color: var(--purple);
+        }
+
+        .custom-topic-item.selected .custom-topic-check::after {
+            content: '✓';
+        }
+
+        .custom-topic-name {
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--text-sub);
+            flex: 1;
+        }
+
+        .custom-topic-item.selected .custom-topic-name {
+            color: var(--purple);
+        }
+
+        .custom-topic-count {
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            flex-shrink: 0;
+        }
+
+        .custom-count-btn {
+            padding: 8px 14px;
+            border-radius: 10px;
+            background: var(--bg);
+            border: 2px solid var(--border);
+            font-size: 0.82rem;
+            font-weight: 800;
+            color: var(--text-sub);
+            cursor: pointer;
+            transition: all 0.18s;
+        }
+
+        .custom-count-btn:hover {
+            border-color: var(--green);
+            color: var(--green);
+        }
+
+        .custom-count-btn.active-count {
+            background: var(--green-light);
+            border-color: var(--green);
+            color: #1a8a73;
+        }
+
+        .custom-mode-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            padding: 14px 8px;
+            border-radius: 12px;
+            background: var(--bg);
+            border: 2px solid var(--border);
+            cursor: pointer;
+            transition: all 0.18s;
+            text-align: center;
+        }
+
+        .custom-mode-btn:hover {
+            border-color: var(--purple);
+            background: var(--purple-light);
+        }
+
+        .custom-mode-btn.active-mode {
+            background: var(--purple-light);
+            border-color: var(--purple);
+        }
+
+        .custom-mode-btn div:last-child {
+            color: var(--text-main);
+        }
+
+        .custom-mode-btn.active-mode div:last-child {
+            color: var(--purple);
+        }
+
         /* ===== LANG SWITCHER ===== */
         .lang-switcher {
             display: flex;
@@ -2245,6 +2417,102 @@
                     <div class="book-title">어휘 · 문법</div>
                     <div class="book-sub">Từ vựng & Ngữ pháp</div>
                 </div>
+            </div>
+            <!-- Custom Practice Card (full width) -->
+            <div class="book-card custom-practice-card" onclick="openCustomPractice()"
+                style="grid-column:1/-1;flex-direction:row;gap:16px;padding:22px 24px;justify-content:flex-start;border-color:rgba(58,184,154,0.35);background:linear-gradient(135deg,rgba(58,184,154,0.07),rgba(124,108,224,0.07));">
+                <div class="book-icon" style="font-size:2rem">🎯</div>
+                <div style="display:flex;flex-direction:column;align-items:flex-start;gap:4px">
+                    <div class="book-title" style="font-size:1rem">Luyện thi tự chọn</div>
+                    <div class="book-sub" style="text-align:left">Chọn nhiều bài · Tùy số câu · Ôn thi nghiêm túc</div>
+                </div>
+                <div style="margin-left:auto;display:flex;align-items:center;gap:6px;flex-shrink:0">
+                    <span
+                        style="background:linear-gradient(135deg,#3ab89a,#7c6ce0);color:white;font-size:0.7rem;font-weight:900;padding:3px 10px;border-radius:20px;letter-spacing:0.04em">MỚI</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- View 7: Luyện thi tự chọn — chọn bài + số câu -->
+        <div id="view-custom-setup" class="view-section">
+            <div style="display:flex;flex-direction:column;gap:16px">
+                <!-- Chọn sách -->
+                <div
+                    style="background:white;border:1px solid var(--border);border-radius:16px;padding:16px;box-shadow:var(--shadow-sm)">
+                    <div
+                        style="font-size:0.75rem;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:10px">
+                        📚 Chọn bộ sách</div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px" id="custom-book-selector">
+                        <div class="custom-book-btn active-book" data-book="듣기읽기" onclick="selectCustomBook('듣기읽기')">🎧
+                            듣기 · 읽기</div>
+                        <div class="custom-book-btn" data-book="어휘문법" onclick="selectCustomBook('어휘문법')">✏️ 어휘 · 문법
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chọn bài -->
+                <div
+                    style="background:white;border:1px solid var(--border);border-radius:16px;padding:16px;box-shadow:var(--shadow-sm)">
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+                        <div
+                            style="font-size:0.75rem;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.07em">
+                            📖 Chọn bài (có thể chọn nhiều)</div>
+                        <button onclick="toggleSelectAllTopics()" id="btn-select-all"
+                            style="font-size:0.72rem;font-weight:800;color:var(--purple);background:var(--purple-light);border:none;padding:3px 10px;border-radius:10px;cursor:pointer">Chọn
+                            tất cả</button>
+                    </div>
+                    <div id="custom-topic-list"
+                        style="display:flex;flex-direction:column;gap:6px;max-height:240px;overflow-y:auto">
+                        <div class="loader"><i class="fas fa-circle-notch fa-spin"></i> Đang tải...</div>
+                    </div>
+                </div>
+
+                <!-- Số câu -->
+                <div
+                    style="background:white;border:1px solid var(--border);border-radius:16px;padding:16px;box-shadow:var(--shadow-sm)">
+                    <div
+                        style="font-size:0.75rem;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:10px">
+                        🔢 Số câu hỏi</div>
+                    <div style="display:flex;flex-wrap:wrap;gap:8px" id="custom-count-selector">
+                        <div class="custom-count-btn" data-count="10" onclick="selectCustomCount(10)">10 câu</div>
+                        <div class="custom-count-btn" data-count="20" onclick="selectCustomCount(20)">20 câu</div>
+                        <div class="custom-count-btn active-count" data-count="30" onclick="selectCustomCount(30)">30
+                            câu</div>
+                        <div class="custom-count-btn" data-count="50" onclick="selectCustomCount(50)">50 câu</div>
+                        <div class="custom-count-btn" data-count="0" onclick="selectCustomCount(0)">Tất cả</div>
+                    </div>
+                    <div id="custom-count-info"
+                        style="font-size:0.78rem;color:var(--text-sub);font-weight:600;margin-top:8px">— Chưa chọn bài
+                    </div>
+                </div>
+
+                <!-- Chế độ chơi -->
+                <div
+                    style="background:white;border:1px solid var(--border);border-radius:16px;padding:16px;box-shadow:var(--shadow-sm)">
+                    <div
+                        style="font-size:0.75rem;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:10px">
+                        🎮 Chế độ học</div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px" id="custom-mode-selector">
+                        <div class="custom-mode-btn active-mode" data-mode="words" onclick="selectCustomMode('words')">
+                            <div style="font-size:1.3rem">📋</div>
+                            <div style="font-size:0.78rem;font-weight:800">Bảng từ</div>
+                        </div>
+                        <div class="custom-mode-btn" data-mode="mcq" onclick="selectCustomMode('mcq')">
+                            <div style="font-size:1.3rem">❓</div>
+                            <div style="font-size:0.78rem;font-weight:800">Trắc nghiệm</div>
+                        </div>
+                        <div class="custom-mode-btn" data-mode="listen" onclick="selectCustomMode('listen')">
+                            <div style="font-size:1.3rem">🎧</div>
+                            <div style="font-size:0.78rem;font-weight:800">Nghe & Gõ</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Nút bắt đầu -->
+                <button id="btn-start-custom" class="btn-primary" onclick="startCustomPractice()"
+                    style="margin-top:4px">
+                    🚀 Bắt đầu luyện thi
+                </button>
             </div>
         </div>
 

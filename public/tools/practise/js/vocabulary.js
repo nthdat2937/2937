@@ -71,7 +71,7 @@ let voiceObj = null;
 
 // ──────────── Utilities ────────────
 function setView(mode) {
-  ['view-books', 'view-topics', 'view-words', 'view-matching', 'view-rain', 'view-mcq', 'view-listen'].forEach(id => {
+  ['view-books', 'view-topics', 'view-words', 'view-matching', 'view-rain', 'view-mcq', 'view-listen', 'view-custom-setup'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.classList.remove('active');
   });
@@ -380,7 +380,7 @@ window.applyCoupon = async () => {
   }
 
   if (topicIds.length === 0) {
-    showToast('✅ Bạn đã mở khóa tất cả chủ đề rồi!', 'info');
+    showToast('<i class="fa-solid fa-check" style="color:green;font-size:20px;"></i> Bạn đã mở khóa tất cả chủ đề rồi!', 'info');
     return;
   }
 
@@ -815,7 +815,7 @@ window.selectCard = (side, rawId, elId) => {
   // Check match
   const prevEl = document.getElementById(prev.elId);
   if (prev.id === id) {
-    // ✅ Correct!
+    // Correct!
     [prevEl, el].forEach(e => {
       e?.classList.remove('selected');
       e?.classList.add('matched');
@@ -963,7 +963,7 @@ function rainInit() {
 
   container.innerHTML = `
     <div class="rain-hud">
-      <span class="rain-score" id="rain-score">✅ 0/${rainState.totalWords}</span>
+      <span class="rain-score" id="rain-score"><i class="fa-solid fa-check" style="color:green;font-size:20px;"></i> 0/${rainState.totalWords}</span>
       <div class="rain-hp-bar-wrap">
         <div class="rain-hp-bar" id="rain-hp-bar" style="width:100%"></div>
       </div>
@@ -1143,7 +1143,7 @@ window.rainSubmit = () => {
 
     rainState.score++;
     const scoreEl = document.getElementById('rain-score');
-    if (scoreEl) scoreEl.textContent = `✅ ${rainState.score}/${rainState.totalWords}`;
+    if (scoreEl) scoreEl.textContent = `<i class="fa-solid fa-check" style="color:green;font-size:20px;"></i> ${rainState.score}/${rainState.totalWords}`;
 
     rainHighlightFirst();
 
@@ -1201,9 +1201,9 @@ function rainGameOver(isDead) {
     <div class="rain-go-title">${isDead ? 'Game Over!' : 'Hoàn thành!'}</div>
     <div class="rain-diff-badge">${diff.label}</div>
     <div class="rain-go-sub">
-      ✅ Đúng: <strong style="color:#5fd4b5">${rainState.score}</strong> &nbsp;·&nbsp;
-      ❌ Miss: <strong style="color:#ff6b81">${rainState.missed}</strong> &nbsp;·&nbsp;
-      ❤️ HP: <strong style="color:white">${rainState.hp}</strong>
+      <i class="fa-solid fa-check" style="color:green;font-size:20px;"></i> Đúng: <strong style="color:#5fd4b5">${rainState.score}</strong> &nbsp;·&nbsp;
+      <i class="fa-solid fa-xmark" style="color:red;font-size:20px;"></i> Miss: <strong style="color:#ff6b81">${rainState.missed}</strong> &nbsp;·&nbsp;
+      <i class="fa-solid fa-heart"></i> HP: <strong style="color:white">${rainState.hp}</strong>
     </div>
     <button class="rain-btn" onclick="startRain('${rainState.difficulty}')">🔄 Chơi lại</button>
     <button class="rain-btn" style="background:rgba(255,255,255,0.1);margin-top:0" onclick="openRainDiffPicker()">Đổi độ khó</button>
@@ -1254,7 +1254,7 @@ function mcqNextQuestion(area) {
   area.innerHTML = `
     <div class="mcq-meta">
       <span class="mcq-badge">Câu ${s.current + 1}/${s.pool.length}</span>
-      <span class="mcq-score-text">✅ ${s.correct} &nbsp;❌ ${s.wrong}</span>
+      <span class="mcq-score-text"><i class="fa-solid fa-check" style="color:green;font-size:20px;"></i> ${s.correct} &nbsp;<i class="fa-solid fa-xmark" style="color:red;font-size:20px;"></i> ${s.wrong}</span>
     </div>
     <div class="mcq-progress-bar"><div class="mcq-progress-fill" style="width:${progressPct}%"></div></div>
     <div class="mcq-question-card">
@@ -1362,8 +1362,8 @@ function mcqDone(area) {
       <div class="match-done-stars">${stars}</div>
       <div class="match-done-title">Hoàn thành!</div>
       <div class="match-done-sub">
-        ✅ Đúng: <strong>${mcqState.correct}/${total}</strong> &nbsp;·&nbsp;
-        ❌ Sai: <strong>${mcqState.wrong}</strong>
+        <i class="fa-solid fa-check" style="color:green;font-size:20px;"></i> Đúng: <strong>${mcqState.correct}/${total}</strong> &nbsp;·&nbsp;
+        <i class="fa-solid fa-xmark" style="color:red;font-size:20px;"></i> Sai: <strong>${mcqState.wrong}</strong>
       </div>
       <button class="match-restart-btn" onclick="renderMCQ()">🔄 Chơi lại</button>
     </div>
@@ -1412,7 +1412,7 @@ function listenNextQuestion(area) {
   area.innerHTML = `
     <div class="mcq-meta">
       <span class="mcq-badge">Câu ${s.current + 1}/${s.pool.length}</span>
-      <span class="mcq-score-text">✅ ${s.correct} &nbsp;❌ ${s.wrong}</span>
+      <span class="mcq-score-text"><i class="fa-solid fa-check" style="color:green;font-size:20px;"></i> ${s.correct} &nbsp;<i class="fa-solid fa-xmark" style="color:red;font-size:20px;"></i> ${s.wrong}</span>
     </div>
     <div class="mcq-progress-bar"><div class="mcq-progress-fill" style="width:${progressPct}%"></div></div>
 
@@ -1545,8 +1545,8 @@ function listenDone(area) {
       <div class="match-done-stars">${stars}</div>
       <div class="match-done-title">Hoàn thành!</div>
       <div class="match-done-sub">
-        ✅ Đúng: <strong>${listenState.correct}/${total}</strong> &nbsp;·&nbsp;
-        ❌ Sai: <strong>${listenState.wrong}</strong>
+        <i class="fa-solid fa-check" style="color:green;font-size:20px;"></i> Đúng: <strong>${listenState.correct}/${total}</strong> &nbsp;·&nbsp;
+        <i class="fa-solid fa-xmark" style="color:red;font-size:20px;"></i> Sai: <strong>${listenState.wrong}</strong>
       </div>
       <button class="match-restart-btn" onclick="renderListen()">🔄 Chơi lại</button>
     </div>
@@ -1555,3 +1555,317 @@ function listenDone(area) {
 }
 
 window.renderListen = renderListen;
+
+// ══════════════════════════════════════════════════════════════
+// ──────────── LUYỆN THI TỰ CHỌN ────────────
+// ══════════════════════════════════════════════════════════════
+
+let customState = {
+  book: '듣기읽기',
+  selectedTopicIds: new Set(),
+  questionCount: 30,  // 0 = tất cả
+  mode: 'words',
+  allTopics: [],      // mảng topic đã load (theo book đang chọn)
+  topicWordCounts: {}, // { topicId: number }
+};
+
+// Mở trang setup tự chọn
+window.openCustomPractice = () => {
+  window.setView('custom');
+  loadCustomTopics();
+};
+
+// Thêm 'custom' vào setView
+const _origSetView = setView;
+// Override setView để hỗ trợ view-custom-setup
+const _patchedSetView = (mode) => {
+  // Xử lý custom riêng
+  if (mode === 'custom') {
+    ['view-books', 'view-topics', 'view-words', 'view-matching', 'view-rain', 'view-mcq', 'view-listen', 'view-custom-setup'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.classList.remove('active');
+    });
+    if (rainState.running) {
+      rainState.running = false;
+      clearInterval(rainState.spawnTimer);
+      clearInterval(rainState.tickTimer);
+    }
+    const el = document.getElementById('view-custom-setup');
+    if (el) el.classList.add('active');
+    navProgress().classList.add('hidden');
+    navTitle().innerHTML = '🎯 Luyện thi tự chọn';
+    btnGlobalBack().href = 'javascript:void(0)';
+    btnGlobalBack().onclick = (e) => { e.preventDefault(); setView('books'); };
+    return;
+  }
+  _origSetView(mode);
+};
+// Monkey-patch window.setView for HTML onclick calls
+window.setView = _patchedSetView;
+// Also patch the module-level reference used internally
+// (We reassign the local name — JS module scope, so we wrap calls below)
+
+async function loadCustomTopics() {
+  const listEl = document.getElementById('custom-topic-list');
+  if (!listEl) return;
+  listEl.innerHTML = '<div class="loader"><i class="fas fa-circle-notch fa-spin"></i> Đang tải...</div>';
+
+  // Load topics
+  const { data: topics, error } = await supabase
+    .from('vocabulary_topics')
+    .select('*')
+    .order('order_index', { ascending: true });
+
+  if (error || !topics) {
+    listEl.innerHTML = '<div style="color:#e05;font-size:0.85rem;padding:8px">Lỗi tải dữ liệu</div>';
+    return;
+  }
+
+  // Lấy unlock status
+  let unlockedIds = new Set();
+  const uid = window.currentUser?.id;
+  if (uid) {
+    const { data: unlocks } = await supabase
+      .from('user_unlocked_topics')
+      .select('topic_id')
+      .eq('user_id', uid);
+    unlockedIds = new Set((unlocks || []).map(u => u.topic_id));
+  }
+
+  customState.allTopics = topics.map(t => ({
+    ...t,
+    _isLocked: t.is_locked === true && !unlockedIds.has(t.id)
+  }));
+
+  // Load word counts cho từng topic (batch)
+  await loadCustomWordCounts();
+  renderCustomTopicList();
+  updateCustomCountInfo();
+}
+
+async function loadCustomWordCounts() {
+  // Lấy số từ cho từng topic theo book đang chọn
+  const topicIds = customState.allTopics
+    .filter(t => !t._isLocked)
+    .map(t => t.id);
+
+  if (topicIds.length === 0) return;
+
+  const { data } = await supabase
+    .from('vocabulary_words')
+    .select('topic_id')
+    .in('topic_id', topicIds)
+    .eq('book', customState.book);
+
+  customState.topicWordCounts = {};
+  (data || []).forEach(row => {
+    customState.topicWordCounts[row.topic_id] = (customState.topicWordCounts[row.topic_id] || 0) + 1;
+  });
+}
+
+function renderCustomTopicList() {
+  const listEl = document.getElementById('custom-topic-list');
+  if (!listEl) return;
+
+  if (customState.allTopics.length === 0) {
+    listEl.innerHTML = '<div style="color:var(--text-muted);font-size:0.85rem;padding:8px">Chưa có chủ đề nào</div>';
+    return;
+  }
+
+  let html = '';
+  customState.allTopics.forEach(t => {
+    const isLocked = t._isLocked;
+    const isSelected = customState.selectedTopicIds.has(t.id);
+    const wCount = customState.topicWordCounts[t.id] || 0;
+    const lockedClass = isLocked ? ' locked-topic' : '';
+    const selectedClass = isSelected ? ' selected' : '';
+    const label = currentLang === 'en' && t.title_en ? t.title_en : (t.title_vn || '');
+
+    html += `
+      <div class="custom-topic-item${selectedClass}${lockedClass}"
+           onclick="${isLocked ? `showToast('🔒 Chủ đề này đang bị khóa!','info')` : `toggleCustomTopic(${t.id})`}">
+        <div class="custom-topic-check"></div>
+        <div class="custom-topic-name">${t.order_index}과 · ${t.title_kr} <span style="color:var(--text-muted);font-weight:600">- ${label}</span></div>
+        <div class="custom-topic-count">${isLocked ? '🔒' : (wCount > 0 ? wCount + ' từ' : '—')}</div>
+      </div>
+    `;
+  });
+  listEl.innerHTML = html;
+}
+
+window.toggleCustomTopic = (id) => {
+  if (customState.selectedTopicIds.has(id)) {
+    customState.selectedTopicIds.delete(id);
+  } else {
+    customState.selectedTopicIds.add(id);
+  }
+  // Update UI
+  const items = document.querySelectorAll('.custom-topic-item');
+  items.forEach(item => {
+    const onclick = item.getAttribute('onclick') || '';
+    const match = onclick.match(/toggleCustomTopic\((\d+)\)/);
+    if (match) {
+      const tid = parseInt(match[1]);
+      item.classList.toggle('selected', customState.selectedTopicIds.has(tid));
+    }
+  });
+  updateCustomCountInfo();
+  updateSelectAllBtn();
+};
+
+window.toggleSelectAllTopics = () => {
+  const unlockedTopics = customState.allTopics.filter(t => !t._isLocked && (customState.topicWordCounts[t.id] || 0) > 0);
+  const allSelected = unlockedTopics.every(t => customState.selectedTopicIds.has(t.id));
+
+  if (allSelected) {
+    // Bỏ chọn tất cả
+    unlockedTopics.forEach(t => customState.selectedTopicIds.delete(t.id));
+  } else {
+    // Chọn tất cả
+    unlockedTopics.forEach(t => customState.selectedTopicIds.add(t.id));
+  }
+  renderCustomTopicList();
+  updateCustomCountInfo();
+  updateSelectAllBtn();
+};
+
+function updateSelectAllBtn() {
+  const btn = document.getElementById('btn-select-all');
+  if (!btn) return;
+  const unlockedTopics = customState.allTopics.filter(t => !t._isLocked && (customState.topicWordCounts[t.id] || 0) > 0);
+  const allSelected = unlockedTopics.length > 0 && unlockedTopics.every(t => customState.selectedTopicIds.has(t.id));
+  btn.textContent = allSelected ? 'Bỏ chọn tất cả' : 'Chọn tất cả';
+}
+
+function updateCustomCountInfo() {
+  const infoEl = document.getElementById('custom-count-info');
+  if (!infoEl) return;
+
+  if (customState.selectedTopicIds.size === 0) {
+    infoEl.textContent = '— Chưa chọn bài';
+    return;
+  }
+
+  const totalWords = [...customState.selectedTopicIds].reduce((sum, id) => {
+    return sum + (customState.topicWordCounts[id] || 0);
+  }, 0);
+
+  const q = customState.questionCount;
+  const actualQ = q === 0 ? totalWords : Math.min(q, totalWords);
+  infoEl.innerHTML = `Tổng <strong>${totalWords}</strong> từ từ <strong>${customState.selectedTopicIds.size}</strong> bài · Sẽ hỏi <strong>${actualQ}</strong> câu ngẫu nhiên`;
+}
+
+window.selectCustomBook = async (book) => {
+  customState.book = book;
+  customState.selectedTopicIds.clear();
+  document.querySelectorAll('.custom-book-btn').forEach(btn => {
+    btn.classList.toggle('active-book', btn.dataset.book === book);
+  });
+  await loadCustomWordCounts();
+  renderCustomTopicList();
+  updateCustomCountInfo();
+};
+
+window.selectCustomCount = (count) => {
+  customState.questionCount = count;
+  document.querySelectorAll('.custom-count-btn').forEach(btn => {
+    btn.classList.toggle('active-count', parseInt(btn.dataset.count) === count);
+  });
+  updateCustomCountInfo();
+};
+
+window.selectCustomMode = (mode) => {
+  customState.mode = mode;
+  document.querySelectorAll('.custom-mode-btn').forEach(btn => {
+    btn.classList.toggle('active-mode', btn.dataset.mode === mode);
+  });
+};
+
+window.startCustomPractice = async () => {
+  if (customState.selectedTopicIds.size === 0) {
+    showToast('⚠️ Vui lòng chọn ít nhất 1 bài!', 'error');
+    return;
+  }
+
+  const btn = document.getElementById('btn-start-custom');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Đang tải từ vựng...'; }
+
+  try {
+    // Load từ vựng từ tất cả topic đã chọn
+    const topicIds = [...customState.selectedTopicIds];
+    const { data, error } = await supabase
+      .from('vocabulary_words')
+      .select('*')
+      .in('topic_id', topicIds)
+      .eq('book', customState.book)
+      .order('order_index', { ascending: true });
+
+    if (error) throw error;
+
+    let allWords = data || [];
+    if (allWords.length === 0) {
+      showToast('📭 Không có từ vựng nào trong các bài đã chọn!', 'error');
+      return;
+    }
+
+    // Shuffle và giới hạn số câu
+    allWords = shuffle(allWords);
+    if (customState.questionCount > 0) {
+      allWords = allWords.slice(0, customState.questionCount);
+    }
+
+    // Set currentWords để các game engine dùng được
+    currentWords = allWords;
+
+    // Build nav title
+    const topicNames = customState.selectedTopicIds.size === 1
+      ? (customState.allTopics.find(t => t.id === [...customState.selectedTopicIds][0])?.title_kr || '')
+      : `${customState.selectedTopicIds.size} bài tổng hợp`;
+
+    navTitle().innerHTML = `🎯 ${topicNames} <span style="color:#aeacd0;margin:0 4px">·</span> ${allWords.length} câu`;
+
+    const mode = customState.mode;
+    if (mode === 'words') {
+      setView('words');
+      renderWords();
+      navProgress().classList.remove('hidden');
+    } else if (mode === 'mcq') {
+      setView('mcq');
+      renderMCQ();
+    } else if (mode === 'listen') {
+      setView('listen');
+      renderListen();
+    }
+
+    // Patch back button để quay về custom setup
+    btnGlobalBack().href = 'javascript:void(0)';
+    btnGlobalBack().onclick = (e) => {
+      e.preventDefault();
+      if (window._mcqKeyHandler) document.removeEventListener('keydown', window._mcqKeyHandler);
+      if (window._mcqNextKeyHandler) document.removeEventListener('keydown', window._mcqNextKeyHandler);
+      window.speechSynthesis?.cancel();
+      _patchedSetView('custom');
+    };
+
+  } catch (err) {
+    console.error(err);
+    showToast('Lỗi tải dữ liệu: ' + err.message, 'error');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = '🚀 Bắt đầu luyện thi'; }
+  }
+};
+
+// Patch setView function to also handle 'view-custom-setup' in the toggle list
+const origSetViewForCustom = window.setView;
+// Override the module-local setView used in setView's own body
+// Since JS module closures don't allow this easily, we ensure
+// the view-custom-setup element is hidden whenever setView is called for non-custom modes.
+// We do this by wrapping the original exported window.setView.
+const _finalSetView = (mode) => {
+  // Always hide custom setup unless we're going to it
+  if (mode !== 'custom') {
+    document.getElementById('view-custom-setup')?.classList.remove('active');
+  }
+  origSetViewForCustom(mode);
+};
+window.setView = _finalSetView;
