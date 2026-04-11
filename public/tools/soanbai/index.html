@@ -1,0 +1,2023 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SoạnBài — Trợ lý học tập</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,300;0,400;0,500;0,700;1,400;1,700&display=swap"
+    rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
+  <style>
+    .material-symbols-outlined {
+      font-size: 18px;
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      line-height: 1;
+    }
+    :root {
+      --bg: #0f1117;
+      --surface: #161b27;
+      --surface2: #1e2535;
+      --border: #2a3348;
+      --accent: #4f9eff;
+      --accent2: #7c5cbf;
+      --gold: #e8c97a;
+      --text: #d6dff7;
+      --muted: #6b7a9a;
+      --danger: #e05c6e;
+      --success: #4ecb8d;
+      --nav-h: 58px;
+    }
+
+    [data-theme="light"] {
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --surface2: #f1f5f9;
+      --border: #e2e8f0;
+      --accent: #3b82f6;
+      --accent2: #8b5cf6;
+      --gold: #d97706;
+      --text: #0f172a;
+      --muted: #64748b;
+      --danger: #ef4444;
+      --success: #10b981;
+    }
+
+    [data-theme="ocean"] {
+      --bg: #0f172a;
+      --surface: #1e293b;
+      --surface2: #334155;
+      --border: #475569;
+      --accent: #38bdf8;
+      --accent2: #818cf8;
+      --gold: #fde047;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --danger: #fb7185;
+      --success: #34d399;
+    }
+
+    [data-theme="sepia"] {
+      --bg: #fdf6e3;
+      --surface: #eee8d5;
+      --surface2: #e0d8b5;
+      --border: #d4cba3;
+      --accent: #cb4b16;
+      --accent2: #d33682;
+      --gold: #b58900;
+      --text: #657b83;
+      --muted: #93a1a1;
+      --danger: #dc322f;
+      --success: #859900;
+    }
+
+    [data-theme="grayscale"] {
+      --bg: #1e1e1e;
+      --surface: #2c2c2c;
+      --surface2: #3a3a3a;
+      --border: #4d4d4d;
+      --accent: #d4d4d4;
+      --accent2: #a3a3a3;
+      --gold: #e5e5e5;
+      --text: #ffffff;
+      --muted: #999999;
+      --danger: #737373;
+      --success: #b3b3b3;
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Roboto', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ─── NAV ─── */
+    nav {
+      height: var(--nav-h);
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 18px;
+      gap: 10px;
+      flex-shrink: 0;
+      position: relative;
+      z-index: 100;
+      box-shadow: 0 2px 20px rgba(0, 0, 0, 0.4);
+    }
+
+    .logo {
+      font-family: 'Roboto', sans-serif;
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--gold);
+      letter-spacing: 0.5px;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .logo span {
+      color: var(--accent);
+    }
+
+    .logo-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--accent);
+      border-radius: 50%;
+      box-shadow: 0 0 8px var(--accent);
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        opacity: 1
+      }
+
+      50% {
+        opacity: 0.4
+      }
+    }
+
+    .nav-spacer {
+      flex: 1;
+    }
+
+    .search-bar {
+      display: flex;
+      align-items: center;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 0 14px;
+      gap: 8px;
+      height: 34px;
+      transition: border-color 0.2s;
+    }
+
+    .search-bar:focus-within {
+      border-color: var(--accent);
+    }
+
+    .search-bar input {
+      background: none;
+      border: none;
+      outline: none;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 13px;
+      width: 180px;
+    }
+
+    .search-bar input::placeholder {
+      color: var(--muted);
+    }
+
+    .search-bar svg {
+      color: var(--muted);
+      flex-shrink: 0;
+    }
+
+    .nav-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+    }
+
+    .nav-btn:hover {
+      background: var(--border);
+      color: var(--text);
+    }
+
+    .avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: border-color 0.2s;
+    }
+
+    .avatar:hover {
+      border-color: var(--accent);
+    }
+
+    .notif-dot {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      width: 6px;
+      height: 6px;
+      background: var(--danger);
+      border-radius: 50%;
+      border: 1.5px solid var(--surface);
+    }
+
+    /* ─── MAIN LAYOUT ─── */
+    .main {
+      display: grid;
+      grid-template-columns: 25vw 50vw 25vw;
+      flex: 1;
+      overflow: hidden;
+      min-height: 0;
+    }
+
+    /* ─── LEFT PANEL ─── */
+    .left-panel {
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .panel-header {
+      padding: 14px 16px 10px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+
+    .panel-title {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      color: var(--muted);
+    }
+
+    .add-btn {
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      background: var(--accent);
+      border: none;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 16px;
+      transition: opacity 0.2s;
+    }
+
+    .add-btn:hover {
+      opacity: 0.8;
+    }
+
+    .lesson-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .lesson-list::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .lesson-list::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .lesson-list::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 2px;
+    }
+
+    .day-group {
+      margin-bottom: 4px;
+    }
+
+    .day-label {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--accent);
+      padding: 6px 6px 4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .day-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .lesson-item {
+      padding: 9px 11px;
+      border-radius: 9px;
+      background: var(--surface2);
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: all 0.18s;
+      display: flex;
+      align-items: flex-start;
+      gap: 9px;
+    }
+
+    .lesson-item:hover {
+      border-color: var(--border);
+      background: #232a3e;
+    }
+
+    .lesson-item.active {
+      border-color: var(--accent);
+      background: rgba(79, 158, 255, 0.08);
+    }
+
+    .lesson-item.done .lesson-name {
+      text-decoration: line-through;
+      color: var(--muted);
+    }
+
+    .lesson-check {
+      width: 16px;
+      height: 16px;
+      border-radius: 4px;
+      border: 1.5px solid var(--border);
+      flex-shrink: 0;
+      margin-top: 2px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      cursor: pointer;
+    }
+
+    .lesson-item.done .lesson-check {
+      background: var(--success);
+      border-color: var(--success);
+    }
+
+    .lesson-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .lesson-name {
+      font-size: 13px;
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      color: var(--text);
+    }
+
+    .lesson-meta {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 2px;
+      display: flex;
+      gap: 6px;
+    }
+
+    .lesson-tag {
+      font-size: 10px;
+      padding: 1px 7px;
+      border-radius: 20px;
+      font-weight: 500;
+    }
+
+    .tag-korean {
+      background: rgba(124, 92, 191, 0.25);
+      color: #b48fe8;
+    }
+
+    .tag-math {
+      background: rgba(79, 158, 255, 0.2);
+      color: var(--accent);
+    }
+
+    .tag-lit {
+      background: rgba(232, 201, 122, 0.2);
+      color: var(--gold);
+    }
+
+    .tag-sci {
+      background: rgba(78, 203, 141, 0.2);
+      color: var(--success);
+    }
+
+    .tag-hist {
+      background: rgba(224, 92, 110, 0.2);
+      color: #e8879a;
+    }
+
+    /* progress bar */
+    .progress-bar-wrap {
+      padding: 12px 16px;
+      border-top: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .progress-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .progress-track {
+      height: 4px;
+      background: var(--surface2);
+      border-radius: 2px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      border-radius: 2px;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      transition: width 0.5s ease;
+    }
+
+    /* ─── CENTER PANEL ─── */
+    .center-panel {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background: var(--bg);
+    }
+
+    .editor-toolbar {
+      height: 44px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 14px;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+
+    .tool-sep {
+      width: 1px;
+      height: 20px;
+      background: var(--border);
+      margin: 0 4px;
+    }
+
+    .tool-btn {
+      height: 28px;
+      padding: 0 8px;
+      border-radius: 6px;
+      background: none;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+
+    .tool-btn:hover {
+      background: var(--surface2);
+      color: var(--text);
+    }
+
+    .tool-btn.active {
+      background: rgba(79, 158, 255, 0.15);
+      color: var(--accent);
+    }
+
+    .editor-title-bar {
+      padding: 16px 22px 10px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .lesson-title-input {
+      width: 100%;
+      background: none;
+      border: none;
+      outline: none;
+      font-family: 'Roboto', sans-serif;
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--text);
+      caret-color: var(--accent);
+    }
+
+    .lesson-title-input::placeholder {
+      color: var(--border);
+    }
+
+    .lesson-subtitle {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 4px;
+      display: flex;
+      gap: 12px;
+    }
+
+    .editor-area {
+      flex: 1;
+      overflow: hidden;
+      display: flex;
+      flex-direction: row;
+      min-height: 0;
+    }
+
+    #gutter {
+      width: 44px;
+      background: var(--surface2);
+      border-right: 1px solid var(--border);
+      overflow: hidden;
+      flex-shrink: 0;
+      position: relative;
+    }
+
+    #lineNumbersInner {
+      padding: 20px 24px;
+      box-sizing: border-box;
+      font-family: 'Roboto', sans-serif;
+      font-size: 14px;
+      line-height: 1.85;
+      white-space: pre-wrap;
+      word-break: break-word;
+      pointer-events: none;
+    }
+
+    .ln-row {
+      color: transparent;
+      position: relative;
+    }
+
+    .ln-row::before {
+      content: attr(data-line);
+      position: absolute;
+      left: -24px;
+      width: 44px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 11px;
+      font-family: inherit;
+    }
+
+    .free-editor {
+      flex: 1;
+      width: 100%;
+      height: 100%;
+      background: none;
+      border: none;
+      outline: none;
+      font-family: 'Roboto', sans-serif;
+      font-size: 14px;
+      line-height: 1.85;
+      color: var(--text);
+      caret-color: var(--accent);
+      padding: 20px 24px;
+      box-sizing: border-box;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .free-editor:empty::before {
+      content: attr(data-placeholder);
+      color: var(--border);
+      pointer-events: none;
+    }
+
+    .editor-content {
+      width: 100%;
+      min-height: 100%;
+      background: none;
+      border: none;
+      outline: none;
+      font-family: 'Roboto', sans-serif;
+      font-size: 14px;
+      line-height: 1.8;
+      color: var(--text);
+      resize: none;
+      caret-color: var(--accent);
+    }
+
+    /* sections */
+    .section-block {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin-bottom: 14px;
+    }
+
+    .section-block-title {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--gold);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .section-block-title::before {
+      content: '';
+      width: 3px;
+      height: 14px;
+      background: var(--gold);
+      border-radius: 2px;
+    }
+
+    .section-textarea {
+      width: 100%;
+      background: none;
+      border: none;
+      outline: none;
+      font-family: 'Roboto', sans-serif;
+      font-size: 13.5px;
+      line-height: 1.75;
+      color: var(--text);
+      resize: none;
+      min-height: 70px;
+    }
+
+    .section-textarea::placeholder {
+      color: var(--muted);
+    }
+
+    .editor-status {
+      height: 30px;
+      border-top: 1px solid var(--border);
+      background: var(--surface);
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      gap: 14px;
+      font-size: 11px;
+      color: var(--muted);
+      flex-shrink: 0;
+    }
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--success);
+      box-shadow: 0 0 6px var(--success);
+    }
+
+    /* ─── RIGHT PANEL ─── */
+    .right-panel {
+      border-left: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background: var(--surface);
+      height: 100%;
+    }
+
+    .iframe-section {
+      display: flex;
+      flex-direction: column;
+      flex: 1 1 0;
+      overflow: hidden;
+      min-height: 0;
+    }
+
+    .iframe-header {
+      height: 38px;
+      padding: 0 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+      background: var(--surface2);
+    }
+
+    .iframe-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .iframe-badge {
+      font-size: 9px;
+      padding: 2px 7px;
+      border-radius: 20px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+
+    .badge-papago {
+      background: rgba(3, 199, 90, 0.2);
+      color: #4ecb8d;
+    }
+
+    .badge-google {
+      background: rgba(66, 133, 244, 0.2);
+      color: #7baaf7;
+    }
+
+    .badge-naver {
+      background: rgba(3, 125, 188, 0.2);
+      color: #5ab4e8;
+    }
+
+    .iframe-wrap {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+      min-height: 0;
+    }
+
+    .iframe-wrap iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      display: block;
+    }
+
+    .iframe-divider {
+      height: 1px;
+      background: var(--border);
+      flex-shrink: 0;
+      position: relative;
+      cursor: row-resize;
+    }
+
+    .iframe-divider::after {
+      content: '⠿';
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      top: -8px;
+      width: 24px;
+      height: 16px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      color: var(--muted);
+      line-height: 16px;
+      text-align: center;
+    }
+
+    /* ─── MODAL: Add Lesson ─── */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s;
+    }
+
+    .modal-overlay.open {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .modal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      width: 360px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+      transform: translateY(12px);
+      transition: transform 0.2s;
+    }
+
+    .modal-overlay.open .modal {
+      transform: translateY(0);
+    }
+
+    .modal h3 {
+      font-family: 'Roboto', sans-serif;
+      font-size: 18px;
+      margin-bottom: 16px;
+      color: var(--text);
+    }
+
+    .form-group {
+      margin-bottom: 12px;
+    }
+
+    .form-label {
+      font-size: 11px;
+      color: var(--muted);
+      font-weight: 500;
+      margin-bottom: 5px;
+      display: block;
+    }
+
+    .form-input {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 9px 12px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 13px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .form-input:focus {
+      border-color: var(--accent);
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 20px;
+      justify-content: flex-end;
+    }
+
+    .btn-cancel {
+      padding: 8px 16px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: none;
+      color: var(--muted);
+      font-family: inherit;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .btn-cancel:hover {
+      color: var(--text);
+      border-color: var(--text);
+    }
+
+    .btn-save {
+      padding: 8px 18px;
+      border-radius: 8px;
+      border: none;
+      background: var(--accent);
+      color: #fff;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+
+    .btn-save:hover {
+      opacity: 0.85;
+    }
+
+    /* ─── AUTH SCREEN ─── */
+    .auth-screen {
+      position: fixed;
+      inset: 0;
+      background: var(--bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9000;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .auth-screen.hidden {
+      display: none;
+    }
+
+    .auth-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 40px 38px 36px;
+      width: 380px;
+      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.5);
+    }
+
+    .auth-logo {
+      font-family: 'Roboto', sans-serif;
+      font-size: 26px;
+      font-weight: 700;
+      color: var(--gold);
+      text-align: center;
+      margin-bottom: 6px;
+    }
+
+    .auth-logo span {
+      color: var(--accent);
+    }
+
+    .auth-sub {
+      text-align: center;
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 28px;
+    }
+
+    .auth-tabs {
+      display: flex;
+      gap: 0;
+      background: var(--surface2);
+      border-radius: 10px;
+      padding: 3px;
+      margin-bottom: 24px;
+    }
+
+    .auth-tab {
+      flex: 1;
+      padding: 7px;
+      text-align: center;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      background: none;
+      color: var(--muted);
+      transition: all .2s;
+      font-family: inherit;
+    }
+
+    .auth-tab.active {
+      background: var(--surface);
+      color: var(--text);
+      box-shadow: 0 1px 6px rgba(0, 0, 0, 0.3);
+    }
+
+    .auth-form {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .auth-input {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 11px 14px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 14px;
+      outline: none;
+      transition: border-color .2s;
+      width: 100%;
+    }
+
+    .auth-input:focus {
+      border-color: var(--accent);
+    }
+
+    .auth-input::placeholder {
+      color: var(--muted);
+    }
+
+    .auth-btn {
+      margin-top: 4px;
+      padding: 12px;
+      border-radius: 10px;
+      border: none;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #fff;
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity .2s;
+    }
+
+    .auth-btn:hover {
+      opacity: .88;
+    }
+
+    .auth-btn:disabled {
+      opacity: .5;
+      cursor: not-allowed;
+    }
+
+    .auth-error {
+      font-size: 12px;
+      color: var(--danger);
+      text-align: center;
+      min-height: 18px;
+      margin-top: -4px;
+    }
+
+    .auth-footer {
+      text-align: center;
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 20px;
+    }
+
+    /* user dropdown */
+    .user-menu {
+      position: absolute;
+      top: calc(var(--nav-h) + 6px);
+      right: 18px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 8px;
+      width: 200px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+      z-index: 500;
+      display: none;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .user-menu.open {
+      display: flex;
+    }
+
+    .user-menu-email {
+      font-size: 11px;
+      color: var(--muted);
+      padding: 6px 10px 10px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 4px;
+      word-break: break-all;
+    }
+
+    .user-menu-item {
+      padding: 8px 10px;
+      border-radius: 8px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: background .15s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .user-menu-item:hover {
+      background: var(--surface2);
+    }
+
+    .user-menu-item.danger {
+      color: var(--danger);
+    }
+
+    .hide-right-panel .main {
+      grid-template-columns: 25vw 1fr;
+    }
+
+    .hide-right-panel .right-panel {
+      display: none;
+    }
+
+    /* Scrollbar global */
+    * {
+      scrollbar-width: thin;
+      scrollbar-color: var(--border) transparent;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ─── AUTH SCREEN ─── -->
+  <div class="auth-screen" id="authScreen">
+    <div class="auth-box">
+      <div class="auth-logo">Soạn<span>Bài</span></div>
+      <div class="auth-sub">Trợ lý soạn giáo án của bạn</div>
+
+      <div class="auth-tabs">
+        <button class="auth-tab active" id="tabLogin" onclick="switchTab('login')">Đăng nhập</button>
+        <button class="auth-tab" id="tabRegister" onclick="switchTab('register')">Đăng ký</button>
+      </div>
+
+      <div class="auth-form">
+        <input class="auth-input" id="authEmail" type="email" placeholder="Email của bạn" autocomplete="email">
+        <input class="auth-input" id="authPassword" type="password" placeholder="Mật khẩu"
+          autocomplete="current-password">
+        <div class="auth-error" id="authError"></div>
+        <button class="auth-btn" id="authBtn" onclick="handleAuth()">Đăng nhập</button>
+      </div>
+
+      <div class="auth-footer">Dữ liệu được lưu riêng cho từng tài khoản</div>
+    </div>
+  </div>
+
+  <!-- ─── NAV ─── -->
+  <nav>
+    <div class="logo">
+      <div class="logo-dot"></div>
+      Soạn<span>Bài</span>
+    </div>
+
+    <div class="nav-spacer"></div>
+
+    <div class="search-bar">
+      <span class="material-symbols-outlined" style="font-size:18px; color:var(--muted);">search</span>
+      <input type="text" placeholder="Tìm kiếm bài học...">
+    </div>
+
+    <button class="nav-btn" title="Thông báo">
+      <div class="notif-dot"></div>
+      <span class="material-symbols-outlined">notifications</span>
+    </button>
+
+    <button class="nav-btn" title="Lịch học" onclick="window.open('https://2937.vercel.app/tools/calendar')">
+      <span class="material-symbols-outlined">calendar_month</span>
+    </button>
+
+    <button class="nav-btn" title="Cài đặt" onclick="openSettingsModal()">
+      <span class="material-symbols-outlined">settings</span>
+    </button>
+
+    <div class="avatar" id="avatarBtn" title="Tài khoản" onclick="toggleUserMenu()">GV</div>
+  </nav>
+
+  <!-- user dropdown -->
+  <div class="user-menu" id="userMenu">
+    <div class="user-menu-email" id="userEmail">...</div>
+    <div class="user-menu-item" onclick="handleSignOut()">
+      <span class="material-symbols-outlined" style="font-size:16px;">logout</span>
+      Đăng xuất
+    </div>
+  </div>
+
+  <!-- ─── MAIN ─── -->
+  <div class="main">
+
+    <!-- LEFT -->
+    <aside class="left-panel">
+      <div class="panel-header">
+        <span class="panel-title"><span class="material-symbols-outlined" style="font-size:14px; position:relative; top:2px;">assignment</span> Danh sách bài soạn</span>
+        <button class="add-btn" onclick="openModal()" title="Thêm bài mới">+</button>
+      </div>
+
+      <div class="lesson-list" id="lessonList"></div>
+
+      <div class="progress-bar-wrap">
+        <div class="progress-label">
+          <span>Tiến độ tuần này</span>
+          <span id="progressText">0 / 0</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" id="progressFill" style="width:0%"></div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- CENTER -->
+    <main class="center-panel">
+      <div class="editor-toolbar">
+        <button class="tool-btn active">
+          <span class="material-symbols-outlined" style="font-size:14px;">edit_document</span>
+          Soạn bài
+        </button>
+        <button class="tool-btn">
+          <span class="material-symbols-outlined" style="font-size:14px;">visibility</span>
+          Xem trước
+        </button>
+        <div class="tool-sep"></div>
+        <button class="tool-btn" title="In đậm" onclick="wrapText('bold')"><b>B</b></button>
+        <button class="tool-btn" title="In nghiêng" onclick="wrapText('italic')"><i>I</i></button>
+        <button class="tool-btn" title="Gạch chân" onclick="wrapText('underline')"><u>U</u></button>
+        <div class="tool-sep"></div>
+        <button class="tool-btn" onclick="addListItem()">
+          <span class="material-symbols-outlined" style="font-size:14px;">format_list_bulleted</span>
+          Thêm mục
+        </button>
+        <div class="nav-spacer"></div>
+        <button class="tool-btn" onclick="saveDraft()">
+          <span class="material-symbols-outlined" style="font-size:14px;">save</span>
+          Lưu
+        </button>
+        <button class="tool-btn">
+          <span class="material-symbols-outlined" style="font-size:14px;">print</span>
+          In
+        </button>
+        <button class="tool-btn" onclick="deleteLesson()" title="Xóa bài này" style="color: var(--danger)">
+          <span class="material-symbols-outlined" style="font-size:14px;">delete</span>
+          Xóa
+        </button>
+      </div>
+
+      <div class="editor-title-bar">
+        <input class="lesson-title-input" id="editorTitle" type="text" placeholder="Tên bài học..." value="">
+        <div class="lesson-subtitle">
+          <span id="editorMeta">Chưa chọn bài · Nhấp vào danh sách bên trái để bắt đầu</span>
+        </div>
+      </div>
+
+      <div class="editor-area" id="editorArea">
+        <div id="gutter">
+          <div id="lineNumbersInner"></div>
+        </div>
+        <div class="free-editor" id="freeEditor" contenteditable="true" data-placeholder="Bắt đầu soạn bài tại đây...">
+        </div>
+      </div>
+
+      <div class="editor-status">
+        <div class="status-dot"></div>
+        <span>Đã lưu tự động</span>
+        <span>·</span>
+        <span id="wordCount">0 từ</span>
+        <span>·</span>
+        <span id="charCount">0 ký tự</span>
+        <span>·</span>
+        <span id="currentTime"></span>
+      </div>
+    </main>
+
+    <!-- RIGHT -->
+    <aside class="right-panel" id="rightPanel">
+      <!-- Papago -->
+      <div class="iframe-section" id="papagoSection">
+        <div class="iframe-header">
+          <div class="iframe-label">
+            <span class="material-symbols-outlined" style="font-size:14px;">language</span>
+            Dịch thuật
+          </div>
+          <span class="iframe-badge badge-papago" id="translatorBadge">PAPAGO</span>
+        </div>
+        <div class="iframe-wrap">
+          <iframe id="translatorIframe" src="https://papago.naver.com/" title="Translator"
+            sandbox="allow-scripts allow-same-origin allow-forms allow-popups"></iframe>
+        </div>
+      </div>
+
+      <div class="iframe-divider" id="divider"></div>
+
+      <!-- Naver Dictionary -->
+      <div class="iframe-section" id="dictSection">
+        <div class="iframe-header">
+          <div class="iframe-label">
+            <span class="material-symbols-outlined" style="font-size:14px;">menu_book</span>
+            Từ điển Việt–Hàn
+          </div>
+          <span class="iframe-badge badge-naver">NAVER</span>
+        </div>
+        <div class="iframe-wrap">
+          <iframe src="https://dict.naver.com/vikodict/#/main" title="Naver Vietnamese-Korean Dictionary"
+            sandbox="allow-scripts allow-same-origin allow-forms allow-popups"></iframe>
+        </div>
+      </div>
+    </aside>
+
+  </div>
+
+  <!-- ─── MODAL ─── -->
+  <div class="modal-overlay" id="modal">
+    <div class="modal">
+      <h3><span class="material-symbols-outlined" style="vertical-align:-4px;">edit</span> Thêm bài soạn mới</h3>
+      <div class="form-group">
+        <label class="form-label">Tên bài học</label>
+        <input class="form-input" id="newName" type="text" placeholder="VD: Bài 5 – Gia đình">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Môn học</label>
+        <select class="form-input" id="newTag">
+          <option value="korean">🇰🇷 Từ vựng - Ngữ pháp</option>
+          <option value="math">🇰🇷 Nghe - Đọc</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Ngày dạy</label>
+        <input class="form-input" id="newDate" type="date">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Tiết học</label>
+        <input class="form-input" id="newPeriod" type="text" placeholder="VD: Tiết 3, lớp 10A1">
+      </div>
+      <div class="modal-actions">
+        <button class="btn-cancel" onclick="closeModal()">Hủy</button>
+        <button class="btn-save" onclick="addLesson()">Thêm bài</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── SETTINGS MODAL ─── -->
+  <div class="modal-overlay" id="settingsModal">
+    <div class="modal">
+      <h3><span class="material-symbols-outlined" style="vertical-align:-4px;">settings</span> Cài đặt</h3>
+      <div class="form-group" style="display: flex; align-items: center; gap: 8px;">
+        <input type="checkbox" id="settingShowRightPanel" style="width: 16px; height: 16px; cursor: pointer;">
+        <label for="settingShowRightPanel" class="form-label" style="margin-bottom: 0; cursor: pointer;">
+          Hiển thị khung Dịch thuật & Từ điển
+        </label>
+      </div>
+      <div class="form-group" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; margin-top: 16px;">
+        <label for="settingTheme" class="form-label" style="margin-bottom: 0;">Giao diện</label>
+        <select class="form-input" id="settingTheme">
+          <option value="default">Mặc định (Tối)</option>
+          <option value="light">Trắng Sáng</option>
+          <option value="ocean">Đại dương</option>
+          <option value="sepia">Vàng Ấm</option>
+          <option value="grayscale">Trắng Xám</option>
+        </select>
+      </div>
+      <div class="form-group"
+        style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; margin-top: 16px;">
+        <label for="settingTranslator" class="form-label" style="margin-bottom: 0;">Trang web dịch thuật</label>
+        <select class="form-input" id="settingTranslator">
+          <option value="papago">Papago</option>
+          <option value="google">Google Dịch</option>
+        </select>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-cancel" onclick="closeSettingsModal()">Đóng</button>
+      </div>
+    </div>
+  </div>
+
+
+  <script type="module">
+    // ═══════════════════════════════════════════════
+    //  ⚙️  ĐIỀN THÔNG TIN SUPABASE CỦA BẠN VÀO ĐÂY
+    // ═══════════════════════════════════════════════
+    const SUPABASE_URL = 'https://ktqdzlhvdkerjajffgfi.supabase.co';
+    const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt0cWR6bGh2ZGtlcmphamZmZ2ZpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc2OTgxNTMsImV4cCI6MjA4MzI3NDE1M30.6xz0SVuj6x72VcLZyJpVtNMMWSmyOEtGhmKiVMu46xI';
+    // ═══════════════════════════════════════════════
+
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+    const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
+
+    // ─── STATE ───
+    const tagMap = {
+      korean: { label: '🇰🇷 Từ vựng - Ngữ pháp', cls: 'tag-korean' },
+      math: { label: '🇰🇷 Nghe - Đọc', cls: 'tag-math' },
+    };
+    let lessons = [], activeId = null, saveTimer = null, currentUser = null, authMode = 'login';
+
+    // ─── TOAST ───
+    function toast(msg, type = 'ok') {
+      const t = document.createElement('div');
+      t.textContent = msg;
+      t.style.cssText = `position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+    background:${type === 'err' ? 'var(--danger)' : 'var(--surface2)'};
+    border:1px solid ${type === 'err' ? 'var(--danger)' : 'var(--border)'};
+    color:var(--text);padding:8px 18px;border-radius:8px;
+    font-size:13px;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,0.4);`;
+      document.body.appendChild(t);
+      setTimeout(() => t.remove(), 2500);
+    }
+
+    // ═══════════════ AUTH ═══════════════
+    function showAuthScreen(show) {
+      document.getElementById('authScreen').classList.toggle('hidden', !show);
+    }
+
+    window.switchTab = function (mode) {
+      authMode = mode;
+      document.getElementById('tabLogin').classList.toggle('active', mode === 'login');
+      document.getElementById('tabRegister').classList.toggle('active', mode === 'register');
+      document.getElementById('authBtn').textContent = mode === 'login' ? 'Đăng nhập' : 'Đăng ký';
+      document.getElementById('authError').textContent = '';
+      document.getElementById('authPassword').autocomplete = mode === 'login' ? 'current-password' : 'new-password';
+    };
+
+    window.handleAuth = async function () {
+      const email = document.getElementById('authEmail').value.trim();
+      const password = document.getElementById('authPassword').value;
+      const errEl = document.getElementById('authError');
+      const btn = document.getElementById('authBtn');
+      errEl.textContent = ''; errEl.style.color = 'var(--danger)';
+      if (!email || !password) { errEl.textContent = 'Vui lòng nhập email và mật khẩu'; return; }
+      if (password.length < 6) { errEl.textContent = 'Mật khẩu tối thiểu 6 ký tự'; return; }
+
+      btn.disabled = true;
+      btn.textContent = authMode === 'login' ? 'Đang đăng nhập...' : 'Đang đăng ký...';
+
+      let error;
+      if (authMode === 'login') {
+        ({ error } = await sb.auth.signInWithPassword({ email, password }));
+      } else {
+        ({ error } = await sb.auth.signUp({ email, password }));
+        if (!error) {
+          errEl.style.color = 'var(--success)';
+          errEl.textContent = '✅ Đăng ký thành công! Kiểm tra email để xác nhận.';
+          btn.disabled = false; btn.textContent = 'Đăng ký'; return;
+        }
+      }
+
+      btn.disabled = false;
+      btn.textContent = authMode === 'login' ? 'Đăng nhập' : 'Đăng ký';
+      if (error) {
+        errEl.textContent = error.message.includes('Invalid login') ? 'Email hoặc mật khẩu không đúng'
+          : error.message.includes('already registered') ? 'Email này đã được đăng ký'
+            : error.message;
+      }
+    };
+
+    ['authEmail', 'authPassword'].forEach(id =>
+      document.getElementById(id).addEventListener('keydown', e => { if (e.key === 'Enter') window.handleAuth(); })
+    );
+
+    window.handleSignOut = async function () { await sb.auth.signOut(); toggleUserMenu(false); };
+
+    window.toggleUserMenu = function (force) {
+      const m = document.getElementById('userMenu');
+      m.classList.toggle('open', force !== undefined ? force : !m.classList.contains('open'));
+    };
+    document.addEventListener('click', e => {
+      if (!e.target.closest('#avatarBtn') && !e.target.closest('#userMenu')) toggleUserMenu(false);
+    });
+
+    function setUserUI(user) {
+      const initials = (user.email || 'GV').slice(0, 2).toUpperCase();
+      document.getElementById('avatarBtn').textContent = initials;
+      document.getElementById('userEmail').textContent = user.email || '';
+    }
+
+    // Auth state listener
+    sb.auth.onAuthStateChange(async (_event, session) => {
+      currentUser = session?.user ?? null;
+      if (currentUser) {
+        setUserUI(currentUser);
+        showAuthScreen(false);
+        await fetchLessons();
+      } else {
+        showAuthScreen(true);
+        lessons = []; activeId = null;
+        renderList();
+        document.getElementById('editorTitle').value = '';
+        document.getElementById('freeEditor').innerHTML = '';
+        document.getElementById('editorMeta').textContent = 'Chưa chọn bài · Nhấp vào danh sách bên trái để bắt đầu';
+      }
+    });
+
+    // ═══════════════ RAW FETCH HELPER ═══════════════
+    function getToken() {
+      const key = Object.keys(localStorage).find(k => k.includes('auth-token'));
+      if (!key) return '';
+      try { return JSON.parse(localStorage.getItem(key))?.access_token || ''; } catch { return ''; }
+    }
+
+    async function dbFetch(path, options = {}) {
+      const token = getToken();
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+        ...options,
+        headers: {
+          'apikey': SUPABASE_ANON,
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'Prefer': options.method === 'POST' ? 'return=representation' : 'return=representation',
+          ...(options.headers || {})
+        }
+      });
+      const text = await res.text();
+      const body = text ? JSON.parse(text) : null;
+      if (!res.ok) return { data: null, error: body };
+      return { data: body, error: null };
+    }
+
+    // ═══════════════ DATA ═══════════════
+    function setLoading(on) {
+      if (on) document.getElementById('lessonList').innerHTML =
+        '<div style="text-align:center;padding:32px;color:var(--muted);font-size:13px">Đang tải...</div>';
+    }
+
+    async function fetchLessons() {
+      setLoading(true);
+      const { data, error } = await dbFetch('lessons?select=*&order=date.asc');
+      if (error) { toast('Lỗi tải dữ liệu: ' + JSON.stringify(error), 'err'); setLoading(false); return; }
+      lessons = data || []; renderList();
+    }
+
+    window.addLesson = async function () {
+      const name = document.getElementById('newName').value.trim();
+      const tag = document.getElementById('newTag').value;
+      const date = document.getElementById('newDate').value;
+      const period = document.getElementById('newPeriod').value.trim() || 'Chưa xác định';
+      if (!name || !date) { toast('Vui lòng điền đủ thông tin!', 'err'); return; }
+      if (!currentUser) { toast('Chưa đăng nhập!', 'err'); return; }
+      const { data, error } = await dbFetch('lessons', {
+        method: 'POST',
+        body: JSON.stringify({ user_id: currentUser.id, name, tag, date, period, done: false, content: '' })
+      });
+      if (error) { toast('Lỗi thêm bài: ' + JSON.stringify(error), 'err'); return; }
+      const newLesson = Array.isArray(data) ? data[0] : data;
+      if (!newLesson) { toast('Lỗi: không nhận được dữ liệu từ server!', 'err'); return; }
+      lessons.push(newLesson);
+      lessons.sort((a, b) => a.date.localeCompare(b.date));
+      renderList(); closeModal(); toast('✅ Đã thêm bài học mới');
+    };
+
+    window.deleteLesson = async function () {
+      if (!activeId) return toast('Vui lòng chọn bài cần xóa!', 'err');
+      const l = lessons.find(x => x.id === activeId);
+      if (!l) return;
+      if (!confirm(`Bạn có chắc chắn muốn xóa bài "${l.name}" không?\nHành động này không thể hoàn tác!`)) return;
+
+      const { error } = await dbFetch(`lessons?id=eq.${activeId}`, {
+        method: 'DELETE'
+      });
+      if (error) { toast('Lỗi xóa bài: ' + JSON.stringify(error), 'err'); return; }
+
+      lessons = lessons.filter(x => x.id !== activeId);
+      activeId = null;
+      document.getElementById('editorTitle').value = '';
+      document.getElementById('freeEditor').innerHTML = '';
+      document.getElementById('editorMeta').textContent = 'Chưa chọn bài · Nhấp vào danh sách bên trái để bắt đầu';
+      renderList();
+      toast('🗑️ Đã xóa bài học');
+    };
+
+    window.toggleDone = async function (id) {
+      const l = lessons.find(x => x.id === id); if (!l) return;
+      const { error } = await dbFetch(`lessons?id=eq.${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ done: !l.done })
+      });
+      if (error) { toast('Lỗi cập nhật', 'err'); return; }
+      l.done = !l.done; renderList();
+    };
+
+    window.openLesson = async function (id) {
+      if (activeId && activeId !== id) await saveContent(activeId, true);
+      activeId = id;
+      const l = lessons.find(x => x.id === id); if (!l) return;
+      document.getElementById('editorTitle').value = l.name;
+      const tag = tagMap[l.tag] || tagMap.korean;
+      document.getElementById('editorMeta').textContent = `${tag.label} · ${l.period} · ${formatDate(l.date)}`;
+      const { data } = await dbFetch(`lessons?select=content&id=eq.${id}`);
+      document.getElementById('freeEditor').innerHTML = (Array.isArray(data) ? data[0] : data)?.content || '';
+      countWords(); renderList();
+    };
+
+    async function saveContent(id, silent = false) {
+      const content = document.getElementById('freeEditor').innerHTML;
+      const name = document.getElementById('editorTitle').value.trim();
+      const { error } = await dbFetch(`lessons?id=eq.${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ content, name })
+      });
+      if (error) { if (!silent) toast('Lỗi lưu: ' + JSON.stringify(error), 'err'); return; }
+      const l = lessons.find(x => x.id === id); if (l) l.name = name;
+      flashSave(); if (!silent) toast('💾 Đã lưu');
+    }
+
+    function flashSave() {
+      const dot = document.querySelector('.editor-status .status-dot');
+      dot.style.background = 'var(--gold)'; dot.style.boxShadow = '0 0 6px var(--gold)';
+      setTimeout(() => { dot.style.background = 'var(--success)'; dot.style.boxShadow = '0 0 6px var(--success)'; }, 800);
+    }
+
+    document.getElementById('freeEditor').addEventListener('input', () => {
+      clearTimeout(saveTimer);
+      if (activeId) saveTimer = setTimeout(() => saveContent(activeId, true), 1500);
+      countWords();
+    });
+    document.getElementById('editorTitle').addEventListener('input', () => {
+      clearTimeout(saveTimer);
+      if (activeId) saveTimer = setTimeout(() => saveContent(activeId, true), 1500);
+      countWords();
+    });
+
+    function resolveNextListPrefix(prefix) {
+      const isNumber = /^\d+$/.test(prefix);
+      const isRomanUpper = /^M{0,4}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3})$/.test(prefix) && (prefix.length > 1 || ['I', 'V', 'X'].includes(prefix));
+      const isRomanLower = /^m{0,4}(cm|cd|d?c{0,3})(xc|xl|l?x{0,3})(ix|iv|v?i{0,3})$/.test(prefix) && (prefix.length > 1 || ['i', 'v', 'x'].includes(prefix));
+      const isAlphaUpper = /^[A-Z]$/.test(prefix);
+      const isAlphaLower = /^[a-z]$/.test(prefix);
+
+      const getRomanVal = s => {
+        s = s.toUpperCase();
+        const map = { I: 1, V: 5, X: 10, L: 50, C: 100, D: 500, M: 1000 };
+        let val = 0;
+        for (let i = 0; i < s.length; i++) {
+          let curr = map[s[i]], next = map[s[i + 1]];
+          if (next && curr < next) val -= curr;
+          else val += curr;
+        }
+        return val;
+      };
+
+      const toRoman = (num, upper) => {
+        const lookup = { M: 1000, CM: 900, D: 500, CD: 400, C: 100, XC: 90, L: 50, XL: 40, X: 10, IX: 9, V: 5, IV: 4, I: 1 };
+        let roman = '';
+        for (let i in lookup) {
+          while (num >= lookup[i]) { roman += i; num -= lookup[i]; }
+        }
+        return upper ? roman : roman.toLowerCase();
+      };
+
+      if (isNumber) return (parseInt(prefix) + 1).toString();
+      if (isRomanUpper) return toRoman(getRomanVal(prefix) + 1, true);
+      if (isRomanLower) return toRoman(getRomanVal(prefix) + 1, false);
+      if (isAlphaUpper) return String.fromCharCode(prefix.charCodeAt(0) + 1);
+      if (isAlphaLower) return String.fromCharCode(prefix.charCodeAt(0) + 1);
+      return null;
+    }
+
+    function getRawTextFromHtml(html) {
+      html = html.replace(/<br\s*\/?>\s*$/i, '');
+      html = html.replace(/<br\s*\/?>\s*<\/div>/gi, '</div>');
+      html = html.replace(/<br\s*\/?>\s*<\/p>/gi, '</p>');
+      html = html.replace(/<\/div>\s*<div[^>]*>/gi, '\n');
+      html = html.replace(/<div[^>]*>/gi, '\n');
+      html = html.replace(/<\/div>/gi, '');
+      html = html.replace(/<\/p>\s*<p[^>]*>/gi, '\n');
+      html = html.replace(/<p[^>]*>/gi, '\n');
+      html = html.replace(/<\/p>/gi, '');
+      html = html.replace(/<br\s*\/?>/gi, '\n');
+      html = html.replace(/<[^>]+>/g, '');
+
+      const txt = document.createElement('textarea');
+      txt.innerHTML = html;
+      let result = txt.value;
+
+      if (result.startsWith('\n')) result = result.substring(1);
+      if (result.endsWith('\n') && document.getElementById('freeEditor').innerHTML.trim() === '<br>') result = '';
+      return result;
+    }
+
+    function getTextBeforeCursorFull() {
+      const editor = document.getElementById('freeEditor');
+      const sel = window.getSelection();
+      if (!sel.rangeCount) return '';
+      const originalRange = sel.getRangeAt(0);
+
+      const marker = document.createElement('span');
+      marker.id = 'cursor-marker-xyz';
+      originalRange.insertNode(marker);
+
+      const parts = editor.innerHTML.split('<span id="cursor-marker-xyz"></span>');
+      if (parts.length < 2) {
+        // If for some reason split fails because id changed
+        marker.parentNode.removeChild(marker);
+        return "";
+      }
+      const htmlBefore = parts[0];
+      marker.parentNode.removeChild(marker);
+
+      return getRawTextFromHtml(htmlBefore);
+    }
+
+    function getCurrentLineText() {
+      const text = getTextBeforeCursorFull();
+      const lines = text.split('\n');
+      return lines[lines.length - 1];
+    }
+
+    window.addListItem = function () {
+      const editor = document.getElementById('freeEditor');
+      editor.focus();
+
+      const textBefore = getTextBeforeCursorFull();
+      const lines = textBefore.split('\n');
+      const currentLine = lines[lines.length - 1];
+
+      let lastMatch = null;
+      for (let i = lines.length - 1; i >= 0; i--) {
+        const m = lines[i].match(/^((?:\s*(?:[0-9]+|[a-zA-Z]|[IVXLCDMivxlcdm]+)[\.\)]\s*)*\s*(?:[0-9]+|[a-zA-Z]|[IVXLCDMivxlcdm]+)[\.\)]\s+)(.*)$/);
+        if (m) {
+          lastMatch = m;
+          break;
+        }
+      }
+
+      let nextPrefix = "1";
+      let punctuation = ".";
+      let before = "";
+
+      if (lastMatch) {
+        const prefixSection = lastMatch[1];
+        const lastPrefixMatch = prefixSection.match(/([\s\S]*?)(\b[0-9]+|\b[a-zA-Z]|\b[IVXLCDMivxlcdm]+)([\.\)])\s+$/);
+        if (lastPrefixMatch) {
+          before = lastPrefixMatch[1];
+          const prefix = lastPrefixMatch[2];
+          punctuation = lastPrefixMatch[3];
+          const next = resolveNextListPrefix(prefix);
+          if (next) nextPrefix = next;
+        }
+      }
+
+      let insertStr = "";
+      if (currentLine && currentLine.trim().length > 0) {
+        insertStr += "\n";
+      }
+      insertStr += before + nextPrefix + punctuation + " ";
+      document.execCommand('insertText', false, insertStr);
+    };
+
+    document.getElementById('freeEditor').addEventListener('keydown', e => {
+      if (e.key === 'Tab') {
+        e.preventDefault();
+        document.execCommand('insertText', false, '     ');
+        return;
+      }
+
+      if (e.key === 'Enter' && !e.shiftKey) {
+        const currentLine = getCurrentLineText();
+        if (currentLine === null) return;
+
+        const match = currentLine.match(/^((?:\s*(?:[0-9]+|[a-zA-Z]|[IVXLCDMivxlcdm]+)[\.\)]\s*)*\s*(?:[0-9]+|[a-zA-Z]|[IVXLCDMivxlcdm]+)[\.\)]\s+)(.*)$/);
+
+        if (match) {
+          const prefixSection = match[1];
+          const lastPrefixMatch = prefixSection.match(/([\s\S]*?)(\b[0-9]+|\b[a-zA-Z]|\b[IVXLCDMivxlcdm]+)([\.\)])\s+$/);
+
+          if (lastPrefixMatch) {
+            const before = lastPrefixMatch[1];
+            const prefix = lastPrefixMatch[2];
+            const punctuation = lastPrefixMatch[3];
+
+            const nextPrefix = resolveNextListPrefix(prefix);
+            if (nextPrefix) {
+              e.preventDefault();
+              document.execCommand('insertText', false, '\n' + before + nextPrefix + punctuation + ' ');
+            }
+          }
+        }
+      }
+    });
+
+    window.saveDraft = function () { if (activeId) saveContent(activeId, false); };
+
+    // ═══════════════ RENDER ═══════════════
+    function groupByDate(arr) {
+      const g = {};
+      arr.forEach(l => { if (!g[l.date]) g[l.date] = []; g[l.date].push(l); });
+      return g;
+    }
+
+    function formatDate(d) {
+      const dt = new Date(d + 'T00:00:00'), today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const diff = Math.round((dt - today) / 86400000);
+      const days = ['CN', 'Th2', 'Th3', 'Th4', 'Th5', 'Th6', 'Th7'];
+      const dow = days[dt.getDay()];
+      if (diff === 0) return `Hôm nay — ${dow} ${dt.getDate()}/${dt.getMonth() + 1}`;
+      if (diff === 1) return `Ngày mai — ${dow} ${dt.getDate()}/${dt.getMonth() + 1}`;
+      if (diff === -1) return `Hôm qua — ${dow} ${dt.getDate()}/${dt.getMonth() + 1}`;
+      return `${dow}, ${dt.getDate()}/${dt.getMonth() + 1}/${dt.getFullYear()}`;
+    }
+
+    function renderList() {
+      const list = document.getElementById('lessonList');
+      const groups = groupByDate(lessons);
+      const dates = Object.keys(groups).sort();
+      list.innerHTML = '';
+      if (!dates.length) {
+        list.innerHTML = '<div style="text-align:center;padding:32px;color:var(--muted);font-size:13px">Chưa có bài nào.<br>Nhấn + để thêm.</div>';
+        updateProgress(); return;
+      }
+      dates.forEach(date => {
+        const grp = document.createElement('div'); grp.className = 'day-group';
+        const lbl = document.createElement('div'); lbl.className = 'day-label';
+        lbl.textContent = formatDate(date); grp.appendChild(lbl);
+        groups[date].forEach(l => {
+          const item = document.createElement('div');
+          item.className = 'lesson-item' + (l.done ? ' done' : '') + (l.id === activeId ? ' active' : '');
+          item.onclick = () => window.openLesson(l.id);
+          const tag = tagMap[l.tag] || tagMap.korean;
+          item.innerHTML = `
+        <div class="lesson-check" onclick="event.stopPropagation();toggleDone('${l.id}')">
+          ${l.done ? '<span class="material-symbols-outlined" style="font-size:14px; font-weight:bold; color:white;">check</span>' : ''}
+        </div>
+        <div class="lesson-info">
+          <div class="lesson-name">${l.name}</div>
+          <div class="lesson-meta">
+            <span class="lesson-tag ${tag.cls}">${tag.label}</span>
+            <span>${l.period}</span>
+          </div>
+        </div>`;
+          grp.appendChild(item);
+        });
+        list.appendChild(grp);
+      });
+      updateProgress();
+    }
+
+    function updateProgress() {
+      const done = lessons.filter(l => l.done).length, total = lessons.length;
+      document.getElementById('progressText').textContent = `${done} / ${total}`;
+      document.getElementById('progressFill').style.width = total ? `${(done / total) * 100}%` : '0%';
+    }
+
+    // ─── MODAL ───
+    window.openModal = function () {
+      document.getElementById('newDate').value = new Date().toISOString().split('T')[0];
+      document.getElementById('newName').value = '';
+      document.getElementById('modal').classList.add('open');
+      setTimeout(() => document.getElementById('newName').focus(), 100);
+    };
+    window.closeModal = function () { document.getElementById('modal').classList.remove('open'); };
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') window.closeModal(); });
+    document.getElementById('modal').addEventListener('click', e => { if (e.target === e.currentTarget) window.closeModal(); });
+
+    // ─── TOOLBAR FORMAT ───
+    window.wrapText = function (cmd) {
+      document.getElementById('freeEditor').focus();
+      document.execCommand(cmd, false, null);
+      countWords();
+      clearTimeout(saveTimer);
+      if (activeId) saveTimer = setTimeout(() => saveContent(activeId, true), 1500);
+    };
+
+    function updateLineNumbers() {
+      const editor = document.getElementById('freeEditor');
+      const gutterInner = document.getElementById('lineNumbersInner');
+      if (!gutterInner || !editor) return;
+      gutterInner.style.width = editor.clientWidth + 'px';
+
+      let text = getRawTextFromHtml(editor.innerHTML);
+      if (editor.innerHTML.trim() === '<br>' || editor.innerHTML.trim() === '') text = '';
+
+      let lines = text.split('\n');
+      if (lines.length === 0) lines = [''];
+
+      let html = '';
+      for (let i = 0; i < lines.length; i++) {
+        let divText = lines[i].replace(/&/g, '&amp;').replace(/</g, '&lt;');
+        if (divText === '') divText = '<br>';
+        html += `<div class="ln-row" data-line="${i + 1}">${divText}</div>`;
+      }
+
+      if (gutterInner.innerHTML !== html) {
+        gutterInner.innerHTML = html;
+      }
+    }
+
+    // ─── WORD / CHAR COUNT ───
+    function countWords() {
+      const title = document.getElementById('editorTitle').value;
+      const body = document.getElementById('freeEditor').innerText || '';
+      const words = (title + ' ' + body).trim().split(/\s+/).filter(Boolean).length;
+      const chars = (title + body).length;
+      document.getElementById('wordCount').textContent = `${words} từ`;
+      document.getElementById('charCount').textContent = `${chars.toLocaleString('vi-VN')} ký tự`;
+      updateLineNumbers();
+    }
+
+    // ─── CLOCK ───
+    function updateClock() {
+      document.getElementById('currentTime').textContent =
+        new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+    }
+    updateClock(); setInterval(updateClock, 30000);
+
+    document.getElementById('freeEditor').addEventListener('scroll', function () {
+      const gutter = document.getElementById('gutter');
+      if (gutter) gutter.scrollTop = this.scrollTop;
+    });
+    window.addEventListener('resize', updateLineNumbers);
+
+    // ─── RESIZABLE RIGHT PANELS ───
+    const divider = document.getElementById('divider');
+    let dragging = false, startY = 0, startPapago = 0, startDict = 0;
+    divider.addEventListener('mousedown', e => {
+      dragging = true; startY = e.clientY;
+      startPapago = document.getElementById('papagoSection').getBoundingClientRect().height;
+      startDict = document.getElementById('dictSection').getBoundingClientRect().height;
+      document.body.style.cursor = 'row-resize'; document.body.style.userSelect = 'none';
+    });
+    document.addEventListener('mousemove', e => {
+      if (!dragging) return;
+      const total = startPapago + startDict, newP = Math.max(80, Math.min(total - 80, startPapago + (e.clientY - startY)));
+      document.getElementById('papagoSection').style.flex = `0 0 ${newP}px`;
+      document.getElementById('dictSection').style.flex = `0 0 ${total - newP}px`;
+    });
+    document.addEventListener('mouseup', () => { dragging = false; document.body.style.cursor = ''; document.body.style.userSelect = ''; });
+
+    // ─── SETTINGS ───
+    window.openSettingsModal = function () {
+      document.getElementById('settingsModal').classList.add('open');
+    };
+    window.closeSettingsModal = function () {
+      document.getElementById('settingsModal').classList.remove('open');
+    };
+    document.getElementById('settingsModal').addEventListener('click', e => {
+      if (e.target === e.currentTarget) window.closeSettingsModal();
+    });
+
+    const cbShowRight = document.getElementById('settingShowRightPanel');
+    const selTranslator = document.getElementById('settingTranslator');
+    const transBadge = document.getElementById('translatorBadge');
+    const transIframe = document.getElementById('translatorIframe');
+    const selTheme = document.getElementById('settingTheme');
+
+    function loadSettings() {
+      const showRight = localStorage.getItem('settingShowRightPanel');
+      if (showRight === 'false') {
+        if (cbShowRight) cbShowRight.checked = false;
+        document.body.classList.add('hide-right-panel');
+      } else {
+        if (cbShowRight) cbShowRight.checked = true;
+        document.body.classList.remove('hide-right-panel');
+      }
+
+      const translator = localStorage.getItem('settingTranslator') || 'papago';
+      if (selTranslator) selTranslator.value = translator;
+      updateTranslatorUI(translator);
+
+      const theme = localStorage.getItem('settingTheme') || 'default';
+      if (selTheme) selTheme.value = theme;
+      if (theme !== 'default') {
+        document.documentElement.setAttribute('data-theme', theme);
+      } else {
+        document.documentElement.removeAttribute('data-theme');
+      }
+    }
+
+    function updateTranslatorUI(val) {
+      if (!transBadge || !transIframe) return;
+      if (val === 'google') {
+        transBadge.textContent = 'GOOGLE';
+        transBadge.className = 'iframe-badge badge-google';
+        transIframe.src = 'https://www.google.com/search?q=d%E1%BB%8Bch';
+      } else {
+        transBadge.textContent = 'PAPAGO';
+        transBadge.className = 'iframe-badge badge-papago';
+        transIframe.src = 'https://papago.naver.com/';
+      }
+    }
+
+    if (cbShowRight) {
+      cbShowRight.addEventListener('change', (e) => {
+        const checked = e.target.checked;
+        localStorage.setItem('settingShowRightPanel', checked);
+        if (checked) {
+          document.body.classList.remove('hide-right-panel');
+        } else {
+          document.body.classList.add('hide-right-panel');
+        }
+      });
+    }
+
+    if (selTranslator) {
+      selTranslator.addEventListener('change', (e) => {
+        const val = e.target.value;
+        localStorage.setItem('settingTranslator', val);
+        updateTranslatorUI(val);
+      });
+    }
+
+    if (selTheme) {
+      selTheme.addEventListener('change', (e) => {
+        const val = e.target.value;
+        localStorage.setItem('settingTheme', val);
+        if (val !== 'default') {
+          document.documentElement.setAttribute('data-theme', val);
+        } else {
+          document.documentElement.removeAttribute('data-theme');
+        }
+      });
+    }
+
+    loadSettings();
+  </script>
+</body>
+
+</html>
