@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NTD Tools Hub — Tổng hợp công cụ</title>
+    <title>2937.tools</title>
     <meta name="description"
         content="Tổng hợp tất cả công cụ và ứng dụng web từ NTD — AI, Âm nhạc, Chat, Học tập và nhiều hơn nữa.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1169,7 +1169,7 @@
 
     <!-- Navigation -->
     <nav class="top-nav">
-        <div class="nav-logo" onclick="window.scrollTo({top:0,behavior:'smooth'})">NTD Tools</div>
+        <div class="nav-logo" onclick="window.scrollTo({top:0,behavior:'smooth'})">2937.tools</div>
         <div class="nav-links" id="navLinks"></div>
         <div class="nav-right">
             <button class="theme-toggle" id="themeToggle" title="Chuyển chế độ sáng/tối">
@@ -1184,9 +1184,9 @@
 
     <!-- Hero -->
     <section class="hero">
-        <div class="hero-badge"><span class="dot"></span> Bộ sưu tập công cụ</div>
-        <h1>Tất cả công cụ,<br><span class="gradient-text">một nơi duy nhất.</span></h1>
-        <p>Khám phá bộ sưu tập AI, âm nhạc, giao tiếp, học tập và nhiều công cụ sáng tạo khác — tất cả tại đây.</p>
+        <!-- <div class="hero-badge"><span class="dot"></span> Bộ sưu tập công cụ</div> -->
+        <!-- <h1>Tất cả công cụ,<br><span class="gradient-text">một nơi duy nhất.</span></h1> -->
+        <!-- <p>Khám phá bộ sưu tập AI, âm nhạc, giao tiếp, học tập và nhiều công cụ sáng tạo khác — tất cả tại đây.</p> -->
         <div class="search-wrapper">
             <i class="fa-solid fa-magnifying-glass search-icon"></i>
             <input type="text" class="search-input" id="searchInput" placeholder="Tìm kiếm công cụ..."
@@ -1335,15 +1335,11 @@
 
     <!-- Footer -->
     <footer class="footer">
-        <p>© 2026 <a href="index.html">NTD Tools Hub</a> — Tổng hợp công cụ & ứng dụng web</p>
+        <p>© 2026 <a href="index.html">2937.tools Hub</a> — Tổng hợp công cụ & ứng dụng web</p>
     </footer>
     <script type="module" src="js/supabase-client.js"></script>
     <script type="module" src="js/auth.js"></script>
     <script>
-        // ╔══════════════════════════════════════════════════════════════╗
-        // ║  TOOLS DATA — Thêm tool mới chỉ cần thêm object vào đây!  ║
-        // ╚══════════════════════════════════════════════════════════════╝
-
         const CATEGORIES = {
             ai: { label: 'AI UX/UI', nav: 'AI UX/UI', icon: 'fa-solid fa-robot', color: '#6366f1', gradient: 'linear-gradient(90deg,#6366f1,#8b5cf6)' },
             music: { label: 'Âm nhạc & Giải trí', nav: 'Âm nhạc', icon: 'fa-solid fa-music', color: '#ec4899', gradient: 'linear-gradient(90deg,#ec4899,#f43f5e)' },
@@ -1363,31 +1359,28 @@
             // { cat: 'ai', title: 'GLM (Creative Studio)', url: 'tools/AI/glm/index.html', icon: 'fa-solid fa-bullseye', iconBg: 'linear-gradient(135deg,rgba(0,212,170,0.25),rgba(255,107,53,0.12)', desc: 'Studio sáng tạo kỹ thuật số — dịch vụ thiết kế web 3D, animation, custom cursor nâng cao.', tags: [['AI', 'tag-ai'], ['Three.js', 'tag-three'], ['GSAP', 'tag-gsap']] },
 
             // ── Âm nhạc ──
-            { cat: 'music', title: 'ntdPlayMusic', url: 'tools/music/index.html', icon: 'fa-solid fa-headphones', iconBg: 'linear-gradient(135deg,rgba(236,72,153,0.25),rgba(244,63,94,0.12)', desc: 'Music player với audio visualizer, danh sách phát, điều khiển toàn diện và giao diện đẹp mắt.', tags: [['Music', 'tag-music'], ['Visualizer', 'tag-creative']] },
-            { cat: 'music', title: 'ntdMusic', url: 'tools/songs/index.html', icon: 'fa-solid fa-compact-disc', iconBg: 'linear-gradient(135deg,rgba(244,63,94,0.25),rgba(236,72,153,0.12)', desc: 'Ứng dụng quản lý bài hát cộng đồng — thêm, tìm kiếm, xem lời, bảng xếp hạng, streak hàng ngày.', tags: [['Music', 'tag-music'], ['Supabase', 'tag-chat'], ['Social', 'tag-util']] },
-            { cat: 'music', title: 'ntdLyric', url: 'tools/auto/autolyric.html', icon: 'fa-solid fa-file-lines', iconBg: 'linear-gradient(135deg,rgba(168,85,247,0.25),rgba(139,92,246,0.12)', desc: 'Công cụ tự động tìm và hiển thị lời bài hát — nhanh chóng, chính xác.', tags: [['Music', 'tag-music'], ['Auto', 'tag-util']] },
+            { cat: 'music', title: '2937.visualizer', url: 'tools/music/index.html', icon: 'fa-solid fa-headphones', iconBg: 'linear-gradient(135deg,rgba(236,72,153,0.25),rgba(244,63,94,0.12)', desc: 'Music player với audio visualizer, danh sách phát, điều khiển toàn diện và giao diện đẹp mắt.', tags: [['Music', 'tag-music'], ['Visualizer', 'tag-creative']] },
+            { cat: 'music', title: '2937.music', url: 'tools/songs/index.html', icon: 'fa-solid fa-compact-disc', iconBg: 'linear-gradient(135deg,rgba(244,63,94,0.25),rgba(236,72,153,0.12)', desc: 'Ứng dụng quản lý bài hát cộng đồng — thêm, tìm kiếm, xem lời, bảng xếp hạng, streak hàng ngày.', tags: [['Music', 'tag-music'], ['Supabase', 'tag-chat'], ['Social', 'tag-util']] },
+            { cat: 'music', title: '2937.lyric', url: 'tools/auto/autolyric.html', icon: 'fa-solid fa-file-lines', iconBg: 'linear-gradient(135deg,rgba(168,85,247,0.25),rgba(139,92,246,0.12)', desc: 'Công cụ tự động tìm và hiển thị lời bài hát — nhanh chóng, chính xác.', tags: [['Music', 'tag-music'], ['Auto', 'tag-util']] },
 
             // ── Giao tiếp ──
-            { cat: 'comm', title: 'ntdChat v2', url: 'tools/chatv2/index.html', icon: 'fa-solid fa-terminal', iconBg: 'linear-gradient(135deg,rgba(0,255,65,0.2),rgba(0,200,51,0.1)', desc: 'Ứng dụng chat realtime với giao diện hacker — reaction, quản lý online, bot, giao diện matrix.', tags: [['Realtime', 'tag-chat'], ['Supabase', 'tag-chat'], ['Chat', 'tag-util']] },
+            { cat: 'comm', title: '2937.chat', url: 'tools/chatv2/index.html', icon: 'fa-solid fa-terminal', iconBg: 'linear-gradient(135deg,rgba(0,255,65,0.2),rgba(0,200,51,0.1)', desc: 'Ứng dụng chat realtime với giao diện hacker — reaction, quản lý online, bot, giao diện matrix.', tags: [['Realtime', 'tag-chat'], ['Supabase', 'tag-chat'], ['Chat', 'tag-util']] },
 
             // ── Học tập ──
-            { cat: 'learn', title: 'ntdVocab', url: 'tools/vocab/index.html', icon: 'fa-solid fa-language', iconBg: 'linear-gradient(135deg,rgba(16,185,129,0.25),rgba(5,150,105,0.12)', desc: 'Ứng dụng quản lý từ vựng tiếng Hàn — tìm kiếm, thêm từ mới, phân loại theo cấp độ TOPIK.', tags: [['Korean', 'tag-learn'], ['Supabase', 'tag-chat'], ['TOPIK', 'tag-learn']] },
-            { cat: 'learn', title: 'ntdPomo', url: 'tools/pomodoro/1.html', icon: 'fa-solid fa-clock', iconBg: 'linear-gradient(135deg,rgba(239,68,68,0.25),rgba(220,38,38,0.12)', desc: 'Đồng hồ Pomodoro giúp tập trung — chia thời gian làm việc và nghỉ ngơi hiệu quả.', tags: [['Timer', 'tag-util'], ['Focus', 'tag-learn']] },
-            { cat: 'learn', title: 'ntdPractise', url: 'tools/practise/index.html', icon: 'fa-solid fa-book', iconBg: 'linear-gradient(135deg,rgba(255,215,0,0.25),rgba(255,107,107,0.12)', desc: 'Ứng dụng luyện tập từ vựng — tìm kiếm, thêm từ mới, phân loại theo cấp độ TOPIK.', tags: [['Korean', 'tag-learn'], ['Supabase', 'tag-chat'], ['TOPIK', 'tag-learn']] },
+            { cat: 'learn', title: '2937.vocab', url: 'tools/vocab/index.html', icon: 'fa-solid fa-language', iconBg: 'linear-gradient(135deg,rgba(16,185,129,0.25),rgba(5,150,105,0.12)', desc: 'Ứng dụng quản lý từ vựng tiếng Hàn — tìm kiếm, thêm từ mới, phân loại theo cấp độ TOPIK.', tags: [['Korean', 'tag-learn'], ['Supabase', 'tag-chat'], ['TOPIK', 'tag-learn']] },
+            { cat: 'learn', title: '2937.pomo', url: 'tools/pomodoro/1.html', icon: 'fa-solid fa-clock', iconBg: 'linear-gradient(135deg,rgba(239,68,68,0.25),rgba(220,38,38,0.12)', desc: 'Đồng hồ Pomodoro giúp tập trung — chia thời gian làm việc và nghỉ ngơi hiệu quả.', tags: [['Timer', 'tag-util'], ['Focus', 'tag-learn']] },
+            { cat: 'learn', title: '2937.practise', url: 'tools/practise/index.html', icon: 'fa-solid fa-book', iconBg: 'linear-gradient(135deg,rgba(255,215,0,0.25),rgba(255,107,107,0.12)', desc: 'Ứng dụng luyện tập từ vựng — tìm kiếm, thêm từ mới, phân loại theo cấp độ TOPIK.', tags: [['Korean', 'tag-learn'], ['Supabase', 'tag-chat'], ['TOPIK', 'tag-learn']] },
+            { cat: 'learn', title: '2937.soanbai', url: 'tools/soanbai/index.html', icon: 'fa-solid fa-book', iconBg: 'linear-gradient(135deg,rgba(16,185,129,0.25),rgba(5,150,105,0.12)', desc: 'Ứng dụng soạn bài — tìm kiếm, thêm từ mới, phân loại theo cấp độ TOPIK.', tags: [['Korean', 'tag-learn'], ['Supabase', 'tag-chat'], ['TOPIK', 'tag-learn']] },
 
             // ── Sáng tạo & Mùa lễ ──
-            { cat: 'creative', title: 'ntdHBD', url: 'tools/happy_birthday/index.html', icon: 'fa-solid fa-cake-candles', iconBg: 'linear-gradient(135deg,rgba(99,102,241,0.25),rgba(236,72,153,0.12)', desc: 'Tạo thiệp sinh nhật cá nhân hóa — nhập tên, chọn ngày sinh và tạo thiệp đẹp tức thì.', tags: [['Birthday', 'tag-creative'], ['Generator', 'tag-creative']] },
-            { cat: 'creative', title: 'ntdMCh', url: 'tools/merry_christmast/index.html', icon: 'fa-solid fa-tree', iconBg: 'linear-gradient(135deg,rgba(255,75,87,0.25),rgba(46,213,115,0.12)', desc: 'Trang chúc Giáng Sinh tuyệt đẹp — cây thông 3D, tuyết rơi, ông già Noel, hiệu ứng particles.', tags: [['Christmas', 'tag-creative'], ['Canvas', 'tag-creative']] },
-            { cat: 'creative', title: 'ntdHNY2026', url: 'happy_new_year.html', icon: 'fa-solid fa-champagne-glasses', iconBg: 'linear-gradient(135deg,rgba(255,215,0,0.25),rgba(255,107,107,0.12)', desc: 'Trang chúc mừng năm mới — pháo hoa, hiệu ứng countdown, animation rực rỡ.', tags: [['New Year', 'tag-creative'], ['Fireworks', 'tag-creative']] },
+            { cat: 'creative', title: '2937.HBD', url: 'tools/happy_birthday/index.html', icon: 'fa-solid fa-cake-candles', iconBg: 'linear-gradient(135deg,rgba(99,102,241,0.25),rgba(236,72,153,0.12)', desc: 'Tạo thiệp sinh nhật cá nhân hóa — nhập tên, chọn ngày sinh và tạo thiệp đẹp tức thì.', tags: [['Birthday', 'tag-creative'], ['Generator', 'tag-creative']] },
+            { cat: 'creative', title: '2937.MCh', url: 'tools/merry_christmast/index.html', icon: 'fa-solid fa-tree', iconBg: 'linear-gradient(135deg,rgba(255,75,87,0.25),rgba(46,213,115,0.12)', desc: 'Trang chúc Giáng Sinh tuyệt đẹp — cây thông 3D, tuyết rơi, ông già Noel, hiệu ứng particles.', tags: [['Christmas', 'tag-creative'], ['Canvas', 'tag-creative']] },
+            { cat: 'creative', title: '2937.HNY2026', url: 'happy_new_year.html', icon: 'fa-solid fa-champagne-glasses', iconBg: 'linear-gradient(135deg,rgba(255,215,0,0.25),rgba(255,107,107,0.12)', desc: 'Trang chúc mừng năm mới — pháo hoa, hiệu ứng countdown, animation rực rỡ.', tags: [['New Year', 'tag-creative'], ['Fireworks', 'tag-creative']] },
 
             // ── Tiện ích ──
-            { cat: 'utility', title: 'ntd Gallery', url: 'tools/demo/3d.html', icon: 'fa-solid fa-cube', iconBg: 'linear-gradient(135deg,rgba(56,189,248,0.25),rgba(14,165,233,0.12)', desc: 'Phòng triển lãm 3D tương tác — di chuyển WASD, xem ảnh trong không gian 3 chiều.', tags: [['Three.js', 'tag-three'], ['3D', 'tag-webgl'], ['Gallery', 'tag-util']] },
-            { cat: 'utility', title: 'ntdDemo', url: 'tools/interface/1.html', icon: 'fa-solid fa-desktop', iconBg: 'linear-gradient(135deg,rgba(148,163,184,0.25),rgba(100,116,139,0.12)', desc: 'Demo giao diện người dùng — mẫu thiết kế UI/UX hiện đại, tham khảo và trải nghiệm.', tags: [['UI/UX', 'tag-util'], ['Demo', 'tag-util']] },
+            { cat: 'utility', title: '2937.Gallery', url: 'tools/demo/3d.html', icon: 'fa-solid fa-cube', iconBg: 'linear-gradient(135deg,rgba(56,189,248,0.25),rgba(14,165,233,0.12)', desc: 'Phòng triển lãm 3D tương tác — di chuyển WASD, xem ảnh trong không gian 3 chiều.', tags: [['Three.js', 'tag-three'], ['3D', 'tag-webgl'], ['Gallery', 'tag-util']] },
+            { cat: 'utility', title: '2937.Demo', url: 'tools/interface/1.html', icon: 'fa-solid fa-desktop', iconBg: 'linear-gradient(135deg,rgba(148,163,184,0.25),rgba(100,116,139,0.12)', desc: 'Demo giao diện người dùng — mẫu thiết kế UI/UX hiện đại, tham khảo và trải nghiệm.', tags: [['UI/UX', 'tag-util'], ['Demo', 'tag-util']] },
         ];
-
-        // ══════════════════════════════════════════
-        //  AUTO-GENERATE UI FROM DATA
-        // ══════════════════════════════════════════
 
         const container = document.getElementById('categoriesContainer');
         const filterTabsEl = document.getElementById('filterTabs');
