@@ -1036,7 +1036,7 @@
         }
     </style>
     <script src="https://unpkg.com/hangul-js" type="text/javascript"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 </head>
 
 <body>
@@ -1282,26 +1282,33 @@
     <script>
         const sb = {
             url: "https://ktqdzlhvdkerjajffgfi.supabase.co",
-            key: "sb_publishable_1wm-eXETyu07vl61sY4mBQ_xwYZVOCj"
+            key: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt0cWR6bGh2ZGtlcmphamZmZ2ZpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc2OTgxNTMsImV4cCI6MjA4MzI3NDE1M30.6xz0SVuj6x72VcLZyJpVtNMMWSmyOEtGhmKiVMu46xI"
         };
         const sp = supabase.createClient(sb.url, sb.key);
         let words = [], currentUser = null, isAdmin = false, pendingEntry = null, sTimer = null;
 
         /* Auth */
         async function checkSession() {
-            const { data: { session } } = await sp.auth.getSession();
-            await updateUser(session?.user || null);
+            sp.auth.getSession().then(({ data: { session } }) => updateUser(session?.user || null));
         }
-        sp.auth.onAuthStateChange(async (_event, session) => await updateUser(session?.user || null));
+        sp.auth.onAuthStateChange((_event, session) => {
+            if (_event === 'INITIAL_SESSION') return;
+            updateUser(session?.user || null);
+            sp.from('korean_vocab').select('*').order('created_at', { ascending: false }).then(({ data, error }) => {
+                if (!error) { words = data || []; refresh(); }
+            });
+        });
 
         async function updateUser(user) {
             currentUser = user;
             isAdmin = false;
             if (user) {
-                try {
-                    const { data } = await sp.from('profiles').select('role').eq('id', user.id).single();
-                    isAdmin = data?.role?.toLowerCase() === 'admin';
-                } catch (e) { console.error('Lỗi đọc profile:', e); }
+                await new Promise(resolve => {
+                    sp.from('profiles').select('role').eq('id', user.id).single().then(({ data }) => {
+                        isAdmin = data?.role?.toLowerCase() === 'admin';
+                        resolve();
+                    }).catch(() => resolve());
+                });
             }
             document.body.classList.toggle('is-admin', isAdmin);
             const authSec = document.getElementById('authSection');
@@ -1351,15 +1358,15 @@
         }
 
         /* Data */
-        async function loadWords() {
-            await checkSession();
-            if (!sb) { loadLocal(); return; }
-            try {
-                const { data, error } = await sp.from('korean_vocab').select('*').order('created_at', { ascending: false });
-                if (error) throw error;
-                words = data || [];
-            } catch (e) { console.error(e); loadLocal(); }
-            refresh();
+        function loadWords() {
+            sp.auth.getSession().then(async ({ data: { session } }) => {
+                await updateUser(session?.user || null);
+                sp.from('korean_vocab').select('*').order('created_at', { ascending: false }).then(({ data, error }) => {
+                    if (error) { console.error(error); loadLocal(); return; }
+                    words = data || [];
+                    refresh();
+                }).catch(e => { console.error(e); loadLocal(); });
+            });
         }
 
         function loadLocal() { try { words = JSON.parse(localStorage.getItem('kv') || '[]'); } catch { words = []; } refresh(); }
