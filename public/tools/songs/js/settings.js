@@ -794,6 +794,74 @@ window.toggleTheme = function() {
   applySettings(settings);
 };
 
+// ===== PERFORMANCE PRESETS =====
+const PERFORMANCE_PRESETS = {
+  weak: {
+    animations: false,
+    backgroundEffects: false,
+    glowEffects: false,
+    backdropBlur: false,
+    boxShadows: false,
+    imageHoverEffects: false,
+    tableHoverEffects: false,
+    dialogAnimations: false,
+  },
+  medium: {
+    animations: true,
+    backgroundEffects: false,
+    glowEffects: false,
+    backdropBlur: false,
+    boxShadows: false,
+    imageHoverEffects: true,
+    tableHoverEffects: false,
+    dialogAnimations: true,
+  },
+  strong: {
+    animations: true,
+    backgroundEffects: true,
+    glowEffects: true,
+    backdropBlur: true,
+    boxShadows: true,
+    imageHoverEffects: true,
+    tableHoverEffects: true,
+    dialogAnimations: true,
+  }
+};
+
+window.applyPerformancePreset = function(preset) {
+  const presetValues = PERFORMANCE_PRESETS[preset];
+  if (!presetValues) return;
+
+  // Update toggles in the dialog to reflect preset immediately
+  document.getElementById('settingAnimations').checked = presetValues.animations;
+  document.getElementById('settingBackgroundEffects').checked = presetValues.backgroundEffects;
+  document.getElementById('settingGlowEffects').checked = presetValues.glowEffects;
+  document.getElementById('settingBackdropBlur').checked = presetValues.backdropBlur;
+  document.getElementById('settingBoxShadows').checked = presetValues.boxShadows;
+  document.getElementById('settingImageHover').checked = presetValues.imageHoverEffects;
+  document.getElementById('settingTableHover').checked = presetValues.tableHoverEffects;
+  document.getElementById('settingDialogAnimations').checked = presetValues.dialogAnimations;
+
+  // Highlight the active preset button
+  document.querySelectorAll('.preset-btn').forEach(btn => btn.classList.remove('preset-active'));
+  const activeBtn = document.querySelector(`.preset-${preset}`);
+  if (activeBtn) activeBtn.classList.add('preset-active');
+
+  // Save and apply immediately
+  const settings = loadSettings();
+  const merged = { ...settings, ...presetValues };
+  saveSettings(merged);
+  applySettings(merged);
+
+  const presetNames = {
+    weak: { vi: '⚡ Đã áp dụng cấu hình Máy Yếu!', ko: '⚡ 저사양 설정이 적용되었습니다!', en: '⚡ Low-end preset applied!' },
+    medium: { vi: '🚀 Đã áp dụng cấu hình Trung Bình!', ko: '🚀 중간 사양 설정이 적용되었습니다!', en: '🚀 Medium preset applied!' },
+    strong: { vi: '✨ Đã áp dụng cấu hình Máy Mạnh!', ko: '✨ 고사양 설정이 적용되었습니다!', en: '✨ High-end preset applied!' },
+  };
+  const lang = merged.language || 'vi';
+  alert(presetNames[preset][lang] || presetNames[preset].vi);
+};
+
 window.addEventListener('DOMContentLoaded', () => {
   const settings = loadSettings();
   saveSettings(settings);

@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="UTF-8" />
-  <title>ntdMusic</title>
+  <title>2937.Music</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
@@ -130,6 +130,10 @@
         <i class="fa-solid fa-heart"></i>
         <span>Bài hát yêu thích</span>
       </button>
+      <button class="sidebar-item" id="btn-custom-playlist-sc" onclick="openCustomPlaylistsDialog(); toggleSidebar();">
+        <i class="fa-solid fa-layer-group"></i>
+        <span>Playlist tuỳ chọn</span>
+      </button>
       <button class="sidebar-item" id="btn-users-sc" onclick="openUsersDialog(); toggleSidebar();">
         <i class="fa-solid fa-users"></i>
         <span>Danh sách người dùng</span>
@@ -249,6 +253,7 @@
       <span style="font-size: 30px;" id="closeNew">+</span>
     </button>
     <h2 id="dTitle"></h2>
+    <input type="hidden" id="dYoutubeLink" value="">
     <div class="lyric-container">
       <div class="lyric-avatar">
         <img id="dAvatar" src="" alt="avatar" style="display: none" />
@@ -336,6 +341,9 @@
           <button id="btnFavouriteLyric" onclick="toggleFavourite()" class="btn-favourite" title="Yêu thích">
             <i class="fa-solid fa-heart"></i>
           </button>
+          <button id="btnAddCustomPlaylistLyric" onclick="promptAddCurrentSongToPlaylist()" class="btn" title="Thêm vào Playlist Tuỳ Chọn" style="background: rgba(16, 185, 129, 0.1); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.2);">
+            <i class="fa-solid fa-layer-group"></i>
+          </button>
         </div>
         <p id="dDate"></p>
         <p id="dAlbum"></p>
@@ -395,7 +403,7 @@
       </div>
       <div class="form-group">
         <a href="#" class="goiy" onclick="timLinkbaihat()">Tìm link bài hát</a>
-        <label>Link YouTube (chỉ cần khi thấy ngày phát hành bị sai)</label>
+        <label>Link YouTube (Dùng để phát nhạc không cần tìm kiếm)</label>
         <div style="display:flex; gap:8px">
           <input type="url" id="youtubeLinkAdd" placeholder="https://www.youtube.com/watch?v=..." />
           <button type="button" class="btn" onclick="fetchYoutubeDate('add')" style="padding: 0 14px">
@@ -531,6 +539,15 @@
         <label for="editReleaseDate">Ngày phát hành *</label>
         <input type="date" id="editReleaseDate" required />
         <div class="error" id="error-editReleaseDate"></div>
+      </div>
+      <div class="form-group">
+        <label for="editYoutubeLink">Link YouTube (Dùng để phát nhạc không cần tìm kiếm)</label>
+        <div style="display:flex; gap:8px">
+          <input type="url" id="editYoutubeLink" placeholder="https://www.youtube.com/watch?v=..." />
+          <button type="button" class="btn" onclick="fetchYoutubeDate('edit')" style="padding: 0 14px">
+            📅
+          </button>
+        </div>
       </div>
       <div class="form-group">
         <a href="#" onclick="timAvatar()" class="goiy">Tìm avatar trên Google</a>
@@ -932,6 +949,91 @@
     </div>
   </dialog>
 
+  <!-- CUSTOM PLAYLIST DIALOGS -->
+  <dialog id="customPlaylistsDialog">
+    <button class="btn close" onclick="customPlaylistsDialog.close()">
+      <span style="font-size: 30px;">+</span>
+    </button>
+    <h2><i class="fa-solid fa-layer-group"></i> Playlist Tuỳ Chọn</h2>
+    <div style="padding: 24px 32px 32px 32px;">
+      <div style="margin-bottom: 24px; display: flex; gap: 12px;">
+        <input type="text" id="newCustomPlaylistName" placeholder="Tên playlist mới..." style="
+          flex: 1;
+          background: rgba(255, 255, 255, 0.05);
+          border: 1px solid var(--border-color);
+          padding: 12px 16px;
+          border-radius: 12px;
+          color: var(--text-primary);
+          font-family: inherit;
+        ">
+        <button onclick="handleCreateCustomPlaylist()" style="
+          background: linear-gradient(135deg, #10b981, #059669);
+          border: none;
+          color: white;
+          padding: 12px 20px;
+          border-radius: 12px;
+          font-weight: 700;
+          cursor: pointer;
+          white-space: nowrap;
+          box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+        "><i class="fa-solid fa-plus"></i> Tạo</button>
+      </div>
+      <div id="customPlaylistsList" style="max-height: 500px; overflow-y: auto;">
+        <!-- Danh sách playlist được render qua JS -->
+      </div>
+    </div>
+  </dialog>
+
+  <dialog id="customPlaylistDetailsDialog" class="dialog-standard">
+    <button class="btn close" onclick="customPlaylistDetailsDialog.close()">
+      <span style="font-size: 30px;">+</span>
+    </button>
+    <h2><i class="fa-solid fa-layer-group"></i> <span id="cpDetailsTitle">Chi tiết Playlist</span></h2>
+    <div style="padding: 24px 32px 32px 32px;">
+      <div style="display: flex; gap: 12px; margin-bottom: 24px;">
+        <button onclick="playCustomPlaylist()" style="
+          flex: 1;
+          background: linear-gradient(135deg, #f59e0b, #d97706);
+          border: none;
+          color: white;
+          padding: 14px;
+          border-radius: 12px;
+          font-weight: 700;
+          font-size: 15px;
+          cursor: pointer;
+          box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);
+        "><i class="fa-solid fa-play"></i> Phát Playlist</button>
+        <button onclick="promptAddExternalSong()" style="
+          background: linear-gradient(135deg, #6366f1, #4f46e5);
+          border: none;
+          color: white;
+          padding: 14px 20px;
+          border-radius: 12px;
+          font-weight: 700;
+          font-size: 15px;
+          cursor: pointer;
+          box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+          white-space: nowrap;
+        "><i class="fa-solid fa-plus"></i> Thêm Bài Mới</button>
+      </div>
+
+      <div id="cpDetailsSongsList" style="max-height: 400px; overflow-y: auto;">
+      </div>
+    </div>
+  </dialog>
+
+  <!-- DIALOG CHỌN PLAYLIST -->
+  <dialog id="selectPlaylistDialog" class="dialog-standard" style="width: 400px; max-width: 90vw;">
+    <button class="btn close" onclick="selectPlaylistDialog.close()">
+      <span style="font-size: 30px;">+</span>
+    </button>
+    <h2><i class="fa-solid fa-layer-group"></i> Chọn Playlist</h2>
+    <div style="padding: 24px 32px 32px 32px;">
+      <div id="selectPlaylistList" style="max-height: 300px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;">
+      </div>
+    </div>
+  </dialog>
+
   <dialog id="guideDialog">
     <button class="btn close" onclick="guideDialog.close()">
       <span style="font-size: 30px;">+</span>
@@ -943,73 +1045,117 @@
     </div>
   </dialog>
 
-  <dialog id="youtubeVideoDialog">
+  <dialog id="youtubeVideoDialog" class="youtube-video-dialog-wide">
     <button class="btn close" onclick="youtubeVideoDialog.close();">
       <span style="font-size: 30px;">+</span>
     </button>
     <h2><i class="fa-brands fa-youtube"></i> <span id="youtubeVideoSongName"></span></h2>
 
-    <div class="youtube-dialog-body" style="padding: 24px 32px 32px 32px;">
-      <div id="youtubeVideoIframe"></div>
+    <div class="youtube-dialog-layout">
+      <!-- CỘT TRÁI: Video + controls -->
+      <div class="youtube-dialog-left">
+        <div id="youtubeVideoIframe"></div>
 
-      <!-- Other Version Section -->
-      <div style="margin-top: 20px;">
-        <strong style="font-size: 16px; color: var(--text-primary);">Other Version:</strong>
-        <div style="display: flex; gap: 12px; margin-top: 12px; flex-wrap: wrap;">
-          <div id="ytVersionRemix"></div>
-          <div id="ytVersionLofi"></div>
+        <!-- Other Version Section -->
+        <div style="margin-top: 20px;">
+          <strong style="font-size: 16px; color: var(--text-primary);">Other Version:</strong>
+          <div style="display: flex; gap: 12px; margin-top: 12px; flex-wrap: wrap;">
+            <div id="ytVersionRemix"></div>
+            <div id="ytVersionLofi"></div>
+          </div>
+        </div>
+
+        <!-- Nút OTHER để hiển thị 3 video thay thế -->
+        <div style="margin-top: 24px;">
+          <button id="btnShowOtherVideos" onclick="toggleOtherVideos()" style="
+              width: 100%;
+              background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+              color: white;
+              border: none;
+              padding: 14px 24px;
+              border-radius: 12px;
+              font-size: 15px;
+              font-weight: 700;
+              cursor: pointer;
+              box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);
+              transition: all 0.3s ease;
+              text-transform: uppercase;
+              letter-spacing: 0.5px;
+            "
+            onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(245, 158, 11, 0.6)';"
+            onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(245, 158, 11, 0.4)';">
+            <i class="fa-solid fa-list"></i> Hiển thị các video khác
+          </button>
+        </div>
+
+        <!-- Container để hiển thị 3 video thay thế -->
+        <div id="otherVideosContainer" style="display: none; margin-top: 24px;">
+          <div style="
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 20px;
+          ">
+            <h3 style="
+              margin: 0 0 16px 0;
+              font-size: 16px;
+              font-weight: 700;
+              color: var(--text-primary);
+            ">
+              <i class="fa-solid fa-video"></i> Các video thay thế
+            </h3>
+            <div id="otherVideosList" style="
+              display: flex;
+              flex-direction: column;
+              gap: 12px;
+            ">
+              <!-- Videos sẽ được thêm vào đây bằng JavaScript -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Nút hiện lại lyrics khi đang ẩn -->
+        <div id="youtubeLyricShowBtn" style="display: none; margin-top: 16px;">
+          <button onclick="toggleYoutubeLyric()" style="
+              width: 100%;
+              background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+              color: white;
+              border: none;
+              padding: 12px 24px;
+              border-radius: 12px;
+              font-size: 14px;
+              font-weight: 700;
+              cursor: pointer;
+              box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+              transition: all 0.3s ease;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              gap: 10px;
+            "
+            onmouseover="this.style.transform='translateY(-2px)';"
+            onmouseout="this.style.transform='translateY(0)';">
+            <i class="fa-solid fa-align-left"></i>
+            <span id="youtubeLyricBtnText">Hiện lời bài hát</span>
+          </button>
         </div>
       </div>
 
-      <!-- Nút OTHER để hiển thị 3 video thay thế -->
-      <div style="margin-top: 24px;">
-        <button id="btnShowOtherVideos" onclick="toggleOtherVideos()" style="
-            width: 100%;
-            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-            color: white;
-            border: none;
-            padding: 14px 24px;
-            border-radius: 12px;
-            font-size: 15px;
-            font-weight: 700;
-            cursor: pointer;
-            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-          "
-          onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(245, 158, 11, 0.6)';"
-          onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(245, 158, 11, 0.4)';">
-          <i class="fa-solid fa-list"></i> Hiển thị các video khác
-        </button>
-      </div>
-
-      <!-- Container để hiển thị 3 video thay thế -->
-      <div id="otherVideosContainer" style="display: none; margin-top: 24px;">
-        <div style="
-          background: rgba(255, 255, 255, 0.05);
-          border: 1px solid var(--border-color);
-          border-radius: 16px;
-          padding: 20px;
-        ">
-          <h3 style="
-            margin: 0 0 16px 0;
-            font-size: 16px;
-            font-weight: 700;
-            color: var(--text-primary);
-          ">
-            <i class="fa-solid fa-video"></i> Các video thay thế
-          </h3>
-          <div id="otherVideosList" style="
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-          ">
-            <!-- Videos sẽ được thêm vào đây bằng JavaScript -->
+      <!-- CỘT PHẢI: Lyrics -->
+      <div class="youtube-dialog-right" id="youtubeLyricContainer">
+        <div class="youtube-lyric-box" style="height: 100%;">
+          <div class="youtube-lyric-header">
+            <i class="fa-solid fa-music"></i>
+            <span id="youtubeLyricTitle">Lời bài hát</span>
+            <button onclick="toggleYoutubeLyric()" class="youtube-lyric-close-btn" title="Ẩn lời bài hát">
+              <i class="fa-solid fa-eye-slash" id="youtubeLyricBtnIcon"></i>
+            </button>
           </div>
+          <pre id="youtubeLyricContent" class="youtube-lyric-content"></pre>
         </div>
       </div>
     </div>
+
   </dialog>
 
   <dialog id="youtubePlaylistDialog">
@@ -1162,6 +1308,30 @@
             <i class="fa-solid fa-gauge-high"></i> Hiệu suất
             <span class="performance-badge" id="settingsPerformanceBadge">Giảm lag</span>
           </h3>
+
+          <!-- PRESET BUTTONS -->
+          <div class="preset-container">
+            <div class="preset-label" id="settingsPresetLabel">
+              <i class="fa-solid fa-sliders"></i> Cấu hình nhanh theo máy
+            </div>
+            <div class="preset-buttons">
+              <button type="button" class="preset-btn preset-weak" onclick="applyPerformancePreset('weak')">
+                <i class="fa-solid fa-battery-quarter"></i>
+                <span>Máy Yếu</span>
+                <small>Tắt hầu hết hiệu ứng</small>
+              </button>
+              <button type="button" class="preset-btn preset-medium" onclick="applyPerformancePreset('medium')">
+                <i class="fa-solid fa-battery-half"></i>
+                <span>Trung Bình</span>
+                <small>Tắt hiệu ứng nặng</small>
+              </button>
+              <button type="button" class="preset-btn preset-strong" onclick="applyPerformancePreset('strong')">
+                <i class="fa-solid fa-battery-full"></i>
+                <span>Máy Mạnh</span>
+                <small>Bật tất cả hiệu ứng</small>
+              </button>
+            </div>
+          </div>
 
           <div class="setting-item">
             <div class="setting-label">
@@ -2356,6 +2526,7 @@
     });
   </script>
 
+  <script type="module" src="js/playlist.js"></script>
   <script src="js/main.js"></script>
   <script src="js/guide.js"></script>
   <script src="js/settings.js"></script>

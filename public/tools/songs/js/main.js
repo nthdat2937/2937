@@ -255,6 +255,7 @@ let favouritePlaylistState = {
   songs: [],
   currentIndex: -1
 };
+window.favouritePlaylistState = favouritePlaylistState;
 
 function ytText(key, variables = {}, fallback = key) {
   if (window.getTranslatedText) {
@@ -264,8 +265,33 @@ function ytText(key, variables = {}, fallback = key) {
   return fallback;
 }
 
+window.showToast = function(message, duration = 3000) {
+  let toastContainer = document.getElementById('toast-container');
+  if (!toastContainer) {
+    toastContainer = document.createElement('div');
+    toastContainer.id = 'toast-container';
+    toastContainer.style.cssText = `
+      position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+      background: rgba(0, 0, 0, 0.82); color: white; padding: 12px 24px;
+      border-radius: 50px; z-index: 10000; font-size: 14px; pointer-events: none;
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+      opacity: 0; backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.1);
+    `;
+    document.body.appendChild(toastContainer);
+  }
+
+  toastContainer.textContent = message;
+  toastContainer.style.opacity = '1';
+  toastContainer.style.transform = 'translateX(-50%) translateY(-20px)';
+
+  setTimeout(() => {
+    toastContainer.style.opacity = '0';
+    toastContainer.style.transform = 'translateX(-50%)';
+  }, duration);
+};
+
 function isYoutubePlaylistMode() {
-  return favouritePlaylistState.active;
+  return favouritePlaylistState.active || (window.currentCustomPlaylistState && window.currentCustomPlaylistState.active);
 }
 
 function getYoutubeDialogByMode(playlistMode = isYoutubePlaylistMode()) {
@@ -375,23 +401,41 @@ onmouseup="this.style.transform='translateY(-2px)';">
 
 function updateYoutubePlaylistStatus() {
   const statusEl = document.getElementById('youtubePlaylistStatus');
+  const dialogTitleEl = document.getElementById('youtubePlaylistDialogTitle');
+  const listTitleEl = document.getElementById('youtubePlaylistListTitle');
   if (!statusEl) return;
 
-  if (!favouritePlaylistState.active || !favouritePlaylistState.songs.length || favouritePlaylistState.currentIndex < 0) {
+  let isActive = false;
+  let currentIndex = -1;
+  let totalSongs = 0;
+  let playlistName = '';
+
+  if (favouritePlaylistState.active) {
+    isActive = true;
+    currentIndex = favouritePlaylistState.currentIndex;
+    totalSongs = favouritePlaylistState.songs.length;
+    playlistName = ytText('favouritePlaylistTitle', {}, 'Playlist yêu thích');
+  } else if (window.currentCustomPlaylistState?.active) {
+    isActive = true;
+    currentIndex = window.currentCustomPlaylistState.currentIndex;
+    totalSongs = window.currentCustomPlaylistState.songs.length;
+    playlistName = window.currentCustomPlaylistState.name || 'Playlist tùy chọn';
+  }
+
+  if (!isActive || totalSongs === 0 || currentIndex < 0) {
     statusEl.style.display = 'none';
     statusEl.textContent = '';
     return;
   }
 
+  // Update dialog and list titles
+  if (dialogTitleEl) dialogTitleEl.textContent = playlistName;
+  if (listTitleEl) {
+    listTitleEl.innerHTML = `<i class="fa-solid fa-music"></i> ${playlistName} (${totalSongs})`;
+  }
+
   statusEl.style.display = 'block';
-  statusEl.textContent = ytText(
-    'favouritePlaylistStatus',
-    {
-      current: favouritePlaylistState.currentIndex + 1,
-      total: favouritePlaylistState.songs.length
-    },
-    `Playlist yêu thích ${favouritePlaylistState.currentIndex + 1}/${favouritePlaylistState.songs.length}`
-  );
+  statusEl.textContent = `${playlistName} ${currentIndex + 1}/${totalSongs}`;
 }
 
 function updateYoutubeMiniPlayerLabel() {
@@ -411,28 +455,66 @@ function renderFavouritePlaylistSongs() {
   const listEl = document.getElementById('youtubePlaylistSongs');
   if (!listEl) return;
 
-  if (!favouritePlaylistState.songs.length) {
-    listEl.innerHTML = `<div class="youtube-playlist-empty">${ytText('favouritePlaylistEmpty', {}, 'Chưa có bài yêu thích để phát.')}</div>`;
+  let songs = [];
+  let currentIndex = -1;
+  let clickHandlerName = '';
+
+  if (favouritePlaylistState.active) {
+    songs = favouritePlaylistState.songs;
+    currentIndex = favouritePlaylistState.currentIndex;
+    clickHandlerName = 'playFavouritePlaylistSongAtIndex';
+  } else if (window.currentCustomPlaylistState?.active) {
+    songs = window.currentCustomPlaylistState.songs;
+    currentIndex = window.currentCustomPlaylistState.currentIndex;
+    clickHandlerName = 'playCustomPlaylistAt';
+  }
+
+  if (!songs.length) {
+    listEl.innerHTML = `<div class="youtube-playlist-empty">${ytText('favouritePlaylistEmpty', {}, 'Chưa có bài hát để phát.')}</div>`;
     return;
   }
 
-  listEl.innerHTML = favouritePlaylistState.songs.map((song, index) => {
-    const isActive = index === favouritePlaylistState.currentIndex;
-    const cover = song.avatar
-      ? `<img src="${song.avatar}" alt="${song['Tên']}" class="youtube-playlist-cover">`
+  listEl.innerHTML = songs.map((song, index) => {
+    const isActive = index === currentIndex;
+    
+    // Normalize song data for rendering
+    let displayTitle = '';
+    let displayArtist = '';
+    let avatar = '';
+
+    if (favouritePlaylistState.active) {
+      displayTitle = song['Tên'];
+      displayArtist = song['Ca sĩ'] || '';
+      avatar = song.avatar;
+    } else {
+      // Custom playlist song format
+      if (song.type === 'internal') {
+        const dbSong = (window._songs || []).find(s => s.Id === song.songId);
+        displayTitle = dbSong ? dbSong['Tên'] : 'Unknown';
+        displayArtist = dbSong ? (dbSong['Ca sĩ'] || '') : '';
+        avatar = dbSong ? dbSong.avatar : '';
+      } else {
+        displayTitle = song.title || 'Unknown';
+        displayArtist = song.artist || '';
+        // Could try to get thumbnail if it was saved, but for now fallback
+      }
+    }
+
+    const cover = avatar
+      ? `<img src="${avatar}" alt="${displayTitle}" class="youtube-playlist-cover">`
       : `<span class="youtube-playlist-cover youtube-playlist-cover-fallback"><i class="fa-solid fa-music"></i></span>`;
 
     return `
       <button
         type="button"
         class="youtube-playlist-item${isActive ? ' active' : ''}"
-        onclick="playFavouritePlaylistSongAtIndex(${index})"
+        onclick="${clickHandlerName}(${index})"
       >
         <span class="youtube-playlist-index">${index + 1}</span>
         ${cover}
         <span class="youtube-playlist-info">
-          <span class="youtube-playlist-song">${song['Tên']}</span>
-          <span class="youtube-playlist-artist">${song['Ca sĩ'] || ''}</span>
+          <span class="youtube-playlist-song">${displayTitle}</span>
+          <span class="youtube-playlist-artist">${displayArtist}</span>
         </span>
         <span class="youtube-playlist-current"><i class="fa-solid fa-volume-high"></i></span>
       </button>
@@ -551,8 +633,14 @@ window.startFavouritePlaylist = async function (songs, startIndex = 0) {
 };
 
 window.playFavouritePlaylistSongAtIndex = async function (index) {
-  if (!favouritePlaylistState.songs.length) return;
-  await window.startFavouritePlaylist(favouritePlaylistState.songs, index);
+  if (favouritePlaylistState.active) {
+    if (!favouritePlaylistState.songs.length) return;
+    await window.startFavouritePlaylist(favouritePlaylistState.songs, index);
+  } else if (window.currentCustomPlaylistState?.active) {
+    if (window.playCustomPlaylistAt) {
+      await window.playCustomPlaylistAt(index);
+    }
+  }
 };
 
 // ===== NCT MUSIC DIALOG FEATURE =====
@@ -993,6 +1081,20 @@ async function fetchOtherVideos() {
     );
     const searchData = await searchRes.json();
 
+    if (searchData.error) {
+      if (searchData.error.errors?.some(e => e.reason === 'quotaExceeded')) {
+        document.getElementById('otherVideosList').innerHTML = `
+          <div style="text-align: center; padding: 40px 20px; color: var(--text-muted);">
+            <i class="fa-solid fa-clock-rotate-left" style="font-size: 36px; margin-bottom: 16px; color: #f59e0b;"></i>
+            <p>Hạn mức tìm kiếm hôm nay đã hết.</p>
+            <p style="font-size: 13px;">Vui lòng thử lại sau hoặc tìm trực tiếp trên YouTube.</p>
+          </div>
+        `;
+        return;
+      }
+      throw new Error(searchData.error.message || 'YouTube API Error');
+    }
+
     if (!searchData.items || searchData.items.length === 0) {
       document.getElementById('otherVideosList').innerHTML = `
         <div style="text-align: center; padding: 40px 20px; color: var(--text-muted);">
@@ -1067,7 +1169,7 @@ function playOtherVideo(videoId) {
   getYoutubeDialogBody(false)?.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-async function loadYoutubeVideo(videoId, songName, artist) {
+window.loadYoutubeVideo = async function(videoId, songName, artist) {
   const playlistMode = isYoutubePlaylistMode();
   setYoutubeDisplayTitle(songName, artist, playlistMode);
 
@@ -1115,11 +1217,16 @@ async function loadYoutubeVideo(videoId, songName, artist) {
       events: {
         onReady: () => {
           updateYoutubePlaylistStatus();
+          if (playlistMode) renderFavouritePlaylistSongs();
           updateYoutubeMiniPlayerLabel();
         },
         onStateChange: async (event) => {
-          if (event.data === window.YT.PlayerState.ENDED && favouritePlaylistState.active) {
-            await playNextFavouritePlaylistSong();
+          if (event.data === window.YT.PlayerState.ENDED) {
+            if (favouritePlaylistState.active) {
+              await playNextFavouritePlaylistSong();
+            } else if (window.currentCustomPlaylistState?.active) {
+              window.playNextCustomPlaylistSong();
+            }
           }
         },
         onError: () => {
@@ -1209,11 +1316,66 @@ function showVideoError() {
 }
 
 // Function mở YouTube Video Dialog
-async function openYoutubeVideoDialog() {
+window.openYoutubeVideoDialog = async function() {
   const songName = document.getElementById("dTitle").textContent;
   const artist = document.getElementById("dArtist").textContent.replace('ㅤ', '').trim();
+
+  // Load lyric vào panel ngay khi mở
+  const lyricEl = document.getElementById('dLyric');
+  const lyricContainer = document.getElementById('youtubeLyricContainer');
+  const lyricContent = document.getElementById('youtubeLyricContent');
+  const lyricTitle = document.getElementById('youtubeLyricTitle');
+  const showBtn = document.getElementById('youtubeLyricShowBtn');
+
+  const lyricText = (lyricEl?.textContent || '').trim();
+  if (lyricTitle) lyricTitle.textContent = `Lời bài hát – ${songName}`;
+  if (lyricContent) {
+    lyricContent.textContent = (lyricText && lyricText.length > 5)
+      ? lyricText
+      : '(Bài hát này chưa có lời ☹)';
+  }
+
+  // Hiện lyrics panel mặc định
+  if (lyricContainer) lyricContainer.style.display = 'flex';
+  if (showBtn) showBtn.style.display = 'none';
+
+  // Thử phát từ link trực tiếp nếu có
+  const directLink = document.getElementById('dYoutubeLink')?.value;
+  if (directLink && typeof window.extractVideoId === 'function') {
+    const videoId = window.extractVideoId(directLink);
+    if (videoId) {
+      console.log('Phát từ link trực tiếp:', videoId);
+      // Hiển thị dialog trước để người dùng thấy player đang load
+      youtubeVideoDialog.showModal();
+      // Load video
+      await loadYoutubeVideo(videoId);
+      return;
+    }
+  }
+
   await searchYoutubeVideo(songName, artist);
 }
+
+// Function toggle hiển thị/ẩn lyric column trong YouTube dialog
+window.toggleYoutubeLyric = function() {
+  const container = document.getElementById('youtubeLyricContainer');
+  const showBtn = document.getElementById('youtubeLyricShowBtn');
+  const btnText = document.getElementById('youtubeLyricBtnText');
+
+  const isVisible = container.style.display !== 'none';
+
+  if (isVisible) {
+    // Ẩn lyrics column
+    container.style.display = 'none';
+    if (showBtn) showBtn.style.display = 'block';
+    if (btnText) btnText.textContent = 'Hiện lời bài hát';
+  } else {
+    // Hiện lyrics column
+    container.style.display = 'flex';
+    if (showBtn) showBtn.style.display = 'none';
+    if (btnText) btnText.textContent = 'Ẩn lời bài hát';
+  }
+};
 
 youtubeVideoDialog.addEventListener('click', (e) => {
   if (e.target === youtubeVideoDialog) {
@@ -1323,7 +1485,7 @@ function openYoutubeSearchDialog() {
   searchYoutubeVideo(songName.trim(), artist ? artist.trim() : "");
 }
 
-async function searchYoutubeVideo(songName, artist, options = {}) {
+window.searchYoutubeVideo = async function(songName, artist, options = {}) {
   // Đóng NCT dialog trước
   closeNctMusicDialog();
 
@@ -1367,6 +1529,47 @@ async function searchYoutubeVideo(songName, artist, options = {}) {
       `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=5&q=${encodeURIComponent(searchQuery)}&key=AIzaSyAS6c7bto_vvZ60g_FsdA60od3Fgw0y67g`
     );
     const searchData = await searchRes.json();
+
+    if (searchData.error) {
+      if (searchData.error.errors?.some(e => e.reason === 'quotaExceeded')) {
+        const searchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(searchQuery)}`;
+        const luckyUrl = `https://www.google.com/search?q=${encodeURIComponent(searchQuery)}+official+site:youtube.com+&btnI=1`;
+        
+        clearYoutubePlayer();
+        const playerContainer = getYoutubePlayerContainer(!!options.playlistMode);
+        if (playerContainer) {
+          playerContainer.innerHTML = `
+            <div style="text-align: center; padding: 100px 20px; color: var(--text-muted);">
+              <i class="fa-solid fa-clock-rotate-left" style="font-size: 64px; margin-bottom: 20px; color: #f59e0b;"></i>
+              <h3 style="color: var(--text-primary); margin-bottom: 12px;">Hạn mức tìm kiếm đã hết</h3>
+              <p style="margin-bottom: 24px;">Hạn mức (quota) tìm kiếm tự động của trang web hôm nay đã hết. Bạn vẫn có thể xem bằng cách mở trực tiếp:</p>
+              <div style="display: flex; flex-direction: column; gap: 12px; align-items: center;">
+                <a href="${luckyUrl}" target="_blank" style="
+                  display: inline-flex; align-items: center; gap: 8px;
+                  background: linear-gradient(135deg, #10b981, #059669);
+                  color: white; padding: 14px 28px; border-radius: 12px;
+                  text-decoration: none; font-weight: 700; font-size: 16px; width: fit-content;
+                  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4); transition: all 0.3s;
+                " onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='translateY(0)'">
+                  <i class="fa-solid fa-wand-magic-sparkles"></i> Mở nhanh video (Lucky)
+                </a>
+                <a href="${searchUrl}" target="_blank" style="
+                  display: inline-flex; align-items: center; gap: 8px;
+                  background: linear-gradient(135deg, #ef4444, #dc2626);
+                  color: white; padding: 14px 28px; border-radius: 12px;
+                  text-decoration: none; font-weight: 700; font-size: 16px; width: fit-content;
+                  box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4); transition: all 0.3s;
+                " onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='translateY(0)'">
+                  <i class="fa-brands fa-youtube"></i> Xem kết quả trên YouTube
+                </a>
+              </div>
+            </div>
+          `;
+        }
+        return;
+      }
+      throw new Error(searchData.error.message || 'YouTube API Error');
+    }
 
     if (!searchData.items?.length) {
       await showVideoNotAvailable(songName, artist);

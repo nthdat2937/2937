@@ -502,6 +502,16 @@ async function findIntroGuessVideoIds(song) {
     `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&videoEmbeddable=true&maxResults=8&q=${encodeURIComponent(searchQuery)}&key=${MINIGAME_YOUTUBE_API_KEY}`
   );
   const data = await response.json();
+
+  if (data.error) {
+    if (data.error.errors?.some(e => e.reason === 'quotaExceeded')) {
+      console.warn(`${INTRO_GUESS_LOG_PREFIX} YouTube search quota exceeded.`);
+    } else {
+      console.warn(`${INTRO_GUESS_LOG_PREFIX} YouTube search failed:`, data.error.message);
+    }
+    return [];
+  }
+
   const items = Array.isArray(data?.items) ? data.items : [];
   const normalizedSong = normalizeText(song?.Tên || '');
   const normalizedArtist = normalizeText(song?.['Ca sĩ'] || '');

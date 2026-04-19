@@ -99,6 +99,7 @@ function tr(key, variables = {}) {
   }
   return key;
 }
+window.tr = tr;
 
 function getCurrentLocale() {
   if (window.getCurrentLanguageLocale) {
@@ -918,6 +919,15 @@ function renderSongs(songs) {
   >
     <i class="fa-solid fa-heart"></i>
   </button>
+  <button 
+    class="btn" 
+    data-action="add-custom-playlist" 
+    data-song-id="${song.Id}"
+    title="Thêm vào Playlist Tuỳ Chọn"
+    style="color: #10b981;"
+  >
+    <i class="fa-solid fa-layer-group"></i>
+  </button>
   <button class="btn btn-lyric" data-action="lyric" title="${tr('lyricTitle')}">
     <i class="fa-solid fa-music"></i>
   </button>
@@ -949,6 +959,7 @@ list.addEventListener('click', (e) => {
     else if (action === 'delete') deleteSong(songId);
     else if (action === 'lyric') showLyric(songId);
     else if (action === 'favourite') window.toggleFavourite(songId);
+    else if (action === 'add-custom-playlist') window.promptAddCurrentSongToPlaylist(songId);
   } else if (e.target.closest('.song-clickable')) {
     showLyric(songId);
   }
@@ -1008,6 +1019,10 @@ window.showLyric = id => {
     dAddedBy.textContent = updates.addedByText;
     dLyric.innerHTML = updates.lyric;
     dLyric.style.display = 'block';
+    
+    // Lưu link youtube vào hidden field để openYoutubeVideoDialog sử dụng
+    const dYoutubeLink = document.getElementById('dYoutubeLink');
+    if (dYoutubeLink) dYoutubeLink.value = s['Link YouTube'] || '';
     renderSongComments(s);
     lyricCommentInput.value = '';
     lyricCommentError.textContent = '';
@@ -1059,6 +1074,7 @@ window.openEditDialog = id => {
   document.getElementById('editHasAlbum').checked = hasAlbum;
   document.getElementById('editAlbum').value = s.album || '';
   document.getElementById('editAlbumGroup').style.display = hasAlbum ? 'block' : 'none';
+  document.getElementById('editYoutubeLink').value = s['Link YouTube'] || '';
 
   clearEditErrors();
   // Set selected tags
@@ -1278,7 +1294,8 @@ songForm.addEventListener('submit', async (e) => {
     'Xác minh': isVerified,
     'add_by': addedBy,
     'album': document.getElementById('hasAlbum').checked ? document.getElementById('album').value.trim() : null,
-    'tag': selectedTags.length > 0 ? selectedTags : null
+    'tag': selectedTags.length > 0 ? selectedTags : null,
+    'Link YouTube': document.getElementById('youtubeLinkAdd').value.trim() || null
   }]);
   if (error) {
     console.error(error);
@@ -1339,7 +1356,8 @@ editSongForm.addEventListener('submit', async (e) => {
     'avatar': avatar || null,
     'Lyric': lyric,
     'album': document.getElementById('editHasAlbum').checked ? document.getElementById('editAlbum').value.trim() : null,
-    'tag': selectedTags.length > 0 ? selectedTags : null
+    'tag': selectedTags.length > 0 ? selectedTags : null,
+    'Link YouTube': document.getElementById('editYoutubeLink').value.trim() || null
   }).eq('Id', currentEditId);
   if (error) {
     console.error(error);
@@ -1564,7 +1582,6 @@ window.autoFillAvatar = async function (type) {
 
     // 2. Nếu chưa có, thử lấy từ YouTube (thumbnail của video)
     if (!imageUrl) {
-      try {
         const searchRes = await fetch(
           `https://www.googleapis.com/youtube/v3/search` +
           `?part=snippet&type=video&maxResults=1` +
@@ -1572,6 +1589,15 @@ window.autoFillAvatar = async function (type) {
           `&key=${YOUTUBE_API_KEY}`
         );
         const searchData = await searchRes.json();
+
+        if (searchData.error) {
+          if (searchData.error.errors?.some(e => e.reason === 'quotaExceeded')) {
+            console.warn('YouTube search quota exceeded for avatar lookup.');
+          } else {
+            console.warn('YouTube search failed for avatar lookup:', searchData.error.message);
+          }
+          throw new Error('YouTube Search Unavailable');
+        }
 
         if (searchData.items?.length > 0) {
           const snippet = searchData.items[0].snippet;
@@ -1585,9 +1611,6 @@ window.autoFillAvatar = async function (type) {
             imageUrl = thumbnails.medium.url;
           }
         }
-      } catch (e) {
-        console.warn('YouTube image search failed:', e);
-      }
     }
 
     // 3. Cập nhật kết quả
