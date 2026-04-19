@@ -663,6 +663,39 @@
             gap: 8px;
         }
 
+        .fc-filter-toggle {
+            display: flex;
+            border: 0.5px solid var(--bdr2);
+            border-radius: var(--r);
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .fc-toggle-btn {
+            padding: 7px 14px;
+            font-size: 13px;
+            font-weight: 500;
+            background: transparent;
+            color: var(--txt3);
+            border: none;
+            cursor: pointer;
+            transition: all .15s;
+        }
+
+        .fc-toggle-btn:first-child {
+            border-right: 0.5px solid var(--bdr2);
+        }
+
+        .fc-toggle-btn.active {
+            background: var(--txt);
+            color: var(--bg);
+        }
+
+        .fc-toggle-btn:not(.active):hover {
+            background: var(--bg2);
+            color: var(--txt2);
+        }
+
         /* Modal */
         .modal-bg {
             position: fixed;
@@ -837,8 +870,8 @@
 
         .wp-canvas-wrap {
             position: relative;
-            width: 100%;
-            max-width: 460px;
+            flex: 1;
+            min-width: 0;
         }
 
         #wpCanvas {
@@ -865,11 +898,83 @@
             transition: opacity .2s;
         }
 
+        .wp-preview {
+            position: absolute;
+            bottom: 8px;
+            right: 10px;
+            font-size: 22px;
+            font-weight: 600;
+            color: var(--txt3);
+            pointer-events: none;
+            letter-spacing: .02em;
+        }
+
+        .wp-canvas-row {
+            display: flex;
+            gap: 10px;
+            align-items: stretch;
+            width: 100%;
+            max-width: 500px;
+        }
+
         .wp-btns {
             display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
+            flex-direction: column;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+
+        .wp-icon-btn {
+            display: inline-flex;
+            align-items: center;
             justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: var(--r);
+            border: 0.5px solid var(--bdr2);
+            background: var(--bg2);
+            color: var(--txt2);
+            cursor: pointer;
+            transition: all .15s;
+            flex-shrink: 0;
+        }
+
+        .wp-icon-btn:hover {
+            background: var(--bg3);
+            color: var(--txt);
+        }
+
+        .wp-icon-btn--primary {
+            background: var(--txt);
+            color: var(--bg);
+            border-color: transparent;
+        }
+
+        .wp-icon-btn--primary:hover {
+            opacity: .82;
+            color: var(--bg);
+        }
+
+        .wp-icon-btn--next {
+            background: #27500A;
+            color: #EAF3DE;
+            border-color: transparent;
+        }
+
+        .wp-icon-btn--next:hover {
+            opacity: .85;
+            color: #EAF3DE;
+        }
+
+        .wp-icon-btn--skip {
+            background: #A32D2D;
+            color: #FCEBEB;
+            border-color: transparent;
+        }
+
+        .wp-icon-btn--skip:hover {
+            opacity: .85;
+            color: #FCEBEB;
         }
 
         .wp-answer {
@@ -976,7 +1081,12 @@
             display: none !important;
         }
 
-        body.is-admin .admin-only {
+        body.is-admin .admin-only:not(.pane):not(tr):not(td):not(th):not(button) {
+            display: block !important;
+        }
+
+        /* Admin tab (pane) visibility controlled by switchTab only */
+        body.is-admin .pane.admin-only.active {
             display: block !important;
         }
 
@@ -1034,6 +1144,97 @@
             cursor: pointer;
             text-decoration: underline;
         }
+        /* ── Quiz ── */
+        .quiz-list { display: flex; flex-direction: column; gap: 12px; }
+        .quiz-card {
+            background: var(--bg); border: 0.5px solid var(--bdr);
+            border-radius: var(--rl); padding: 16px 20px;
+            display: flex; align-items: center; gap: 14px; cursor: pointer;
+            transition: background .15s;
+        }
+        .quiz-card:hover { background: var(--bg2); }
+        .quiz-card-info { flex: 1; }
+        .quiz-card-title { font-size: 15px; font-weight: 600; margin-bottom: 3px; }
+        .quiz-card-meta { font-size: 12px; color: var(--txt3); }
+        .quiz-card-arrow { color: var(--txt3); font-size: 18px; }
+
+        .quiz-doing { display: flex; flex-direction: column; align-items: center; gap: 16px; }
+        .quiz-q-label { font-size: 11px; font-weight: 600; letter-spacing:.06em; text-transform: uppercase; color: var(--txt3); align-self: flex-start; }
+        .quiz-prompt { font-size: 34px; font-weight: 700; text-align: center; }
+        .quiz-prompt-sub { font-size: 14px; color: var(--txt2); text-align: center; }
+        .quiz-prog { font-size: 12px; color: var(--txt3); }
+        .quiz-result-banner {
+            width: 100%; max-width: 500px; padding: 12px 18px; border-radius: var(--r);
+            font-size: 14px; font-weight: 600; text-align: center;
+        }
+        .quiz-result-banner.correct { background: #EAF3DE; color: #27500A; }
+        .quiz-result-banner.wrong { background: #FCEBEB; color: #A32D2D; }
+        .quiz-result-banner.info { background: var(--bg2); color: var(--txt2); font-weight: 400; }
+
+        .quiz-summary { background: var(--bg); border: 0.5px solid var(--bdr); border-radius: var(--rl); padding: 28px; max-width: 500px; width: 100%; text-align: center; }
+        .quiz-score { font-size: 52px; font-weight: 700; margin: 8px 0; }
+        .quiz-score-label { font-size: 13px; color: var(--txt3); margin-bottom: 20px; }
+        .quiz-review { width: 100%; margin-top: 18px; text-align: left; }
+        .quiz-review-item { padding: 9px 0; border-bottom: 0.5px solid var(--bdr); font-size: 13px; display: flex; gap: 8px; align-items: center; }
+        .quiz-review-item:last-child { border-bottom: none; }
+
+        .quiz-card.exhausted { opacity: .55; cursor: default; }
+        .quiz-card.exhausted:hover { background: var(--bg); }
+        .quiz-attempt-badge {
+            display: inline-block;
+            font-size: 10px;
+            font-weight: 600;
+            padding: 2px 7px;
+            border-radius: 20px;
+            background: #E6F1FB;
+            color: #0C447C;
+            vertical-align: middle;
+            margin-left: 6px;
+            letter-spacing: .03em;
+        }
+        .quiz-attempt-badge.exhausted {
+            background: #FCEBEB;
+            color: #A32D2D;
+        }
+
+        .completion-badge {
+            display: inline-block;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 3px 9px;
+            border-radius: 20px;
+            letter-spacing: .03em;
+        }
+        .completion-badge.done { background: #EAF3DE; color: #27500A; }
+        .completion-badge.pending { background: #FCEBEB; color: #A32D2D; }
+        .completion-table tr.row-notdone td { color: var(--txt3); }
+        .completion-table tr.row-notdone:hover { background: #FFF8F8; }
+        @media (prefers-color-scheme: dark) {
+            .completion-table tr.row-notdone:hover { background: #2a2020; }
+        }
+
+        /* ── Admin ── */
+        .admin-section { background: var(--bg); border: 0.5px solid var(--bdr); border-radius: var(--rl); padding: 20px; margin-bottom: 16px; }
+        .admin-section h2 { font-size: 14px; font-weight: 600; margin-bottom: 14px; color: var(--txt); }
+        .admin-quiz-list { display: flex; flex-direction: column; gap: 10px; }
+        .admin-quiz-item { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: var(--bg2); border-radius: var(--r); }
+        .admin-quiz-item-info { flex: 1; min-width: 0; }
+        .admin-quiz-item-title { font-size: 13px; font-weight: 600; }
+        .admin-quiz-item-meta { font-size: 11px; color: var(--txt3); margin-top: 2px; }
+
+        .word-picker { max-height: 320px; overflow-y: auto; border: 0.5px solid var(--bdr); border-radius: var(--r); }
+        .word-picker-item { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-bottom: 0.5px solid var(--bdr); cursor: pointer; transition: background .1s; }
+        .word-picker-item:last-child { border-bottom: none; }
+        .word-picker-item:hover { background: var(--bg2); }
+        .word-picker-item input[type=checkbox] { width: 15px; height: 15px; flex-shrink: 0; cursor: pointer; }
+        .word-picker-kor { font-size: 15px; font-weight: 600; flex: 1; }
+        .word-picker-mean { font-size: 12px; color: var(--txt2); }
+        .picker-count { font-size: 12px; color: var(--txt3); margin-top: 6px; }
+
+        .results-table { width: 100%; border-collapse: collapse; }
+        .results-table th { padding: 8px 10px; font-size: 10px; font-weight: 600; color: var(--txt3); letter-spacing:.05em; text-transform:uppercase; text-align:left; border-bottom: 0.5px solid var(--bdr); background: var(--bg2); }
+        .results-table td { padding: 9px 10px; font-size: 12px; border-bottom: 0.5px solid var(--bdr); vertical-align: middle; }
+        .results-table tr:last-child td { border-bottom: none; }
     </style>
     <script src="https://unpkg.com/hangul-js" type="text/javascript"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
@@ -1055,7 +1256,9 @@
         <div class="tabs">
             <div class="tab active" onclick="switchTab('list')">Danh sách</div>
             <div class="tab" onclick="switchTab('flash')">Flashcard</div>
-            <div class="tab" onclick="switchTab('write')">Luyện viết ✍️</div>
+            <div class="tab" onclick="switchTab('write')">Luyện viết</div>
+            <div class="tab" onclick="switchTab('quiz')">Kiểm tra</div>
+            <div class="tab admin-only" onclick="switchTab('admin')">Admin</div>
         </div>
 
         <!-- TAB: LIST -->
@@ -1127,7 +1330,7 @@
 
             <!-- Filter -->
             <div class="filter-bar">
-                <select id="fType" onchange="renderTable()">
+                <!-- <select id="fType" onchange="renderTable()">
                     <option value="">Tất cả từ loại</option>
                     <option value="명사">명사</option>
                     <option value="동사">동사</option>
@@ -1135,7 +1338,7 @@
                     <option value="부사">부사</option>
                     <option value="감탄사">감탄사</option>
                     <option value="기타">기타</option>
-                </select>
+                </select> -->
                 <select id="fTopic" onchange="renderTable()">
                     <option value="">Tất cả chủ đề</option>
                 </select>
@@ -1181,6 +1384,16 @@
                     <div class="empty-state">Chưa có từ vựng.</div>
                 </div>
             </div>
+        </div>
+
+        <!-- TAB: QUIZ -->
+        <div id="pane-quiz" class="pane">
+            <div id="quizWrap"><div class="empty-state">Đang tải bài kiểm tra...</div></div>
+        </div>
+
+        <!-- TAB: ADMIN -->
+        <div id="pane-admin" class="pane admin-only">
+            <div id="adminWrap"><div class="empty-state">Đang tải...</div></div>
         </div>
 
     </div>
@@ -1375,11 +1588,15 @@
 
         /* Tabs */
         function switchTab(n) {
-            document.querySelectorAll('.tab').forEach((t, i) => t.classList.toggle('active', ['list', 'flash', 'write'][i] === n));
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            const tabNames = ['list', 'flash', 'write', 'quiz', 'admin'];
+            document.querySelectorAll('.tab').forEach((t, i) => { if (tabNames[i] === n) t.classList.add('active'); });
             document.querySelectorAll('.pane').forEach(p => p.classList.remove('active'));
             document.getElementById('pane-' + n).classList.add('active');
             if (n === 'flash') buildFlash();
             if (n === 'write') buildWrite();
+            if (n === 'quiz') buildQuiz();
+            if (n === 'admin') buildAdmin();
         }
 
 
@@ -1422,18 +1639,37 @@
                 </select>
             </div>
             <div class="wp-card" id="wpCard">
-                <div class="wp-prompt-label" id="wpLabel"></div>
+                
                 <div class="wp-prompt" id="wpPrompt"></div>
                 <div class="wp-prompt-sub" id="wpPromptSub"></div>
-                <div class="wp-canvas-wrap">
-                    <canvas id="wpCanvas"></canvas>
-                    <div class="wp-canvas-hint" id="wpHint">Vẽ từ ở đây...</div>
-                </div>
-                <div class="wp-btns">
-                    <button class="btn btn-ghost" onclick="wpClear()">Xóa nét</button>
-                    <button class="btn btn-ghost" onclick="wpReveal()">Hiện đáp án</button>
-                    <button class="btn btn-ghost" onclick="wpRecognize()">Nhận diện &amp; Kiểm tra</button>
-                    <button class="btn btn-dark" onclick="wpNext()">Từ tiếp theo →</button>
+                <div class="wp-canvas-row">
+                    <div class="wp-btns">
+                        <button class="wp-icon-btn" onclick="wpUndoStroke()" title="Xóa nét vừa vẽ">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 0 0-4-4H4"/></svg>
+                        </button>
+                        <button class="wp-icon-btn" onclick="wpClear()" title="Xóa tất cả">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+                        </button>
+                        <button class="wp-icon-btn" onclick="wpSkip()" title="Bỏ qua từ này">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                        </button>
+                    </div>
+                    <div class="wp-canvas-wrap">
+                        <canvas id="wpCanvas"></canvas>
+                        <div class="wp-canvas-hint" id="wpHint">Vẽ từ ở đây...</div>
+                        <div class="wp-preview" id="wpPreview"></div>
+                    </div>
+                    <div class="wp-btns">
+                        <button class="wp-icon-btn wp-icon-btn--primary" onclick="wpRecognize()" title="Nhận diện & Kiểm tra">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 11 3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                        </button>
+                        <button class="wp-icon-btn" onclick="wpReveal()" title="Hiện đáp án">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                        </button>
+                        <button class="wp-icon-btn wp-icon-btn--next" id="wpNextBtn" onclick="wpNext()" title="Từ tiếp theo" style="display:none">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 5l7 7-7 7"/><path d="M5 5l7 7-7 7"/></svg>
+                        </button>
+                    </div>
                 </div>
                 <div class="wp-result hidden" id="wpResult"></div>
                 <div class="wp-answer hidden" id="wpAns"></div>
@@ -1452,12 +1688,42 @@
                     .sort(() => Math.random() - .5);
             }
 
+            let answered = false; // track if current word answered correctly
+
+            function setNextVisible(visible, skipped = false) {
+                const btn = document.getElementById('wpNextBtn');
+                if (!btn) return;
+                btn.style.display = visible ? '' : 'none';
+                btn.classList.toggle('wp-icon-btn--skip', skipped);
+                btn.classList.toggle('wp-icon-btn--next', !skipped);
+            }
+
+            function setLeftBtnsVisible(visible) {
+                const row = document.getElementById('wpCard')?.querySelector('.wp-canvas-row');
+                if (!row) return;
+                const leftBtns = row.querySelector('.wp-btns');
+                if (leftBtns) leftBtns.style.visibility = visible ? '' : 'hidden';
+            }
+
             function render() {
+                const card = document.getElementById('wpCard');
                 if (!pool.length) {
                     document.getElementById('wpPrompt').textContent = 'Không có từ phù hợp.';
                     document.getElementById('wpProg').textContent = '';
+                    // Hide canvas + buttons when no words
+                    card.querySelector('.wp-canvas-row').style.display = 'none';
+                    document.getElementById('wpResult').className = 'wp-result hidden';
+                    document.getElementById('wpAns').classList.add('hidden');
+                    document.getElementById('wpAnsSub').classList.add('hidden');
                     return;
                 }
+                // Show canvas + buttons
+                card.querySelector('.wp-canvas-row').style.display = '';
+
+                answered = false;
+                setNextVisible(false);
+                setLeftBtnsVisible(true);
+
                 const w = pool[idx];
                 const mode = document.getElementById('wpMode').value;
                 const label = document.getElementById('wpLabel');
@@ -1467,19 +1733,16 @@
                 const ansSub = document.getElementById('wpAnsSub');
 
                 if (mode === 'viet-kor') {
-                    label.textContent = 'Nhìn tiếng Việt, viết tiếng Hàn';
                     prompt.textContent = w.meaning;
                     sub.textContent = w.type ? `[${w.type}]${w.topic ? ' • ' + w.topic : ''}` : '';
                     ans.textContent = w.korean;
                     ansSub.textContent = w.romanize ? `[${w.romanize}]` : '';
                 } else if (mode === 'kor-kor') {
-                    label.textContent = 'Nhìn từ Hàn, viết lại';
                     prompt.textContent = w.korean;
                     sub.textContent = w.type ? `[${w.type}]${w.topic ? ' • ' + w.topic : ''}` : '';
                     ans.textContent = w.korean;
                     ansSub.textContent = w.romanize ? `[${w.romanize}] ${w.meaning}` : w.meaning;
                 } else {
-                    label.textContent = 'Nhìn tiếng Hàn, viết tiếng Việt';
                     prompt.textContent = w.korean;
                     sub.textContent = w.romanize ? `[${w.romanize}]${w.topic ? ' • ' + w.topic : ''}` : '';
                     ans.textContent = w.meaning;
@@ -1487,6 +1750,7 @@
                 }
                 ans.classList.add('hidden');
                 ansSub.classList.add('hidden');
+                document.getElementById('wpResult').className = 'wp-result hidden';
                 document.getElementById('wpProg').textContent = `${idx + 1} / ${pool.length}`;
                 wpClear();
             }
@@ -1502,6 +1766,8 @@
             resizeCanvas();
 
             window.wpClear = () => {
+                clearTimeout(autoRecognizeTimer);
+                const p = document.getElementById('wpPreview'); if (p) p.textContent = '';
                 const ctx = canvas.getContext('2d');
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 hint.style.opacity = '1';
@@ -1510,11 +1776,93 @@
                 if (r) r.className = 'wp-result hidden';
             };
 
+            window.wpUndoStroke = () => {
+                clearTimeout(autoRecognizeTimer);
+                if (!strokes.length) return;
+                strokes.pop();
+                // Redraw all remaining strokes
+                const ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                ctx.strokeStyle = isDark ? '#f0efe9' : '#1a1a18';
+                ctx.lineWidth = 3 * devicePixelRatio;
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+                for (const stroke of strokes) {
+                    if (stroke.length < 2) continue;
+                    ctx.beginPath();
+                    ctx.moveTo(stroke[0].x, stroke[0].y);
+                    for (let i = 1; i < stroke.length; i++) ctx.lineTo(stroke[i].x, stroke[i].y);
+                    ctx.stroke();
+                }
+                if (!strokes.length) hint.style.opacity = '1';
+                const r = document.getElementById('wpResult');
+                if (r) r.className = 'wp-result hidden';
+                const p = document.getElementById('wpPreview'); if (p) p.textContent = '';
+                if (strokes.length) { clearTimeout(autoRecognizeTimer); autoRecognizeTimer = setTimeout(() => wpPreview(), 10); } //2937
+            };
+
             window.wpRestart = () => { pool = getPool(); idx = 0; render(); };
-            window.wpNext = () => { idx = (idx + 1) % pool.length; render(); };
+            window.wpNext = () => { if (!answered) return; idx = (idx + 1) % pool.length; render(); };
+            window.wpSkip = () => {
+                const resultEl = document.getElementById('wpResult');
+                document.getElementById('wpAns').classList.remove('hidden');
+                document.getElementById('wpAnsSub').classList.remove('hidden');
+                resultEl.innerHTML = `⏭ Đã bỏ qua — đáp án: <strong>${esc(document.getElementById('wpAns').textContent)}</strong>`;
+                resultEl.className = 'wp-result info';
+                answered = true;
+                setNextVisible(true, true);
+                setLeftBtnsVisible(false);
+            };
             window.wpReveal = () => {
                 document.getElementById('wpAns').classList.remove('hidden');
                 document.getElementById('wpAnsSub').classList.remove('hidden');
+            };
+            window.wpPreview = async () => {
+                if (!strokes.length || answered) return;
+                const previewEl = document.getElementById('wpPreview');
+                if (!previewEl) return;
+
+                // 1. Browser Handwriting API
+                if (navigator.createHandwritingRecognizer) {
+                    try {
+                        const mode = document.getElementById('wpMode').value;
+                        const lang = mode === 'kor-viet' ? 'vi' : 'ko';
+                        const recognizer = await navigator.createHandwritingRecognizer({ languages: [lang] });
+                        const dr = recognizer.startDrawing({});
+                        for (const sData of strokes) {
+                            const s = new HandwritingStroke();
+                            for (const pt of sData) s.addPoint({ x: pt.x / devicePixelRatio, y: pt.y / devicePixelRatio, t: pt.t });
+                            dr.addStroke(s);
+                        }
+                        const results = await dr.getPrediction();
+                        recognizer.finish();
+                        if (results?.length) { previewEl.textContent = results[0].text.trim(); return; }
+                    } catch (e) {}
+                }
+
+                // 2. Google Input Tools
+                try {
+                    const mode = document.getElementById('wpMode').value;
+                    const itc = mode === 'kor-viet' ? 'vi-t-i0-handwrit' : 'ko-t-i0-handwrit';
+                    const startTime = strokes[0][0].t;
+                    const ink = strokes.map(s => [
+                        s.map(p => Math.round(p.x / devicePixelRatio)),
+                        s.map(p => Math.round(p.y / devicePixelRatio)),
+                        s.map(p => p.t - startTime)
+                    ]);
+                    const box = canvas.getBoundingClientRect();
+                    const url = `https://inputtools.google.com/request?itc=${itc}&num=5&cp=0&cs=1&ie=utf-8&oe=utf-8&app=test`;
+                    const r = await fetch(url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ app: 'test', itc, requests: [{ writing_guide: { writing_area_width: Math.round(box.width), writing_area_height: Math.round(box.height) }, ink }] })
+                    });
+                    const data = await r.json();
+                    if (data[0] === 'SUCCESS' && data[1]?.[0]?.[1]?.length) {
+                        previewEl.textContent = data[1][0][1][0].trim();
+                    }
+                } catch (e) {}
             };
             window.wpRecognize = async () => {
                 const resultEl = document.getElementById('wpResult');
@@ -1540,6 +1888,9 @@
                     if (ok) {
                         resultEl.innerHTML = `✅ Đúng! «${esc(recognized)}»`;
                         resultEl.className = 'wp-result correct';
+                        answered = true;
+                        setNextVisible(true, false);
+                        setLeftBtnsVisible(false);
                     } else {
                         resultEl.innerHTML = `❌ Nhận diện: <strong>${esc(recognized)}</strong> — Đáp án: <strong>${esc(expected)}</strong>`;
                         resultEl.className = 'wp-result wrong';
@@ -1627,6 +1978,7 @@
             }
             function startDraw(e) {
                 e.preventDefault();
+                clearTimeout(autoRecognizeTimer);
                 drawing = true;
                 hint.style.opacity = '0';
                 [lastX, lastY] = getXY(e);
@@ -1649,10 +2001,15 @@
                 [lastX, lastY] = [x, y];
                 currentStroke.push({ x, y, t: Date.now() });
             }
+            let autoRecognizeTimer = null;
             function stopDraw() {
                 if (drawing && currentStroke.length) strokes.push([...currentStroke]);
                 drawing = false;
                 currentStroke = [];
+                if (strokes.length && !answered) {
+                    clearTimeout(autoRecognizeTimer);
+                    autoRecognizeTimer = setTimeout(() => wpPreview(), 10); //2937
+                }
             }
 
             canvas.addEventListener('pointerdown', startDraw);
@@ -1954,14 +2311,14 @@
             const kor = document.getElementById('searchKor').value.trim().toLowerCase();
             const mean = document.getElementById('iMean').value.trim().toLowerCase();
             const type = document.getElementById('iType').value;
-            const t = document.getElementById('fType').value;
+            // const t = document.getElementById('fType').value;
             const tp = document.getElementById('fTopic').value;
             const sort = document.getElementById('fSort').value;
             let list = words.filter(w =>
                 (!kor || w.korean?.toLowerCase().includes(kor) || w.romanize?.toLowerCase().includes(kor)) &&
                 (!mean || w.meaning?.toLowerCase().includes(mean)) &&
-                (!type || w.type === type) &&
-                (!t || w.type === t) && (!tp || w.topic === tp)
+                (!type || w.type === type)/* &&
+                (!t || w.type === t)*/ && (!tp || w.topic === tp)
             );
             if (sort === 'kor_asc') list.sort((a, b) => (a.korean || '').localeCompare(b.korean || ''));
             else if (sort === 'kor_desc') list.sort((a, b) => (b.korean || '').localeCompare(a.korean || ''));
@@ -1989,17 +2346,55 @@
         function buildFlash() {
             const wrap = document.getElementById('fcWrap');
             if (!words.length) { wrap.innerHTML = '<div class="empty-state">Chưa có từ vựng.</div>'; return; }
-            let pool = [...words].sort(() => Math.random() - .5), idx = 0, selType = '';
+
+            // Collect unique topics
+            const allTopics = [...new Set(words.map(w => w.topic).filter(Boolean))].sort();
+
+            // Filter mode: 'type' or 'topic'
+            let filterMode = 'type'; // 'type' = lọc theo từ loại, 'topic' = lọc theo chủ đề
+            let selType = '';
+            let selTopic = '';
+            let pool = [...words].sort(() => Math.random() - .5);
+            let idx = 0;
+
+            function applyFilter() {
+                if (filterMode === 'type') {
+                    pool = [...words].filter(w => !selType || w.type === selType).sort(() => Math.random() - .5);
+                } else {
+                    pool = [...words].filter(w => !selTopic || w.topic === selTopic).sort(() => Math.random() - .5);
+                }
+                idx = 0;
+            }
+
             function render() {
+                if (!pool.length) {
+                    wrap.innerHTML = '<div class="empty-state">Không có từ nào phù hợp.</div>';
+                    return;
+                }
                 const w = pool[idx];
+
+                const typeOptions = ['명사','동사','형용사','부사','감탄사','기타']
+                    .map(t => `<option value="${t}" ${selType===t?'selected':''}>${t}</option>`).join('');
+
+                const topicOptions = allTopics
+                    .map(t => `<option value="${t}" ${selTopic===t?'selected':''}>${esc(t)}</option>`).join('');
+
                 wrap.innerHTML = `
       <div class="fc-toolbar">
-        <select id="fcType" onchange="fcFilter()">
+        <div class="fc-filter-toggle">
+          <button class="fc-toggle-btn ${filterMode==='type'?'active':''}" onclick="fcSetMode('type')">Từ loại</button>
+          <button class="fc-toggle-btn ${filterMode==='topic'?'active':''}" onclick="fcSetMode('topic')">Chủ đề</button>
+        </div>
+        ${filterMode === 'type' ? `
+        <select id="fcType" onchange="fcTypeFilter()">
           <option value="">Tất cả từ loại</option>
-          <option value="명사">명사</option><option value="동사">동사</option>
-          <option value="형용사">형용사</option><option value="부사">부사</option><option value="감탄사">감탄사</option><option value="기타">기타</option>
-        </select>
-        <button class="btn btn-ghost" onclick="buildFlash()">Xáo bài</button>
+          ${typeOptions}
+        </select>` : `
+        <select id="fcTopic" onchange="fcTopicFilter()">
+          <option value="">Tất cả chủ đề</option>
+          ${topicOptions}
+        </select>`}
+        <button class="btn btn-ghost" onclick="fcShuffle()">Xáo bài</button>
       </div>
       <div class="fc-prog">${idx + 1} / ${pool.length}</div>
       <div class="fc-card" id="fcard" onclick="this.classList.toggle('flipped')">
@@ -2007,6 +2402,7 @@
           <div class="fc-face fc-front">
             <span class="fc-kor">${esc(w.korean)}</span>
             <span class="badge b-${esc(w.type || '기타')}">${esc(w.type || '기타')}</span>
+            ${w.topic ? `<span style="font-size:11px;color:var(--txt3);margin-top:-4px">${esc(w.topic)}</span>` : ''}
             <span class="fc-hint">Nhấn để xem nghĩa</span>
           </div>
           <div class="fc-face fc-back">
@@ -2021,9 +2417,19 @@
         <button class="btn btn-ghost" onclick="fcGo(-1)" ${idx === 0 ? 'disabled' : ''}>← Trước</button>
         <button class="btn btn-ghost" onclick="fcGo(1)" ${idx === pool.length - 1 ? 'disabled' : ''}>Tiếp →</button>
       </div>`;
-                if (selType) document.getElementById('fcType').value = selType;
+
                 window.fcGo = dir => { idx = Math.max(0, Math.min(pool.length - 1, idx + dir)); render(); };
-                window.fcFilter = () => { selType = document.getElementById('fcType').value; pool = [...words].filter(w => !selType || w.type === selType).sort(() => Math.random() - .5); idx = 0; render(); };
+                window.fcTypeFilter = () => { selType = document.getElementById('fcType').value; applyFilter(); render(); };
+                window.fcTopicFilter = () => { selTopic = document.getElementById('fcTopic').value; applyFilter(); render(); };
+                window.fcSetMode = mode => {
+                    filterMode = mode;
+                    // When switching mode, reset to "all" of the OTHER dimension
+                    if (mode === 'type') { selTopic = ''; }
+                    else { selType = ''; }
+                    applyFilter();
+                    render();
+                };
+                window.fcShuffle = () => { pool.sort(() => Math.random() - .5); idx = 0; render(); };
             }
             render();
         }
@@ -2056,6 +2462,587 @@
         function esc(s) { if (!s) return ''; return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
         function escA(s) { return esc(s).replace(/'/g, '&#39;'); }
         function toast(msg, ms = 2500) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), ms); }
+
+        /* ═══════════════════════════════════
+           QUIZ
+           ═══════════════════════════════════ */
+        let quizzes = [];
+
+        async function loadQuizzes() {
+            try {
+                const { data, error } = await sp.from('quizzes').select('*').order('created_at', { ascending: false });
+                if (error) throw error;
+                quizzes = data || [];
+            } catch(e) { quizzes = []; }
+        }
+
+        async function buildQuiz() {
+            const wrap = document.getElementById('quizWrap');
+            wrap.innerHTML = '<div class="empty-state">Đang tải...</div>';
+            await loadQuizzes();
+            if (!quizzes.length) {
+                wrap.innerHTML = '<div class="empty-state">Chưa có bài kiểm tra nào. Admin hãy tạo bài!</div>';
+                return;
+            }
+            // Load attempt counts for current user
+            let attemptCounts = {}; // quizId -> count
+            if (currentUser) {
+                try {
+                    const { data } = await sp.from('quiz_results')
+                        .select('quiz_id')
+                        .eq('user_id', currentUser.id);
+                    (data || []).forEach(r => {
+                        attemptCounts[r.quiz_id] = (attemptCounts[r.quiz_id] || 0) + 1;
+                    });
+                } catch(e) {}
+            }
+            renderQuizList(attemptCounts);
+        }
+
+        function renderQuizList(attemptCounts = {}) {
+            const wrap = document.getElementById('quizWrap');
+            wrap.innerHTML = `
+                <div class="quiz-list">
+                    ${quizzes.map(q => {
+                        const max = q.max_attempts || 0;
+                        const used = attemptCounts[q.id] || 0;
+                        const exhausted = max > 0 && used >= max;
+                        const remaining = max > 0 ? max - used : null;
+                        const modeLabel = q.mode === 'kor-viet' ? 'Nhìn tiếng Hàn → viết tiếng Việt' : q.mode === 'viet-kor' ? 'Nhìn tiếng Việt → viết tiếng Hàn' : 'Nhìn tiếng Hàn → viết lại';
+                        const attemptBadge = max > 0
+                            ? exhausted
+                                ? `<span class="quiz-attempt-badge exhausted">Hết lượt</span>`
+                                : `<span class="quiz-attempt-badge">${remaining} lượt còn lại</span>`
+                            : '';
+                        return `
+                        <div class="quiz-card ${exhausted ? 'exhausted' : ''}" ${!exhausted ? `onclick="startQuiz('${q.id}')"` : ''}>
+                            <div class="quiz-card-info">
+                                <div class="quiz-card-title">${esc(q.title)} ${attemptBadge}</div>
+                                <div class="quiz-card-meta">${(q.word_ids || []).length} từ · ${modeLabel} · ${new Date(q.created_at).toLocaleDateString('vi-VN')}${max > 0 ? ` · Đã làm ${used}/${max} lượt` : ''}</div>
+                            </div>
+                            <span class="quiz-card-arrow">${exhausted ? '🔒' : '›'}</span>
+                        </div>`;
+                    }).join('')}
+                </div>`;
+        }
+
+        async function startQuiz(quizId) {
+            const quiz = quizzes.find(q => q.id === quizId);
+            if (!quiz) return;
+
+            // Check attempt limit
+            if (quiz.max_attempts > 0 && currentUser) {
+                try {
+                    const { count } = await sp.from('quiz_results')
+                        .select('id', { count: 'exact', head: true })
+                        .eq('quiz_id', quizId)
+                        .eq('user_id', currentUser.id);
+                    if (count >= quiz.max_attempts) {
+                        toast(`Bạn đã dùng hết ${quiz.max_attempts} lượt làm bài này`);
+                        return;
+                    }
+                } catch(e) {}
+            } else if (quiz.max_attempts > 0 && !currentUser) {
+                toast('Vui lòng đăng nhập để làm bài kiểm tra có giới hạn lượt');
+                return;
+            }
+
+            const wordIds = quiz.word_ids || [];
+            const pool = wordIds.map(id => words.find(w => String(w.id) === String(id))).filter(Boolean);
+            if (!pool.length) { toast('Không tìm thấy từ vựng trong bài kiểm tra này'); return; }
+
+            const wrap = document.getElementById('quizWrap');
+            let idx = 0;
+            const results = []; // {word, correct, recognized}
+            let answered = false;
+            let quizStrokes = [], quizCurrentStroke = [], quizDrawing = false;
+            let quizAutoTimer = null;
+
+            function getPromptAnswer(w) {
+                if (quiz.mode === 'viet-kor') return { prompt: w.meaning, sub: w.type ? `[${w.type}]` : '', answer: w.korean, answerSub: w.romanize ? `[${w.romanize}]` : '' };
+                if (quiz.mode === 'kor-kor') return { prompt: w.korean, sub: w.type ? `[${w.type}]` : '', answer: w.korean, answerSub: w.romanize ? `[${w.romanize}] ${w.meaning}` : w.meaning };
+                return { prompt: w.korean, sub: w.romanize ? `[${w.romanize}]` : '', answer: w.meaning, answerSub: '' };
+            }
+
+            function renderQuizDoing() {
+                const w = pool[idx];
+                const { prompt, sub, answer, answerSub } = getPromptAnswer(w);
+                answered = false;
+                wrap.innerHTML = `
+                <div class="quiz-doing">
+                    <div class="quiz-q-label">Câu ${idx + 1} / ${pool.length}</div>
+                    <div class="quiz-prompt">${esc(prompt)}</div>
+                    ${sub ? `<div class="quiz-prompt-sub">${esc(sub)}</div>` : ''}
+                    <div class="wp-canvas-row" style="max-width:500px;width:100%">
+                        <div class="wp-btns">
+                            <button class="wp-icon-btn" onclick="qzUndo()" title="Xóa nét vừa vẽ">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 0 0-4-4H4"/></svg>
+                            </button>
+                            <button class="wp-icon-btn" onclick="qzClear()" title="Xóa tất cả">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+                            </button>
+                        </div>
+                        <div class="wp-canvas-wrap" style="position:relative;flex:1;min-width:0">
+                            <canvas id="qzCanvas" style="display:block;width:100%;aspect-ratio:4/3;border:0.5px solid var(--bdr2);border-radius:var(--r);background:var(--bg);cursor:crosshair;touch-action:none;max-height:40vh"></canvas>
+                            <div id="qzHint" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--txt3);pointer-events:none">Vẽ đáp án ở đây...</div>
+                            <div id="qzPreview" style="position:absolute;bottom:8px;right:10px;font-size:22px;font-weight:600;color:var(--txt3);pointer-events:none"></div>
+                        </div>
+                        <div class="wp-btns">
+                            <button class="wp-icon-btn wp-icon-btn--primary" onclick="qzCheck()" title="Kiểm tra">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 11 3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                            </button>
+                            <button class="wp-icon-btn" id="qzRevealBtn" onclick="qzReveal()" title="Hiện đáp án">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                            </button>
+                            <button class="wp-icon-btn wp-icon-btn--next" id="qzNextBtn" onclick="qzNext()" title="Câu tiếp theo" style="display:none">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 5l7 7-7 7"/><path d="M5 5l7 7-7 7"/></svg>
+                            </button>
+                        </div>
+                    </div>
+                    <div id="qzAns" style="font-size:20px;font-weight:600;color:var(--txt);min-height:28px"></div>
+                    <div id="qzAnsSub" style="font-size:13px;color:var(--txt2);min-height:18px"></div>
+                    <div id="qzResult" class="quiz-result-banner" style="display:none;max-width:500px;width:100%"></div>
+                    <div style="width:100%;max-width:500px">
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px">
+                            <button class="btn btn-ghost" onclick="renderQuizList()" style="font-size:12px;padding:6px 12px">← Quay lại</button>
+                        </div>
+                    </div>
+                </div>`;
+
+                // Store answer for this question
+                wrap._answer = answer;
+                wrap._answerSub = answerSub;
+
+                // Setup canvas
+                const canvas = document.getElementById('qzCanvas');
+                const hint = document.getElementById('qzHint');
+                quizStrokes = []; quizCurrentStroke = []; quizDrawing = false;
+
+                function resizeCanvas() { const r = canvas.getBoundingClientRect(); canvas.width = r.width * devicePixelRatio; canvas.height = r.height * devicePixelRatio; }
+                resizeCanvas();
+
+                function getXY(e) { const r = canvas.getBoundingClientRect(); const src = e.touches ? e.touches[0] : e; return [(src.clientX - r.left) * devicePixelRatio, (src.clientY - r.top) * devicePixelRatio]; }
+                let lastX = 0, lastY = 0;
+                function startDraw(e) { e.preventDefault(); clearTimeout(quizAutoTimer); quizDrawing = true; hint.style.opacity = '0'; [lastX, lastY] = getXY(e); quizCurrentStroke = [{ x: lastX, y: lastY, t: Date.now() }]; }
+                function moveDraw(e) {
+                    if (!quizDrawing) return; e.preventDefault();
+                    const [x, y] = getXY(e);
+                    const ctx = canvas.getContext('2d');
+                    const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                    ctx.strokeStyle = isDark ? '#f0efe9' : '#1a1a18'; ctx.lineWidth = 3 * devicePixelRatio; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+                    ctx.beginPath(); ctx.moveTo(lastX, lastY); ctx.lineTo(x, y); ctx.stroke();
+                    [lastX, lastY] = [x, y]; quizCurrentStroke.push({ x, y, t: Date.now() });
+                }
+                function stopDraw() {
+                    if (quizDrawing && quizCurrentStroke.length) quizStrokes.push([...quizCurrentStroke]);
+                    quizDrawing = false; quizCurrentStroke = [];
+                    if (quizStrokes.length && !answered) { clearTimeout(quizAutoTimer); quizAutoTimer = setTimeout(() => qzPreview(), 10); } //2937
+                }
+                canvas.addEventListener('pointerdown', startDraw);
+                canvas.addEventListener('pointermove', moveDraw);
+                canvas.addEventListener('pointerup', stopDraw);
+                canvas.addEventListener('pointerleave', stopDraw);
+
+                window.qzClear = () => {
+                    clearTimeout(quizAutoTimer);
+                    const p = document.getElementById('qzPreview'); if (p) p.textContent = '';
+                    const ctx = canvas.getContext('2d'); ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    hint.style.opacity = '1'; quizStrokes = []; quizCurrentStroke = [];
+                    const r = document.getElementById('qzResult'); if (r) r.style.display = 'none';
+                };
+                window.qzUndo = () => {
+                    clearTimeout(quizAutoTimer);
+                    if (!quizStrokes.length) return;
+                    quizStrokes.pop();
+                    const ctx = canvas.getContext('2d'); ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                    ctx.strokeStyle = isDark ? '#f0efe9' : '#1a1a18'; ctx.lineWidth = 3 * devicePixelRatio; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+                    for (const s of quizStrokes) { if (s.length < 2) continue; ctx.beginPath(); ctx.moveTo(s[0].x, s[0].y); for (let i = 1; i < s.length; i++) ctx.lineTo(s[i].x, s[i].y); ctx.stroke(); }
+                    if (!quizStrokes.length) hint.style.opacity = '1';
+                    const p = document.getElementById('qzPreview'); if (p) p.textContent = '';
+                    if (quizStrokes.length) { quizAutoTimer = setTimeout(() => qzPreview(), 10); } //2937
+                };
+                window.qzReveal = () => {
+                    document.getElementById('qzAns').textContent = wrap._answer;
+                    document.getElementById('qzAnsSub').textContent = wrap._answerSub;
+                };
+                window.qzPreview = async () => {
+                    if (!quizStrokes.length || answered) return;
+                    const previewEl = document.getElementById('qzPreview'); if (!previewEl) return;
+                    if (navigator.createHandwritingRecognizer) {
+                        try {
+                            const lang = quiz.mode === 'kor-viet' ? 'vi' : 'ko';
+                            const recognizer = await navigator.createHandwritingRecognizer({ languages: [lang] });
+                            const dr = recognizer.startDrawing({});
+                            for (const sData of quizStrokes) { const s = new HandwritingStroke(); for (const pt of sData) s.addPoint({ x: pt.x / devicePixelRatio, y: pt.y / devicePixelRatio, t: pt.t }); dr.addStroke(s); }
+                            const res = await dr.getPrediction(); recognizer.finish();
+                            if (res?.length) { previewEl.textContent = res[0].text.trim(); return; }
+                        } catch(e) {}
+                    }
+                    try {
+                        const itc = quiz.mode === 'kor-viet' ? 'vi-t-i0-handwrit' : 'ko-t-i0-handwrit';
+                        const t0 = quizStrokes[0][0].t;
+                        const ink = quizStrokes.map(s => [s.map(p => Math.round(p.x / devicePixelRatio)), s.map(p => Math.round(p.y / devicePixelRatio)), s.map(p => p.t - t0)]);
+                        const box = canvas.getBoundingClientRect();
+                        const r = await fetch(`https://inputtools.google.com/request?itc=${itc}&num=5&cp=0&cs=1&ie=utf-8&oe=utf-8&app=test`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ app:'test', itc, requests:[{ writing_guide:{ writing_area_width: Math.round(box.width), writing_area_height: Math.round(box.height) }, ink }] }) });
+                        const data = await r.json();
+                        if (data[0] === 'SUCCESS' && data[1]?.[0]?.[1]?.length) previewEl.textContent = data[1][0][1][0].trim();
+                    } catch(e) {}
+                };
+                window.qzCheck = async () => {
+                    const resultEl = document.getElementById('qzResult');
+                    if (!quizStrokes.length) { resultEl.textContent = 'Hãy vẽ đáp án trước!'; resultEl.className = 'quiz-result-banner info'; resultEl.style.display = 'block'; return; }
+                    resultEl.textContent = 'Đang nhận diện...'; resultEl.className = 'quiz-result-banner info'; resultEl.style.display = 'block';
+
+                    const expected = wrap._answer;
+                    const normS = s => s.toLowerCase().replace(/\(.*?\)/g,'').replace(/\[.*?\]/g,'').replace(/\s+/g,' ').trim();
+                    const expectedParts = expected.split(',').map(s => normS(s));
+
+                    async function handleRecognized(recognized) {
+                        const ok = expectedParts.includes(normS(recognized));
+                        document.getElementById('qzAns').textContent = wrap._answer;
+                        document.getElementById('qzAnsSub').textContent = wrap._answerSub;
+                        answered = true;
+                        results.push({ word: pool[idx], correct: ok, recognized });
+                        if (ok) {
+                            resultEl.innerHTML = `✅ Đúng! «${esc(recognized)}»`;
+                            resultEl.className = 'quiz-result-banner correct';
+                            document.getElementById('qzNextBtn').style.display = '';
+                            document.getElementById('qzNextBtn').className = 'wp-icon-btn wp-icon-btn--next';
+                        } else {
+                            resultEl.innerHTML = `❌ Nhận diện: <strong>${esc(recognized)}</strong> — Đáp án: <strong>${esc(expected)}</strong>`;
+                            resultEl.className = 'quiz-result-banner wrong';
+                            document.getElementById('qzNextBtn').style.display = '';
+                            document.getElementById('qzNextBtn').className = 'wp-icon-btn wp-icon-btn--skip';
+                        }
+                        // Hide left buttons
+                        wrap.querySelector('.wp-btns').style.visibility = 'hidden';
+                    }
+
+                    // Try browser API
+                    if (navigator.createHandwritingRecognizer) {
+                        try {
+                            const lang = quiz.mode === 'kor-viet' ? 'vi' : 'ko';
+                            const recognizer = await navigator.createHandwritingRecognizer({ languages: [lang] });
+                            const dr = recognizer.startDrawing({});
+                            for (const sData of quizStrokes) { const s = new HandwritingStroke(); for (const pt of sData) s.addPoint({ x: pt.x / devicePixelRatio, y: pt.y / devicePixelRatio, t: pt.t }); dr.addStroke(s); }
+                            const res = await dr.getPrediction(); recognizer.finish();
+                            if (res?.length) { await handleRecognized(res[0].text.trim()); return; }
+                        } catch(e) {}
+                    }
+                    // Try Google
+                    try {
+                        const itc = quiz.mode === 'kor-viet' ? 'vi-t-i0-handwrit' : 'ko-t-i0-handwrit';
+                        const t0 = quizStrokes[0][0].t;
+                        const ink = quizStrokes.map(s => [s.map(p => Math.round(p.x / devicePixelRatio)), s.map(p => Math.round(p.y / devicePixelRatio)), s.map(p => p.t - t0)]);
+                        const box = canvas.getBoundingClientRect();
+                        const r = await fetch(`https://inputtools.google.com/request?itc=${itc}&num=10&cp=0&cs=1&ie=utf-8&oe=utf-8&app=test`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ app:'test', itc, requests:[{ writing_guide:{ writing_area_width: Math.round(box.width), writing_area_height: Math.round(box.height) }, ink }] }) });
+                        const data = await r.json();
+                        if (data[0] === 'SUCCESS' && data[1]?.[0]?.[1]?.length) { await handleRecognized(data[1][0][1][0].trim()); return; }
+                    } catch(e) {}
+                    resultEl.textContent = 'Không nhận diện được — thử vẽ rõ hơn nhé.';
+                    resultEl.className = 'quiz-result-banner info';
+                };
+                window.qzNext = () => {
+                    if (!answered) return;
+                    idx++;
+                    if (idx >= pool.length) { renderQuizSummary(); return; }
+                    renderQuizDoing();
+                };
+            }
+
+            async function renderQuizSummary() {
+                const score = results.filter(r => r.correct).length;
+                const wrap = document.getElementById('quizWrap');
+                wrap.innerHTML = `
+                <div style="display:flex;flex-direction:column;align-items:center;gap:16px;padding:8px 0">
+                    <div class="quiz-summary">
+                        <div style="font-size:13px;color:var(--txt3);font-weight:600;text-transform:uppercase;letter-spacing:.06em">${esc(quiz.title)}</div>
+                        <div class="quiz-score">${score}/${pool.length}</div>
+                        <div class="quiz-score-label">${score === pool.length ? '🎉 Hoàn hảo!' : score >= pool.length * 0.7 ? '👍 Tốt lắm!' : '💪 Cố lên nhé!'}</div>
+                        <div class="quiz-review">
+                            ${results.map((r, i) => `
+                            <div class="quiz-review-item">
+                                <span>${r.correct ? '✅' : '❌'}</span>
+                                <span style="font-weight:600">${esc(r.word.korean)}</span>
+                                <span style="color:var(--txt2);font-size:12px">${esc(r.word.meaning)}</span>
+                                ${!r.correct ? `<span style="color:var(--txt3);font-size:11px;margin-left:auto">Bạn viết: ${esc(r.recognized)}</span>` : ''}
+                            </div>`).join('')}
+                        </div>
+                        <div style="display:flex;gap:8px;justify-content:center;margin-top:18px">
+                            <button class="btn btn-ghost" onclick="buildQuiz()">← Danh sách</button>
+                            <button class="btn btn-dark" onclick="startQuiz('${quiz.id}')">Làm lại</button>
+                        </div>
+                    </div>
+                </div>`;
+                // Save result to Supabase
+                if (currentUser) {
+                    try {
+                        await sp.from('quiz_results').insert([{
+                            quiz_id: quiz.id,
+                            user_id: currentUser.id,
+                            user_email: currentUser.email,
+                            score,
+                            total: pool.length,
+                            detail: results.map(r => ({ korean: r.word.korean, meaning: r.word.meaning, correct: r.correct, recognized: r.recognized }))
+                        }]);
+                    } catch(e) { console.error('Lỗi lưu kết quả:', e); }
+                }
+            }
+
+            renderQuizDoing();
+        }
+
+        /* ═══════════════════════════════════
+           ADMIN
+           ═══════════════════════════════════ */
+        async function buildAdmin() {
+            if (!isAdmin) { document.getElementById('adminWrap').innerHTML = '<div class="empty-state">Bạn không có quyền truy cập.</div>'; return; }
+            const wrap = document.getElementById('adminWrap');
+            wrap.innerHTML = '<div class="empty-state">Đang tải...</div>';
+            await loadQuizzes();
+            // Load results
+            let allResults = [];
+            try {
+                const { data } = await sp.from('quiz_results').select('*').order('created_at', { ascending: false }).limit(200);
+                allResults = data || [];
+            } catch(e) {}
+            // Load student accounts (role = student)
+            let students = [];
+            try {
+                const { data, error } = await sp.from('profiles').select('id, role, display_name');
+                if (error) { console.error('profiles error:', error); }
+                else {
+                    const studentIds = new Set((data || []).filter(p => p.role?.toLowerCase() === 'student').map(p => p.id));
+                    const displayMap = {};
+                    (data || []).forEach(p => { if (p.display_name) displayMap[p.id] = p.display_name; });
+                    const emailMap = {};
+                    allResults.forEach(r => { if (r.user_id && r.user_email) emailMap[r.user_id] = r.user_email; });
+                    students = [...studentIds].map(id => ({ id, email: emailMap[id] || id, display_name: displayMap[id] || '' }));
+                    console.log('students:', students);
+                }
+            } catch(e) { console.error('profiles exception:', e); }
+            renderAdmin(allResults, students);
+        }
+
+        function renderAdmin(allResults, students = []) {
+            const wrap = document.getElementById('adminWrap');
+
+            // Build completion map: quizId -> Set of user_ids that attempted
+            const completionMap = {};
+            allResults.forEach(r => {
+                if (!completionMap[r.quiz_id]) completionMap[r.quiz_id] = {};
+                if (!completionMap[r.quiz_id][r.user_id]) completionMap[r.quiz_id][r.user_id] = { count: 0, best: 0, email: r.user_email };
+                completionMap[r.quiz_id][r.user_id].count++;
+                const pct = r.total > 0 ? Math.round(r.score / r.total * 100) : 0;
+                if (pct > completionMap[r.quiz_id][r.user_id].best) completionMap[r.quiz_id][r.user_id].best = pct;
+            });
+
+            wrap.innerHTML = `
+            <div class="admin-section">
+                <h2>Tạo bài kiểm tra mới</h2>
+                <div style="display:flex;flex-direction:column;gap:10px">
+                    <div class="fg">
+                        <label>Tên bài kiểm tra</label>
+                        <input type="text" id="qzTitle" placeholder="Ví dụ: Bài kiểm tra tuần 1" style="padding:8px 10px;border:0.5px solid var(--bdr2);border-radius:var(--r);background:var(--bg2);color:var(--txt);outline:none;font-family:inherit;font-size:13px;" />
+                    </div>
+                    <div class="fg">
+                        <label>Chế độ</label>
+                        <select id="qzMode" style="padding:8px 10px;border:0.5px solid var(--bdr2);border-radius:var(--r);background:var(--bg2);color:var(--txt);outline:none;font-family:inherit;font-size:13px;">
+                            <option value="viet-kor">Tiếng Việt → viết tiếng Hàn</option>
+                            <option value="kor-kor">Tiếng Hàn → viết lại tiếng Hàn</option>
+                            <option value="kor-viet">Tiếng Hàn → viết tiếng Việt</option>
+                        </select>
+                    </div>
+                    <div class="fg">
+                        <label>Giới hạn số lượt làm / tài khoản</label>
+                        <div style="display:flex;align-items:center;gap:10px">
+                            <input type="number" id="qzMaxAttempts" min="0" value="0" style="width:80px;padding:8px 10px;border:0.5px solid var(--bdr2);border-radius:var(--r);background:var(--bg2);color:var(--txt);outline:none;font-family:inherit;font-size:13px;" />
+                            <span style="font-size:12px;color:var(--txt3)">lượt &nbsp;(0 = không giới hạn)</span>
+                        </div>
+                    </div>
+                    <div class="fg">
+                        <label>Chọn từ <span id="pickerCount" class="picker-count">(0 từ đã chọn)</span></label>
+                        <input type="text" id="pickerSearch" placeholder="Tìm từ..." oninput="renderPicker()" style="padding:8px 10px;border:0.5px solid var(--bdr2);border-radius:var(--r);background:var(--bg2);color:var(--txt);outline:none;font-family:inherit;font-size:13px;margin-bottom:6px;" />
+                        <div class="word-picker" id="wordPicker"></div>
+                    </div>
+                    <button class="btn btn-dark" onclick="createQuiz()" style="align-self:flex-start">Tạo bài kiểm tra</button>
+                </div>
+            </div>
+
+            <div class="admin-section">
+                <h2>Bài kiểm tra hiện có (${quizzes.length})</h2>
+                ${!quizzes.length ? '<div style="color:var(--txt3);font-size:13px">Chưa có bài nào.</div>' : `
+                <div class="admin-quiz-list">
+                    ${quizzes.map(q => `
+                    <div class="admin-quiz-item">
+                        <div class="admin-quiz-item-info">
+                            <div class="admin-quiz-item-title">${esc(q.title)}</div>
+                            <div class="admin-quiz-item-meta">${(q.word_ids||[]).length} từ · ${q.mode === 'kor-viet' ? 'HÀN→VIỆT' : q.mode === 'viet-kor' ? 'VIỆT→HÀN' : 'HÀN→HÀN'} · ${q.max_attempts ? `${q.max_attempts} lượt` : '∞'} · ${new Date(q.created_at).toLocaleDateString('vi-VN')}</div>
+                        </div>
+                        <button class="btn-del" onclick="deleteQuiz('${q.id}')" title="Xóa" style="display:inline-flex!important;align-items:center;justify-content:center;flex-shrink:0;min-width:28px;min-height:28px;visibility:visible!important;opacity:1!important">✕</button>
+                    </div>`).join('')}
+                </div>`}
+            </div>
+
+            <div class="admin-section" id="completionSection">
+                <h2>Theo dõi hoàn thành</h2>
+                ${!quizzes.length ? '<div style="color:var(--txt3);font-size:13px">Chưa có bài nào.</div>' : `
+                <div style="margin-bottom:14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+                    <select id="completionQuizSel" onchange="renderCompletionTable()" style="padding:8px 12px;border:0.5px solid var(--bdr2);border-radius:var(--r);background:var(--bg2);color:var(--txt);outline:none;font-family:inherit;font-size:13px;flex:1;min-width:180px">
+                        ${quizzes.map((q,i) => `<option value="${q.id}" ${i===0?'selected':''}>${esc(q.title)}</option>`).join('')}
+                    </select>
+                    <span id="completionSummaryBadge" style="font-size:12px;color:var(--txt3)"></span>
+                </div>
+                <div id="completionTableWrap"></div>`}
+            </div>
+
+            <div class="admin-section">
+                <h2>Lịch sử kết quả gần đây</h2>
+                ${!allResults.length ? '<div style="color:var(--txt3);font-size:13px">Chưa có kết quả nào.</div>' : `
+                <div style="overflow-x:auto">
+                <table class="results-table">
+                    <thead><tr><th>Người dùng</th><th>Bài kiểm tra</th><th>Điểm</th><th>Thời gian</th></tr></thead>
+                    <tbody>
+                        ${allResults.map(r => {
+                            const qz = quizzes.find(q => q.id === r.quiz_id);
+                            return `<tr>
+                                <td>${esc(r.user_email || '')}</td>
+                                <td>${esc(qz?.title || r.quiz_id)}</td>
+                                <td><strong>${r.score}/${r.total}</strong></td>
+                                <td>${new Date(r.created_at).toLocaleString('vi-VN')}</td>
+                            </tr>`;
+                        }).join('')}
+                    </tbody>
+                </table></div>`}
+            </div>`;
+
+            renderPicker();
+
+            // Store for use in renderCompletionTable
+            window._adminStudents = students;
+            window._adminCompletionMap = completionMap;
+            window._adminAllResults = allResults;
+
+            if (quizzes.length) renderCompletionTable();
+        }
+
+        window.renderCompletionTable = () => {
+            const sel = document.getElementById('completionQuizSel');
+            if (!sel) return;
+            const quizId = sel.value;
+            const quiz = quizzes.find(q => q.id === quizId);
+            if (!quiz) return;
+
+            const students = window._adminStudents || [];
+            const completionMap = window._adminCompletionMap || {};
+            const quizData = completionMap[quizId] || {};
+
+            const studentSet = new Map(); // id -> student
+            students.forEach(s => studentSet.set(s.id, s));
+
+            const allStudents = [...studentSet.values()].sort((a,b) => (a.email || a.full_name || '').localeCompare(b.email || b.full_name || ''));
+
+            const done = allStudents.filter(s => quizData[s.id]);
+            const notDone = allStudents.filter(s => !quizData[s.id]);
+
+            const badge = document.getElementById('completionSummaryBadge');
+            if (badge) badge.innerHTML = `<span style="color:#27500A;background:#EAF3DE;padding:2px 8px;border-radius:20px;font-weight:600">${done.length} đã làm</span> &nbsp;<span style="color:#A32D2D;background:#FCEBEB;padding:2px 8px;border-radius:20px;font-weight:600">${notDone.length} chưa làm</span>`;
+
+            const wrap = document.getElementById('completionTableWrap');
+            if (!wrap) return;
+
+            if (!allStudents.length) {
+                wrap.innerHTML = '<div style="color:var(--txt3);font-size:13px;padding:8px 0">Không tìm thấy tài khoản nào có role Student.</div>';
+                return;
+            }
+
+            wrap.innerHTML = `
+            <table class="results-table completion-table">
+                <thead>
+                    <tr>
+                        <th>Tài khoản</th>
+                        <th>Số lượt</th>
+                        <th>Điểm cao nhất</th>
+                        <th>Trạng thái</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${allStudents.map(s => {
+                        const info = quizData[s.id];
+                        const done = !!info;
+                        const name = s.display_name
+                            ? `<div style="font-size:13px;font-weight:600">${esc(s.display_name)}</div>`
+                            : s.email && s.email !== s.id
+                                ? `<div style="font-size:13px">${esc(s.email)}</div>`
+                                : `<div style="font-size:12px;color:var(--txt3);font-family:monospace">${s.id.slice(0,8)}…</div>`;
+                        return `<tr class="${done ? '' : 'row-notdone'}">
+                            <td>${name}</td>
+                            <td style="font-size:13px">${done ? info.count + ' lượt' : '—'}</td>
+                            <td style="font-size:13px">${done ? `<strong>${info.best}%</strong>` : '—'}</td>
+                            <td>${done
+                                ? '<span class="completion-badge done">Đã làm</span>'
+                                : '<span class="completion-badge pending">Chưa làm</span>'
+                            }</td>
+                        </tr>`;
+                    }).join('')}
+                </tbody>
+            </table>`;
+        };
+
+        let pickerSelected = new Set();
+
+        window.renderPicker = () => {
+            const search = (document.getElementById('pickerSearch')?.value || '').toLowerCase();
+            const container = document.getElementById('wordPicker');
+            if (!container) return;
+            const filtered = words.filter(w =>
+                !search || w.korean?.toLowerCase().includes(search) || w.meaning?.toLowerCase().includes(search)
+            ).slice(0, 80);
+            container.innerHTML = filtered.map(w => `
+                <div class="word-picker-item" onclick="togglePick(${w.id})">
+                    <input type="checkbox" ${pickerSelected.has(w.id) ? 'checked' : ''} onclick="event.stopPropagation();togglePick(${w.id})" />
+                    <span class="word-picker-kor">${esc(w.korean)}</span>
+                    <span class="word-picker-mean">${esc(w.meaning)}</span>
+                </div>`).join('');
+            const cnt = document.getElementById('pickerCount');
+            if (cnt) cnt.textContent = `(${pickerSelected.size} từ đã chọn)`;
+        };
+
+        window.togglePick = (id) => {
+            if (pickerSelected.has(id)) pickerSelected.delete(id);
+            else pickerSelected.add(id);
+            renderPicker();
+        };
+
+        window.createQuiz = async () => {
+            const title = document.getElementById('qzTitle')?.value.trim();
+            const mode = document.getElementById('qzMode')?.value;
+            const maxAttempts = parseInt(document.getElementById('qzMaxAttempts')?.value || '0') || 0;
+            if (!title) { toast('Vui lòng nhập tên bài kiểm tra'); return; }
+            if (pickerSelected.size < 1) { toast('Vui lòng chọn ít nhất 1 từ'); return; }
+            try {
+                const { data, error } = await sp.from('quizzes').insert([{
+                    title, mode, word_ids: [...pickerSelected], max_attempts: maxAttempts
+                }]).select();
+                if (error) throw error;
+                quizzes.unshift(data[0]);
+                pickerSelected = new Set();
+                toast('Đã tạo bài kiểm tra: ' + title);
+                buildAdmin();
+            } catch(e) { toast('Lỗi: ' + (e.message || '')); }
+        };
+
+        window.deleteQuiz = async (id) => {
+            if (!confirm('Xóa bài kiểm tra này?')) return;
+            try {
+                const { error } = await sp.from('quizzes').delete().eq('id', id);
+                if (error) throw error;
+                quizzes = quizzes.filter(q => q.id !== id);
+                toast('Đã xóa');
+                buildAdmin();
+            } catch(e) { toast('Lỗi: ' + (e.message || '')); }
+        };
 
         loadWords();
     </script>
