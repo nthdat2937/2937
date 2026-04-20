@@ -5,6 +5,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>한국어 단어장</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
         *,
         *::before,
@@ -778,34 +779,57 @@
         }
 
         @media(max-width:620px) {
-            .form-row1 {
-                grid-template-columns: 1fr 1fr
-            }
+            /* Shell */
+            .shell { padding: 12px 10px 100px; }
 
-            .form-row1 .fg:last-child {
-                grid-column: 1/-1
-            }
+            /* Topbar */
+            .topbar { flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+            .topbar h1 { font-size: 15px; }
+            .topbar h1 small { display: none; }
 
-            .form-row2 {
-                grid-template-columns: 1fr
+            /* Tabs: scrollable horizontal strip */
+            .tabs {
+                display: flex;
+                gap: 0;
+                margin-bottom: 0;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                scrollbar-width: none;
+                border-bottom: 0.5px solid var(--bdr);
             }
+            .tabs::-webkit-scrollbar { display: none; }
+            .tab {
+                padding: 9px 14px;
+                font-size: 12px;
+                border-radius: 0;
+                flex-shrink: 0;
+                border-bottom: 2px solid transparent;
+                color: var(--txt3);
+                margin-bottom: -1px;
+            }
+            .tab.active {
+                background: transparent;
+                box-shadow: none;
+                border-bottom-color: var(--txt);
+                color: var(--txt);
+            }
+            .pane { margin-top: 12px; }
 
-            .drop-item {
-                grid-template-columns: 1fr 70px
-            }
+            /* Forms */
+            .form-row1 { grid-template-columns: 1fr 1fr; }
+            .form-row1 .fg:last-child { grid-column: 1/-1; }
+            .form-row2 { grid-template-columns: 1fr; }
+            .drop-item { grid-template-columns: 1fr 70px; }
+            .di-rom { display: none; }
 
-            .di-rom {
-                display: none
-            }
+            /* Table */
+            th:nth-child(4), td:nth-child(4),
+            th:nth-child(5), td:nth-child(5),
+            th:nth-child(6), td:nth-child(6) { display: none; }
 
-            th:nth-child(4),
-            td:nth-child(4),
-            th:nth-child(5),
-            td:nth-child(5),
-            th:nth-child(6),
-            td:nth-child(6) {
-                display: none
-            }
+            /* Filter bar */
+            .filter-bar { gap: 6px; }
+            .filter-bar select { font-size: 12px; padding: 6px 8px; }
         }
 
         /* ── Writing practice ── */
@@ -1213,7 +1237,108 @@
             .completion-table tr.row-notdone:hover { background: #2a2020; }
         }
 
-        /* ── Admin ── */
+        /* ── Typing practice ── */
+        .tp-input-wrap {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            max-width: 500px;
+        }
+        .tp-input {
+            width: 100%;
+            font-size: 22px;
+            font-weight: 600;
+            text-align: center;
+            padding: 14px 16px;
+            border: 1.5px solid var(--bdr2);
+            border-radius: var(--r);
+            background: var(--bg2);
+            color: var(--txt);
+            outline: none;
+            font-family: inherit;
+            letter-spacing: .03em;
+            transition: border-color .2s, background .2s;
+        }
+        .tp-input:focus { border-color: var(--txt2); background: var(--bg); }
+        .tp-input.correct { border-color: #27500A; background: #EAF3DE; color: #27500A; }
+        .tp-input.wrong { border-color: #A32D2D; background: #FCEBEB; color: #A32D2D; }
+        .tp-hint-row {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .tp-char {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px; height: 36px;
+            font-size: 18px;
+            font-weight: 700;
+            border-radius: 5px;
+            border: 1px solid var(--bdr2);
+            background: var(--bg2);
+            color: var(--txt3);
+            transition: all .15s;
+        }
+        .tp-char.hit { background: #EAF3DE; color: #27500A; border-color: #a3c97a; }
+        .tp-char.miss { background: #FCEBEB; color: #A32D2D; border-color: #e9aaaa; }
+        .tp-btns-row {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .tp-keyboard-hint {
+            font-size: 11px;
+            color: var(--txt3);
+            text-align: center;
+        }
+
+        /* ── Listening practice ── */
+        .lp-play-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 18px 36px;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: var(--rl);
+            border: 1.5px solid var(--bdr2);
+            background: var(--bg);
+            color: var(--txt);
+            cursor: pointer;
+            transition: all .15s;
+            letter-spacing: .02em;
+        }
+        .lp-play-btn:hover { background: var(--bg2); }
+        .lp-play-btn.playing { background: var(--txt); color: var(--bg); border-color: transparent; }
+        .lp-play-btn svg { flex-shrink: 0; }
+        .lp-speed-row {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            justify-content: center;
+        }
+        .lp-speed-btn {
+            padding: 5px 12px;
+            font-size: 12px;
+            font-weight: 600;
+            border-radius: 20px;
+            border: 1px solid var(--bdr2);
+            background: transparent;
+            color: var(--txt3);
+            cursor: pointer;
+            transition: all .15s;
+        }
+        .lp-speed-btn.active { background: var(--txt); color: var(--bg); border-color: transparent; }
+        .lp-speed-btn:not(.active):hover { background: var(--bg2); color: var(--txt2); }
+
+        /* ── End CSS ── */
         .admin-section { background: var(--bg); border: 0.5px solid var(--bdr); border-radius: var(--rl); padding: 20px; margin-bottom: 16px; }
         .admin-section h2 { font-size: 14px; font-weight: 600; margin-bottom: 14px; color: var(--txt); }
         .admin-quiz-list { display: flex; flex-direction: column; gap: 10px; }
@@ -1235,6 +1360,344 @@
         .results-table th { padding: 8px 10px; font-size: 10px; font-weight: 600; color: var(--txt3); letter-spacing:.05em; text-transform:uppercase; text-align:left; border-bottom: 0.5px solid var(--bdr); background: var(--bg2); }
         .results-table td { padding: 9px 10px; font-size: 12px; border-bottom: 0.5px solid var(--bdr); vertical-align: middle; }
         .results-table tr:last-child td { border-bottom: none; }
+        /* ── SOẠN BÀI ── */
+        #pane-soan {
+            height: calc(100vh - var(--topbar-h, 0px) - var(--tabs-h, 0px) - var(--shell-pt, 0px));
+            min-height: 400px;
+        }
+        /* Khi tab soạn bài active, shell không cần padding-bottom */
+        body.soan-active .shell { padding-bottom: 0 !important; }
+        .soan-shell {
+            display: grid;
+            grid-template-columns: 240px 1fr 280px;
+            height: 100%;
+            overflow: hidden;
+        }
+        /* LEFT */
+        .soan-left {
+            background: var(--bg);
+            border-right: 0.5px solid var(--bdr);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .soan-left-header {
+            display: flex;
+            align-items: center;
+            padding: 10px 12px;
+            border-bottom: 0.5px solid var(--bdr);
+            flex-shrink: 0;
+        }
+        .soan-left-title { font-size: 13px; font-weight: 600; flex: 1; color: var(--txt); }
+        .soan-progress-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            flex-shrink: 0;
+            border-bottom: 0.5px solid var(--bdr);
+        }
+        .soan-progress-row span { font-size: 11px; color: var(--txt3); white-space: nowrap; }
+        .soan-progress-track { flex: 1; height: 4px; background: var(--bg2); border-radius: 4px; overflow: hidden; }
+        .soan-progress-fill { height: 100%; background: #27500A; border-radius: 4px; transition: width .3s; width: 0%; }
+        .soan-lesson-list { flex: 1; overflow-y: auto; padding: 6px 0; }
+        .soan-day-group { margin-bottom: 4px; }
+        .soan-day-label { font-size: 10px; font-weight: 600; color: var(--txt3); text-transform: uppercase; letter-spacing: .05em; padding: 6px 12px 3px; }
+        .soan-lesson-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 7px 10px 7px 12px;
+            cursor: pointer;
+            border-left: 2.5px solid transparent;
+            transition: background .12s;
+        }
+        .soan-lesson-item:hover { background: var(--bg2); }
+        .soan-lesson-item.active { background: var(--bg2); border-left-color: var(--txt2); }
+        .soan-lesson-item.done .soan-lesson-name { text-decoration: line-through; color: var(--txt3); }
+        .soan-lesson-check {
+            width: 18px; height: 18px; border-radius: 50%;
+            border: 1.5px solid var(--bdr2);
+            flex-shrink: 0; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: all .15s;
+            font-size: 10px;
+        }
+        .soan-lesson-item.done .soan-lesson-check { background: #27500A; border-color: #27500A; color: #EAF3DE; }
+        .soan-lesson-info { flex: 1; min-width: 0; }
+        .soan-lesson-name { font-size: 13px; font-weight: 500; color: var(--txt); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .soan-lesson-meta { display: flex; align-items: center; gap: 5px; margin-top: 2px; font-size: 10px; color: var(--txt3); }
+        .soan-tag { padding: 1px 6px; border-radius: 4px; font-size: 9px; font-weight: 600; }
+        .soan-tag-korean { background: #E6F1FB; color: #0C447C; }
+        .soan-tag-math { background: #EEEDFE; color: #3C3489; }
+        .soan-tag-lit { background: #FAEEDA; color: #633806; }
+        .soan-tag-eng { background: #EAF3DE; color: #27500A; }
+        .soan-tag-other { background: var(--bg2); color: var(--txt2); }
+
+        /* MIDDLE */
+        .soan-mid {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background: var(--bg);
+            position: relative;
+        }
+        .soan-editor-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 14px;
+            border-bottom: 0.5px solid var(--bdr);
+            flex-shrink: 0;
+        }
+        .soan-editor-title {
+            flex: 1;
+            font-size: 15px;
+            font-weight: 600;
+            background: none;
+            border: none;
+            outline: none;
+            color: var(--txt);
+            font-family: inherit;
+        }
+        .soan-editor-title::placeholder { color: var(--txt3); font-weight: 400; }
+        .soan-editor-meta { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+        .soan-editor-meta span { font-size: 11px; color: var(--txt3); }
+        .soan-meta-btn {
+            width: 26px; height: 26px; border-radius: 6px;
+            border: 1px solid var(--bdr2);
+            background: var(--bg2); color: var(--txt3);
+            cursor: pointer; font-size: 12px;
+            display: flex; align-items: center; justify-content: center;
+            transition: all .15s;
+        }
+        .soan-meta-btn:hover { background: #EAF3DE; color: #27500A; border-color: #a3c97a; }
+        .soan-meta-btn.active { background: #27500A; color: #EAF3DE; border-color: transparent; }
+        .soan-toolbar {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            padding: 5px 10px;
+            border-bottom: 0.5px solid var(--bdr);
+            flex-shrink: 0;
+            background: var(--bg2);
+        }
+        .soan-tb-btn {
+            width: 30px; height: 28px;
+            border-radius: 5px;
+            border: none;
+            background: transparent;
+            color: var(--txt2);
+            cursor: pointer;
+            font-size: 13px;
+            font-family: inherit;
+            transition: background .12s;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .soan-tb-btn:hover { background: var(--bdr); color: var(--txt); }
+        .soan-tb-sep { width: 1px; height: 16px; background: var(--bdr2); margin: 0 3px; }
+        .soan-ai-btn {
+            padding: 4px 10px;
+            border-radius: 6px;
+            border: 1px solid var(--bdr2);
+            background: var(--bg);
+            color: var(--txt2);
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            transition: all .15s;
+        }
+        .soan-ai-btn:hover { background: var(--txt); color: var(--bg); border-color: transparent; }
+        .soan-gutter-wrap {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+        .soan-gutter {
+            width: 36px;
+            overflow-y: hidden;
+            flex-shrink: 0;
+            background: var(--bg2);
+            border-right: 0.5px solid var(--bdr);
+            padding-top: 14px;
+        }
+        .soan-gutter div { font-size: 11px; color: var(--txt3); text-align: right; padding: 0 6px; line-height: 21px; font-family: monospace; }
+        .soan-editor {
+            flex: 1;
+            padding: 14px 16px;
+            font-size: 14px;
+            line-height: 21px;
+            color: var(--txt);
+            outline: none;
+            overflow-y: auto;
+            font-family: inherit;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        .soan-editor:empty::before { content: attr(placeholder); color: var(--txt3); pointer-events: none; }
+        .soan-empty-editor {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            font-size: 14px;
+            color: var(--txt3);
+            line-height: 1.8;
+            pointer-events: none;
+            background: var(--bg);
+            z-index: 5;
+        }
+        /* AI panel */
+        .soan-ai-panel {
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            background: var(--bg);
+            border-top: 1px solid var(--bdr2);
+            padding: 12px 14px;
+            z-index: 10;
+            box-shadow: 0 -4px 20px rgba(0,0,0,.15);
+        }
+        .soan-ai-header { display: flex; align-items: center; font-size: 13px; font-weight: 600; color: var(--txt); margin-bottom: 8px; }
+        .soan-ai-input {
+            width: 100%;
+            padding: 8px 10px;
+            border-radius: var(--r);
+            border: 0.5px solid var(--bdr2);
+            background: var(--bg2);
+            color: var(--txt);
+            font-family: inherit;
+            font-size: 13px;
+            resize: none;
+            outline: none;
+            min-height: 60px;
+            margin-bottom: 8px;
+        }
+        .soan-ai-actions { display: flex; gap: 8px; margin-bottom: 8px; }
+        .soan-ai-response {
+            background: var(--bg2);
+            border-radius: var(--r);
+            padding: 10px 12px;
+            font-size: 13px;
+            color: var(--txt);
+            line-height: 1.7;
+            max-height: 200px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+
+        /* RIGHT */
+        .soan-right {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border-left: 0.5px solid var(--bdr);
+            background: var(--bg);
+            min-height: 0;
+        }
+        .soan-panel-section { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-height: 80px; min-width: 0; }
+        .soan-panel-header {
+            display: flex;
+            align-items: center;
+            padding: 6px 10px;
+            border-bottom: 0.5px solid var(--bdr);
+            flex-shrink: 0;
+            background: var(--bg2);
+        }
+        .soan-panel-badge {
+            font-size: 9px; font-weight: 700; letter-spacing: .07em;
+            padding: 2px 7px; border-radius: 4px;
+            background: #E6F1FB; color: #0C447C;
+        }
+        .soan-badge-dict { background: #EAF3DE; color: #27500A; }
+        .soan-iframe { flex: 1; border: none; width: 100%; min-height: 0; }
+        .soan-divider-h {
+            height: 5px; background: var(--bdr); cursor: row-resize;
+            flex-shrink: 0;
+            transition: background .15s;
+        }
+        .soan-divider-h:hover { background: var(--txt3); }
+
+        /* Modal */
+        .soan-modal-bg {
+            position: absolute;
+            inset: 0; background: rgba(0,0,0,.45);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 50;
+            opacity: 0; pointer-events: none;
+            transition: opacity .2s;
+        }
+        .soan-modal-bg.open { opacity: 1; pointer-events: all; }
+        .soan-modal {
+            background: var(--bg);
+            border: 0.5px solid var(--bdr2);
+            border-radius: var(--rl);
+            padding: 22px;
+            width: 340px;
+        }
+        .soan-modal h3 { font-size: 15px; font-weight: 600; margin-bottom: 14px; color: var(--txt); }
+        .soan-modal-fields { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+        .soan-fg { display: flex; flex-direction: column; gap: 4px; }
+        .soan-fg label { font-size: 10px; font-weight: 600; color: var(--txt3); text-transform: uppercase; letter-spacing: .05em; }
+        .soan-fg input, .soan-fg select {
+            padding: 8px 10px; font-size: 13px;
+            border: 0.5px solid var(--bdr2); border-radius: var(--r);
+            background: var(--bg2); color: var(--txt);
+            outline: none; font-family: inherit;
+            transition: border-color .15s;
+        }
+        .soan-fg input:focus, .soan-fg select:focus { border-color: var(--txt2); }
+        .soan-modal-btns { display: flex; gap: 8px; justify-content: flex-end; }
+
+        /* Shared buttons */
+        .soan-icon-btn {
+            width: 28px; height: 28px; border-radius: 6px;
+            border: 1px solid var(--bdr2); background: var(--bg2);
+            color: var(--txt2); cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: all .15s; flex-shrink: 0;
+        }
+        .soan-icon-btn:hover { background: var(--bdr); color: var(--txt); }
+        .soan-btn-primary {
+            padding: 7px 16px; border-radius: var(--r);
+            border: none; background: var(--txt); color: var(--bg);
+            font-size: 13px; font-weight: 600; cursor: pointer;
+            font-family: inherit; transition: opacity .15s;
+        }
+        .soan-btn-primary:hover { opacity: .82; }
+        .soan-btn-ghost {
+            padding: 7px 16px; border-radius: var(--r);
+            border: 0.5px solid var(--bdr2); background: transparent; color: var(--txt2);
+            font-size: 13px; cursor: pointer; font-family: inherit; transition: background .15s;
+        }
+        .soan-btn-ghost:hover { background: var(--bg2); }
+
+        @media (max-width: 900px) {
+            .soan-shell { grid-template-columns: 220px 1fr; }
+            .soan-right { display: none; }
+        }
+
+        @media (max-width: 620px) {
+            /* Soạn bài: ẩn hoàn toàn trên mobile */
+            .tab-soan-hide { display: none !important; }
+            #pane-soan .soan-shell { display: none !important; }
+            #pane-soan-mobile-msg { display: flex !important; }
+        }
+        #pane-soan-mobile-msg {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            padding: 60px 20px;
+            text-align: center;
+            color: var(--txt3);
+            font-size: 14px;
+            line-height: 1.8;
+        }
+        #pane-soan-mobile-msg .msg-icon { font-size: 40px; }
+        /* ── End Soạn bài CSS ── */
     </style>
     <script src="https://unpkg.com/hangul-js" type="text/javascript"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
@@ -1244,11 +1707,11 @@
     <div class="shell">
 
         <div class="topbar">
-            <h1>한국어 단어장 <small>Từ vựng tiếng Hàn</small></h1>
+            <h1>HanVocab</h1>
             <div class="auth-btns" id="authSection">
                 <button class="btn btn-ghost" onclick="openLogin()">Đăng nhập</button>
             </div>
-            <button class="btn btn-ghost" onclick="exportCSV()">Xuất CSV</button>
+            <button class="btn btn-ghost" onclick="exportCSV()">Xuất Excel</button>
         </div>
 
 
@@ -1257,7 +1720,10 @@
             <div class="tab active" onclick="switchTab('list')">Danh sách</div>
             <div class="tab" onclick="switchTab('flash')">Flashcard</div>
             <div class="tab" onclick="switchTab('write')">Luyện viết</div>
+            <div class="tab" onclick="switchTab('type')">Luyện từ</div>
+            <div class="tab" onclick="switchTab('listen')">Luyện nghe</div>
             <div class="tab" onclick="switchTab('quiz')">Kiểm tra</div>
+            <div class="tab tab-soan-hide" onclick="switchTab('soan')">Soạn bài</div>
             <div class="tab admin-only" onclick="switchTab('admin')">Admin</div>
         </div>
 
@@ -1386,9 +1852,170 @@
             </div>
         </div>
 
+        <!-- TAB: TYPE PRACTICE -->
+        <div id="pane-type" class="pane">
+            <div class="wp-wrap" id="tpWrap">
+                <div class="empty-state">Chưa có từ vựng.</div>
+            </div>
+        </div>
+
+        <!-- TAB: LISTEN PRACTICE -->
+        <div id="pane-listen" class="pane">
+            <div class="wp-wrap" id="lpWrap">
+                <div class="empty-state">Chưa có từ vựng.</div>
+            </div>
+        </div>
+
         <!-- TAB: QUIZ -->
         <div id="pane-quiz" class="pane">
             <div id="quizWrap"><div class="empty-state">Đang tải bài kiểm tra...</div></div>
+        </div>
+
+        <!-- TAB: SOẠN BÀI -->
+        <div id="pane-soan" class="pane" style="padding:0;overflow:hidden;">
+            <div id="pane-soan-mobile-msg">
+                <div class="msg-icon">💻</div>
+                <div><b>Soạn bài chỉ dùng được trên máy tính</b><br>Vui lòng mở trên desktop để sử dụng tính năng này.</div>
+            </div>
+            <div class="soan-shell">
+                <!-- LEFT: lesson list -->
+                <!-- <div class="soan-drawer-overlay" id="soanDrawerOverlay" onclick="soanCloseDrawer()"></div> -->
+                <div class="soan-left" id="soanLeft">
+                    <div class="soan-left-header">
+                        <span class="soan-left-title">📚 Danh sách bài</span>
+                        <button class="soan-icon-btn" onclick="soanOpenModal()" title="Thêm bài mới">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                        </button>
+                        <button class="soan-icon-btn" id="soanDrawerClose" onclick="soanCloseDrawer()" style="display:none" title="Đóng">✕</button>
+                    </div>
+                    <div class="soan-progress-row">
+                        <span id="soanProgressText">0 / 0</span>
+                        <div class="soan-progress-track"><div class="soan-progress-fill" id="soanProgressFill"></div></div>
+                    </div>
+                    <div class="soan-lesson-list" id="soanLessonList"></div>
+                </div>
+
+                <!-- MIDDLE: editor -->
+                <div class="soan-mid" id="soanMid">
+                    <div class="soan-editor-header">
+                        <button class="soan-menu-btn soan-icon-btn" onclick="soanOpenDrawer()" title="Danh sách bài" style="display:none;flex-shrink:0">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+                        </button>
+                        <input class="soan-editor-title" id="soanEditorTitle" placeholder="Tên bài học..." oninput="soanCountWords(); soanScheduleSave();" />
+                        <div class="soan-editor-meta">
+    <span id="soanWordCount">0 từ</span>
+    <span id="soanCharCount">0 ký tự</span>
+    <span id="soanCurrentTime"></span>
+    <button class="soan-meta-btn" onclick="soanToggleDoneActive()" id="soanDoneBtn" title="Đánh dấu hoàn thành"><i class="fa-solid fa-check"></i></button>
+    
+    <button class="soan-meta-btn" onclick="soanDeleteActiveLesson()" title="Xóa bài học" style="color: #A32D2D;"><i class="fa-solid fa-trash"></i></button>
+</div>
+                    </div>
+                    <div class="soan-toolbar">
+                        <button class="soan-tb-btn" onclick="soanWrap('bold')" title="Bold"><b>B</b></button>
+                        <button class="soan-tb-btn" onclick="soanWrap('italic')" title="Italic"><i>I</i></button>
+                        <button class="soan-tb-btn" onclick="soanWrap('underline')" title="Gạch chân"><u>U</u></button>
+                        <div class="soan-tb-sep"></div>
+                        <button class="soan-tb-btn" onclick="soanAddBullet()" title="Danh sách gạch đầu dòng">≡</button>
+                        <button class="soan-tb-btn" onclick="soanAddListItem()" title="Thêm mục số">1.</button>
+                        <div class="soan-tb-sep"></div>
+                        <button class="soan-tb-btn" onclick="soanWrap('undo')" title="Undo">↩</button>
+                        <button class="soan-tb-btn" onclick="soanWrap('redo')" title="Redo">↪</button>
+                        <div style="flex:1"></div>
+                        <button class="soan-tb-btn" id="soanSaveBtn" onclick="soanManualSave()" title="Lưu bài (Ctrl+S)" style="padding:4px 12px;font-size:12px;color:var(--txt2);border:0.5px solid var(--bdr2);border-radius:6px;background:var(--bg2);"><i class="fa-solid fa-floppy-disk"></i></button>
+                        <button class="soan-ai-btn" id="soanAiBtn" onclick="soanAskAI()" title="Tìm kiếm Gemini">✦</button>
+                    </div>
+                    <div class="soan-gutter-wrap">
+                        <div class="soan-gutter" id="soanGutter"><div id="soanLineNumbers"></div></div>
+                        <div class="soan-editor" id="soanEditor" contenteditable="true"
+                            oninput="soanCountWords(); soanScheduleSave();"
+                            placeholder="Bắt đầu soạn bài..."></div>
+                    </div>
+                    <div class="soan-ai-panel" id="soanAiPanel" style="display:none">
+                        <div class="soan-ai-header">
+                            <button class="soan-icon-btn" onclick="soanCloseAI()">✕</button>
+                        </div>
+                        <textarea class="soan-ai-input" id="soanAiInput" placeholder="Nhập câu hỏi rồi nhấn Gửi để tìm trên Gemini..."></textarea>
+                        <div class="soan-ai-actions">
+                            <button class="soan-btn-primary" onclick="soanSendAI()">Gửi</button>
+                            <button class="soan-btn-ghost" onclick="soanCloseAI()">Đóng</button>
+                        </div>
+                    </div>
+
+                    <!-- Gemini popup modal -->
+                    <div id="geminiPopupBg" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;align-items:center;justify-content:center;">
+                        <div style="background:var(--bg);border-radius:var(--rl);box-shadow:0 8px 40px rgba(0,0,0,.3);width:min(860px,94vw);height:min(640px,88vh);display:flex;flex-direction:column;overflow:hidden;border:0.5px solid var(--bdr2);">
+                            <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--bg2);border-bottom:0.5px solid var(--bdr);flex-shrink:0;">
+                                <span style="font-size:13px;font-weight:600;color:var(--txt);flex:1;" id="geminiPopupTitle">✦</span>
+                                <button onclick="soanReopenGemini()" title="Tìm kiếm mới" style="font-size:11px;padding:4px 10px;border-radius:5px;border:0.5px solid var(--bdr2);background:var(--bg3);color:var(--txt2);cursor:pointer;">🔄 Tìm lại</button>
+                                <button onclick="document.getElementById('geminiPopupBg').style.display='none'" style="font-size:14px;border:none;background:none;cursor:pointer;color:var(--txt3);padding:2px 6px;">✕</button>
+                            </div>
+                            <iframe id="geminiIframe" src="" style="flex:1;border:none;width:100%;min-height:0;" title="Gemini Search"></iframe>
+                        </div>
+                    </div>
+
+                    <!-- Nút mở lại Gemini (hiện khi popup đã đóng mà đã từng search) -->
+                    <div id="geminiReopenBar" style="display:none;position:absolute;bottom:8px;right:12px;z-index:10;">
+                        <button onclick="soanReopenGemini()" style="font-size:12px;padding:5px 12px;border-radius:20px;border:0.5px solid var(--bdr2);background:var(--bg);color:var(--txt2);cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.1);">✦</button>
+                    </div>
+                    <div class="soan-empty-editor" id="soanEmptyEditor">
+                        <div>Chọn một bài ở bên trái<br>hoặc nhấn <b>+</b> để thêm bài mới</div>
+                    </div>
+                </div>
+
+                <!-- RIGHT: translate + dict -->
+                <div class="soan-right" id="soanRight">
+                    <div class="soan-panel-section" id="soanTransSection">
+                        <div class="soan-panel-header">
+                            <span class="soan-panel-badge" id="soanTransBadge">PAPAGO</span>
+                            <span style="flex:1"></span>
+                        </div>
+                        <iframe class="soan-iframe" id="soanTransIframe" src="https://papago.naver.com/" title="Dịch thuật"></iframe>
+                    </div>
+                    <div class="soan-divider-h" id="soanDividerH"></div>
+                    <div class="soan-panel-section" id="soanDictSection">
+                        <div class="soan-panel-header">
+                            <span class="soan-panel-badge soan-badge-dict">NAVER DICT</span>
+                        </div>
+                        <iframe class="soan-iframe" src="https://dict.naver.com/kovidict/" title="Từ điển"></iframe>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal thêm bài -->
+            <div class="soan-modal-bg" id="soanModal">
+                <div class="soan-modal">
+                    <h3>Thêm bài học mới</h3>
+                    <div class="soan-modal-fields">
+                        <div class="soan-fg">
+                            <label>Tên bài</label>
+                            <input type="text" id="soanNewName" placeholder="VD: Bài 15 - Thời tiết" />
+                        </div>
+                        <div class="soan-fg">
+                            <label>Ngày học</label>
+                            <input type="date" id="soanNewDate" />
+                        </div>
+                        <div class="soan-fg">
+                            <label>Tiết / Môn</label>
+                            <input type="text" id="soanNewPeriod" placeholder="Tiết 1" />
+                        </div>
+                        <div class="soan-fg">
+                            <label>Loại</label>
+                            <select id="soanNewTag">
+                                <option value="korean">🇰🇷 Tiếng Hàn</option>
+                                <option value="math">📐 Toán</option>
+                                <option value="lit">📖 Văn</option>
+                                <option value="eng">🇬🇧 Tiếng Anh</option>
+                                <option value="other">📝 Khác</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="soan-modal-btns">
+                        <button class="soan-btn-ghost" onclick="soanCloseModal()">Huỷ</button>
+                        <button class="soan-btn-primary" onclick="soanAddLesson()">Thêm</button>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- TAB: ADMIN -->
@@ -1528,8 +2155,8 @@
             if (user) {
                 authSec.innerHTML = `<div class="user-info">
                     <span>${esc(user.user_metadata.full_name || user.email)}</span>
-                    ${isAdmin ? '<span style="color:var(--txt);background:var(--bg3);padding:2px 6px;border-radius:4px;font-size:10px">Admin</span>' : ''}
-                    <button class="btn btn-ghost" onclick="handleLogout()" style="padding:4px 10px;font-size:11px">Đăng xuất</button>
+                    ${isAdmin ? '<span class="btn btn-ghost" style="color:var(--txt);background:var(--bg3);padding:8px 18px;border-radius:4px;font-size:13px;border-radius:8px">Admin</span>' : ''}
+                    <button class="btn btn-ghost" onclick="handleLogout()" style="padding:8px 18px;font-size:13px">Đăng xuất</button>
                 </div>`;
             } else {
                 authSec.innerHTML = `<button class="btn btn-ghost" onclick="openLogin()">Đăng nhập</button>`;
@@ -1584,19 +2211,37 @@
 
         function loadLocal() { try { words = JSON.parse(localStorage.getItem('kv') || '[]'); } catch { words = []; } refresh(); }
         function saveLocal() { try { localStorage.setItem('kv', JSON.stringify(words)); } catch { } }
-        function refresh() { renderTable(); updateTopics(); if (document.getElementById('pane-flash').classList.contains('active')) buildFlash(); if (document.getElementById('pane-write').classList.contains('active')) buildWrite(); }
+        function refresh() { renderTable(); updateTopics(); if (document.getElementById('pane-flash').classList.contains('active')) buildFlash(); if (document.getElementById('pane-write').classList.contains('active')) buildWrite(); if (document.getElementById('pane-type').classList.contains('active')) buildType(); if (document.getElementById('pane-listen').classList.contains('active')) buildListen(); }
 
         /* Tabs */
+        function updateSoanHeight() {
+            const shell = document.querySelector('.shell');
+            const topbar = document.querySelector('.topbar');
+            const tabs = document.querySelector('.tabs');
+            if (!shell || !topbar || !tabs) return;
+            const shellStyle = getComputedStyle(shell);
+            const shellPt = parseFloat(shellStyle.paddingTop) || 0;
+            const topbarH = topbar.getBoundingClientRect().height;
+            const tabsH = tabs.getBoundingClientRect().height;
+            document.documentElement.style.setProperty('--topbar-h', (topbarH) + 'px');
+            document.documentElement.style.setProperty('--tabs-h', (tabsH) + 'px');
+            document.documentElement.style.setProperty('--shell-pt', shellPt + 'px');
+        }
+
         function switchTab(n) {
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            const tabNames = ['list', 'flash', 'write', 'quiz', 'admin'];
+            const tabNames = ['list', 'flash', 'write', 'type', 'listen', 'quiz', 'soan', 'admin'];
             document.querySelectorAll('.tab').forEach((t, i) => { if (tabNames[i] === n) t.classList.add('active'); });
             document.querySelectorAll('.pane').forEach(p => p.classList.remove('active'));
             document.getElementById('pane-' + n).classList.add('active');
+            document.body.classList.toggle('soan-active', n === 'soan');
             if (n === 'flash') buildFlash();
             if (n === 'write') buildWrite();
+            if (n === 'type') buildType();
+            if (n === 'listen') buildListen();
             if (n === 'quiz') buildQuiz();
             if (n === 'admin') buildAdmin();
+            if (n === 'soan') { updateSoanHeight(); soanInit(); }
         }
 
 
@@ -1610,6 +2255,12 @@
             // Write pane topic selector
             const ws = document.getElementById('wpTopic');
             if (ws) { const wc = ws.value; ws.innerHTML = '<option value="">Tất cả chủ đề</option>' + topics.map(t => `<option value="${esc(t)}" ${t === wc ? 'selected' : ''}>${esc(t)}</option>`).join(''); }
+            // Type pane topic selector
+            const ts = document.getElementById('tpTopic');
+            if (ts) { const tc = ts.value; ts.innerHTML = '<option value="">Tất cả chủ đề</option>' + topics.map(t => `<option value="${esc(t)}" ${t === tc ? 'selected' : ''}>${esc(t)}</option>`).join(''); }
+            // Listen pane topic selector
+            const ls = document.getElementById('lpTopic');
+            if (ls) { const lc = ls.value; ls.innerHTML = '<option value="">Tất cả chủ đề</option>' + topics.map(t => `<option value="${esc(t)}" ${t === lc ? 'selected' : ''}>${esc(t)}</option>`).join(''); }
         }
 
         /* ── Writing practice ── */
@@ -2022,9 +2673,523 @@
             render();
         }
 
-        /* ═══════════════════════════════════
-           SEARCH = ô nhập từ tiếng Hàn
-           ═══════════════════════════════════ */
+        /* ── Typing practice ── */
+        function buildType() {
+            const wrap = document.getElementById('tpWrap');
+            if (!words.length) { wrap.innerHTML = '<div class="empty-state">Chưa có từ vựng.</div>'; return; }
+            const topics = [...new Set(words.map(w => w.topic).filter(Boolean))];
+
+            // QWERTY → Jamo mapping (same as search)
+            const q2j = {
+                'q':'ㅂ','w':'ㅈ','e':'ㄷ','r':'ㄱ','t':'ㅅ','y':'ㅛ','u':'ㅕ','i':'ㅑ','o':'ㅐ','p':'ㅔ',
+                'a':'ㅁ','s':'ㄴ','d':'ㅇ','f':'ㄹ','g':'ㅎ','h':'ㅗ','j':'ㅓ','k':'ㅏ','l':'ㅣ',
+                'z':'ㅋ','x':'ㅌ','c':'ㅊ','v':'ㅍ','b':'ㅠ','n':'ㅜ','m':'ㅡ',
+                'Q':'ㅃ','W':'ㅉ','E':'ㄸ','R':'ㄲ','T':'ㅆ','O':'ㅒ','P':'ㅖ'
+            };
+
+            wrap.innerHTML = `
+            <div class="wp-toolbar">
+                <select id="tpMode" onchange="tpRestart()">
+                    <option value="viet-kor">Tiếng Việt → gõ tiếng Hàn</option>
+                    <option value="kor-kor">Tiếng Hàn → gõ lại tiếng Hàn</option>
+                    <option value="kor-viet">Tiếng Hàn → gõ tiếng Việt</option>
+                </select>
+                <select id="tpType" onchange="tpRestart()">
+                    <option value="">Tất cả từ loại</option>
+                    <option value="명사">명사</option>
+                    <option value="동사">동사</option>
+                    <option value="형용사">형용사</option>
+                    <option value="부사">부사</option>
+                    <option value="감탄사">감탄사</option>
+                    <option value="기타">기타</option>
+                </select>
+                <select id="tpTopic" onchange="tpRestart()">
+                    <option value="">Tất cả chủ đề</option>
+                    ${topics.map(t => `<option value="${esc(t)}">${esc(t)}</option>`).join('')}
+                </select>
+            </div>
+            <div class="wp-card" id="tpCard">
+                <div class="wp-prompt-label" id="tpLabel"></div>
+                <div class="wp-prompt" id="tpPrompt"></div>
+                <div class="wp-prompt-sub" id="tpPromptSub"></div>
+
+                <div class="tp-input-wrap">
+                    <div class="tp-hint-row" id="tpHintRow"></div>
+                    <input class="tp-input" id="tpInput" type="text" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="Gõ câu trả lời..." />
+                    <div class="tp-keyboard-hint" id="tpKeyboardHint"></div>
+                    <div class="tp-btns-row">
+                        <button class="btn btn-ghost" onclick="tpReveal()" id="tpRevealBtn">👁 Hiện đáp án</button>
+                        <button class="btn btn-ghost" onclick="tpSkip()" id="tpSkipBtn">⏭ Bỏ qua</button>
+                        <button class="wp-icon-btn wp-icon-btn--next" id="tpNextBtn" onclick="tpNext()" title="Từ tiếp theo" style="display:none;width:auto;padding:0 16px;gap:6px;font-size:13px;font-weight:500">
+                            Tiếp theo
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13 5l7 7-7 7"/><path d="M5 5l7 7-7 7"/></svg>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="wp-result hidden" id="tpResult"></div>
+                <div class="wp-answer hidden" id="tpAns"></div>
+                <div class="wp-answer-sub hidden" id="tpAnsSub"></div>
+                <div class="wp-prog" id="tpProg"></div>
+            </div>`;
+
+            let pool = [], idx = 0, answered = false;
+
+            function getPool() {
+                const type = document.getElementById('tpType').value;
+                const topic = document.getElementById('tpTopic').value;
+                return [...words]
+                    .filter(w => (!type || w.type === type) && (!topic || w.topic === topic))
+                    .sort(() => Math.random() - .5);
+            }
+
+            function isKoreanMode() {
+                const m = document.getElementById('tpMode').value;
+                return m === 'viet-kor' || m === 'kor-kor';
+            }
+
+            function updateHintRow(typed) {
+                if (!isKoreanMode()) { document.getElementById('tpHintRow').innerHTML = ''; return; }
+                const expected = document.getElementById('tpAns').textContent.trim();
+                if (!expected) return;
+                const chars = [...expected];
+                const typedChars = typed ? [...typed] : [];
+                document.getElementById('tpHintRow').innerHTML = chars.map((ch, i) => {
+                    let cls = '';
+                    if (i < typedChars.length) cls = typedChars[i] === ch ? 'hit' : 'miss';
+                    return `<span class="tp-char ${cls}">${i < typedChars.length ? esc(typedChars[i]) : '?'}</span>`;
+                }).join('');
+            }
+
+            function render() {
+                if (!pool.length) {
+                    document.getElementById('tpPrompt').textContent = 'Không có từ phù hợp.';
+                    document.getElementById('tpProg').textContent = '';
+                    document.getElementById('tpCard').querySelector('.tp-input-wrap').style.display = 'none';
+                    return;
+                }
+                document.getElementById('tpCard').querySelector('.tp-input-wrap').style.display = '';
+                answered = false;
+
+                const w = pool[idx];
+                const mode = document.getElementById('tpMode').value;
+                const prompt = document.getElementById('tpPrompt');
+                const sub = document.getElementById('tpPromptSub');
+                const ans = document.getElementById('tpAns');
+                const ansSub = document.getElementById('tpAnsSub');
+                const input = document.getElementById('tpInput');
+                const keyHint = document.getElementById('tpKeyboardHint');
+
+                if (mode === 'viet-kor') {
+                    prompt.textContent = w.meaning;
+                    sub.textContent = w.type ? `[${w.type}]${w.topic ? ' • ' + w.topic : ''}` : '';
+                    ans.textContent = w.korean;
+                    ansSub.textContent = w.romanize ? `[${w.romanize}]` : '';
+                    keyHint.textContent = '💡 Gõ QWERTY rồi nhấn Tab để chuyển sang tiếng Hàn';
+                } else if (mode === 'kor-kor') {
+                    prompt.textContent = w.korean;
+                    sub.textContent = w.type ? `[${w.type}]${w.topic ? ' • ' + w.topic : ''}` : '';
+                    ans.textContent = w.korean;
+                    ansSub.textContent = w.romanize ? `[${w.romanize}] ${w.meaning}` : w.meaning;
+                    keyHint.textContent = '💡 Gõ QWERTY rồi nhấn Tab để chuyển sang tiếng Hàn';
+                } else {
+                    prompt.textContent = w.korean;
+                    sub.textContent = w.romanize ? `[${w.romanize}]${w.topic ? ' • ' + w.topic : ''}` : '';
+                    ans.textContent = w.meaning;
+                    ansSub.textContent = '';
+                    keyHint.textContent = '';
+                }
+
+                ans.classList.add('hidden');
+                ansSub.classList.add('hidden');
+                document.getElementById('tpResult').className = 'wp-result hidden';
+                document.getElementById('tpNextBtn').style.display = 'none';
+                document.getElementById('tpRevealBtn').style.display = '';
+                document.getElementById('tpSkipBtn').style.display = '';
+                document.getElementById('tpProg').textContent = `${idx + 1} / ${pool.length}`;
+                input.value = '';
+                input.className = 'tp-input';
+                input.disabled = false;
+                input.placeholder = isKoreanMode() ? '한국어로 입력하세요...' : 'Gõ câu trả lời...';
+                updateHintRow(''); // hiện ô gợi ý ngay với dấu ?
+                setTimeout(() => input.focus(), 50);
+            }
+
+            // Live input handling
+            const tpInput = document.getElementById('tpInput');
+
+            tpInput.addEventListener('input', () => {
+                // cập nhật gợi ý chuyển Hangul live
+                if (isKoreanMode()) {
+                    const raw = tpInput.value;
+                    const keyHint = document.getElementById('tpKeyboardHint');
+                    if (window.Hangul && /[a-zA-Z]/.test(raw)) {
+                        let converted = '';
+                        for (const ch of raw) converted += q2j[ch] || ch;
+                        const sug = Hangul.a(converted.split(''));
+                        if (sug !== raw) {
+                            keyHint.innerHTML = `💡 Nhấn <strong>Tab</strong> để đổi thành: <b style="font-size:15px;color:var(--txt)">${esc(sug)}</b>`;
+                        } else {
+                            keyHint.textContent = '💡 Gõ QWERTY rồi nhấn Tab để chuyển sang tiếng Hàn';
+                        }
+                    } else {
+                        keyHint.textContent = raw ? '' : '💡 Gõ QWERTY rồi nhấn Tab để chuyển sang tiếng Hàn';
+                    }
+                }
+            });
+
+            tpInput.addEventListener('keydown', e => {
+                if (e.key === 'Tab' && isKoreanMode()) {
+                    e.preventDefault();
+                    const raw = tpInput.value;
+                    if (window.Hangul && /[a-zA-Z]/.test(raw)) {
+                        let converted = '';
+                        for (const ch of raw) converted += q2j[ch] || ch;
+                        tpInput.value = Hangul.a(converted.split(''));
+                        updateHintRow(tpInput.value);
+                    }
+                } else if (e.key === 'Enter') {
+                    if (answered) { tpNext(); return; }
+                    tpCheck();
+                }
+            });
+
+            function tpCheck() {
+                if (answered) return;
+                const typed = tpInput.value.trim();
+                if (!typed) return;
+                const expected = document.getElementById('tpAns').textContent.trim();
+                const norm = s => s.toLowerCase().replace(/\(.*?\)/g, '').replace(/\[.*?\]/g, '').replace(/\s+/g, ' ').trim();
+                const expectedParts = expected.split(',').map(s => norm(s));
+                const ok = expectedParts.includes(norm(typed));
+
+                document.getElementById('tpAns').classList.remove('hidden');
+                document.getElementById('tpAnsSub').classList.remove('hidden');
+
+                const resultEl = document.getElementById('tpResult');
+                if (ok) {
+                    tpInput.className = 'tp-input correct';
+                    resultEl.innerHTML = `✅ Đúng! «${esc(typed)}»`;
+                    resultEl.className = 'wp-result correct';
+                    answered = true;
+                    document.getElementById('tpNextBtn').style.display = '';
+                    document.getElementById('tpRevealBtn').style.display = 'none';
+                    document.getElementById('tpSkipBtn').style.display = 'none';
+                    updateHintRow(typed);
+                } else {
+                    tpInput.className = 'tp-input wrong';
+                    resultEl.innerHTML = `❌ Bạn gõ: <strong>${esc(typed)}</strong> — Đáp án: <strong>${esc(expected)}</strong>`;
+                    resultEl.className = 'wp-result wrong';
+                    updateHintRow(typed);
+                    setTimeout(() => {
+                        tpInput.className = 'tp-input';
+                        tpInput.value = '';
+                        updateHintRow('');
+                    }, 1200);
+                }
+            }
+
+            window.tpNext = () => {
+                if (!answered) return;
+                idx = (idx + 1) % pool.length;
+                render();
+            };
+            window.tpSkip = () => {
+                document.getElementById('tpAns').classList.remove('hidden');
+                document.getElementById('tpAnsSub').classList.remove('hidden');
+                const expected = document.getElementById('tpAns').textContent.trim();
+                const resultEl = document.getElementById('tpResult');
+                resultEl.innerHTML = `⏭ Đã bỏ qua — đáp án: <strong>${esc(expected)}</strong>`;
+                resultEl.className = 'wp-result info';
+                answered = true;
+                document.getElementById('tpNextBtn').style.display = '';
+                document.getElementById('tpRevealBtn').style.display = 'none';
+                document.getElementById('tpSkipBtn').style.display = 'none';
+                tpInput.disabled = true;
+            };
+            window.tpReveal = () => {
+                document.getElementById('tpAns').classList.remove('hidden');
+                document.getElementById('tpAnsSub').classList.remove('hidden');
+            };
+            window.tpRestart = () => { pool = getPool(); idx = 0; render(); };
+
+            pool = getPool();
+            render();
+        }
+
+        /* ── Listening practice ── */
+        function buildListen() {
+            const wrap = document.getElementById('lpWrap');
+            if (!words.length) { wrap.innerHTML = '<div class="empty-state">Chưa có từ vựng.</div>'; return; }
+
+            const topics = [...new Set(words.map(w => w.topic).filter(Boolean))];
+            let lpSpeed = 1.0; // playback rate
+
+            wrap.innerHTML = `
+            <div class="wp-toolbar">
+                <select id="lpMode" onchange="lpRestart()">
+                    <option value="kor-write-kor">Nghe tiếng Hàn → gõ tiếng Hàn</option>
+                    <option value="kor-write-viet">Nghe tiếng Hàn → gõ tiếng Việt</option>
+                </select>
+                <select id="lpType" onchange="lpRestart()">
+                    <option value="">Tất cả từ loại</option>
+                    <option value="명사">명사</option>
+                    <option value="동사">동사</option>
+                    <option value="형용사">형용사</option>
+                    <option value="부사">부사</option>
+                    <option value="감탄사">감탄사</option>
+                    <option value="기타">기타</option>
+                </select>
+                <select id="lpTopic" onchange="lpRestart()">
+                    <option value="">Tất cả chủ đề</option>
+                    ${topics.map(t => `<option value="${esc(t)}">${esc(t)}</option>`).join('')}
+                </select>
+            </div>
+            <div class="wp-card" id="lpCard">
+                <div class="wp-prompt-label">NGHE VÀ GÕ LẠI</div>
+
+                <button class="lp-play-btn" id="lpPlayBtn" onclick="lpSpeak()">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                    Nghe từ
+                </button>
+
+                <div class="lp-speed-row">
+                    <span style="font-size:11px;color:var(--txt3);font-weight:600;letter-spacing:.05em">TỐC ĐỘ</span>
+                    <button class="lp-speed-btn active" id="lpS1" onclick="lpSetSpeed(1.0, 'lpS1')">×1.0</button>
+                    <button class="lp-speed-btn" id="lpS075" onclick="lpSetSpeed(0.75, 'lpS075')">×0.75</button>
+                    <button class="lp-speed-btn" id="lpS05" onclick="lpSetSpeed(0.5, 'lpS05')">×0.5</button>
+                </div>
+
+                <div class="tp-input-wrap">
+                    <div class="tp-hint-row" id="lpHintRow"></div>
+                    <input class="tp-input" id="lpInput" type="text" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="Gõ câu trả lời..." />
+                    <div class="tp-keyboard-hint" id="lpKeyboardHint">💡 Tab: chuyển Hangul &nbsp;·&nbsp; Ctrl+L: nghe lại</div>
+                    <div class="tp-btns-row">
+                        <button class="btn btn-ghost" onclick="lpReveal()" id="lpRevealBtn">👁 Hiện đáp án</button>
+                        <button class="btn btn-ghost" onclick="lpSkip()" id="lpSkipBtn">⏭ Bỏ qua</button>
+                        <button class="wp-icon-btn wp-icon-btn--next" id="lpNextBtn" onclick="lpNext()" title="Từ tiếp theo" style="display:none;width:auto;padding:0 16px;gap:6px;font-size:13px;font-weight:500">
+                            Tiếp theo
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13 5l7 7-7 7"/><path d="M5 5l7 7-7 7"/></svg>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="wp-result hidden" id="lpResult"></div>
+                <div class="wp-answer hidden" id="lpAns"></div>
+                <div class="wp-answer-sub hidden" id="lpAnsSub"></div>
+                <div class="wp-prog" id="lpProg"></div>
+            </div>`;
+
+            const q2j = {
+                'q':'ㅂ','w':'ㅈ','e':'ㄷ','r':'ㄱ','t':'ㅅ','y':'ㅛ','u':'ㅕ','i':'ㅑ','o':'ㅐ','p':'ㅔ',
+                'a':'ㅁ','s':'ㄴ','d':'ㅇ','f':'ㄹ','g':'ㅎ','h':'ㅗ','j':'ㅓ','k':'ㅏ','l':'ㅣ',
+                'z':'ㅋ','x':'ㅌ','c':'ㅊ','v':'ㅍ','b':'ㅠ','n':'ㅜ','m':'ㅡ',
+                'Q':'ㅃ','W':'ㅉ','E':'ㄸ','R':'ㄲ','T':'ㅆ','O':'ㅒ','P':'ㅖ'
+            };
+
+            let pool = [], idx = 0, answered = false;
+
+            function getPool() {
+                const type = document.getElementById('lpType').value;
+                const topic = document.getElementById('lpTopic').value;
+                return [...words]
+                    .filter(w => (!type || w.type === type) && (!topic || w.topic === topic))
+                    .sort(() => Math.random() - .5);
+            }
+
+            function isKorAnswer() {
+                return document.getElementById('lpMode').value === 'kor-write-kor';
+            }
+
+            function updateHintRow(typed) {
+                if (!isKorAnswer()) { document.getElementById('lpHintRow').innerHTML = ''; return; }
+                const expected = document.getElementById('lpAns').textContent.trim();
+                if (!expected) return;
+                const chars = [...expected];
+                const typedChars = typed ? [...typed] : [];
+                document.getElementById('lpHintRow').innerHTML = chars.map((ch, i) => {
+                    let cls = '';
+                    if (i < typedChars.length) cls = typedChars[i] === ch ? 'hit' : 'miss';
+                    return `<span class="tp-char ${cls}">${i < typedChars.length ? esc(typedChars[i]) : '?'}</span>`;
+                }).join('');
+            }
+
+            function render() {
+                if (!pool.length) {
+                    document.getElementById('lpPlayBtn').style.display = 'none';
+                    document.getElementById('lpCard').querySelector('.tp-input-wrap').style.display = 'none';
+                    document.getElementById('lpCard').querySelector('.lp-speed-row').style.display = 'none';
+                    document.getElementById('lpProg').textContent = '';
+                    return;
+                }
+                document.getElementById('lpPlayBtn').style.display = '';
+                document.getElementById('lpCard').querySelector('.tp-input-wrap').style.display = '';
+                document.getElementById('lpCard').querySelector('.lp-speed-row').style.display = '';
+                answered = false;
+
+                const w = pool[idx];
+                const mode = document.getElementById('lpMode').value;
+                const ans = document.getElementById('lpAns');
+                const ansSub = document.getElementById('lpAnsSub');
+                const input = document.getElementById('lpInput');
+                const keyHint = document.getElementById('lpKeyboardHint');
+                const playBtn = document.getElementById('lpPlayBtn');
+
+                // Always speak Korean; answer depends on mode
+                if (mode === 'kor-write-kor') {
+                    ans.textContent = w.korean;
+                    ansSub.textContent = (w.romanize ? `[${w.romanize}] ` : '') + (w.meaning || '');
+                    input.placeholder = '한국어로 입력하세요...';
+                    keyHint.textContent = '💡 Tab: chuyển Hangul · Ctrl+L: nghe lại';
+                } else {
+                    ans.textContent = w.meaning;
+                    ansSub.textContent = w.korean + (w.romanize ? ` [${w.romanize}]` : '');
+                    input.placeholder = 'Gõ nghĩa tiếng Việt...';
+                    keyHint.textContent = '💡 Ctrl+L: nghe lại';
+                }
+
+                ans.classList.add('hidden');
+                ansSub.classList.add('hidden');
+                document.getElementById('lpResult').className = 'wp-result hidden';
+                document.getElementById('lpNextBtn').style.display = 'none';
+                document.getElementById('lpRevealBtn').style.display = '';
+                document.getElementById('lpSkipBtn').style.display = '';
+                document.getElementById('lpProg').textContent = `${idx + 1} / ${pool.length}`;
+                input.value = '';
+                input.className = 'tp-input';
+                input.disabled = false;
+                playBtn.className = 'lp-play-btn';
+                playBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg> Nghe từ`;
+                updateHintRow('');
+                // auto-play khi sang từ mới
+                setTimeout(() => { lpSpeak(); input.focus(); }, 300);
+            }
+
+            window.lpSpeak = () => {
+                const w = pool[idx];
+                if (!w) return;
+                window.speechSynthesis.cancel();
+                const utt = new SpeechSynthesisUtterance(w.korean);
+                utt.lang = 'ko-KR';
+                utt.rate = lpSpeed;
+                const playBtn = document.getElementById('lpPlayBtn');
+                playBtn.className = 'lp-play-btn playing';
+                playBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg> Đang phát...`;
+                utt.onend = () => {
+                    if (playBtn) {
+                        playBtn.className = 'lp-play-btn';
+                        playBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg> Nghe lại`;
+                    }
+                };
+                window.speechSynthesis.speak(utt);
+            };
+
+            window.lpSetSpeed = (rate, btnId) => {
+                lpSpeed = rate;
+                document.querySelectorAll('.lp-speed-btn').forEach(b => b.classList.remove('active'));
+                document.getElementById(btnId).classList.add('active');
+            };
+
+            const lpInput = document.getElementById('lpInput');
+
+            lpInput.addEventListener('input', () => {
+                if (!isKorAnswer()) return;
+                const raw = lpInput.value;
+                const keyHint = document.getElementById('lpKeyboardHint');
+                if (window.Hangul && /[a-zA-Z]/.test(raw)) {
+                    let converted = '';
+                    for (const ch of raw) converted += q2j[ch] || ch;
+                    const sug = Hangul.a(converted.split(''));
+                    if (sug !== raw) {
+                        keyHint.innerHTML = `💡 Nhấn <strong>Tab</strong> để đổi thành: <b style="font-size:15px;color:var(--txt)">${esc(sug)}</b>`;
+                    } else {
+                        keyHint.textContent = raw ? '' : '💡 Gõ QWERTY rồi nhấn Tab để chuyển sang tiếng Hàn';
+                    }
+                } else {
+                    keyHint.textContent = raw ? '' : '💡 Gõ QWERTY rồi nhấn Tab để chuyển sang tiếng Hàn';
+                }
+            });
+
+            lpInput.addEventListener('keydown', e => {
+                if (e.key === 'Tab' && isKorAnswer()) {
+                    e.preventDefault();
+                    const raw = lpInput.value;
+                    if (window.Hangul && /[a-zA-Z]/.test(raw)) {
+                        let converted = '';
+                        for (const ch of raw) converted += q2j[ch] || ch;
+                        lpInput.value = Hangul.a(converted.split(''));
+                        updateHintRow(lpInput.value);
+                        document.getElementById('lpKeyboardHint').textContent = '';
+                    }
+                } else if ((e.key === 'l' || e.key === 'L') && e.ctrlKey) {
+                    e.preventDefault();
+                    lpSpeak();
+                } else if (e.key === 'Enter') {
+                    if (answered) { lpNext(); return; }
+                    lpCheck();
+                }
+            });
+
+            function lpCheck() {
+                if (answered) return;
+                const typed = lpInput.value.trim();
+                if (!typed) { lpSpeak(); return; } // Nếu chưa gõ gì, phát lại âm thanh
+                const expected = document.getElementById('lpAns').textContent.trim();
+                const norm = s => s.toLowerCase().replace(/\(.*?\)/g, '').replace(/\[.*?\]/g, '').replace(/\s+/g, ' ').trim();
+                const expectedParts = expected.split(',').map(s => norm(s));
+                const ok = expectedParts.includes(norm(typed));
+
+                document.getElementById('lpAns').classList.remove('hidden');
+                document.getElementById('lpAnsSub').classList.remove('hidden');
+                const resultEl = document.getElementById('lpResult');
+
+                if (ok) {
+                    lpInput.className = 'tp-input correct';
+                    resultEl.innerHTML = `✅ Đúng! «${esc(typed)}»`;
+                    resultEl.className = 'wp-result correct';
+                    answered = true;
+                    document.getElementById('lpNextBtn').style.display = '';
+                    document.getElementById('lpRevealBtn').style.display = 'none';
+                    document.getElementById('lpSkipBtn').style.display = 'none';
+                    updateHintRow(typed);
+                } else {
+                    lpInput.className = 'tp-input wrong';
+                    resultEl.innerHTML = `❌ Bạn gõ: <strong>${esc(typed)}</strong> — Đáp án: <strong>${esc(expected)}</strong>`;
+                    resultEl.className = 'wp-result wrong';
+                    updateHintRow(typed);
+                    setTimeout(() => {
+                        lpInput.className = 'tp-input';
+                        lpInput.value = '';
+                        updateHintRow('');
+                        document.getElementById('lpKeyboardHint').textContent = isKorAnswer() ? '💡 Gõ QWERTY rồi nhấn Tab để chuyển sang tiếng Hàn' : '';
+                    }, 1200);
+                }
+            }
+
+            window.lpNext = () => { if (!answered) return; idx = (idx + 1) % pool.length; render(); };
+            window.lpSkip = () => {
+                document.getElementById('lpAns').classList.remove('hidden');
+                document.getElementById('lpAnsSub').classList.remove('hidden');
+                const expected = document.getElementById('lpAns').textContent.trim();
+                const resultEl = document.getElementById('lpResult');
+                resultEl.innerHTML = `⏭ Đã bỏ qua — đáp án: <strong>${esc(expected)}</strong>`;
+                resultEl.className = 'wp-result info';
+                answered = true;
+                document.getElementById('lpNextBtn').style.display = '';
+                document.getElementById('lpRevealBtn').style.display = 'none';
+                document.getElementById('lpSkipBtn').style.display = 'none';
+                lpInput.disabled = true;
+                window.speechSynthesis.cancel();
+            };
+            window.lpReveal = () => {
+                document.getElementById('lpAns').classList.remove('hidden');
+                document.getElementById('lpAnsSub').classList.remove('hidden');
+            };
+            window.lpRestart = () => { window.speechSynthesis.cancel(); pool = getPool(); idx = 0; render(); };
+
+            pool = getPool();
+            render();
+        }
         const qwertyToJamo = {
             'q': 'ㅂ', 'w': 'ㅈ', 'e': 'ㄷ', 'r': 'ㄱ', 't': 'ㅅ', 'y': 'ㅛ', 'u': 'ㅕ', 'i': 'ㅑ', 'o': 'ㅐ', 'p': 'ㅔ',
             'a': 'ㅁ', 's': 'ㄴ', 'd': 'ㅇ', 'f': 'ㄹ', 'g': 'ㅎ', 'h': 'ㅗ', 'j': 'ㅓ', 'k': 'ㅏ', 'l': 'ㅣ',
@@ -2159,9 +3324,9 @@
             w.classList.add('show');
         }
 
-        const CHO = ["g", "kk", "n", "d", "tt", "r", "m", "b", "pp", "s", "ss", "", "j", "jj", "ch", "k", "t", "p", "h"];
+        const CHO = ["g", "kk", "n", "d", "tt", "r", "m", "b", "pp", "s", "ss", "", "ch", "ch", "ch", "k", "t", "p", "h"];
         const JUNG = ["a", "ae", "ya", "yae", "eo", "e", "yeo", "ye", "o", "wa", "wae", "oe", "yo", "u", "wo", "we", "wi", "yu", "eu", "ui", "i"];
-        const JONG = ["", "k", "kk", "ks", "n", "nj", "nh", "d", "l", "lg", "lm", "lb", "ls", "lt", "lp", "lh", "m", "b", "bs", "s", "ss", "ng", "j", "ch", "k", "t", "p", "h"];
+        const JONG = ["", "k", "kk", "ks", "n", "nj", "nh", "d", "l", "lg", "lm", "lb", "ls", "lt", "lp", "lh", "m", "b", "bs", "s", "ss", "ng", "ch", "ch", "k", "t", "p", "h"];
 
         function romanize(text) {
             let res = "";
@@ -2455,7 +3620,7 @@
             const rows = words.map(w => [w.korean, w.type, w.meaning, w.romanize, w.example, w.example_meaning, w.topic].map(v => `"${(v || '').replace(/"/g, '""')}"`));
             const csv = [h.map(x => `"${x}"`).join(','), ...rows.map(r => r.join(','))].join('\n');
             const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' }));
-            a.download = 'tu_vung_tieng_han.csv'; a.click(); toast('Đã xuất CSV');
+            a.download = 'tu_vung_tieng_han.xlsx'; a.click(); toast('Đã xuất Excel');
         }
 
         /* Utils */
@@ -2499,6 +3664,20 @@
             renderQuizList(attemptCounts);
         }
 
+        function quizModeLabel(mode) {
+            const map = {
+                'viet-kor': '✍️ Việt → viết Hàn',
+                'kor-kor':  '✍️ Hàn → viết lại',
+                'kor-viet': '✍️ Hàn → viết Việt',
+                'type-viet-kor': '⌨️ Việt → gõ Hàn',
+                'type-kor-kor':  '⌨️ Hàn → gõ lại',
+                'type-kor-viet': '⌨️ Hàn → gõ Việt',
+                'listen-kor':    '🔊 Nghe → gõ Hàn',
+                'listen-viet':   '🔊 Nghe → gõ Việt',
+            };
+            return map[mode] || mode;
+        }
+
         function renderQuizList(attemptCounts = {}) {
             const wrap = document.getElementById('quizWrap');
             wrap.innerHTML = `
@@ -2508,7 +3687,7 @@
                         const used = attemptCounts[q.id] || 0;
                         const exhausted = max > 0 && used >= max;
                         const remaining = max > 0 ? max - used : null;
-                        const modeLabel = q.mode === 'kor-viet' ? 'Nhìn tiếng Hàn → viết tiếng Việt' : q.mode === 'viet-kor' ? 'Nhìn tiếng Việt → viết tiếng Hàn' : 'Nhìn tiếng Hàn → viết lại';
+                        const modeLabel = quizModeLabel(q.mode);
                         const attemptBadge = max > 0
                             ? exhausted
                                 ? `<span class="quiz-attempt-badge exhausted">Hết lượt</span>`
@@ -2559,10 +3738,23 @@
             let quizAutoTimer = null;
 
             function getPromptAnswer(w) {
-                if (quiz.mode === 'viet-kor') return { prompt: w.meaning, sub: w.type ? `[${w.type}]` : '', answer: w.korean, answerSub: w.romanize ? `[${w.romanize}]` : '' };
-                if (quiz.mode === 'kor-kor') return { prompt: w.korean, sub: w.type ? `[${w.type}]` : '', answer: w.korean, answerSub: w.romanize ? `[${w.romanize}] ${w.meaning}` : w.meaning };
-                return { prompt: w.korean, sub: w.romanize ? `[${w.romanize}]` : '', answer: w.meaning, answerSub: '' };
+                switch(quiz.mode) {
+                    case 'viet-kor':      return { prompt: w.meaning,  sub: w.type ? `[${w.type}]` : '', answer: w.korean,   answerSub: w.romanize ? `[${w.romanize}]` : '' };
+                    case 'kor-kor':       return { prompt: w.korean,   sub: w.type ? `[${w.type}]` : '', answer: w.korean,   answerSub: w.romanize ? `[${w.romanize}] ${w.meaning}` : w.meaning };
+                    case 'kor-viet':      return { prompt: w.korean,   sub: w.romanize ? `[${w.romanize}]` : '', answer: w.meaning, answerSub: '' };
+                    case 'type-viet-kor': return { prompt: w.meaning,  sub: w.type ? `[${w.type}]` : '', answer: w.korean,   answerSub: w.romanize ? `[${w.romanize}]` : '' };
+                    case 'type-kor-kor':  return { prompt: w.korean,   sub: w.type ? `[${w.type}]` : '', answer: w.korean,   answerSub: w.romanize ? `[${w.romanize}] ${w.meaning}` : w.meaning };
+                    case 'type-kor-viet': return { prompt: w.korean,   sub: w.romanize ? `[${w.romanize}]` : '', answer: w.meaning, answerSub: '' };
+                    case 'listen-kor':    return { prompt: w.korean,   sub: '', answer: w.korean,   answerSub: (w.romanize ? `[${w.romanize}] ` : '') + w.meaning };
+                    case 'listen-viet':   return { prompt: w.korean,   sub: '', answer: w.meaning, answerSub: w.korean + (w.romanize ? ` [${w.romanize}]` : '') };
+                    default:              return { prompt: w.korean,   sub: '', answer: w.meaning, answerSub: '' };
+                }
             }
+
+            const isTypeMode   = () => quiz.mode.startsWith('type-');
+            const isListenMode = () => quiz.mode.startsWith('listen-');
+            const isWriteMode  = () => !isTypeMode() && !isListenMode();
+            const isKorAnswer  = () => ['viet-kor','kor-kor','type-viet-kor','type-kor-kor','listen-kor'].includes(quiz.mode);
 
             function renderQuizDoing() {
                 const w = pool[idx];
@@ -2571,8 +3763,22 @@
                 wrap.innerHTML = `
                 <div class="quiz-doing">
                     <div class="quiz-q-label">Câu ${idx + 1} / ${pool.length}</div>
-                    <div class="quiz-prompt">${esc(prompt)}</div>
-                    ${sub ? `<div class="quiz-prompt-sub">${esc(sub)}</div>` : ''}
+                    ${isListenMode() ? `
+                        <button class="lp-play-btn" id="qzPlayBtn" onclick="qzSpeak()">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                            Nghe từ
+                        </button>
+                        <div class="lp-speed-row" style="margin-top:-4px">
+                            <span style="font-size:11px;color:var(--txt3);font-weight:600;letter-spacing:.05em">TỐC ĐỘ</span>
+                            <button class="lp-speed-btn active" id="qzS1" onclick="qzSetSpeed(1.0,'qzS1')">×1.0</button>
+                            <button class="lp-speed-btn" id="qzS075" onclick="qzSetSpeed(0.75,'qzS075')">×0.75</button>
+                            <button class="lp-speed-btn" id="qzS05" onclick="qzSetSpeed(0.5,'qzS05')">×0.5</button>
+                        </div>
+                    ` : `
+                        <div class="quiz-prompt">${esc(prompt)}</div>
+                        ${sub ? `<div class="quiz-prompt-sub">${esc(sub)}</div>` : ''}
+                    `}
+                    ${isWriteMode() ? `
                     <div class="wp-canvas-row" style="max-width:500px;width:100%">
                         <div class="wp-btns">
                             <button class="wp-icon-btn" onclick="qzUndo()" title="Xóa nét vừa vẽ">
@@ -2599,6 +3805,21 @@
                             </button>
                         </div>
                     </div>
+                    ` : `
+                    <div class="tp-input-wrap" style="max-width:500px;width:100%">
+                        <div class="tp-hint-row" id="qzHintRow"></div>
+                        <input class="tp-input" id="qzTypeInput" type="text" autocomplete="off" autocorrect="off" spellcheck="false"
+                            placeholder="${isKorAnswer() ? '한국어로 입력하세요...' : 'Gõ nghĩa tiếng Việt...'}" />
+                        <div class="tp-keyboard-hint" id="qzKeyboardHint">${isKorAnswer() ? '💡 Tab: chuyển Hangul' + (isListenMode() ? ' · Ctrl+L: nghe lại' : '') : (isListenMode() ? '💡 Ctrl+L: nghe lại' : '')}</div>
+                        <div class="tp-btns-row">
+                            <button class="btn btn-ghost" id="qzRevealBtn" onclick="qzReveal()">👁 Hiện đáp án</button>
+                            <button class="wp-icon-btn wp-icon-btn--next" id="qzNextBtn" onclick="qzNext()" style="display:none;width:auto;padding:0 16px;gap:6px;font-size:13px;font-weight:500">
+                                Tiếp theo
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13 5l7 7-7 7"/><path d="M5 5l7 7-7 7"/></svg>
+                            </button>
+                        </div>
+                    </div>
+                    `}
                     <div id="qzAns" style="font-size:20px;font-weight:600;color:var(--txt);min-height:28px"></div>
                     <div id="qzAnsSub" style="font-size:13px;color:var(--txt2);min-height:18px"></div>
                     <div id="qzResult" class="quiz-result-banner" style="display:none;max-width:500px;width:100%"></div>
@@ -2609,11 +3830,12 @@
                     </div>
                 </div>`;
 
-                // Store answer for this question
+                // Store answer
                 wrap._answer = answer;
                 wrap._answerSub = answerSub;
 
-                // Setup canvas
+                if (isWriteMode()) {
+                // ── Canvas setup ──
                 const canvas = document.getElementById('qzCanvas');
                 const hint = document.getElementById('qzHint');
                 quizStrokes = []; quizCurrentStroke = []; quizDrawing = false;
@@ -2636,7 +3858,7 @@
                 function stopDraw() {
                     if (quizDrawing && quizCurrentStroke.length) quizStrokes.push([...quizCurrentStroke]);
                     quizDrawing = false; quizCurrentStroke = [];
-                    if (quizStrokes.length && !answered) { clearTimeout(quizAutoTimer); quizAutoTimer = setTimeout(() => qzPreview(), 10); } //2937
+                    if (quizStrokes.length && !answered) { clearTimeout(quizAutoTimer); quizAutoTimer = setTimeout(() => qzPreview(), 10); }
                 }
                 canvas.addEventListener('pointerdown', startDraw);
                 canvas.addEventListener('pointermove', moveDraw);
@@ -2660,8 +3882,82 @@
                     for (const s of quizStrokes) { if (s.length < 2) continue; ctx.beginPath(); ctx.moveTo(s[0].x, s[0].y); for (let i = 1; i < s.length; i++) ctx.lineTo(s[i].x, s[i].y); ctx.stroke(); }
                     if (!quizStrokes.length) hint.style.opacity = '1';
                     const p = document.getElementById('qzPreview'); if (p) p.textContent = '';
-                    if (quizStrokes.length) { quizAutoTimer = setTimeout(() => qzPreview(), 10); } //2937
+                    if (quizStrokes.length) { quizAutoTimer = setTimeout(() => qzPreview(), 10); }
                 };
+
+                } else {
+                // ── Text input setup (type + listen) ──
+                const q2j = {
+                    'q':'ㅂ','w':'ㅈ','e':'ㄷ','r':'ㄱ','t':'ㅅ','y':'ㅛ','u':'ㅕ','i':'ㅑ','o':'ㅐ','p':'ㅔ',
+                    'a':'ㅁ','s':'ㄴ','d':'ㅇ','f':'ㄹ','g':'ㅎ','h':'ㅗ','j':'ㅓ','k':'ㅏ','l':'ㅣ',
+                    'z':'ㅋ','x':'ㅌ','c':'ㅊ','v':'ㅍ','b':'ㅠ','n':'ㅜ','m':'ㅡ',
+                    'Q':'ㅃ','W':'ㅉ','E':'ㄸ','R':'ㄲ','T':'ㅆ','O':'ㅒ','P':'ㅖ'
+                };
+                let qzSpeed = 1.0;
+
+                function qzUpdateHintRow(typed) {
+                    if (!isKorAnswer()) { document.getElementById('qzHintRow').innerHTML = ''; return; }
+                    const exp = wrap._answer; if (!exp) return;
+                    const chars = [...exp], typedChars = typed ? [...typed] : [];
+                    document.getElementById('qzHintRow').innerHTML = chars.map((ch, i) => {
+                        let cls = i < typedChars.length ? (typedChars[i] === ch ? 'hit' : 'miss') : '';
+                        return `<span class="tp-char ${cls}">${i < typedChars.length ? esc(typedChars[i]) : '?'}</span>`;
+                    }).join('');
+                }
+
+                window.qzSpeak = () => {
+                    const w = pool[idx]; if (!w) return;
+                    window.speechSynthesis.cancel();
+                    const utt = new SpeechSynthesisUtterance(w.korean);
+                    utt.lang = 'ko-KR'; utt.rate = qzSpeed;
+                    const btn = document.getElementById('qzPlayBtn');
+                    if (btn) { btn.className = 'lp-play-btn playing'; btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg> Đang phát...`; }
+                    utt.onend = () => { if (btn) { btn.className = 'lp-play-btn'; btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg> Nghe lại`; } };
+                    window.speechSynthesis.speak(utt);
+                };
+                window.qzSetSpeed = (rate, btnId) => {
+                    qzSpeed = rate;
+                    document.querySelectorAll('.lp-speed-btn').forEach(b => b.classList.remove('active'));
+                    document.getElementById(btnId).classList.add('active');
+                };
+
+                const inp = document.getElementById('qzTypeInput');
+                qzUpdateHintRow('');
+
+                inp.addEventListener('input', () => {
+                    if (!isKorAnswer()) return;
+                    const raw = inp.value;
+                    const kh = document.getElementById('qzKeyboardHint');
+                    if (window.Hangul && /[a-zA-Z]/.test(raw)) {
+                        let cv = ''; for (const ch of raw) cv += q2j[ch] || ch;
+                        const sug = Hangul.a(cv.split(''));
+                        if (sug !== raw) kh.innerHTML = `💡 Nhấn <strong>Tab</strong> để đổi thành: <b style="font-size:15px;color:var(--txt)">${esc(sug)}</b>`;
+                        else kh.textContent = isListenMode() ? '💡 Tab: chuyển Hangul · Ctrl+L: nghe lại' : '💡 Tab: chuyển Hangul';
+                    } else {
+                        kh.textContent = isListenMode() ? (inp.value ? '' : '💡 Ctrl+L: nghe lại') : '';
+                    }
+                });
+                inp.addEventListener('keydown', e => {
+                    if (e.key === 'Tab' && isKorAnswer()) {
+                        e.preventDefault();
+                        const raw = inp.value;
+                        if (window.Hangul && /[a-zA-Z]/.test(raw)) {
+                            let cv = ''; for (const ch of raw) cv += q2j[ch] || ch;
+                            inp.value = Hangul.a(cv.split(''));
+                            qzUpdateHintRow(inp.value);
+                            document.getElementById('qzKeyboardHint').textContent = '';
+                        }
+                    } else if (e.key === 'Enter') {
+                        if (answered) { qzNext(); return; }
+                        qzTypeCheck();
+                    } else if ((e.key === 'l' || e.key === 'L') && e.ctrlKey) {
+                        e.preventDefault(); qzSpeak();
+                    }
+                });
+
+                if (isListenMode()) setTimeout(() => qzSpeak(), 300);
+                setTimeout(() => inp.focus(), 50);
+                } // end else
                 window.qzReveal = () => {
                     document.getElementById('qzAns').textContent = wrap._answer;
                     document.getElementById('qzAnsSub').textContent = wrap._answerSub;
@@ -2745,11 +4041,49 @@
                 };
                 window.qzNext = () => {
                     if (!answered) return;
+                    if (isListenMode()) window.speechSynthesis.cancel();
                     idx++;
                     if (idx >= pool.length) { renderQuizSummary(); return; }
                     renderQuizDoing();
                 };
-            }
+
+                // ── Type/Listen check ──
+                window.qzTypeCheck = () => {
+                    if (answered) return;
+                    const inp = document.getElementById('qzTypeInput');
+                    const typed = inp.value.trim();
+                    if (!typed) { if (isListenMode()) qzSpeak(); return; }
+                    const expected = wrap._answer;
+                    const normS = s => s.toLowerCase().replace(/\(.*?\)/g,'').replace(/\[.*?\]/g,'').replace(/\s+/g,' ').trim();
+                    const ok = expected.split(',').map(s => normS(s)).includes(normS(typed));
+                    document.getElementById('qzAns').textContent = wrap._answer;
+                    document.getElementById('qzAnsSub').textContent = wrap._answerSub;
+                    const resultEl = document.getElementById('qzResult');
+                    resultEl.style.display = 'block';
+                    answered = true;
+                    results.push({ word: pool[idx], correct: ok, recognized: typed });
+                    if (ok) {
+                        inp.className = 'tp-input correct';
+                        resultEl.innerHTML = `✅ Đúng! «${esc(typed)}»`;
+                        resultEl.className = 'quiz-result-banner correct';
+                        document.getElementById('qzNextBtn').style.display = '';
+                    } else {
+                        inp.className = 'tp-input wrong';
+                        resultEl.innerHTML = `❌ Bạn gõ: <strong>${esc(typed)}</strong> — Đáp án: <strong>${esc(expected)}</strong>`;
+                        resultEl.className = 'quiz-result-banner wrong';
+                        document.getElementById('qzNextBtn').style.display = '';
+                    }
+                    if (document.getElementById('qzHintRow')) {
+                        const chars = [...expected], typedChars = [...typed];
+                        document.getElementById('qzHintRow').innerHTML = chars.map((ch, i) => {
+                            let cls = i < typedChars.length ? (typedChars[i] === ch ? 'hit' : 'miss') : '';
+                            return `<span class="tp-char ${cls}">${i < typedChars.length ? esc(typedChars[i]) : '?'}</span>`;
+                        }).join('');
+                    }
+                    document.getElementById('qzRevealBtn').style.display = 'none';
+                };
+
+            } // end renderQuizDoing
 
             async function renderQuizSummary() {
                 const score = results.filter(r => r.correct).length;
@@ -2849,9 +4183,20 @@
                     <div class="fg">
                         <label>Chế độ</label>
                         <select id="qzMode" style="padding:8px 10px;border:0.5px solid var(--bdr2);border-radius:var(--r);background:var(--bg2);color:var(--txt);outline:none;font-family:inherit;font-size:13px;">
-                            <option value="viet-kor">Tiếng Việt → viết tiếng Hàn</option>
-                            <option value="kor-kor">Tiếng Hàn → viết lại tiếng Hàn</option>
-                            <option value="kor-viet">Tiếng Hàn → viết tiếng Việt</option>
+                            <optgroup label="✍️ Luyện viết (vẽ tay)">
+                                <option value="viet-kor">Tiếng Việt → viết tiếng Hàn</option>
+                                <option value="kor-kor">Tiếng Hàn → viết lại tiếng Hàn</option>
+                                <option value="kor-viet">Tiếng Hàn → viết tiếng Việt</option>
+                            </optgroup>
+                            <optgroup label="⌨️ Luyện từ (gõ phím)">
+                                <option value="type-viet-kor">Tiếng Việt → gõ tiếng Hàn</option>
+                                <option value="type-kor-kor">Tiếng Hàn → gõ lại tiếng Hàn</option>
+                                <option value="type-kor-viet">Tiếng Hàn → gõ tiếng Việt</option>
+                            </optgroup>
+                            <optgroup label="🔊 Luyện nghe (nghe + gõ)">
+                                <option value="listen-kor">Nghe tiếng Hàn → gõ tiếng Hàn</option>
+                                <option value="listen-viet">Nghe tiếng Hàn → gõ tiếng Việt</option>
+                            </optgroup>
                         </select>
                     </div>
                     <div class="fg">
@@ -2878,7 +4223,7 @@
                     <div class="admin-quiz-item">
                         <div class="admin-quiz-item-info">
                             <div class="admin-quiz-item-title">${esc(q.title)}</div>
-                            <div class="admin-quiz-item-meta">${(q.word_ids||[]).length} từ · ${q.mode === 'kor-viet' ? 'HÀN→VIỆT' : q.mode === 'viet-kor' ? 'VIỆT→HÀN' : 'HÀN→HÀN'} · ${q.max_attempts ? `${q.max_attempts} lượt` : '∞'} · ${new Date(q.created_at).toLocaleDateString('vi-VN')}</div>
+                            <div class="admin-quiz-item-meta">${(q.word_ids||[]).length} từ · ${quizModeLabel(q.mode)} · ${q.max_attempts ? `${q.max_attempts} lượt` : '∞'} · ${new Date(q.created_at).toLocaleDateString('vi-VN')}</div>
                         </div>
                         <button class="btn-del" onclick="deleteQuiz('${q.id}')" title="Xóa" style="display:inline-flex!important;align-items:center;justify-content:center;flex-shrink:0;min-width:28px;min-height:28px;visibility:visible!important;opacity:1!important">✕</button>
                     </div>`).join('')}
@@ -3045,6 +4390,541 @@
         };
 
         loadWords();
+
+        // ═══════════════ SOẠN BÀI ═══════════════
+        (function() {
+            const SK = 'soanLessons_local';
+            let sLessons = [], sActiveId = null, sSaveTimer = null;
+            const tagMap = {
+                korean: { label: '🇰🇷 Tiếng Hàn', cls: 'soan-tag-korean' },
+                math:   { label: '📐 Toán', cls: 'soan-tag-math' },
+                lit:    { label: '📖 Văn', cls: 'soan-tag-lit' },
+                eng:    { label: '🇬🇧 Tiếng Anh', cls: 'soan-tag-eng' },
+                other:  { label: '📝 Khác', cls: 'soan-tag-other' },
+            };
+
+            // ── Storage helpers: Supabase nếu đăng nhập, localStorage nếu không ──
+            function sUseSupabase() { return !!(currentUser); }
+
+            async function sLoadFromDB() {
+                if (sUseSupabase()) {
+                    const { data, error } = await sp.from('lessons')
+                        .select('*')
+                        .eq('user_id', currentUser.id)
+                        .order('date', { ascending: false });
+                    if (!error && data) { sLessons = data; return; }
+                }
+                // fallback localStorage
+                try { sLessons = JSON.parse(localStorage.getItem(SK) || '[]'); } catch { sLessons = []; }
+            }
+
+            async function sInsertDB(lesson) {
+                if (sUseSupabase()) {
+                    const row = { ...lesson, user_id: currentUser.id };
+                    const { data, error } = await sp.from('lessons').insert([row]).select().single();
+                    if (!error && data) { lesson.id = data.id; return data; }
+                }
+                // localStorage fallback
+                const local = JSON.parse(localStorage.getItem(SK) || '[]');
+                local.unshift(lesson);
+                localStorage.setItem(SK, JSON.stringify(local));
+                return lesson;
+            }
+
+            async function sUpdateDB(id, fields) {
+                if (sUseSupabase()) {
+                    const { error } = await sp.from('lessons').update(fields).eq('id', id).eq('user_id', currentUser.id);
+                    if (error) console.error('lessons update error', error);
+                    return;
+                }
+                const local = JSON.parse(localStorage.getItem(SK) || '[]');
+                const idx = local.findIndex(x => x.id === id);
+                if (idx !== -1) { Object.assign(local[idx], fields); localStorage.setItem(SK, JSON.stringify(local)); }
+            }
+
+            // ── Init ──
+            window.soanInit = async function() {
+                await sLoadFromDB();
+                sRenderList();
+                sUpdateClock();
+                // soanCheckMobile();
+                // Tính lại chiều cao đúng dựa trên vị trí thực của pane
+                (function fixHeight() {
+                    const pane = document.getElementById('pane-soan');
+                    if (!pane) return;
+                    const top = pane.getBoundingClientRect().top;
+                    const h = window.innerHeight - top;
+                    if (h > 100) { pane.style.height = h + 'px'; }
+                })();
+                // resizable right-panel divider
+                const dh = document.getElementById('soanDividerH');
+                if (dh && !dh._bound) {
+                    dh._bound = true;
+                    let dragging = false, startY = 0, startT = 0, startD = 0;
+                    dh.addEventListener('mousedown', e => {
+                        dragging = true; startY = e.clientY;
+                        startT = document.getElementById('soanTransSection').getBoundingClientRect().height;
+                        startD = document.getElementById('soanDictSection').getBoundingClientRect().height;
+                        document.body.style.cursor = 'row-resize';
+                        document.body.style.userSelect = 'none';
+                    });
+                    document.addEventListener('mousemove', e => {
+                        if (!dragging) return;
+                        const total = startT + startD;
+                        const newT = Math.max(80, Math.min(total - 80, startT + (e.clientY - startY)));
+                        document.getElementById('soanTransSection').style.flex = `0 0 ${newT}px`;
+                        document.getElementById('soanDictSection').style.flex = `0 0 ${total - newT}px`;
+                    });
+                    document.addEventListener('mouseup', () => {
+                        dragging = false;
+                        document.body.style.cursor = '';
+                        document.body.style.userSelect = '';
+                    });
+                }
+            };
+
+            // ── Modal ──
+            window.soanOpenModal = function() {
+                document.getElementById('soanNewDate').value = new Date().toISOString().split('T')[0];
+                document.getElementById('soanNewName').value = '';
+                document.getElementById('soanNewPeriod').value = '';
+                document.getElementById('soanModal').classList.add('open');
+                setTimeout(() => document.getElementById('soanNewName').focus(), 80);
+            };
+            window.soanCloseModal = function() { document.getElementById('soanModal').classList.remove('open'); };
+            document.addEventListener('keydown', e => { if (e.key === 'Escape') window.soanCloseModal(); });
+
+            // ── Add lesson ──
+            window.soanAddLesson = async function() {
+                const name = document.getElementById('soanNewName').value.trim();
+                if (!name) { document.getElementById('soanNewName').focus(); return; }
+                
+                // Gom dữ liệu để lưu lên Supabase (chỉ truyền cột name, không truyền title)
+                const lesson = {
+                    name: name,
+                    date: document.getElementById('soanNewDate').value || new Date().toISOString().split('T')[0],
+                    period: document.getElementById('soanNewPeriod').value.trim() || '',
+                    tag: document.getElementById('soanNewTag').value,
+                    done: false,
+                    content: ''
+                };
+                
+                soanCloseModal();
+                
+                // Lưu vào DB
+                const saved = await sInsertDB(lesson);
+                lesson.id = saved.id;
+                
+                // Cập nhật giao diện
+                sLessons.unshift(lesson);
+                sRenderList();
+                sOpenLesson(lesson.id);
+            };
+
+            // ── Toggle done ──
+            window.soanToggleDone = async function(id) {
+                const l = sLessons.find(x => x.id === id);
+                if (!l) return;
+                l.done = !l.done;
+                await sUpdateDB(id, { done: l.done });
+                sRenderList();
+                if (id === sActiveId) document.getElementById('soanDoneBtn').classList.toggle('active', l.done);
+            };
+
+            window.soanToggleDoneActive = function() {
+                if (sActiveId) soanToggleDone(sActiveId);
+            };
+
+            // ── Delete active lesson ──
+            window.soanDeleteActiveLesson = async function() {
+                if (!sActiveId) return;
+                if (!confirm('Bạn có chắc chắn muốn xóa bài soạn này không?')) return;
+
+                // Xóa trên Database (nếu đã đăng nhập) hoặc LocalStorage
+                if (sUseSupabase()) {
+                    try {
+                        const { error } = await sp.from('lessons').delete().eq('id', sActiveId).eq('user_id', currentUser.id);
+                        if (error) throw error;
+                    } catch(e) {
+                        console.error('Lỗi xóa bài:', e);
+                        toast('Lỗi khi xóa bài');
+                        return;
+                    }
+                } else {
+                    let local = JSON.parse(localStorage.getItem(SK) || '[]');
+                    local = local.filter(x => x.id !== sActiveId);
+                    localStorage.setItem(SK, JSON.stringify(local));
+                }
+
+                // Xóa khỏi danh sách hiện tại
+                sLessons = sLessons.filter(x => x.id !== sActiveId);
+                sActiveId = null;
+
+                // Trả UI về trạng thái trống (chưa chọn bài nào)
+                document.getElementById('soanEmptyEditor').style.display = '';
+                document.getElementById('soanEditor').innerHTML = '';
+                document.getElementById('soanEditorTitle').value = '';
+                document.getElementById('soanWordCount').textContent = '0 từ';
+                document.getElementById('soanCharCount').textContent = '0 ký tự';
+                
+                sRenderList();
+                toast('Đã xóa bài soạn!');
+            };
+
+            // ── Open lesson ──
+            function sOpenLesson(id) {
+                sActiveId = id;
+                const l = sLessons.find(x => x.id === id);
+                if (!l) return;
+                document.getElementById('soanEmptyEditor').style.display = 'none';
+                document.getElementById('soanEditorTitle').value = l.title || l.name;
+                const editor = document.getElementById('soanEditor');
+                editor.innerHTML = l.content || '';
+                document.getElementById('soanDoneBtn').classList.toggle('active', !!l.done);
+                sRenderList();
+                soanCountWords();
+                editor.focus();
+            }
+            window.soanOpenLesson = sOpenLesson;
+
+            // ── Auto-save content ──
+            async function sSaveContent(id) {
+                const l = sLessons.find(x => x.id === id);
+                if (!l) return;
+                const newTitle = document.getElementById('soanEditorTitle').value.trim() || l.name;
+                const newContent = document.getElementById('soanEditor').innerHTML;
+                l.title = newTitle;
+                l.content = newContent;
+                await sUpdateDB(id, { name: newTitle, content: newContent });
+            }
+
+            window.soanScheduleSave = function() {
+                clearTimeout(sSaveTimer);
+                if (sActiveId) sSaveTimer = setTimeout(async () => {
+                    await sSaveContent(sActiveId);
+                    const btn = document.getElementById('soanSaveBtn');
+                    if (btn) {
+                        btn.innerHTML = '<i class="fa-solid fa-check">';
+                        btn.style.color = 'var(--txt3)';
+                        setTimeout(() => { btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i>'; btn.style.color = ''; }, 1500);
+                    }
+                }, 1500);
+            };
+
+            // ── Word count & gutter ──
+            window.soanCountWords = function() {
+                const title = document.getElementById('soanEditorTitle').value;
+                const body = document.getElementById('soanEditor').innerText || '';
+                const words = (title + ' ' + body).trim().split(/\s+/).filter(Boolean).length;
+                const chars = (title + body).length;
+                document.getElementById('soanWordCount').textContent = words + ' từ';
+                document.getElementById('soanCharCount').textContent = chars.toLocaleString('vi-VN') + ' ký tự';
+                sUpdateGutter();
+            };
+
+document.getElementById('soanEditor').addEventListener('keydown', function(e) {
+    if (e.key === 'Tab') {
+        e.preventDefault();
+        document.execCommand('insertText', false, '    ');
+        return;
+    }
+
+    if (e.key === 'Enter' && !e.shiftKey) {
+        const sel = window.getSelection();
+        if (!sel.rangeCount) return;
+        const range = sel.getRangeAt(0);
+        let node = range.startContainer;
+        while (node && node.id !== 'soanEditor' && node.nodeName !== 'DIV') {
+            node = node.parentNode;
+        }
+        const lineText = node ? node.innerText || node.textContent : "";
+
+        // 1. Kiểm tra danh sách số (1., a., I.)
+        const matchNum = lineText.match(/^((?:\s*(?:[0-9]+|[a-zA-Z]|[IVXLCDMivxlcdm]+)[\.\)]\s*)*\s*(?:[0-9]+|[a-zA-Z]|[IVXLCDMivxlcdm]+)[\.\)]\s+)/);
+        
+        // 2. Kiểm tra gạch đầu dòng (•, -, *)
+        const matchBullet = lineText.match(/^(\s*[•\-\*]\s+)/);
+
+        if (matchNum) {
+            e.preventDefault();
+            const lastPart = matchNum[1].match(/([\s\S]*?)(\b[0-9]+|\b[a-zA-Z]|\b[IVXLCDMivxlcdm]+)([\.\)])\s+$/);
+            if (lastPart) {
+                const next = sResolveNextPrefix(lastPart[2]);
+                if (next) {
+                    document.execCommand('insertText', false, '\n' + lastPart[1] + next + lastPart[3] + ' ');
+                }
+            }
+            soanCountWords();
+        } else if (matchBullet) {
+            e.preventDefault();
+            document.execCommand('insertText', false, '\n' + matchBullet[1]);
+            soanCountWords();
+        }
+    }
+});
+
+            window.soanWrap = function(cmd) {
+                document.getElementById('soanEditor').focus();
+                document.execCommand(cmd, false, null);
+                soanCountWords();
+                soanScheduleSave();
+            };
+
+            function sUpdateGutter() {
+                const editor = document.getElementById('soanEditor');
+                const gutter = document.getElementById('soanLineNumbers');
+                if (!gutter || !editor) return;
+                // Count block children — contenteditable wraps each line in a <div>.
+                // Empty lines = <div><br></div>, so children.length is always accurate.
+                const count = Math.max(1, editor.children.length);
+                if (gutter._lastCount === count) return;
+                gutter._lastCount = count;
+                let html = '';
+                for (let i = 0; i < count; i++) html += `<div>${i + 1}</div>`;
+                gutter.innerHTML = html;
+                document.getElementById('soanGutter').scrollTop = editor.scrollTop;
+            }
+
+            document.getElementById('soanEditor').addEventListener('scroll', function() {
+                document.getElementById('soanGutter').scrollTop = this.scrollTop;
+            });
+
+            // ── Render list ──
+            function sFormatDate(d) {
+                const dt = new Date(d + 'T00:00:00'), today = new Date();
+                today.setHours(0,0,0,0);
+                const diff = Math.round((dt - today) / 86400000);
+                const days = ['CN','Th2','Th3','Th4','Th5','Th6','Th7'];
+                const dow = days[dt.getDay()];
+                if (diff === 0) return `Hôm nay — ${dow} ${dt.getDate()}/${dt.getMonth()+1}`;
+                if (diff === 1) return `Ngày mai — ${dow} ${dt.getDate()}/${dt.getMonth()+1}`;
+                if (diff === -1) return `Hôm qua — ${dow} ${dt.getDate()}/${dt.getMonth()+1}`;
+                return `${dow}, ${dt.getDate()}/${dt.getMonth()+1}/${dt.getFullYear()}`;
+            }
+
+            function sRenderList() {
+                const list = document.getElementById('soanLessonList');
+                if (!list) return;
+                const done = sLessons.filter(l => l.done).length;
+                const total = sLessons.length;
+                document.getElementById('soanProgressText').textContent = `${done} / ${total}`;
+                document.getElementById('soanProgressFill').style.width = total ? `${(done/total)*100}%` : '0%';
+                if (!sLessons.length) {
+                    list.innerHTML = '<div style="padding:20px 12px;font-size:12px;color:var(--txt3);text-align:center">Chưa có bài.<br>Nhấn + để thêm.</div>';
+                    return;
+                }
+                const groups = {};
+                sLessons.forEach(l => { if (!groups[l.date]) groups[l.date] = []; groups[l.date].push(l); });
+                const dates = Object.keys(groups).sort().reverse();
+                list.innerHTML = '';
+                dates.forEach(date => {
+                    const grp = document.createElement('div');
+                    grp.className = 'soan-day-group';
+                    const lbl = document.createElement('div');
+                    lbl.className = 'soan-day-label';
+                    lbl.textContent = sFormatDate(date);
+                    grp.appendChild(lbl);
+                    groups[date].forEach(l => {
+                        const item = document.createElement('div');
+                        item.className = 'soan-lesson-item' + (l.done ? ' done' : '') + (l.id === sActiveId ? ' active' : '');
+                        item.onclick = () => sOpenLesson(l.id);
+                        const tag = tagMap[l.tag] || tagMap.other;
+                        item.innerHTML = `
+                            <div class="soan-lesson-check" onclick="event.stopPropagation();soanToggleDone('${l.id}')">${l.done ? '<i class="fa-solid fa-check">' : ''}</div>
+                            <div class="soan-lesson-info">
+                                <div class="soan-lesson-name">${l.title || l.name}</div>
+                                <div class="soan-lesson-meta">
+                                    <span class="soan-tag ${tag.cls}">${tag.label}</span>
+                                    ${l.period ? `<span>${l.period}</span>` : ''}
+                                </div>
+                            </div>`;
+                        grp.appendChild(item);
+                    });
+                    list.appendChild(grp);
+                });
+            }
+
+            // Reload lessons khi auth thay đổi (đăng nhập / đăng xuất)
+            sp.auth.onAuthStateChange(async (_event, session) => {
+                if (document.getElementById('pane-soan').classList.contains('active')) {
+                    sActiveId = null;
+                    document.getElementById('soanEmptyEditor').style.display = '';
+                    document.getElementById('soanEditor').innerHTML = '';
+                    document.getElementById('soanEditorTitle').value = '';
+                    await sLoadFromDB();
+                    sRenderList();
+                }
+            });
+
+            // ── Resize: update height ──
+            window.addEventListener('resize', function() {
+                if (document.body.classList.contains('soan-active')) {
+                    updateSoanHeight();
+                }
+            });
+
+            // ── Clock ──
+            function sUpdateClock() {
+                const el = document.getElementById('soanCurrentTime');
+                if (el) el.textContent = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+            }
+            setInterval(sUpdateClock, 30000);
+
+            // ── Manual save ──
+            window.soanManualSave = async function() {
+                if (!sActiveId) return;
+                await sSaveContent(sActiveId);
+                const btn = document.getElementById('soanSaveBtn');
+                btn.innerHTML = '<i class="fa-solid fa-check">';
+                btn.style.color = '#27500A';
+                setTimeout(() => { btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i>'; btn.style.color = ''; }, 1800);
+            };
+
+            // Ctrl+S to save
+            document.addEventListener('keydown', function(e) {
+                if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+                    const pane = document.getElementById('pane-soan');
+                    if (pane && pane.classList.contains('active')) {
+                        e.preventDefault();
+                        window.soanManualSave();
+                    }
+                }
+            });
+
+            // ── Gemini ──
+            let geminiLastQuery = '';
+
+            window.soanAskAI = function() {
+                const panel = document.getElementById('soanAiPanel');
+                panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+                if (panel.style.display === 'block') document.getElementById('soanAiInput').focus();
+            };
+            window.soanCloseAI = function() {
+                document.getElementById('soanAiPanel').style.display = 'none';
+            };
+            window.soanSendAI = function() {
+                const input = document.getElementById('soanAiInput').value.trim();
+                if (!input) return;
+                geminiLastQuery = input;
+                const url = 'https://www.google.com/search?q=' + encodeURIComponent(input) + '&udm=50';
+                document.getElementById('geminiIframe').src = url;
+                document.getElementById('geminiPopupTitle').textContent = '✦ Gemini — ' + input;
+                const bg = document.getElementById('geminiPopupBg');
+                bg.style.display = 'flex';
+                document.getElementById('geminiReopenBar').style.display = 'block';
+                soanCloseAI();
+            };
+            window.soanReopenGemini = function() {
+                if (!geminiLastQuery) return;
+                const url = 'https://www.google.com/search?q=' + encodeURIComponent(geminiLastQuery) + '&udm=50';
+                document.getElementById('geminiIframe').src = url;
+                document.getElementById('geminiPopupBg').style.display = 'flex';
+            };
+
+            // Close popup when clicking background
+            document.getElementById('geminiPopupBg').addEventListener('click', function(e) {
+                if (e.target === this) this.style.display = 'none';
+            });
+
+            document.getElementById('soanAiInput').addEventListener('keydown', e => {
+                if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) window.soanSendAI();
+            });
+        })();
+
+        /* --- SMART LIST LOGIC (TỪ INDEX1.HTML) --- */
+function sResolveNextPrefix(prefix) {
+    const isNumber = /^\d+$/.test(prefix);
+    const isRomanUpper = /^M{0,4}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3})$/.test(prefix) && (prefix.length > 1 || ['I', 'V', 'X'].includes(prefix));
+    const isRomanLower = /^m{0,4}(cm|cd|d?c{0,3})(xc|xl|l?x{0,3})(ix|iv|v?i{0,3})$/.test(prefix) && (prefix.length > 1 || ['i', 'v', 'x'].includes(prefix));
+    const isAlphaUpper = /^[A-Z]$/.test(prefix);
+    const isAlphaLower = /^[a-z]$/.test(prefix);
+
+    const getRomanVal = s => {
+        s = s.toUpperCase();
+        const map = { I: 1, V: 5, X: 10, L: 50, C: 100, D: 500, M: 1000 };
+        let val = 0;
+        for (let i = 0; i < s.length; i++) {
+            let curr = map[s[i]], next = map[s[i + 1]];
+            if (next && curr < next) val -= curr;
+            else val += curr;
+        }
+        return val;
+    };
+
+    const toRoman = (num, upper) => {
+        const lookup = { M: 1000, CM: 900, D: 500, CD: 400, C: 100, XC: 90, L: 50, XL: 40, X: 10, IX: 9, V: 5, IV: 4, I: 1 };
+        let roman = '';
+        for (let i in lookup) {
+            while (num >= lookup[i]) { roman += i; num -= lookup[i]; }
+        }
+        return upper ? roman : roman.toLowerCase();
+    };
+
+    if (isNumber) return (parseInt(prefix) + 1).toString();
+    if (isRomanUpper) return toRoman(getRomanVal(prefix) + 1, true);
+    if (isRomanLower) return toRoman(getRomanVal(prefix) + 1, false);
+    if (isAlphaUpper) return String.fromCharCode(prefix.charCodeAt(0) + 1);
+    if (isAlphaLower) return String.fromCharCode(prefix.charCodeAt(0) + 1);
+    return null;
+}
+
+window.soanAddListItem = function() {
+    const editor = document.getElementById('soanEditor');
+    editor.focus();
+    const selection = window.getSelection();
+    const range = selection.getRangeAt(0);
+    const lineText = range.startContainer.parentElement.innerText || "";
+
+    let nextPrefix = "1", punc = ".", before = "";
+    const match = lineText.match(/^((?:\s*(?:[0-9]+|[a-zA-Z]|[IVXLCDMivxlcdm]+)[\.\)]\s*)*\s*(?:[0-9]+|[a-zA-Z]|[IVXLCDMivxlcdm]+)[\.\)]\s+)/);
+
+    if (match) {
+        const lastPart = match[1].match(/([\s\S]*?)(\b[0-9]+|\b[a-zA-Z]|\b[IVXLCDMivxlcdm]+)([\.\)])\s+$/);
+        if (lastPart) {
+            before = lastPart[1]; punc = lastPart[3];
+            const next = sResolveNextPrefix(lastPart[2]);
+            if (next) nextPrefix = next;
+        }
+    }
+    document.execCommand('insertText', false, (lineText.trim() ? "\\n" : "") + before + nextPrefix + punc + " ");
+};
+
+window.soanAddBullet = function() {
+    const editor = document.getElementById('soanEditor');
+    editor.focus();
+    const textBefore = sGetTextBeforeCursor();
+    const lines = textBefore.split('\n');
+    const currentLine = lines[lines.length - 1];
+
+    // Kiểm tra xem dòng trước đó có dùng dấu chấm tròn (•) hoặc gạch ngang (-) không
+    let bullet = "• "; 
+    for (let i = lines.length - 1; i >= 0; i--) {
+        const m = lines[i].match(/^(\s*[•\-\*]\s+)/);
+        if (m) { bullet = m[1]; break; }
+    }
+
+    let insertStr = (currentLine.trim().length > 0 ? "\n" : "") + bullet;
+    document.execCommand('insertText', false, insertStr);
+    soanCountWords();
+};
+
+/* --- HELPER FUNCTIONS --- */
+function sGetRawText(html) {
+    // Chuyển đổi HTML sang văn bản thuần túy và xử lý xuống dòng
+    let res = html.replace(/<br\s*\/?>/gi, '\n').replace(/<\/div>\s*<div[^>]*>/gi, '\n').replace(/<[^>]+>/g, '');
+    const txt = document.createElement('textarea');
+    txt.innerHTML = res;
+    return txt.value;
+}
+
+function sGetTextBeforeCursor() {
+    const editor = document.getElementById('soanEditor');
+    const sel = window.getSelection();
+    if (!sel || !sel.rangeCount) return '';
+    const range = sel.getRangeAt(0).cloneRange();
+    range.setStart(editor, 0); // Lấy toàn bộ nội dung từ đầu đến vị trí con trỏ hiện tại
+    return sGetRawText(range.cloneContents().textContent || range.toString());
+}
     </script>
 </body>
 
