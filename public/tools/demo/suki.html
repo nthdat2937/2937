@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bài viết tiếng Hàn — Nguyễn Thanh Đạt</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600&family=Be+Vietnam+Pro:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f5f2eb;
+    --paper: #fffef9;
+    --ink: #1a1714;
+    --ink-muted: #6b6560;
+    --ink-light: #a09a94;
+    --accent: #c0392b;
+    --accent-light: #f7ecea;
+    --grid-line: #c8c0b4;
+    --grid-bg: #fffef9;
+    --indent-bg: #f0ece3;
+    --tab-active: #1a1714;
+    --tab-inactive: #a09a94;
+    --shadow: 0 2px 12px rgba(26,23,20,0.08);
+  }
+
+  body {
+    font-family: 'Be Vietnam Pro', sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    min-height: 100vh;
+    padding: 2rem 1rem 4rem;
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+  }
+
+  header h1 {
+    font-family: 'Noto Serif KR', serif;
+    font-size: clamp(1.4rem, 4vw, 2rem);
+    font-weight: 600;
+    color: var(--ink);
+    letter-spacing: -0.02em;
+    margin-bottom: 0.4rem;
+  }
+
+  header p {
+    font-size: 0.85rem;
+    color: var(--ink-muted);
+    font-weight: 300;
+    letter-spacing: 0.04em;
+  }
+
+  .divider {
+    width: 40px;
+    height: 2px;
+    background: var(--accent);
+    margin: 0.8rem auto 0;
+    border-radius: 2px;
+  }
+
+  .wrapper {
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  /* TABS */
+  .tabs {
+    display: flex;
+    gap: 0;
+    background: var(--paper);
+    border-radius: 12px 12px 0 0;
+    border: 1px solid var(--grid-line);
+    border-bottom: none;
+    overflow: hidden;
+  }
+
+  .tab {
+    flex: 1;
+    padding: 0.85rem 0.5rem;
+    text-align: center;
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: 400;
+    color: var(--tab-inactive);
+    background: transparent;
+    border: none;
+    border-right: 1px solid var(--grid-line);
+    transition: all 0.2s;
+    font-family: 'Be Vietnam Pro', sans-serif;
+    line-height: 1.4;
+  }
+
+  .tab:last-child { border-right: none; }
+
+  .tab .tab-num {
+    display: block;
+    font-family: 'Noto Serif KR', serif;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--ink-light);
+    margin-bottom: 2px;
+    transition: color 0.2s;
+  }
+
+  .tab.active {
+    background: var(--accent-light);
+    color: var(--accent);
+  }
+
+  .tab.active .tab-num {
+    color: var(--accent);
+  }
+
+  /* LESSON PANEL */
+  .panel {
+    display: none;
+    background: var(--paper);
+    border: 1px solid var(--grid-line);
+    border-radius: 0 0 12px 12px;
+    padding: 1.75rem 1.5rem 2rem;
+    box-shadow: var(--shadow);
+  }
+
+  .panel.active { display: block; }
+
+  .panel-title {
+    font-family: 'Noto Serif KR', serif;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--ink);
+    margin-bottom: 0.35rem;
+  }
+
+  .panel-sub {
+    font-size: 0.78rem;
+    color: var(--ink-light);
+    margin-bottom: 1.5rem;
+    font-weight: 300;
+  }
+
+  /* LEGEND */
+  .legend {
+    display: flex;
+    gap: 1.25rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.25rem;
+    padding: 0.65rem 0.85rem;
+    background: var(--bg);
+    border-radius: 8px;
+    border: 1px solid var(--grid-line);
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 0.75rem;
+    color: var(--ink-muted);
+  }
+
+  .legend-box {
+    width: 18px;
+    height: 18px;
+    border: 1px solid var(--grid-line);
+    border-radius: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-family: 'Noto Serif KR', serif;
+  }
+
+  .legend-box.char { background: var(--paper); color: var(--ink); }
+  .legend-box.indent { background: var(--indent-bg); }
+  .legend-box.empty { background: var(--paper); }
+  .legend-box.punct { background: var(--paper); color: var(--ink-muted); font-size: 10px; }
+
+  /* GRID */
+  .grid-scroll { overflow-x: auto; padding-bottom: 0.5rem; }
+
+  .grid {
+    display: inline-grid;
+    grid-template-columns: repeat(20, 36px);
+    border-left: 1px solid var(--grid-line);
+    border-top: 1px solid var(--grid-line);
+  }
+
+  .cell {
+    width: 36px;
+    height: 36px;
+    border-right: 1px solid var(--grid-line);
+    border-bottom: 1px solid var(--grid-line);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Noto Serif KR', serif;
+    font-size: 14px;
+    color: var(--ink);
+  }
+
+  .cell.empty { background: var(--grid-bg); }
+  .cell.indent { background: var(--indent-bg); }
+  .cell.punct { color: var(--ink-muted); font-size: 12px; }
+
+  /* ROW NUMBER GRID WRAPPER */
+  .grid-with-rows {
+    display: flex;
+    gap: 0;
+    align-items: flex-start;
+  }
+
+  .row-nums {
+    display: flex;
+    flex-direction: column;
+    margin-right: 6px;
+    margin-top: 1px;
+  }
+
+  .row-num {
+    width: 22px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    font-size: 10px;
+    color: var(--ink-light);
+    font-weight: 300;
+    padding-right: 4px;
+    border-bottom: 1px solid transparent;
+  }
+
+  .stats {
+    margin-top: 1rem;
+    font-size: 0.78rem;
+    color: var(--ink-muted);
+    font-weight: 300;
+  }
+
+  .stats strong { font-weight: 500; color: var(--ink); }
+
+  @media (max-width: 600px) {
+    .tab { font-size: 0.7rem; padding: 0.7rem 0.25rem; }
+    .tab .tab-num { font-size: 0.85rem; }
+    .panel { padding: 1.25rem 0.75rem 1.5rem; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>한국어 쓰기 — 원고지</h1>
+  <p>Nguyễn Thanh Đạt · Bài viết tiếng Hàn sơ cấp</p>
+  <div class="divider"></div>
+</header>
+
+<div class="wrapper">
+  <div class="tabs">
+    <button class="tab active" onclick="show(0)">
+      <span class="tab-num">1과</span>자기소개
+    </button>
+    <button class="tab" onclick="show(1)">
+      <span class="tab-num">2과</span>내 방
+    </button>
+    <button class="tab" onclick="show(2)">
+      <span class="tab-num">3과</span>학교생활
+    </button>
+    <button class="tab" onclick="show(3)">
+      <span class="tab-num">4과</span>음식
+    </button>
+    <button class="tab" onclick="show(4)">
+      <span class="tab-num">7과</span>생일
+    </button>
+  </div>
+
+  <div id="panels"></div>
+</div>
+
+<script>
+const COLS = 20;
+
+const lessons = [
+  {
+    title: "1과 — 자기소개",
+    sub: "Tự giới thiệu",
+    text: "안녕하십니까? 처음 뵙겠습니다. 제 이름은 응웬 탄 닷입니다. 저는 베트남 사람이고, 지금 한국에서 공부하고 있습니다. 저는 열아홉 살이고, 한국어를 배우고 있습니다. 한국어가 어렵지만 재미있어서 열심히 공부하고 있습니다. 나중에 한국에서 일하고 싶습니다. 만나서 반갑습니다.",
+    indent: true
+  },
+  {
+    title: "2과 — 내 방",
+    sub: "Phòng của tôi",
+    text: "저는 제 방을 소개하겠습니다. 제 방에는 침대와 책상, 그리고 옷장이 있습니다. 책상 위에는 컴퓨터가 있고, 책상 옆에는 창문이 있습니다. 책상 앞에는 의자가 있고, 침대 앞에는 옷장이 있습니다. 옷장 안에는 옷이 아주 많고, 양말과 가방도 있습니다. 제 방은 넓고 깨끗해서 지내기 편합니다. 그래서 저는 제 방을 정말 좋아합니다.",
+    indent: true
+  },
+  {
+    title: "3과 — 학교생활",
+    sub: "Cuộc sống học đường",
+    text: "저는 아주대학교에서 한국어를 배우고 있습니다. 저는 보통 오후 한 시 이십 분쯤 학교에 갑니다. 한 시 반부터 다섯 시 이십 분까지 수업을 듣습니다. 우리 교실은 크고 깨끗해서 공부하기 좋습니다. 선생님은 예쁘시고 친절하십니다. 친구들도 모두 친절해서 같이 공부하는 것이 즐겁습니다. 주말에는 아홉 시에 친구와 같이 도서관에 가서 공부합니다. 그리고 오후 두 시에는 친구와 함께 아주대 운동장에서 축구를 합니다. 저는 이런 학교생활이 정말 재미있고 행복합니다.",
+    indent: true
+  },
+  {
+    title: "4과 — 음식",
+    sub: "Đồ ăn",
+    text: "저는 베트남 음식을 정말 좋아합니다. 그래서 식당에서 쌀국수와 분짜를 자주 먹습니다. 쌀국수는 맵지 않고 국물이 시원해서 맛있습니다. 그리고 분짜는 고기가 많아서 아주 맛있습니다. 저는 가끔 집에서 반미를 만들어 먹습니다. 반미는 만들기 쉽고 맛도 좋습니다. 주말에는 친구가 우리 집에 놀러 옵니다. 친구도 베트남 음식을 좋아해서 같이 음식을 만들고 먹습니다. 그리고 차도 마시면서 이야기를 나누고 즐거운 시간을 보냅니다. 그래서 저는 이런 시간이 정말 행복합니다.",
+    indent: true
+  },
+  {
+    title: "7과 - 생일",
+    sub: "Sinh nhật",
+    text: "지난달에 제 생일이었어요. 친구들과 누나와 우리 집에서 생일 파티를 했습니다. 제 누나는 제가 좋아하는 티라미수 케이크를 선물해 주었습니다. 친구들이 저에게 생일 축하 노래를 불러 주었습니다. 저는 케이크를 잘랐습니다. 우리는 같이 케이크를 먹었습니다. 티라미수 케이크는 정말 맛있었습니다. 케이크를 다 먹은 후에 친구들이 저에게 선물을 주었습니다. 선물을 받을 때 정말 기뻤습니다. 우리는 같이 사진도 많이 찍었습니다. 사진을 찍은 후에 우리는 게임을 했습니다. 게임이 아주 재미있었습니다. 파티가 끝난 후에 저는 정말 행복했습니다. 친구들과 누나 덕분에 생일이 특별했습니다. 내년에도 이렇게 즐거운 생일 파티를 하고 싶습니다.",
+    indent: true
+  }
+];
+
+function buildCells(text, indent) {
+  const cells = [];
+  if (indent) cells.push({ type: 'indent' });
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (ch === ' ') {
+      cells.push({ type: 'empty' });
+    } else if ('.?,'.includes(ch)) {
+      cells.push({ type: 'punct', char: ch });
+    } else if ('?!'.includes(ch)) {
+      cells.push({ type: 'punct', char: ch });
+      cells.push({ type: 'empty' });
+    } else {
+      cells.push({ type: 'char', char: ch });
+    }
+  }
+  // fix: handle ? and ! correctly (they are not in the first branch)
+  return cells;
+}
+
+function fixCells(text, indent) {
+  const cells = [];
+  if (indent) cells.push({ type: 'indent' });
+  // Remove all spaces first, then process char by char
+  // In Korean grid writing: space between words = 1 empty cell
+  // ? ! = 1 empty cell after; . , = no empty cell after
+  let i = 0;
+  while (i < text.length) {
+    const ch = text[i];
+    if (ch === ' ') {
+      // Only add ONE empty cell per space, skip consecutive spaces
+      cells.push({ type: 'empty' });
+      while (i + 1 < text.length && text[i + 1] === ' ') i++;
+    } else if (ch === '?' || ch === '!') {
+      cells.push({ type: 'punct', char: ch });
+      // skip the space after ? or ! if present (we add our own empty cell)
+      if (i + 1 < text.length && text[i + 1] === ' ') i++;
+      cells.push({ type: 'empty' });
+    } else if (ch === '.' || ch === ',') {
+      cells.push({ type: 'punct', char: ch });
+      // skip the space after . or , — no empty cell added
+      if (i + 1 < text.length && text[i + 1] === ' ') i++;
+    } else {
+      cells.push({ type: 'char', char: ch });
+    }
+    i++;
+  }
+  return cells;
+}
+
+function renderGrid(cells) {
+  const total = cells.length;
+  const rows = Math.ceil(total / COLS);
+  const padded = [...cells];
+  while (padded.length < rows * COLS) padded.push({ type: 'empty' });
+
+  let rowNumsHtml = '';
+  let gridHtml = `<div class="grid">`;
+
+  for (let r = 0; r < rows; r++) {
+    rowNumsHtml += `<div class="row-num">${r + 1}</div>`;
+    for (let c = 0; c < COLS; c++) {
+      const cell = padded[r * COLS + c];
+      if (cell.type === 'indent') {
+        gridHtml += `<div class="cell indent"></div>`;
+      } else if (cell.type === 'empty') {
+        gridHtml += `<div class="cell empty"></div>`;
+      } else if (cell.type === 'punct') {
+        gridHtml += `<div class="cell punct">${cell.char}</div>`;
+      } else {
+        gridHtml += `<div class="cell">${cell.char}</div>`;
+      }
+    }
+  }
+  gridHtml += `</div>`;
+
+  return { rowNumsHtml, gridHtml, rows, total };
+}
+
+const container = document.getElementById('panels');
+
+lessons.forEach((l, idx) => {
+  const cells = fixCells(l.text, l.indent);
+  const { rowNumsHtml, gridHtml, rows, total } = renderGrid(cells);
+
+  const div = document.createElement('div');
+  div.className = 'panel' + (idx === 0 ? ' active' : '');
+  div.id = 'panel-' + idx;
+  div.innerHTML = `
+    <div class="panel-title">${l.title}</div>
+    <div class="panel-sub">${l.sub}</div>
+    <div class="legend">
+      <div class="legend-item">
+        <div class="legend-box char">가</div>
+        Chữ Hàn
+      </div>
+      <div class="legend-item">
+        <div class="legend-box punct">.</div>
+        Dấu câu (1 ô)
+      </div>
+      <div class="legend-item">
+        <div class="legend-box empty"></div>
+        Ô trống / cách
+      </div>
+      ${l.indent ? `<div class="legend-item"><div class="legend-box indent"></div>Thụt đầu dòng</div>` : ''}
+      <div class="legend-item">
+        <span style="font-size:0.75rem;color:#a09a94;">? ! → có 1 ô trống sau &nbsp;|&nbsp; . , → không có ô trống</span>
+      </div>
+    </div>
+    <div class="grid-scroll">
+      <div class="grid-with-rows">
+        <div class="row-nums">${rowNumsHtml}</div>
+        ${gridHtml}
+      </div>
+    </div>
+    <div class="stats">Tổng: <strong>${total} ô</strong> · <strong>${rows} dòng</strong> · 20 ô/dòng</div>
+  `;
+  container.appendChild(div);
+});
+
+function show(idx) {
+  document.querySelectorAll('.panel').forEach((el, i) => el.classList.toggle('active', i === idx));
+  document.querySelectorAll('.tab').forEach((el, i) => el.classList.toggle('active', i === idx));
+}
+</script>
+</body>
+</html>
