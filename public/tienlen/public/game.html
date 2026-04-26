@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tiến Lên - Đang chơi</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --red: #c0392b; --red2: #e74c3c;
+  --felt: #1a5c38; --felt2: #164e30;
+  --gold: #d4af37; --gold2: #f0c84a;
+  --cream: #fdf6e3; --dark: #0d1f14;
+  --txt: #fdf6e3; --txt2: #a0b8a8;
+  --card-w: 58px; --card-h: 84px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  min-height: 100vh; height: 100vh;
+  background: var(--felt);
+  background-image:
+    radial-gradient(ellipse at center, #1e6b42 0%, var(--felt) 50%, var(--felt2) 100%),
+    repeating-linear-gradient(0deg, transparent, transparent 20px, rgba(0,0,0,.04) 20px, rgba(0,0,0,.04) 21px),
+    repeating-linear-gradient(90deg, transparent, transparent 20px, rgba(0,0,0,.04) 20px, rgba(0,0,0,.04) 21px);
+  font-family: 'Be Vietnam Pro', sans-serif;
+  display: flex; flex-direction: column;
+  overflow: hidden; color: var(--txt);
+  user-select: none;
+}
+
+/* ── TOP BAR ── */
+.topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 18px;
+  background: rgba(0,0,0,.3); backdrop-filter: blur(6px);
+  border-bottom: 1px solid rgba(255,255,255,.08); z-index: 10;
+  gap: 8px;
+}
+.topbar-logo { font-family: 'Playfair Display', serif; font-size: 16px; font-weight: 700; color: var(--gold); flex-shrink: 0; }
+.topbar-center { display: flex; align-items: center; gap: 8px; flex: 1; justify-content: center; flex-wrap: wrap; }
+.room-code {
+  font-size: 12px; color: var(--txt2);
+  background: rgba(255,255,255,.08); padding: 4px 10px; border-radius: 20px;
+  cursor: pointer; transition: background .2s;
+}
+.room-code:hover { background: rgba(255,255,255,.14); }
+.room-code span { color: var(--gold); font-weight: 700; letter-spacing: 2px; }
+.private-badge {
+  font-size: 11px; color: var(--gold); background: rgba(212,175,55,.15);
+  border: 1px solid rgba(212,175,55,.3); border-radius: 20px; padding: 3px 9px;
+  display: none;
+}
+.topbar-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.round-display { font-size: 12px; color: var(--txt2); }
+
+/* ── HOST CONTROLS ── */
+.host-controls { display: none; align-items: center; gap: 6px; }
+.btn-host {
+  border: none; border-radius: 8px; font-family: inherit; font-size: 12px;
+  font-weight: 700; padding: 5px 12px; cursor: pointer; transition: all .18s;
+}
+.btn-pause { background: rgba(212,175,55,.25); color: var(--gold); border: 1px solid rgba(212,175,55,.4); }
+.btn-pause:hover { background: rgba(212,175,55,.4); }
+.btn-start-host { background: rgba(46,204,113,.25); color: #2ecc71; border: 1px solid rgba(46,204,113,.4); }
+.btn-start-host:hover { background: rgba(46,204,113,.4); }
+
+.btn-exit {
+  border: none; border-radius: 8px; font-family: inherit; font-size: 12px;
+  font-weight: 700; padding: 5px 12px; cursor: pointer;
+  background: rgba(192,57,43,.25); color: var(--red2);
+  border: 1px solid rgba(192,57,43,.35); transition: all .18s;
+}
+.btn-exit:hover { background: rgba(192,57,43,.45); }
+
+/* ── MAIN TABLE ── */
+.table-area {
+  flex: 1; display: grid;
+  grid-template-areas:
+    ".     top    ."
+    "left  center right"
+    ".     bottom .";
+  grid-template-columns: 160px 1fr 160px;
+  grid-template-rows: 120px 1fr 100px;
+  gap: 0; padding: 10px; overflow: hidden;
+}
+
+/* ── OPPONENT SLOTS ── */
+.player-slot { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; }
+.player-slot.top  { grid-area: top; }
+.player-slot.left  { grid-area: left; }
+.player-slot.right { grid-area: right; }
+
+.player-info {
+  display: flex; align-items: center; gap: 7px;
+  background: rgba(0,0,0,.35); border: 1px solid rgba(255,255,255,.1);
+  border-radius: 24px; padding: 6px 14px 6px 6px;
+  backdrop-filter: blur(4px); transition: all .3s;
+}
+.player-info.active-turn { border-color: var(--gold); box-shadow: 0 0 16px rgba(212,175,55,.45); }
+.player-avatar {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--red), var(--red2));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700; color: #fff; flex-shrink: 0;
+}
+.player-name { font-size: 13px; font-weight: 600; max-width: 90px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.player-card-count { font-size: 11px; color: var(--txt2); }
+.player-score { font-size: 11px; color: var(--gold); font-weight: 700; }
+
+.opp-cards { display: flex; flex-wrap: nowrap; }
+.card-back {
+  width: 32px; height: 46px; border-radius: 5px;
+  background: linear-gradient(135deg, #1a3a8f, #0d2060);
+  border: 1px solid rgba(255,255,255,.25); margin-left: -10px;
+  box-shadow: 1px 1px 4px rgba(0,0,0,.4);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; opacity: .85;
+}
+.card-back:first-child { margin-left: 0; }
+
+/* ── CENTER ── */
+.center-area {
+  grid-area: center;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 12px; position: relative;
+}
+.table-cards { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; align-items: center; min-height: 100px; }
+.table-label { font-size: 12px; color: var(--txt2); text-transform: uppercase; letter-spacing: 1.5px; opacity: .7; }
+.action-msg {
+  font-size: 14px; font-weight: 600; color: var(--gold);
+  background: rgba(0,0,0,.4); padding: 6px 16px; border-radius: 20px; text-align: center;
+}
+
+/* ── CARDS ── */
+.card {
+  width: var(--card-w); height: var(--card-h); border-radius: 8px;
+  background: #fff; border: 1px solid rgba(0,0,0,.15);
+  box-shadow: 0 2px 8px rgba(0,0,0,.35), 0 1px 2px rgba(0,0,0,.2);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: space-between; padding: 4px 5px;
+  cursor: default; transition: transform .15s, box-shadow .15s;
+  position: relative; flex-shrink: 0;
+}
+.card.red { color: #c0392b; }
+.card.black { color: #111; }
+.card-rank { font-size: 15px; font-weight: 800; line-height: 1; }
+.card-suit { font-size: 18px; line-height: 1; }
+.card-center { font-size: 22px; }
+.card-bot { transform: rotate(180deg); }
+.card.table-card { width: 50px; height: 72px; }
+.card.table-card .card-rank { font-size: 13px; }
+.card.table-card .card-center { font-size: 18px; }
+
+/* ── MY HAND ── */
+.my-hand-wrap {
+  grid-area: bottom;
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: flex-end; gap: 8px; padding: 0 10px 6px;
+}
+.my-hand { display: flex; align-items: flex-end; gap: 2px; flex-wrap: wrap; justify-content: center; }
+.my-card { cursor: pointer; transition: transform .15s, box-shadow .15s; margin: 0 2px; }
+.my-card:hover { transform: translateY(-8px); }
+.my-card.selected {
+  transform: translateY(-14px);
+  box-shadow: 0 6px 20px rgba(212,175,55,.6), 0 2px 8px rgba(0,0,0,.3) !important;
+  border-color: var(--gold) !important;
+}
+.my-actions { display: flex; gap: 8px; }
+.btn-action {
+  border: none; border-radius: 10px; font-family: inherit; font-size: 14px;
+  font-weight: 700; padding: 10px 22px; cursor: pointer; transition: all .18s;
+}
+.btn-play {
+  background: linear-gradient(135deg, var(--red), var(--red2));
+  color: #fff; box-shadow: 0 3px 14px rgba(192,57,43,.5);
+}
+.btn-play:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 5px 18px rgba(192,57,43,.6); }
+.btn-pass { background: rgba(255,255,255,.12); color: var(--txt); border: 1px solid rgba(255,255,255,.15); }
+.btn-pass:hover:not(:disabled) { background: rgba(255,255,255,.18); }
+.btn-action:disabled { opacity: .4; cursor: not-allowed; }
+
+/* ── MY INFO ── */
+.my-info {
+  display: flex; align-items: center; gap: 8px;
+  position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%);
+  background: rgba(0,0,0,.4); border-radius: 20px;
+  padding: 4px 14px; font-size: 12px; color: var(--txt2); white-space: nowrap;
+}
+.my-info.active-turn { color: var(--gold); }
+
+/* ── OVERLAYS ── */
+.overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.75); backdrop-filter: blur(8px);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  z-index: 100; gap: 18px; text-align: center;
+}
+.overlay-box {
+  background: rgba(13,31,20,.95); border: 1px solid rgba(212,175,55,.3);
+  border-radius: 20px; padding: 44px 48px; max-width: 420px; width: 90%;
+}
+.overlay h2 { font-family: 'Playfair Display', serif; font-size: 26px; color: var(--gold); margin-bottom: 12px; }
+.overlay p { color: var(--txt2); font-size: 15px; line-height: 1.6; }
+.players-waiting { display: flex; flex-direction: column; gap: 8px; margin: 20px 0; }
+.pw-item { display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,.06); border-radius: 10px; padding: 10px 14px; }
+.pw-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--gold); }
+.room-code-big {
+  font-size: 32px; font-weight: 900; letter-spacing: 6px;
+  color: var(--gold); font-family: 'Playfair Display', serif; margin: 10px 0 4px;
+  cursor: pointer;
+}
+.overlay-hint { font-size: 12px; color: var(--txt2); opacity: .6; }
+.btn-overlay {
+  margin-top: 18px; border: none; border-radius: 10px;
+  font-family: inherit; font-size: 15px; font-weight: 700;
+  padding: 13px 32px; cursor: pointer; transition: all .2s;
+  background: linear-gradient(135deg, var(--red), var(--red2));
+  color: #fff; box-shadow: 0 4px 18px rgba(192,57,43,.4);
+}
+.btn-overlay:hover { transform: translateY(-2px); }
+.btn-overlay-ghost {
+  margin-top: 10px; border: 1px solid rgba(255,255,255,.2); border-radius: 10px;
+  font-family: inherit; font-size: 14px; font-weight: 600;
+  padding: 11px 28px; cursor: pointer; transition: all .2s;
+  background: transparent; color: var(--txt2);
+}
+.btn-overlay-ghost:hover { background: rgba(255,255,255,.07); }
+.btn-overlay-gold {
+  margin-top: 12px; border: none; border-radius: 10px;
+  font-family: inherit; font-size: 15px; font-weight: 700;
+  padding: 13px 32px; cursor: pointer; transition: all .2s;
+  background: linear-gradient(135deg, #b8922a, var(--gold));
+  color: #0d1f14; box-shadow: 0 4px 18px rgba(212,175,55,.35);
+}
+.btn-overlay-gold:hover { transform: translateY(-2px); }
+
+/* ── WAITING: start button for host ── */
+#hostStartSection { display: none; margin-top: 16px; }
+.host-start-note { font-size: 12px; color: var(--txt2); margin-bottom: 10px; opacity: .7; }
+
+/* ── TOAST ── */
+.toast {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+  background: rgba(0,0,0,.85); color: #fff;
+  padding: 10px 22px; border-radius: 24px; font-size: 14px; font-weight: 500;
+  z-index: 200; opacity: 0; transition: opacity .25s;
+  pointer-events: none; white-space: nowrap;
+}
+.toast.show { opacity: 1; }
+
+/* ── WINNERS ── */
+.winners-list { display: flex; flex-direction: column; gap: 10px; margin: 16px 0; }
+.winner-item { display: flex; align-items: center; gap: 12px; background: rgba(255,255,255,.06); border-radius: 10px; padding: 10px 14px; }
+.winner-medal { font-size: 22px; width: 28px; text-align: center; }
+.winner-name { font-size: 15px; font-weight: 600; }
+.winner-score { margin-left: auto; color: var(--gold); font-weight: 700; }
+
+/* ── PAUSE OVERLAY ── */
+#overlayPaused .pause-icon { font-size: 52px; margin-bottom: 8px; }
+#overlayPaused .pause-msg { color: var(--txt2); font-size: 14px; }
+
+/* ── EXIT CONFIRM MODAL ── */
+#overlayExit .exit-warning { color: var(--red2); font-size: 13px; margin-top: 8px; }
+#overlayExit .btn-exit-confirm {
+  margin-top: 18px; border: none; border-radius: 10px; font-family: inherit;
+  font-size: 15px; font-weight: 700; padding: 13px 32px; cursor: pointer;
+  background: linear-gradient(135deg, var(--red), var(--red2));
+  color: #fff; box-shadow: 0 4px 18px rgba(192,57,43,.4);
+}
+#overlayExit .btn-exit-confirm:hover { transform: translateY(-2px); }
+#overlayExit .btn-cancel {
+  margin-top: 10px; border: 1px solid rgba(255,255,255,.2); border-radius: 10px;
+  font-family: inherit; font-size: 14px; font-weight: 600; padding: 11px 28px;
+  cursor: pointer; background: transparent; color: var(--txt2);
+}
+#overlayExit .btn-cancel:hover { background: rgba(255,255,255,.07); }
+
+/* ── Private badge in waiting ── */
+.private-waiting-badge {
+  display: inline-block; font-size: 12px; color: var(--gold);
+  background: rgba(212,175,55,.15); border: 1px solid rgba(212,175,55,.35);
+  border-radius: 20px; padding: 3px 10px; margin-top: 6px;
+}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-logo">♠ Tiến Lên</div>
+  <div class="topbar-center">
+    <div class="room-code" onclick="copyRoomCode()" title="Click để copy mã phòng">
+      Phòng: <span id="roomCodeDisplay">---</span> 📋
+    </div>
+    <span class="private-badge" id="privateBadge">🔒 Riêng tư</span>
+  </div>
+  <div class="topbar-right">
+    <span class="round-display" id="roundDisplay">Ván 1</span>
+    <!-- Host controls (pause/start) -->
+    <div class="host-controls" id="hostControls">
+      <button class="btn-host btn-start-host" id="btnHostStart" onclick="hostStart()" style="display:none">▶ Bắt đầu</button>
+      <button class="btn-host btn-pause" id="btnPause" onclick="togglePause()" style="display:none">⏸ Pause</button>
+    </div>
+    <!-- Exit button always visible -->
+    <button class="btn-exit" onclick="confirmExit()">✕ Thoát</button>
+  </div>
+</div>
+
+<!-- GAME TABLE -->
+<div class="table-area">
+  <!-- TOP OPPONENT -->
+  <div class="player-slot top" id="slot-top">
+    <div class="player-info" id="info-top">
+      <div class="player-avatar" id="avatar-top">?</div>
+      <div>
+        <div class="player-name" id="name-top">Chờ...</div>
+        <div class="player-card-count" id="count-top">-- lá</div>
+      </div>
+    </div>
+    <div class="opp-cards" id="cards-top"></div>
+  </div>
+
+  <!-- LEFT OPPONENT -->
+  <div class="player-slot left" id="slot-left">
+    <div class="player-info" id="info-left">
+      <div class="player-avatar" id="avatar-left">?</div>
+      <div>
+        <div class="player-name" id="name-left">Chờ...</div>
+        <div class="player-card-count" id="count-left">-- lá</div>
+      </div>
+    </div>
+    <div class="opp-cards" id="cards-left"></div>
+  </div>
+
+  <!-- CENTER -->
+  <div class="center-area">
+    <div class="table-label" id="tableLabel">Bàn chờ...</div>
+    <div class="table-cards" id="tableCards"></div>
+    <div class="action-msg" id="actionMsg" style="display:none"></div>
+    <div class="my-info" id="myInfo">Đang chờ...</div>
+  </div>
+
+  <!-- RIGHT OPPONENT -->
+  <div class="player-slot right" id="slot-right">
+    <div class="player-info" id="info-right">
+      <div class="player-avatar" id="avatar-right">?</div>
+      <div>
+        <div class="player-name" id="name-right">Chờ...</div>
+        <div class="player-card-count" id="count-right">-- lá</div>
+      </div>
+    </div>
+    <div class="opp-cards" id="cards-right"></div>
+  </div>
+
+  <!-- MY HAND -->
+  <div class="my-hand-wrap">
+    <div class="my-hand" id="myHand"></div>
+    <div class="my-actions">
+      <button class="btn-action btn-pass" id="btnPass" onclick="passTurn()" disabled>Bỏ lượt</button>
+      <button class="btn-action btn-play" id="btnPlay" onclick="playCards()" disabled>Đánh bài ▶</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ OVERLAYS ══ -->
+
+<!-- Waiting -->
+<div class="overlay" id="overlayWaiting">
+  <div class="overlay-box">
+    <h2>Chờ người chơi</h2>
+    <p>Chia sẻ mã phòng cho bạn bè:</p>
+    <div class="room-code-big" id="overlayRoomCode" onclick="copyRoomCode()">---</div>
+    <div class="overlay-hint">Click vào mã để copy</div>
+    <div id="overlayPrivateBadge"></div>
+    <div class="players-waiting" id="playersWaiting"></div>
+    <p id="waitingHint" style="margin-top:8px;font-size:13px;">Cần đủ 4 người để bắt đầu</p>
+    <div id="hostStartSection">
+      <p class="host-start-note">Bạn là chủ phòng — có thể bắt đầu sớm</p>
+      <button class="btn-overlay-gold" onclick="hostStart()">▶ Bắt đầu ngay</button>
+    </div>
+  </div>
+</div>
+
+<!-- Game Over -->
+<div class="overlay" id="overlayGameOver" style="display:none">
+  <div class="overlay-box">
+    <h2>🏆 Kết quả ván</h2>
+    <div class="winners-list" id="winnersList"></div>
+    <button class="btn-overlay" onclick="requestRematch()">Chơi lại 🔄</button>
+    <button class="btn-overlay-ghost" onclick="confirmExit()">Về sảnh</button>
+  </div>
+</div>
+
+<!-- Interrupted -->
+<div class="overlay" id="overlayInterrupted" style="display:none">
+  <div class="overlay-box">
+    <h2>⚠️ Ván bị hủy</h2>
+    <p id="interruptedMsg">Một người chơi đã thoát.</p>
+    <button class="btn-overlay" onclick="goLobby()">Về sảnh</button>
+  </div>
+</div>
+
+<!-- Paused -->
+<div class="overlay" id="overlayPaused" style="display:none">
+  <div class="overlay-box">
+    <div class="pause-icon">⏸</div>
+    <h2>Game tạm dừng</h2>
+    <p class="pause-msg" id="pauseMsg">Chủ phòng đã tạm dừng ván chơi.</p>
+    <div id="resumeBtnWrap" style="display:none">
+      <button class="btn-overlay-gold" onclick="togglePause()">▶ Tiếp tục</button>
+    </div>
+    <button class="btn-overlay-ghost" onclick="confirmExit()">Thoát game</button>
+  </div>
+</div>
+
+<!-- Exit Confirm -->
+<div class="overlay" id="overlayExit" style="display:none">
+  <div class="overlay-box">
+    <h2>🚪 Thoát game?</h2>
+    <p>Bạn có chắc muốn rời khỏi phòng không?</p>
+    <p class="exit-warning" id="exitWarning"></p>
+    <button class="btn-exit-confirm" onclick="doExit()">Xác nhận thoát</button>
+    <br>
+    <button class="btn-cancel" onclick="cancelExit()">← Quay lại</button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+const socket = io();
+
+// ── State ──
+let myId = null;
+let roomId = sessionStorage.getItem('roomId');
+let myName = sessionStorage.getItem('playerName') || 'Bạn';
+let myHand = [];
+let selectedIds = new Set();
+let roomState = null;
+let isMyTurn = false;
+let gameStarted = false;
+let amIHost = false;
+let isPaused = false;
+
+const SUIT_SYMBOLS = { s: '♠', c: '♣', d: '♦', h: '♥' };
+const RED_SUITS = new Set(['d', 'h']);
+
+if (!roomId) { window.location.href = '/'; }
+
+document.getElementById('roomCodeDisplay').textContent = roomId;
+document.getElementById('overlayRoomCode').textContent = roomId;
+
+// ── Connect ──
+socket.on('connect', () => {
+  myId = socket.id;
+  socket.emit('join_room', { roomId, name: myName }, ({ ok, error, rejoin, isHost }) => {
+    if (!ok) {
+      showToast(error || 'Không thể vào phòng');
+      setTimeout(() => window.location.href = '/', 2000);
+      return;
+    }
+    if (isHost) setHost(true);
+    if (rejoin) document.getElementById('overlayWaiting').style.display = 'none';
+  });
+});
+
+// ── Room update ──
+socket.on('room_update', (room) => {
+  roomState = room;
+  roomId = room.id;
+  document.getElementById('roomCodeDisplay').textContent = roomId;
+  document.getElementById('overlayRoomCode').textContent = roomId;
+  document.getElementById('roundDisplay').textContent = `Ván ${room.roundNum || 1}`;
+
+  // Private badge
+  const pb = document.getElementById('privateBadge');
+  const opb = document.getElementById('overlayPrivateBadge');
+  if (room.isPrivate) {
+    pb.style.display = 'inline-block';
+    opb.innerHTML = '<span class="private-waiting-badge">🔒 Phòng riêng tư</span>';
+  } else {
+    pb.style.display = 'none';
+    opb.innerHTML = '';
+  }
+
+  // Check if I'm host
+  if (room.hostId === myId) setHost(true);
+
+  // Waiting hint
+  const playerCount = room.players.length;
+  document.getElementById('waitingHint').textContent =
+    playerCount >= 4 ? 'Đủ 4 người — bắt đầu ngay!' :
+    `Đang chờ... (${playerCount}/4 người)`;
+
+  // Host start button: hiện khi có ≥ 2 người và chưa đủ 4
+  const hss = document.getElementById('hostStartSection');
+  if (amIHost && room.state === 'waiting' && playerCount >= 2) {
+    hss.style.display = 'block';
+  } else {
+    hss.style.display = 'none';
+  }
+
+  // Topbar host start button
+  const btnHostStart = document.getElementById('btnHostStart');
+  if (amIHost && room.state === 'waiting' && playerCount >= 2) {
+    btnHostStart.style.display = 'inline-block';
+  } else {
+    btnHostStart.style.display = 'none';
+  }
+
+  renderPlayers(room);
+
+  if (room.state === 'waiting') {
+    document.getElementById('overlayWaiting').style.display = 'flex';
+    renderWaitingPlayers(room.players);
+  } else if (room.state === 'playing') {
+    document.getElementById('overlayWaiting').style.display = 'none';
+    document.getElementById('overlayPaused').style.display = 'none';
+    isPaused = false;
+    updatePauseButton(false);
+    updateTurnUI(room);
+  } else if (room.state === 'paused') {
+    document.getElementById('overlayPaused').style.display = 'flex';
+    isPaused = true;
+    updatePauseButton(true);
+  }
+});
+
+// ── Game start ──
+socket.on('game_start', () => {
+  gameStarted = true;
+  document.getElementById('overlayWaiting').style.display = 'none';
+  document.getElementById('overlayGameOver').style.display = 'none';
+  document.getElementById('overlayPaused').style.display = 'none';
+  selectedIds.clear();
+  document.getElementById('tableCards').innerHTML = '';
+  document.getElementById('tableLabel').textContent = 'Bàn trống';
+  document.getElementById('actionMsg').style.display = 'none';
+  document.getElementById('btnPause').style.display = amIHost ? 'inline-block' : 'none';
+  document.getElementById('btnHostStart').style.display = 'none';
+  showToast('Bắt đầu! Chia bài xong 🃏');
+});
+
+// ── Deal hand ──
+socket.on('deal_hand', ({ hand }) => {
+  myHand = hand;
+  renderMyHand();
+});
+
+// ── Cards played ──
+socket.on('cards_played', ({ playerName, play }) => {
+  renderTableCards(play.cards);
+  document.getElementById('tableLabel').textContent = `${playerName} đánh ${describePlay(play)}`;
+  showActionMsg(`${playerName} đánh bài`);
+});
+
+// ── Player passed ──
+socket.on('player_passed', ({ playerName }) => {
+  showToast(`${playerName} bỏ lượt`);
+});
+
+// ── Table cleared ──
+socket.on('table_cleared', () => {
+  document.getElementById('tableCards').innerHTML = '';
+  document.getElementById('tableLabel').textContent = 'Bàn trống — lượt mới';
+  showToast('Bàn sạch! Đánh bài mới 🆕');
+});
+
+// ── Game over ──
+socket.on('game_over', ({ winners, players }) => {
+  const medals = ['🥇', '🥈', '🥉', '4️⃣'];
+  const list = document.getElementById('winnersList');
+  list.innerHTML = winners.map((id, i) => {
+    const p = players.find(x => x.id === id);
+    return `<div class="winner-item">
+      <div class="winner-medal">${medals[i] || '🃏'}</div>
+      <div class="winner-name">${p ? p.name : id}${id === myId ? ' (Bạn)' : ''}</div>
+      <div class="winner-score">${p ? p.score : 0} điểm</div>
+    </div>`;
+  }).join('');
+  document.getElementById('overlayGameOver').style.display = 'flex';
+});
+
+// ── Game paused ──
+socket.on('game_paused', ({ pausedBy }) => {
+  isPaused = true;
+  document.getElementById('pauseMsg').textContent = `${pausedBy} đã tạm dừng ván chơi.`;
+  document.getElementById('overlayPaused').style.display = 'flex';
+  document.getElementById('resumeBtnWrap').style.display = amIHost ? 'block' : 'none';
+  updatePauseButton(true);
+  showToast(`⏸ Game bị pause bởi ${pausedBy}`);
+});
+
+// ── Game resumed ──
+socket.on('game_resumed', () => {
+  isPaused = false;
+  document.getElementById('overlayPaused').style.display = 'none';
+  updatePauseButton(false);
+  showToast('▶ Game tiếp tục!');
+});
+
+// ── Interrupted ──
+socket.on('game_interrupted', ({ message }) => {
+  document.getElementById('interruptedMsg').textContent = message;
+  document.getElementById('overlayInterrupted').style.display = 'flex';
+});
+
+// ── Player left ──
+socket.on('player_left', ({ name }) => {
+  showToast(`${name} đã thoát khỏi phòng`);
+});
+
+// ── Promoted to host ──
+socket.on('you_are_host', () => {
+  setHost(true);
+  showToast('👑 Bạn là chủ phòng mới');
+});
+
+// ══════════════════════
+// HOST FUNCTIONS
+// ══════════════════════
+function setHost(val) {
+  amIHost = val;
+  document.getElementById('hostControls').style.display = val ? 'flex' : 'none';
+  // Show pause button only when playing
+  if (roomState && roomState.state === 'playing') {
+    document.getElementById('btnPause').style.display = val ? 'inline-block' : 'none';
+  }
+  // Resume button in pause overlay
+  document.getElementById('resumeBtnWrap').style.display = (val && isPaused) ? 'block' : 'none';
+}
+
+function updatePauseButton(paused) {
+  const btn = document.getElementById('btnPause');
+  btn.textContent = paused ? '▶ Tiếp tục' : '⏸ Pause';
+}
+
+function togglePause() {
+  if (!amIHost) return;
+  if (isPaused) {
+    socket.emit('resume_game', {}, ({ ok, error }) => {
+      if (!ok) showToast(error || 'Không thể tiếp tục');
+    });
+  } else {
+    socket.emit('pause_game', {}, ({ ok, error }) => {
+      if (!ok) showToast(error || 'Không thể pause');
+    });
+  }
+}
+
+function hostStart() {
+  if (!amIHost) return;
+  socket.emit('host_start', {}, ({ ok, error }) => {
+    if (!ok) showToast(error || 'Không thể bắt đầu');
+  });
+}
+
+// ══════════════════════
+// EXIT FUNCTIONS
+// ══════════════════════
+function confirmExit() {
+  // Ẩn các overlay khác trước khi hiển thị confirm
+  const warning = document.getElementById('exitWarning');
+  if (roomState && (roomState.state === 'playing' || roomState.state === 'paused')) {
+    warning.textContent = '⚠️ Ván đang diễn ra. Thoát sẽ khiến bài bị hủy cho tất cả mọi người!';
+  } else {
+    warning.textContent = '';
+  }
+  document.getElementById('overlayExit').style.display = 'flex';
+}
+
+function cancelExit() {
+  document.getElementById('overlayExit').style.display = 'none';
+}
+
+function doExit() {
+  socket.emit('leave_room');
+  goLobby();
+}
+
+function goLobby() { window.location.href = '/'; }
+
+// ══════════════════════
+// RENDER FUNCTIONS
+// ══════════════════════
+function renderPlayers(room) {
+  const myIdx = room.players.findIndex(p => p.id === myId);
+  if (myIdx === -1) return;
+
+  const n = room.players.length;
+
+  // Layout phụ thuộc số người thực tế trong phòng
+  // 2 người: chỉ top | 3 người: top + right | 4 người: top + left + right
+  let slotAssign;
+  if (n <= 2) {
+    slotAssign = { top: (myIdx + 1) % n, left: -1, right: -1 };
+  } else if (n === 3) {
+    slotAssign = { top: (myIdx + 2) % n, left: -1, right: (myIdx + 1) % n };
+  } else {
+    slotAssign = { left: (myIdx + 3) % n, top: (myIdx + 2) % n, right: (myIdx + 1) % n };
+  }
+
+  ['left', 'top', 'right'].forEach(slot => {
+    const pIdx = slotAssign[slot];
+    const slotEl = document.getElementById(`slot-${slot}`);
+    const infoEl = document.getElementById(`info-${slot}`);
+    const nameEl = document.getElementById(`name-${slot}`);
+    const countEl = document.getElementById(`count-${slot}`);
+    const avatarEl = document.getElementById(`avatar-${slot}`);
+    const cardsEl = document.getElementById(`cards-${slot}`);
+
+    if (pIdx < 0 || pIdx >= room.players.length) {
+      // Hide this slot for 2-3 player games
+      slotEl.style.visibility = 'hidden';
+      nameEl.textContent = 'Chờ...'; countEl.textContent = '-- lá';
+      avatarEl.textContent = '?'; cardsEl.innerHTML = '';
+      return;
+    }
+
+    slotEl.style.visibility = 'visible';
+    const p = room.players[pIdx];
+    if (!p) {
+      nameEl.textContent = 'Chờ...'; countEl.textContent = '-- lá';
+      avatarEl.textContent = '?'; cardsEl.innerHTML = '';
+      return;
+    }
+
+    nameEl.textContent = p.name + (p.id === room.hostId ? ' 👑' : '');
+    countEl.textContent = `${p.cardCount} lá${p.passed ? ' · Bỏ' : ''}`;
+    avatarEl.textContent = p.name[0].toUpperCase();
+
+    const isCurrent = room.currentTurn === pIdx && room.state === 'playing';
+    infoEl.classList.toggle('active-turn', isCurrent);
+
+    cardsEl.innerHTML = '';
+    const show = Math.min(p.cardCount, 7);
+    for (let i = 0; i < show; i++) {
+      const cb = document.createElement('div');
+      cb.className = 'card-back'; cb.textContent = '🂠';
+      cardsEl.appendChild(cb);
+    }
+  });
+
+  // My info
+  const me = room.players[myIdx];
+  isMyTurn = room.currentTurn === myIdx && room.state === 'playing';
+  const myInfoEl = document.getElementById('myInfo');
+  const hostMark = me && me.id === room.hostId ? ' 👑' : '';
+  myInfoEl.textContent = isMyTurn
+    ? '🟢 Lượt của bạn'
+    : me ? `${me.name}${hostMark} · ${me.score || 0} điểm` : '';
+  myInfoEl.classList.toggle('active-turn', isMyTurn);
+  updateActionButtons();
+}
+
+function updateTurnUI(room) { renderPlayers(room); }
+
+function renderMyHand() {
+  const container = document.getElementById('myHand');
+  container.innerHTML = '';
+  myHand.forEach(card => {
+    const el = createCardEl(card, true);
+    el.classList.add('my-card');
+    if (selectedIds.has(card.id)) el.classList.add('selected');
+    el.onclick = () => toggleCard(card.id, el);
+    container.appendChild(el);
+  });
+  updateActionButtons();
+}
+
+function toggleCard(id, el) {
+  if (!isMyTurn) return;
+  if (selectedIds.has(id)) { selectedIds.delete(id); el.classList.remove('selected'); }
+  else { selectedIds.add(id); el.classList.add('selected'); }
+  updateActionButtons();
+}
+
+function updateActionButtons() {
+  document.getElementById('btnPlay').disabled = !isMyTurn || selectedIds.size === 0 || isPaused;
+  document.getElementById('btnPass').disabled = !isMyTurn || !roomState?.table || isPaused;
+}
+
+function renderTableCards(cards) {
+  const container = document.getElementById('tableCards');
+  container.innerHTML = '';
+  cards.forEach(card => {
+    const el = createCardEl(card, false);
+    el.classList.add('table-card');
+    container.appendChild(el);
+  });
+}
+
+function createCardEl(card) {
+  const el = document.createElement('div');
+  const isRed = RED_SUITS.has(card.suit);
+  el.className = `card ${isRed ? 'red' : 'black'}`;
+  const suit = SUIT_SYMBOLS[card.suit];
+  el.innerHTML = `
+    <div class="card-rank">${card.rank}</div>
+    <div class="card-center">${suit}</div>
+    <div class="card-rank card-bot">${card.rank}</div>`;
+  return el;
+}
+
+// ── Actions ──
+function playCards() {
+  if (!isMyTurn || selectedIds.size === 0 || isPaused) return;
+  const cardIds = [...selectedIds];
+  socket.emit('play_cards', { cardIds }, ({ ok, error }) => {
+    if (!ok) { showToast(error || 'Bài không hợp lệ'); return; }
+    selectedIds.clear(); renderMyHand();
+  });
+}
+
+function passTurn() {
+  if (!isMyTurn || isPaused) return;
+  socket.emit('pass_turn', {}, ({ ok, error }) => {
+    if (!ok) showToast(error || 'Không thể bỏ lượt');
+  });
+}
+
+function requestRematch() {
+  socket.emit('rematch');
+  document.getElementById('overlayGameOver').style.display = 'none';
+}
+
+// ── Waiting Overlay ──
+function renderWaitingPlayers(players) {
+  const el = document.getElementById('playersWaiting');
+  el.innerHTML = players.map(p => {
+    const isHost = roomState && p.id === roomState.hostId;
+    return `<div class="pw-item">
+      <div class="pw-dot"></div>
+      <span>${p.name}${p.id === myId ? ' (Bạn)' : ''}${isHost ? ' 👑' : ''}</span>
+    </div>`;
+  }).join('');
+}
+
+// ── Helpers ──
+function describePlay(play) {
+  const types = {
+    single: 'đơn', pair: 'đôi', triple: 'bộ ba', quad: 'tứ quý',
+    straight: `sảnh ${play.length} lá`,
+    pair_seq: `${play.pairs} đôi thông`,
+    triple_seq: `${play.triples} bộ ba thông`,
+  };
+  return types[play.type] || play.type;
+}
+
+function showActionMsg(text) {
+  const el = document.getElementById('actionMsg');
+  el.textContent = text; el.style.display = 'block';
+  clearTimeout(el._t); el._t = setTimeout(() => el.style.display = 'none', 2500);
+}
+
+function showToast(text) {
+  const el = document.getElementById('toast');
+  el.textContent = text; el.classList.add('show');
+  clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('show'), 2500);
+}
+
+function copyRoomCode() {
+  navigator.clipboard?.writeText(roomId);
+  showToast(`Đã copy mã phòng: ${roomId}`);
+}
+
+// ── Keyboard shortcuts ──
+document.addEventListener('keydown', e => {
+  if (e.code === 'Escape') {
+    if (document.getElementById('overlayExit').style.display === 'flex') cancelExit();
+    else confirmExit();
+  }
+  if (e.code === 'Enter' && isMyTurn && selectedIds.size > 0 && !isPaused) playCards();
+  if (e.code === 'Space' && isMyTurn && !isPaused) { e.preventDefault(); passTurn(); }
+});
+</script>
+</body>
+</html>

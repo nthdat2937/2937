@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tiến Lên Miền Nam</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Be+Vietnam+Pro:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --red: #c0392b; --red2: #e74c3c;
+    --green: #1a6b3c; --felt: #1a5c38; --felt2: #16502f;
+    --gold: #d4af37; --gold2: #f0c84a;
+    --cream: #fdf6e3; --dark: #0d1f14;
+    --txt: #fdf6e3; --txt2: #b5c9bb;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    min-height: 100vh;
+    background: var(--dark);
+    background-image:
+      radial-gradient(ellipse at 20% 50%, #0d3320 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 20%, #1a2e0d 0%, transparent 50%),
+      repeating-linear-gradient(45deg, transparent, transparent 40px, rgba(255,255,255,.01) 40px, rgba(255,255,255,.01) 41px);
+    font-family: 'Be Vietnam Pro', sans-serif;
+    display: flex; align-items: center; justify-content: center;
+    padding: 20px;
+  }
+  .container {
+    width: 100%; max-width: 460px;
+    background: rgba(255,255,255,.04);
+    border: 1px solid rgba(212,175,55,.25);
+    border-radius: 20px;
+    padding: 44px 40px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 30px 80px rgba(0,0,0,.6), inset 0 1px 0 rgba(212,175,55,.15);
+  }
+  .logo { text-align: center; margin-bottom: 36px; }
+  .logo-suits { font-size: 28px; letter-spacing: 8px; margin-bottom: 10px; opacity: .8; }
+  .logo h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 34px; font-weight: 900;
+    color: var(--gold); line-height: 1.1;
+    text-shadow: 0 2px 20px rgba(212,175,55,.4);
+  }
+  .logo p { color: var(--txt2); font-size: 13px; margin-top: 6px; letter-spacing: 2px; text-transform: uppercase; }
+  .divider { height: 1px; background: linear-gradient(90deg, transparent, rgba(212,175,55,.3), transparent); margin: 28px 0; }
+  label { display: block; color: var(--txt2); font-size: 12px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 8px; }
+  input {
+    width: 100%; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.12);
+    border-radius: 10px; color: var(--cream); font-family: inherit; font-size: 15px;
+    padding: 13px 16px; outline: none; transition: border-color .2s; margin-bottom: 20px;
+  }
+  input:focus { border-color: var(--gold); }
+  input::placeholder { color: rgba(255,255,255,.25); }
+  .btn {
+    width: 100%; border: none; border-radius: 10px;
+    font-family: inherit; font-size: 15px; font-weight: 600;
+    padding: 14px; cursor: pointer; transition: all .2s; margin-bottom: 10px;
+  }
+  .btn-primary { background: linear-gradient(135deg, var(--red), var(--red2)); color: #fff; box-shadow: 0 4px 20px rgba(192,57,43,.4); }
+  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 24px rgba(192,57,43,.5); }
+  .btn-secondary { background: rgba(255,255,255,.07); color: var(--txt); border: 1px solid rgba(255,255,255,.12); }
+  .btn-secondary:hover { background: rgba(255,255,255,.11); }
+  .btn:disabled { opacity: .5; cursor: not-allowed; transform: none !important; }
+  .join-row { display: flex; gap: 10px; }
+  .join-row input { flex: 1; margin-bottom: 0; }
+  .join-row .btn { width: auto; padding: 13px 20px; margin-bottom: 0; flex-shrink: 0; }
+  .msg { text-align: center; font-size: 13px; padding: 10px; border-radius: 8px; margin-top: 14px; display: none; }
+  .msg.err { background: rgba(192,57,43,.2); color: #e74c3c; border: 1px solid rgba(192,57,43,.3); }
+  .msg.ok { background: rgba(26,107,60,.2); color: #2ecc71; border: 1px solid rgba(26,107,60,.3); }
+  .section-title { color: var(--txt2); font-size: 11px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 14px; opacity: .7; }
+
+  /* ── Toggle switch ── */
+  .toggle-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+  .toggle-label { color: var(--txt2); font-size: 13px; }
+  .toggle-wrap { position: relative; width: 44px; height: 24px; }
+  .toggle-wrap input { opacity: 0; width: 0; height: 0; }
+  .toggle-slider {
+    position: absolute; inset: 0; background: rgba(255,255,255,.15);
+    border-radius: 24px; cursor: pointer; transition: background .2s;
+  }
+  .toggle-slider:before {
+    content: ''; position: absolute; width: 18px; height: 18px;
+    left: 3px; top: 3px; background: #fff; border-radius: 50%; transition: transform .2s;
+  }
+  .toggle-wrap input:checked + .toggle-slider { background: var(--green); }
+  .toggle-wrap input:checked + .toggle-slider:before { transform: translateX(20px); }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="logo">
+    <div class="logo-suits">♠ ♥ ♦ ♣</div>
+    <h1>Tiến Lên<br>Miền Nam</h1>
+    <p>Online Multiplayer</p>
+  </div>
+
+  <div>
+    <label>Tên của bạn</label>
+    <input id="nameInput" type="text" placeholder="Nhập tên hiển thị..." maxlength="20">
+  </div>
+
+  <div class="section-title">Tạo phòng mới</div>
+
+  <div class="toggle-row">
+    <span class="toggle-label">🔒 Phòng riêng tư (chỉ vào bằng mã)</span>
+    <label class="toggle-wrap">
+      <input type="checkbox" id="privateToggle">
+      <span class="toggle-slider"></span>
+    </label>
+  </div>
+
+  <button class="btn btn-primary" onclick="createRoom()">🃏 Tạo phòng</button>
+
+  <div class="divider"></div>
+
+  <div class="section-title">Vào phòng có sẵn</div>
+  <div class="join-row">
+    <input id="roomInput" type="text" placeholder="Mã phòng (VD: AB12C)" maxlength="6" style="text-transform:uppercase">
+    <button class="btn btn-secondary" onclick="joinRoom()">Vào →</button>
+  </div>
+
+  <div class="msg" id="msg"></div>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+  const socket = io();
+  const nameInput = document.getElementById('nameInput');
+  const roomInput = document.getElementById('roomInput');
+
+  roomInput.addEventListener('input', e => e.target.value = e.target.value.toUpperCase());
+
+  function showMsg(text, type) {
+    const el = document.getElementById('msg');
+    el.textContent = text;
+    el.className = 'msg ' + type;
+    el.style.display = 'block';
+  }
+
+  function getName() {
+    const n = nameInput.value.trim();
+    if (!n) { showMsg('Nhập tên của bạn trước!', 'err'); return null; }
+    return n;
+  }
+
+  function createRoom() {
+    const name = getName(); if (!name) return;
+    const isPrivate = document.getElementById('privateToggle').checked;
+    sessionStorage.setItem('playerName', name);
+    // maxPlayers luôn là 4, chủ phòng có thể bắt đầu sớm với 2-3 người
+    socket.emit('create_room', { name, maxPlayers: 4, isPrivate }, ({ ok, roomId, error }) => {
+      if (!ok) return showMsg(error, 'err');
+      showMsg(`Đã tạo phòng ${roomId}! Đang chuyển...`, 'ok');
+      sessionStorage.setItem('roomId', roomId);
+      setTimeout(() => window.location.href = '/game.html', 400);
+    });
+  }
+
+  function joinRoom() {
+    const name = getName(); if (!name) return;
+    const roomId = roomInput.value.trim();
+    if (!roomId) return showMsg('Nhập mã phòng!', 'err');
+    sessionStorage.setItem('playerName', name);
+    sessionStorage.setItem('roomId', roomId);
+    setTimeout(() => window.location.href = '/game.html', 200);
+  }
+</script>
+</body>
+</html>
