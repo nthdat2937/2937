@@ -6,6 +6,11 @@
       "source": "/index.html",
       "destination": "/",
       "permanent": true
+    },
+    {
+      "source": "/(.*)/index",
+      "destination": "/$1",
+      "permanent": true
     }
   ],
   "rewrites": [
