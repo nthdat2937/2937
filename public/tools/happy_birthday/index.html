@@ -408,7 +408,7 @@
         const formattedDate = `${dobParts[2]}-${dobParts[1]}-${dobParts[0]}`;
         const str = `${name},${formattedDate}`;
         const encoded = btoa(encodeURIComponent(str));
-        window.location.href = `birthday.html?data=${encoded}`;
+        window.location.href = `birthday?data=${encoded}`;
       } catch (error) {
         console.error('Error:', error);
         alert('Có lỗi xảy ra, vui lòng thử lại!');
