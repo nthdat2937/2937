@@ -1,12 +1,10 @@
 {
-  "cleanUrls": true,
+  "cleanUrls": false,
   "trailingSlash": false,
   "redirects": [
     { "source": "/index.html", "destination": "/", "permanent": true },
     { "source": "/(.*)/index", "destination": "/$1", "permanent": true },
-    { "source": "/fb", "destination": "https://facebook.com/yourpage", "permanent": false },
-    { "source": "/songs", "destination": "/tools/songs/index.html", "permanent": false }
-
+    { "source": "/fb", "destination": "https://facebook.com/yourpage", "permanent": false }
   ],
   "headers": [
     {
