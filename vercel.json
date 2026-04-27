@@ -7,9 +7,6 @@
     { "source": "/(.*)/index", "destination": "/$1", "permanent": true },
     { "source": "/fb", "destination": "https://facebook.com/yourpage", "permanent": false }
   ],
-  "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
-  ],
   "headers": [
     {
       "source": "/(.*)",
