@@ -1,7 +1,6 @@
 {
   "cleanUrls": true,
   "trailingSlash": false,
-  "regions": ["sin1", "hnd1"],
   "redirects": [
     { "source": "/index.html", "destination": "/", "permanent": true },
     { "source": "/(.*)/index", "destination": "/$1", "permanent": true },
