@@ -6,6 +6,7 @@
     { "source": "/(.*)/index", "destination": "/$1", "permanent": true },
     { "source": "/fb", "destination": "https://facebook.com/yourpage", "permanent": false },
     { "source": "/tools/songs/index", "destination": "/songs", "permanent": false }
+
   ],
   "headers": [
     {
