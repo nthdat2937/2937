@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>404 – HanVocab</title>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg3: #eeecea;
+      --txt: #1a1a18;
+      --txt2: #6b6b66;
+      --txt3: #a8a8a2;
+      --bdr: rgba(0,0,0,.09);
+      --bdr2: rgba(0,0,0,.16);
+      --accent: #1D9E75;
+      --accent-dim: rgba(29,158,117,.12);
+      --r: 8px;
+      --rl: 12px;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg3: #2d2d2b;
+        --txt: #f0efe9;
+        --txt2: #9a9a94;
+        --txt3: #5c5c57;
+        --bdr: rgba(255,255,255,.09);
+        --bdr2: rgba(255,255,255,.16);
+        --accent-dim: rgba(29,158,117,.15);
+      }
+    }
+
+    body {
+      font-family: -apple-system, 'Helvetica Neue', Arial, sans-serif;
+      background: var(--bg3);
+      color: var(--txt);
+      min-height: 100vh;
+      overflow: hidden;
+    }
+
+    canvas#particle-bg {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── Topbar ── */
+    .global-topbar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0 16px;
+      background: rgba(238,236,234,0.72);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-bottom: 0.5px solid var(--bdr);
+      z-index: 10;
+    }
+    @media (prefers-color-scheme: dark) {
+      .global-topbar { background: rgba(45,45,43,0.72); }
+    }
+    .logo { display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--txt); }
+    .logo-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--accent);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 6px;
+      letter-spacing: .01em;
+    }
+    .logo-text { font-size: 15px; font-weight: 700; letter-spacing: -.01em; }
+
+    /* ── Center stage ── */
+    .stage {
+      position: relative;
+      z-index: 1;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 80px 24px 48px;
+      text-align: center;
+    }
+
+    /* ── Big 404 ── */
+    .hero-num {
+      font-size: clamp(96px, 20vw, 180px);
+      font-weight: 900;
+      letter-spacing: -.06em;
+      line-height: 1;
+      color: var(--txt);
+      position: relative;
+      user-select: none;
+    }
+    .hero-num .digit-kor {
+      display: block;
+      font-size: clamp(14px, 3vw, 22px);
+      font-weight: 600;
+      letter-spacing: .18em;
+      color: var(--accent);
+      text-transform: uppercase;
+      margin-top: 4px;
+      animation: fade-in 0.8s ease 0.4s both;
+    }
+
+    /* Floating Korean chars around 404 */
+    .float-chars {
+      position: absolute;
+      inset: -40px;
+      pointer-events: none;
+    }
+    .float-char {
+      position: absolute;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--accent);
+      opacity: 0;
+      animation: float-up var(--dur, 3s) ease-in-out var(--delay, 0s) infinite;
+    }
+    @keyframes float-up {
+      0%   { opacity: 0; transform: translateY(0) scale(0.8); }
+      20%  { opacity: 0.55; }
+      80%  { opacity: 0.3; }
+      100% { opacity: 0; transform: translateY(-60px) scale(1.1); }
+    }
+
+    /* Underline accent under 404 */
+    .hero-line {
+      width: 56px;
+      height: 3px;
+      background: var(--accent);
+      border-radius: 99px;
+      margin: 18px auto 28px;
+      animation: expand-line 0.6s cubic-bezier(0.22,1,0.36,1) 0.6s both;
+    }
+    @keyframes expand-line {
+      from { width: 0; opacity: 0; }
+      to   { width: 56px; opacity: 1; }
+    }
+
+    /* ── Card ── */
+    .card {
+      background: rgba(255,255,255,0.38);
+      border: 0.5px solid var(--bdr2);
+      border-radius: var(--rl);
+      padding: 28px 32px;
+      max-width: 420px;
+      width: 100%;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+      animation: fade-in 0.7s ease 0.5s both;
+    }
+    @media (prefers-color-scheme: dark) {
+      .card { background: rgba(30,30,28,0.5); }
+    }
+    @keyframes fade-in {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .card-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--txt);
+      margin-bottom: 8px;
+    }
+    .card-sub {
+      font-size: 13.5px;
+      color: var(--txt2);
+      line-height: 1.65;
+      margin-bottom: 24px;
+    }
+
+    /* vocab pill */
+    .vocab-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--accent-dim);
+      border: 0.5px solid rgba(29,158,117,0.25);
+      border-radius: 99px;
+      padding: 6px 14px 6px 10px;
+      font-size: 13px;
+      color: var(--accent);
+      font-weight: 600;
+      margin-bottom: 24px;
+    }
+    .vocab-pill .kor { font-size: 15px; }
+
+    .btn-row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 9px 20px;
+      font-size: 13.5px;
+      font-weight: 600;
+      border-radius: var(--r);
+      cursor: pointer;
+      border: 0.5px solid transparent;
+      transition: all .15s;
+      text-decoration: none;
+    }
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+    }
+    .btn-primary:hover { opacity: .88; }
+    .btn-ghost {
+      background: transparent;
+      color: var(--txt2);
+      border-color: var(--bdr2);
+    }
+    .btn-ghost:hover { background: var(--bdr); }
+
+    /* ── Hint bar ── */
+    .hint {
+      margin-top: 32px;
+      font-size: 12px;
+      color: var(--txt3);
+      animation: fade-in 1s ease 1.2s both;
+    }
+    .hint span {
+      display: inline-block;
+      background: var(--bdr);
+      border-radius: 4px;
+      padding: 1px 6px;
+      font-family: monospace;
+      font-size: 11px;
+    }
+  </style>
+</head>
+<body>
+
+<canvas id="particle-bg"></canvas>
+
+<!-- Topbar -->
+<div class="global-topbar">
+  <a class="logo" href="trangchu.html">
+    <span class="logo-badge">한버갑</span>
+    <span class="logo-text">HanVocab</span>
+  </a>
+</div>
+
+<!-- Main -->
+<div class="stage">
+
+  <!-- 404 Hero -->
+  <div class="hero-num">
+    <div class="float-chars" id="floatChars"></div>
+    404
+    <span class="digit-kor">못 찾았어요 · Không tìm thấy</span>
+  </div>
+  <div class="hero-line"></div>
+
+  <!-- Card -->
+  <div class="card">
+    <div class="vocab-pill">
+      <span class="kor">없다</span>
+      <span>eobs-da · không tồn tại</span>
+    </div>
+    <div class="card-title">Trang này không tồn tại</div>
+    <div class="card-sub">
+      Có vẻ như bạn đã lạc vào một từ chưa được học.<br>
+      Hãy quay lại trang chủ để tiếp tục hành trình tiếng Hàn nhé!
+    </div>
+    <div class="btn-row">
+      <a class="btn btn-primary" href="trangchu.html">
+        <span class="material-icons" style="font-size:16px">home</span>
+        Trang chủ
+      </a>
+      <a class="btn btn-ghost" href="javascript:history.back()">
+        <span class="material-icons" style="font-size:16px">arrow_back</span>
+        Quay lại
+      </a>
+    </div>
+  </div>
+
+  <p class="hint">Mã lỗi: <span>HTTP 404</span> — 페이지를 찾을 수 없습니다</p>
+</div>
+
+<script>
+/* ── Floating Korean chars ── */
+const CHARS = ['가','나','다','라','마','바','사','아','자','차','카','타','파','하',
+               '학','습','단','어','한','국','어','공','부','어','휘'];
+const container = document.getElementById('floatChars');
+for (let i = 0; i < 12; i++) {
+  const el = document.createElement('span');
+  el.className = 'float-char';
+  el.textContent = CHARS[Math.floor(Math.random() * CHARS.length)];
+  el.style.left = (Math.random() * 100) + '%';
+  el.style.top  = (40 + Math.random() * 50) + '%';
+  el.style.setProperty('--dur',   (2.4 + Math.random() * 2.4) + 's');
+  el.style.setProperty('--delay', (Math.random() * 3) + 's');
+  el.style.fontSize = (13 + Math.random() * 12) + 'px';
+  container.appendChild(el);
+}
+
+/* ── Particle background (reuse same style as main app) ── */
+const canvas = document.getElementById('particle-bg');
+const ctx = canvas.getContext('2d');
+
+const isDark = () => window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+let W, H, particles = [];
+function resize() {
+  W = canvas.width  = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener('resize', resize);
+
+function makeParticle() {
+  return {
+    x: Math.random() * W,
+    y: Math.random() * H,
+    r: 1 + Math.random() * 1.4,
+    vx: (Math.random() - .5) * .35,
+    vy: (Math.random() - .5) * .35,
+    alpha: .12 + Math.random() * .18
+  };
+}
+for (let i = 0; i < 55; i++) particles.push(makeParticle());
+
+function draw() {
+  ctx.clearRect(0, 0, W, H);
+  const accentRgb = '29,158,117';
+  particles.forEach(p => {
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(${accentRgb},${p.alpha})`;
+    ctx.fill();
+    p.x += p.vx; p.y += p.vy;
+    if (p.x < -4) p.x = W + 4;
+    if (p.x > W + 4) p.x = -4;
+    if (p.y < -4) p.y = H + 4;
+    if (p.y > H + 4) p.y = -4;
+  });
+  // draw lines between close particles
+  for (let i = 0; i < particles.length; i++) {
+    for (let j = i + 1; j < particles.length; j++) {
+      const dx = particles[i].x - particles[j].x;
+      const dy = particles[i].y - particles[j].y;
+      const dist = Math.sqrt(dx*dx + dy*dy);
+      if (dist < 90) {
+        ctx.beginPath();
+        ctx.moveTo(particles[i].x, particles[i].y);
+        ctx.lineTo(particles[j].x, particles[j].y);
+        ctx.strokeStyle = `rgba(${accentRgb},${0.07 * (1 - dist/90)})`;
+        ctx.lineWidth = .8;
+        ctx.stroke();
+      }
+    }
+  }
+  requestAnimationFrame(draw);
+}
+draw();
+</script>
+</body>
+</html>
