@@ -1,9 +1,9 @@
 {
-  "cleanUrls": false,
+  "cleanUrls": true,
   "trailingSlash": false,
   "redirects": [
-    { "source": "trangchu.html", "destination": "", "permanent": true },
-    { "source": "/tools/songs/index.html", "destination": "songs", "permanent": true},
+    { "source": "/", "destination": "/trangchu.html", "permanent": true },
+    { "source": "/songs", "destination": "/tools/songs/index.html", "permanent": true},
     { "source": "/(.*)/index", "destination": "/$1", "permanent": true },
     { "source": "/fb", "destination": "https://facebook.com/yourpage", "permanent": false }
   ],
