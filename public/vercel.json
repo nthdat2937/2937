@@ -4,7 +4,7 @@
 
   "rewrites": [
     { "source": "/", "destination": "/trangchu.html" },
-    { "source": "/songs", "destination": "/tools/songs/index.html"}
+    { "source": "/songs/index.html", "destination": "/tools/songs/index.html"}
   ],
 
   "redirects": [
