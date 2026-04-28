@@ -17,6 +17,27 @@
 <body>
   <canvas id="particle-bg"></canvas>
 
+  <!-- ══ NAV MENU POPUP ══ -->
+  <div class="nav-menu-overlay" id="navMenuOverlay" onclick="closeNavMenu()"></div>
+  <div class="nav-menu-popup" id="navMenuPopup">
+    <div class="nav-menu-title">Điều hướng</div>
+    <div class="nav-menu-grid">
+      <!-- Thêm các link của bạn vào đây -->
+      <a class="nav-menu-item" href="#" title="Trang chủ">
+        <span class="material-icons">home</span>
+        <span>Trang chủ</span>
+      </a>
+      <a class="nav-menu-item" href="#" title="Link 2">
+        <span class="material-icons">link</span>
+        <span>Link 2</span>
+      </a>
+      <a class="nav-menu-item" href="#" title="Link 3">
+        <span class="material-icons">link</span>
+        <span>Link 3</span>
+      </a>
+    </div>
+  </div>
+
   <!-- ══ GLOBAL TOPBAR ══ -->
   <div class="global-topbar">
     <button class="sidebar-toggle-btn" id="sidebarToggle" onclick="toggleSidebar()" title="Thu gọn menu">
@@ -26,6 +47,9 @@
       <span class="logo-badge">한버갑</span>
       <span class="logo-text" id="logoText">HanVocab</span>
     </a>
+    <button class="nav-menu-btn" id="navMenuBtn" onclick="toggleNavMenu(event)" title="Mở menu điều hướng">
+      <span class="material-icons">apps</span>
+    </button>
   </div>
 
   <!-- ══ MAIN AREA: Sidebar + Content ══ -->
@@ -927,6 +951,24 @@
 
     const _authSecEl = document.getElementById('authSection');
     if (_authSecEl) new MutationObserver(() => {}).observe(_authSecEl, { childList: true, subtree: true });
+    </script>
+
+    <script>
+    // ── Nav Menu Popup
+    function toggleNavMenu(e) {
+        e.stopPropagation();
+        const popup = document.getElementById('navMenuPopup');
+        const overlay = document.getElementById('navMenuOverlay');
+        const isOpen = popup.classList.toggle('open');
+        overlay.classList.toggle('open', isOpen);
+    }
+    function closeNavMenu() {
+        document.getElementById('navMenuPopup').classList.remove('open');
+        document.getElementById('navMenuOverlay').classList.remove('open');
+    }
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') closeNavMenu();
+    });
     </script>
 </body>
 

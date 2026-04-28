@@ -4112,3 +4112,105 @@ body {
         font-size: 18px;
     }
 }
+
+/* ══ NAV MENU BUTTON & POPUP ══ */
+.nav-menu-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border: none;
+    border-radius: var(--r);
+    background: transparent;
+    color: var(--txt);
+    cursor: pointer;
+    transition: background 0.15s;
+    flex-shrink: 0;
+    margin-left: auto;
+    padding-right: 3px;
+}
+.nav-menu-btn:hover {
+    background: var(--bdr);
+}
+.nav-menu-btn .material-icons {
+    font-size: 22px;
+}
+
+/* Overlay */
+.nav-menu-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 999;
+}
+.nav-menu-overlay.open {
+    display: block;
+}
+
+/* Popup */
+.nav-menu-popup {
+    position: fixed;
+    top: 52px;
+    right: 12px;
+    z-index: 1000;
+    background: var(--bg3);
+    border: 1px solid var(--bdr2);
+    border-radius: var(--rl);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+    padding: 12px;
+    min-width: 200px;
+    opacity: 0;
+    transform: translateY(-8px) scale(0.97);
+    pointer-events: none;
+    transition: opacity 0.18s, transform 0.18s;
+}
+.nav-menu-popup.open {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    pointer-events: auto;
+}
+
+.nav-menu-title {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--txt3);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 0 4px 8px;
+    border-bottom: 1px solid var(--bdr);
+    margin-bottom: 8px;
+}
+
+.nav-menu-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4px;
+}
+
+.nav-menu-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 10px 8px;
+    border-radius: var(--r);
+    text-decoration: none;
+    color: var(--txt);
+    font-size: 11px;
+    font-weight: 500;
+    transition: background 0.15s, color 0.15s;
+    text-align: center;
+}
+.nav-menu-item:hover {
+    background: var(--bg2);
+    color: var(--accent, #4f7cff);
+}
+.nav-menu-item .material-icons {
+    font-size: 22px;
+    color: var(--txt2);
+    transition: color 0.15s;
+}
+.nav-menu-item:hover .material-icons {
+    color: var(--accent, #4f7cff);
+}
