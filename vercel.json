@@ -1,24 +1,23 @@
 {
   "cleanUrls": false,
   "trailingSlash": false,
+
+  "rewrites": [
+    { "source": "/", "destination": "/trangchu.html" }
+  ],
+
   "redirects": [
-    { "source": "/", "destination": "/trangchu.html", "permanent": false },
-    { "source": "/songs", "destination": "/tools/songs/index.html", "permanent": true},
+    { "source": "/songs", "destination": "/tools/songs/index.html", "permanent": true },
     { "source": "/(.*)/index", "destination": "/$1", "permanent": true },
     { "source": "/fb", "destination": "https://facebook.com/yourpage", "permanent": false }
   ],
+
   "headers": [
     {
       "source": "/(.*)",
       "headers": [
         { "key": "X-Frame-Options", "value": "DENY" },
         { "key": "X-Content-Type-Options", "value": "nosniff" }
-      ]
-    },
-    {
-      "source": "/assets/(.*)",
-      "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
       ]
     }
   ]
