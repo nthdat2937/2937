@@ -95,7 +95,7 @@ const sb = {
 
         function loadLocal() { try { words = JSON.parse(localStorage.getItem('kv') || '[]'); } catch { words = []; } refresh(); }
         function saveLocal() { try { localStorage.setItem('kv', JSON.stringify(words)); } catch { } }
-        function refresh() { renderTable(); updateTopics(); if (document.getElementById('pane-flash').classList.contains('active')) buildFlash(); if (document.getElementById('pane-write').classList.contains('active')) buildWrite(); if (document.getElementById('pane-type').classList.contains('active')) buildType(); if (document.getElementById('pane-listen').classList.contains('active')) buildListen(); }
+        function refresh() { renderTable(); updateTopics(); if (document.getElementById('pane-flash').classList.contains('active')) buildFlash(); if (document.getElementById('pane-write').classList.contains('active')) buildWrite(); if (document.getElementById('pane-type').classList.contains('active')) buildType(); if (document.getElementById('pane-speed').classList.contains('active')) buildSpeed(); if (document.getElementById('pane-listen').classList.contains('active')) buildListen(); }
 
         /* Tabs */
         function updateSoanHeight() {
@@ -120,7 +120,7 @@ const sb = {
                 return;
             }
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            const tabNames = ['list', 'flash', 'write', 'type', 'listen', 'mc', 'quiz', 'topik', 'soan', 'admin'];
+            const tabNames = ['list', 'flash', 'write', 'type', 'speed', 'listen', 'mc', 'quiz', 'topik', 'soan', 'admin'];
             document.querySelectorAll('.tab').forEach((t, i) => { if (tabNames[i] === n) t.classList.add('active'); });
             document.querySelectorAll('.pane').forEach(p => p.classList.remove('active'));
             document.getElementById('pane-' + n).classList.add('active');
@@ -128,6 +128,7 @@ const sb = {
             if (n === 'flash') buildFlash();
             if (n === 'write') buildWrite();
             if (n === 'type') buildType();
+            if (n === 'speed') buildSpeed();
             if (n === 'listen') buildListen();
             if (n === 'mc') { buildMC(); requestAnimationFrame(() => { const w = document.getElementById('mcWrap'); if (w) w.focus(); }); }
             if (n === 'quiz') buildQuiz();
@@ -807,6 +808,395 @@ const sb = {
 
             pool = getPool();
             render();
+        }
+
+        /* ── Speed Typing practice ── */
+        function buildSpeed() {
+            const wrap = document.getElementById('speedWrap');
+            if (!words.length) { wrap.innerHTML = '<div class="empty-state">Chưa có từ vựng.</div>'; return; }
+
+            // QWERTY → Jamo mapping
+            const q2j = {
+                'q':'ㅂ','w':'ㅈ','e':'ㄷ','r':'ㄱ','t':'ㅅ','y':'ㅛ','u':'ㅕ','i':'ㅑ','o':'ㅐ','p':'ㅔ',
+                'a':'ㅁ','s':'ㄴ','d':'ㅇ','f':'ㄹ','g':'ㅎ','h':'ㅗ','j':'ㅓ','k':'ㅏ','l':'ㅣ',
+                'z':'ㅋ','x':'ㅌ','c':'ㅊ','v':'ㅍ','b':'ㅠ','n':'ㅜ','m':'ㅡ',
+                'Q':'ㅃ','W':'ㅉ','E':'ㄸ','R':'ㄲ','T':'ㅆ','O':'ㅒ','P':'ㅖ'
+            };
+
+            const topics = [...new Set(words.map(w => w.topic).filter(Boolean))];
+
+            wrap.innerHTML = `
+            <div class="speed-toolbar">
+                <div class="speed-mode-toggle" id="speedModeToggle">
+                    <button class="speed-mode-btn active" data-mode="korean" onclick="speedSetMode('korean', this)">🇰🇷 한국어</button>
+                    <button class="speed-mode-btn" data-mode="viet" onclick="speedSetMode('viet', this)">🇻🇳 Tiếng Việt</button>
+                </div>
+                <select class="speed-select" id="speedTopic" onchange="speedRestart()">
+                    <option value="">Tất cả chủ đề</option>
+                    ${topics.map(t => `<option value="${esc(t)}">${esc(t)}</option>`).join('')}
+                </select>
+                <button class="speed-restart-btn" id="speedRestartBtn" onclick="speedRestart()" title="Làm lại (Tab)">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                    Làm lại
+                </button>
+            </div>
+
+            <div class="speed-metrics" id="speedMetrics">
+                <div class="speed-metric-item">
+                    <span class="speed-metric-label">Tốc độ</span>
+                    <span class="speed-metric-value accent" id="sWpm">0</span>
+                    <span class="speed-metric-unit">wpm</span>
+                </div>
+                <div class="speed-metric-sep"></div>
+                <div class="speed-metric-item">
+                    <span class="speed-metric-label">Độ chính xác</span>
+                    <span class="speed-metric-value" id="sAcc">100%</span>
+                </div>
+                <div class="speed-metric-sep"></div>
+                <div class="speed-metric-item">
+                    <span class="speed-metric-label">Thời gian</span>
+                    <span class="speed-metric-value" id="sTimer">60</span>
+                    <span class="speed-metric-unit">s</span>
+                </div>
+                <div class="speed-metric-sep"></div>
+                <div class="speed-metric-item">
+                    <span class="speed-metric-label">Điểm</span>
+                    <span class="speed-metric-value" id="sScore">0</span>
+                </div>
+            </div>
+
+            <div class="speed-hint-bar" id="speedHintBar"></div>
+
+            <div class="speed-arena" id="speedArena">
+                <div class="speed-text-area" id="speedTextArea"></div>
+                <input class="speed-input" id="speedInput" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Click vào đây rồi bắt đầu gõ..." />
+            </div>
+
+            <div class="speed-result" id="speedResult" style="display:none">
+                <div class="speed-result-title">🎉 Kết quả</div>
+                <div class="speed-result-grid">
+                    <div class="speed-result-item">
+                        <div class="speed-result-val" id="rWpm">-</div>
+                        <div class="speed-result-lbl">WPM</div>
+                    </div>
+                    <div class="speed-result-item">
+                        <div class="speed-result-val" id="rAcc">-</div>
+                        <div class="speed-result-lbl">Độ chính xác</div>
+                    </div>
+                    <div class="speed-result-item">
+                        <div class="speed-result-val" id="rWords">-</div>
+                        <div class="speed-result-lbl">Từ hoàn thành</div>
+                    </div>
+                    <div class="speed-result-item">
+                        <div class="speed-result-val" id="rScore">-</div>
+                        <div class="speed-result-lbl">Điểm</div>
+                    </div>
+                </div>
+                <button class="btn btn-dark" style="margin-top:24px;" onclick="speedRestart()">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right:6px"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                    Thử lại
+                </button>
+            </div>`;
+
+            let pool = [], wordIdx = 0, charIdx = 0;
+            let started = false, finished = false;
+            let correctChars = 0, totalTyped = 0, wordsCompleted = 0;
+            let timerLeft = 60, timerInterval = null;
+            let currentMode = 'korean'; // 'korean' | 'viet'
+            let liveInput = ''; // raw QWERTY buffer for Korean mode
+
+            // ==== Extract single word/syllable ====
+            function extractWord(w) {
+                if (currentMode === 'korean') {
+                    // Korean word: split by space, take 1 syllable
+                    const parts = (w.korean || '').trim().split(/\s+/).filter(Boolean);
+                    if (!parts.length) return null;
+                    return parts[Math.floor(Math.random() * parts.length)];
+                } else {
+                    // Vietnamese meaning: split by comma first, then by space
+                    const meaning = (w.meaning || '').trim();
+                    // try comma-split first
+                    const commaParts = meaning.split(',').map(s => s.trim()).filter(Boolean);
+                    const chosen = commaParts[Math.floor(Math.random() * commaParts.length)] || meaning;
+                    // if chosen still has spaces (multiple words), pick one word
+                    const spaceParts = chosen.split(/\s+/).filter(Boolean);
+                    if (spaceParts.length > 1) return spaceParts[Math.floor(Math.random() * spaceParts.length)];
+                    return chosen;
+                }
+            }
+
+            function buildPool() {
+                const topicFilter = document.getElementById('speedTopic').value;
+                const src = [...words].filter(w => !topicFilter || w.topic === topicFilter).sort(() => Math.random() - .5);
+                const result = [];
+                for (const w of src) {
+                    const word = extractWord(w);
+                    if (word && word.length >= 1) result.push(word);
+                    if (result.length >= 50) break;
+                }
+                // ensure minimum 10
+                if (result.length < 5) return null;
+                return result;
+            }
+
+            function renderTextArea() {
+                const area = document.getElementById('speedTextArea');
+                if (!area) return;
+                const poolToShow = pool.slice(0, Math.min(pool.length, wordIdx + 30));
+                area.innerHTML = poolToShow.map((word, wi) => {
+                    const chars = [...word];
+                    let html = '';
+                    if (wi < wordIdx) {
+                        // completed word
+                        html = chars.map(ch => `<span class="s-ch done">${esc(ch)}</span>`).join('');
+                    } else if (wi === wordIdx) {
+                        // current word
+                        const typedChars = [...liveInput];
+                        html = chars.map((ch, ci) => {
+                            if (ci < typedChars.length) {
+                                const cls = typedChars[ci] === ch ? 'correct' : 'wrong';
+                                return `<span class="s-ch ${cls}">${esc(typedChars[ci])}</span>`;
+                            } else if (ci === typedChars.length) {
+                                return `<span class="s-ch cursor">${esc(ch)}</span>`;
+                            } else {
+                                return `<span class="s-ch">${esc(ch)}</span>`;
+                            }
+                        }).join('');
+                        // if typed more than word length show excess in red
+                        if (typedChars.length > chars.length) {
+                            html += typedChars.slice(chars.length).map(ch => `<span class="s-ch wrong">${esc(ch)}</span>`).join('');
+                        }
+                    } else {
+                        html = chars.map(ch => `<span class="s-ch">${esc(ch)}</span>`).join('');
+                    }
+                    return `<span class="s-word">${html}</span>`;
+                }).join('<span class="s-dot">·</span>');
+
+                // Scroll current word into view
+                requestAnimationFrame(() => {
+                    const cursor = area.querySelector('.cursor');
+                    if (cursor) {
+                        const areaRect = area.getBoundingClientRect();
+                        const cursorRect = cursor.getBoundingClientRect();
+                        if (cursorRect.top > areaRect.bottom - 60 || cursorRect.top < areaRect.top) {
+                            cursor.scrollIntoView({ block: 'center', behavior: 'smooth' });
+                        }
+                    }
+                });
+            }
+
+            function updateMetrics() {
+                const wpm = timerLeft < 60 ? Math.round((correctChars / 5) / ((60 - timerLeft) / 60)) : 0;
+                const acc = totalTyped > 0 ? Math.round((correctChars / totalTyped) * 100) : 100;
+                const score = Math.round(wpm * (acc / 100));
+                const wpmEl = document.getElementById('sWpm');
+                const accEl = document.getElementById('sAcc');
+                const scoreEl = document.getElementById('sScore');
+                if (wpmEl) wpmEl.textContent = isFinite(wpm) ? wpm : 0;
+                if (accEl) accEl.textContent = acc + '%';
+                if (scoreEl) scoreEl.textContent = isFinite(score) ? score : 0;
+            }
+
+            function updateHintBar() {
+                const bar = document.getElementById('speedHintBar');
+                if (!bar) return;
+                if (currentMode === 'korean') {
+                    if (window.Hangul && liveInput && /[a-zA-Z]/.test(liveInput)) {
+                        let conv = '';
+                        for (const ch of liveInput) conv += q2j[ch] || ch;
+                        const sug = Hangul.a(conv.split(''));
+                        bar.innerHTML = `💡 Nhấn <strong>Tab</strong> để chuyển thành: <b style="color:var(--txt);font-size:15px">${esc(sug)}</b>`;
+                    } else if (!liveInput) {
+                        bar.textContent = '💡 Gõ QWERTY rồi nhấn Tab để chuyển sang Hangul';
+                    } else {
+                        bar.textContent = '';
+                    }
+                } else {
+                    bar.textContent = '';
+                }
+            }
+
+            function startTimer() {
+                if (timerInterval) return;
+                timerInterval = setInterval(() => {
+                    timerLeft--;
+                    const timerEl = document.getElementById('sTimer');
+                    if (timerEl) {
+                        timerEl.textContent = timerLeft;
+                        if (timerLeft <= 10) timerEl.classList.add('danger');
+                    }
+                    updateMetrics();
+                    if (timerLeft <= 0) finishRound();
+                }, 1000);
+            }
+
+            function finishRound() {
+                finished = true;
+                clearInterval(timerInterval);
+                timerInterval = null;
+
+                const wpm = timerLeft < 60 ? Math.round((correctChars / 5) / ((60 - timerLeft + (timerLeft > 0 ? 0 : 0)) / 60)) : 0;
+                const elapsed = Math.max(1, 60 - timerLeft);
+                const finalWpm = Math.round((correctChars / 5) / (elapsed / 60));
+                const acc = totalTyped > 0 ? Math.round((correctChars / totalTyped) * 100) : 100;
+                const score = Math.round(finalWpm * (acc / 100));
+
+                const arena = document.getElementById('speedArena');
+                const metrics = document.getElementById('speedMetrics');
+                const result = document.getElementById('speedResult');
+                const inp = document.getElementById('speedInput');
+                if (arena) arena.style.display = 'none';
+                if (metrics) metrics.style.display = 'none';
+                if (inp) inp.blur();
+
+                document.getElementById('rWpm').textContent = isFinite(finalWpm) ? finalWpm : 0;
+                document.getElementById('rAcc').textContent = acc + '%';
+                document.getElementById('rWords').textContent = wordsCompleted;
+                document.getElementById('rScore').textContent = isFinite(score) ? score : 0;
+
+                if (result) result.style.display = 'flex';
+            }
+
+            window.speedSetMode = function(mode, btn) {
+                currentMode = mode;
+                document.querySelectorAll('.speed-mode-btn').forEach(b => b.classList.remove('active'));
+                if (btn) btn.classList.add('active');
+                speedRestart();
+            };
+
+            window.speedRestart = function() {
+                clearInterval(timerInterval);
+                timerInterval = null;
+                started = false;
+                finished = false;
+                correctChars = 0;
+                totalTyped = 0;
+                wordsCompleted = 0;
+                timerLeft = 60;
+                wordIdx = 0;
+                charIdx = 0;
+                liveInput = '';
+
+                const timerEl = document.getElementById('sTimer');
+                if (timerEl) { timerEl.textContent = '60'; timerEl.classList.remove('danger'); }
+
+                const arena = document.getElementById('speedArena');
+                const metrics = document.getElementById('speedMetrics');
+                const result = document.getElementById('speedResult');
+                if (arena) arena.style.display = '';
+                if (metrics) metrics.style.display = '';
+                if (result) result.style.display = 'none';
+
+                const topicFilter = document.getElementById('speedTopic')?.value || '';
+                pool = buildPool() || [];
+                if (!pool.length) {
+                    document.getElementById('speedTextArea').innerHTML = '<span style="color:var(--txt3)">Không có từ vựng phù hợp.</span>';
+                    return;
+                }
+
+                updateMetrics();
+                renderTextArea();
+                updateHintBar();
+                const inp = document.getElementById('speedInput');
+                if (inp) { inp.value = ''; setTimeout(() => inp.focus(), 50); }
+            };
+
+            // Input handler
+            const inp = document.getElementById('speedInput');
+
+            inp.addEventListener('focus', () => {
+                const hint = document.getElementById('speedHintBar');
+                if (!started && hint && currentMode !== 'korean') {
+                    hint.textContent = 'Bắt đầu gõ để khởi động đồng hồ!';
+                }
+            });
+
+            inp.addEventListener('keydown', e => {
+                if (finished) return;
+
+                // Tab: convert QWERTY → Hangul
+                if (e.key === 'Tab' && currentMode === 'korean') {
+                    e.preventDefault();
+                    if (window.Hangul && /[a-zA-Z]/.test(liveInput)) {
+                        let conv = '';
+                        for (const ch of liveInput) conv += q2j[ch] || ch;
+                        liveInput = Hangul.a(conv.split(''));
+                        inp.value = liveInput;
+                        renderTextArea();
+                        updateHintBar();
+                    }
+                    return;
+                }
+
+                // Restart shortcut
+                if (e.key === 'Escape') { e.preventDefault(); speedRestart(); return; }
+            });
+
+            // Helper: submit current word
+            function submitWord(typed) {
+                if (!typed) return;
+                if (!started) { started = true; startTimer(); }
+
+                const expected = pool[wordIdx] || '';
+                const typedArr = [...typed];
+                const expArr = [...expected];
+                const charsToCompare = Math.max(typedArr.length, expArr.length);
+                for (let i = 0; i < charsToCompare; i++) {
+                    totalTyped++;
+                    if (i < typedArr.length && i < expArr.length && typedArr[i] === expArr[i]) {
+                        correctChars++;
+                    }
+                }
+                if (typed === expected) wordsCompleted++;
+
+                wordIdx++;
+                liveInput = '';
+                inp.value = '';
+
+                if (wordIdx >= pool.length) { finishRound(); return; }
+                renderTextArea();
+                updateMetrics();
+                updateHintBar();
+            }
+
+            inp.addEventListener('input', e => {
+                if (finished) return;
+                const val = inp.value;
+
+                // Space anywhere in value = word submission
+                if (val.includes(' ')) {
+                    const typed = val.replace(/\s+/g, '').trim();
+                    inp.value = typed;
+                    liveInput = typed;
+                    submitWord(typed);
+                    return;
+                }
+
+                if (!started && val.length > 0) { started = true; startTimer(); }
+                liveInput = val;
+                renderTextArea();
+                updateHintBar();
+            });
+
+            // Click arena to focus input
+            document.getElementById('speedArena').addEventListener('click', () => {
+                if (!finished) inp.focus();
+            });
+
+            // Keyboard shortcut Tab for restart when not focused on input
+            document.getElementById('speedWrap').addEventListener('keydown', e => {
+                if (e.key === 'Escape') speedRestart();
+            });
+
+            // Initial build
+            pool = buildPool() || [];
+            if (!pool.length) {
+                document.getElementById('speedTextArea').innerHTML = '<span style="color:var(--txt3)">Không có từ vựng.</span>';
+                return;
+            }
+            renderTextArea();
+            updateMetrics();
+            setTimeout(() => inp.focus(), 80);
         }
 
         /* ── Listening practice ── */
@@ -3326,6 +3716,19 @@ function sGetTextBeforeCursor() {
 
 function topikInit() {}
 
+async function topikPaste() {
+    try {
+        const text = await navigator.clipboard.readText();
+        if (text) {
+            document.getElementById('topikInput').value = text;
+            toast('Đã dán nội dung từ clipboard!');
+        } else {
+            toast('Clipboard trống!');
+        }
+    } catch (e) {
+        toast('Không thể đọc clipboard. Vui lòng dán thủ công (Ctrl+V).');
+    }
+}
 function topikClear() {
     document.getElementById('topikInput').value = '';
     document.getElementById('topikResult').style.display = 'none';
@@ -3525,9 +3928,11 @@ function topikRender() {
 
     const totalCells = rows.length * 20;
     const filledCells = rows.flat().filter(c => c.text).length;
+    const sentenceCount = (input.match(/[.!?。？！]+/g) || []).length || input.split(/\s{2,}|\n/).filter(s => s.trim()).length;
 
     document.getElementById('topikStats').innerHTML =
-        `<span>Tổng số ô: <b>${totalCells}</b></span>
+        `<span>Số câu: <b>${sentenceCount}</b></span>
+         <span>Tổng số ô: <b>${totalCells}</b></span>
          <span>Ô có nội dung: <b>${filledCells}</b></span>
          <span>Số hàng: <b>${rows.length}</b></span>`;
 

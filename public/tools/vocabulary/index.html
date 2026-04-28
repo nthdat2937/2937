@@ -51,6 +51,10 @@
           <span class="sidebar-icon material-icons">keyboard</span>
           <span>Luyện từ</span>
         </button>
+        <button class="sidebar-item" data-label="Tốc độ gõ" onclick="sidebarSwitch('speed', this)">
+          <span class="sidebar-icon material-icons">speed</span>
+          <span>Tốc độ gõ</span>
+        </button>
         <button class="sidebar-item" data-label="Luyện nghe" onclick="sidebarSwitch('listen', this)">
           <span class="sidebar-icon material-icons">headphones</span>
           <span>Luyện nghe</span>
@@ -122,6 +126,7 @@
             <div class="tab" onclick="switchTab('flash')">Flashcard</div>
             <div class="tab" onclick="switchTab('write')">Luyện viết</div>
             <div class="tab" onclick="switchTab('type')">Luyện từ</div>
+            <div class="tab" onclick="switchTab('speed')">Tốc độ gõ</div>
             <div class="tab" onclick="switchTab('listen')">Luyện nghe</div>
             <div class="tab" onclick="switchTab('mc')">Trắc nghiệm</div>
             <div class="tab" onclick="switchTab('quiz')">Kiểm tra</div>
@@ -265,6 +270,13 @@
         <!-- TAB: TYPE PRACTICE -->
         <div id="pane-type" class="pane">
             <div class="wp-wrap" id="tpWrap">
+                <div class="empty-state">Chưa có từ vựng.</div>
+            </div>
+        </div>
+
+        <!-- TAB: SPEED TYPING -->
+        <div id="pane-speed" class="pane">
+            <div class="speed-wrap" id="speedWrap">
                 <div class="empty-state">Chưa có từ vựng.</div>
             </div>
         </div>
@@ -483,11 +495,17 @@
                         <button class="btn btn-dark" onclick="topikRender()">
                             <span class="material-icons" style="font-size:16px;margin-right:4px">grid_on</span>Tạo lưới TOPIK
                         </button>
+                        <button class="btn btn-ghost" onclick="topikPaste()" title="Dán nội dung từ clipboard">
+                            <span class="material-icons" style="font-size:16px;margin-right:4px">content_paste</span>Dán
+                        </button>
                         <button class="btn btn-ghost" onclick="topikClear()">
                             <span class="material-icons" style="font-size:16px;margin-right:4px">clear</span>Xóa
                         </button>
                         <button class="btn btn-ghost" onclick="topikPrint()">
                             <span class="material-icons" style="font-size:16px;margin-right:4px">print</span>In
+                        </button>
+                        <button class="btn topik-ai-btn" onclick="openTopikAIPopup()">
+                            <span style="font-size:15px;margin-right:5px">✦</span>AI Generation
                         </button>
                     </div>
                 </div>
@@ -725,6 +743,101 @@
       frame();
     })();
     </script>
+    <!-- ══ TOPIK AI GENERATION POPUP ══ -->
+    <div id="topikAiPopupBg" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;align-items:center;justify-content:center;" onclick="if(event.target===this)closeTopikAIPopup()">
+        <div class="topik-ai-modal">
+            <div class="topik-ai-modal-header">
+                <span class="topik-ai-modal-title"><span style="margin-right:6px">✦</span>AI Generation</span>
+                <button onclick="closeTopikAIPopup()" class="topik-ai-close-btn">✕</button>
+            </div>
+            <div class="topik-ai-modal-body" id="topikAiModalBody">
+
+                <!-- Chủ đề -->
+                <div class="tai-field">
+                    <label class="tai-label">Chủ đề / Đề bài</label>
+                    <input type="text" id="taiTopic" class="tai-input" placeholder="VD: Môi trường, Gia đình, Du lịch..." autocomplete="off" />
+                </div>
+
+                <!-- Trình độ -->
+                <div class="tai-field">
+                    <label class="tai-label">Trình độ</label>
+                    <div class="tai-chip-group" id="taiLevelGroup">
+                        <button class="tai-chip tai-chip-active" data-val="sơ cấp 1" onclick="taiChipSelect(this,'taiLevelGroup')">Sơ cấp 1</button>
+                        <button class="tai-chip" data-val="sơ cấp 2" onclick="taiChipSelect(this,'taiLevelGroup')">Sơ cấp 2</button>
+                        <button class="tai-chip" data-val="trung cấp" onclick="taiChipSelect(this,'taiLevelGroup')">Trung cấp</button>
+                        <button class="tai-chip" data-val="cao cấp" onclick="taiChipSelect(this,'taiLevelGroup')">Cao cấp</button>
+                    </div>
+                </div>
+
+                <!-- Phong cách câu -->
+                <div class="tai-field">
+                    <label class="tai-label">Phong cách câu</label>
+                    <div class="tai-chip-group" id="taiStyleGroup">
+                        <button class="tai-chip tai-chip-active" data-val="ㅂ/습니다 (trang trọng)" onclick="taiChipSelect(this,'taiStyleGroup')">ㅂ/습니다 (trang trọng)</button>
+                        <button class="tai-chip" data-val="아/어요 (thân mật lịch sự)" onclick="taiChipSelect(this,'taiStyleGroup')">아/어요 (thân mật)</button>
+                        <button class="tai-chip" data-val="반말 (thân mật)" onclick="taiChipSelect(this,'taiStyleGroup')">반말</button>
+                    </div>
+                </div>
+
+                <!-- Số câu -->
+                <div class="tai-field">
+                    <label class="tai-label">Số câu <span id="taiLenVal" style="color:var(--accent);font-weight:700">6</span></label>
+                    <input type="range" id="taiLen" class="tai-range" min="3" max="15" value="6"
+                        oninput="document.getElementById('taiLenVal').textContent=this.value" />
+                    <div class="tai-range-labels"><span>3</span><span>15</span></div>
+                </div>
+
+                <!-- Ghi chú thêm -->
+                <div class="tai-field">
+                    <label class="tai-label">Ghi chú / Yêu cầu thêm <span style="color:var(--txt3);font-weight:400">(tuỳ chọn)</span></label>
+                    <textarea id="taiNote" class="tai-textarea" placeholder="VD: Dùng nhiều danh từ ghép, có câu hỏi tu từ..."></textarea>
+                </div>
+
+                <!-- Submit -->
+                <div class="tai-field" style="padding-top:4px">
+                    <button class="tai-submit-btn" onclick="topikAISubmit()">
+                        <span style="font-size:15px">✦</span> Tạo đoạn văn
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // ── TOPIK AI Popup
+    function openTopikAIPopup() {
+        const bg = document.getElementById('topikAiPopupBg');
+        bg.style.display = 'flex';
+    }
+    function closeTopikAIPopup() {
+        const bg = document.getElementById('topikAiPopupBg');
+        bg.style.display = 'none';
+    }
+    function taiChipSelect(el, groupId) {
+        document.getElementById(groupId).querySelectorAll('.tai-chip').forEach(c => c.classList.remove('tai-chip-active'));
+        el.classList.add('tai-chip-active');
+    }
+    function topikAISubmit() {
+        const topic   = document.getElementById('taiTopic').value.trim();
+        const level   = document.querySelector('#taiLevelGroup .tai-chip-active')?.dataset.val || '';
+        const style   = document.querySelector('#taiStyleGroup .tai-chip-active')?.dataset.val || '';
+        const len     = document.getElementById('taiLen').value;
+        const note    = document.getElementById('taiNote').value.trim();
+        // TODO: gọi API hoặc xử lý dữ liệu ở đây
+        console.log({ topic, level, style, len, note });
+
+        const prompt = `Viết một đoạn văn tiếng Hàn về ${topic}, trình độ ${level}, phong cách ${style}, đúng ${len} câu, chủ đề: ${topic}. Chỉ xuất ra đúng ${len} câu văn tiếng Hàn, không thêm tiêu đề, không chú thích, không giải thích, không hỏi lại, không có bất kỳ nội dung nào khác ngoài 15 câu đó.`
+        window.open(`https://www.google.com/search?q=${prompt}&udm=50`)
+    }
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            const bg = document.getElementById('topikAiPopupBg');
+            if (bg && bg.style.display === 'flex') closeTopikAIPopup();
+        }
+    });
+    </script>
+
     <script>
     // ── Sidebar nav bridge
     function sidebarSwitch(tab, el) {
