@@ -2,14 +2,15 @@
   "cleanUrls": false,
   "trailingSlash": false,
 
-  "rewrites": [
-    { "source": "/", "destination": "/trangchu.html" }
-  ],
-
   "redirects": [
     { "source": "/songs", "destination": "/tools/songs/index.html", "permanent": true},
     { "source": "/(.*)/index", "destination": "/$1", "permanent": true },
-    { "source": "/fb", "destination": "https://facebook.com/yourpage", "permanent": false }
+    { "source": "/fb", "destination": "https://facebook.com/yourpage", "permanent": false },
+    { "source": "/((?!trangchu).*)\\.html", "destination": "/", "permanent": true}
+  ],
+
+  "rewrites": [
+    { "source": "/", "destination": "/trangchu.html" }
   ],
 
   "headers": [
