@@ -1780,7 +1780,7 @@ const sb = {
       <td><span class="badge b-${esc(w.type || '기타')}">${esc(w.type || '기타')}</span></td>
       <td>${esc(w.meaning)}</td>
       <td style="font-size:12px;color:var(--txt2)">${esc(w.romanize || '')}</td>
-      <td style="font-size:12px;color:var(--txt2)">${esc(w.example || '')}${w.example_meaning ? `<div class="ex-viet">${esc(w.example_meaning)}</div>` : ''}</td>
+      <td style="font-size:12px;color:var(--txt2)">${esc(w.example || '')}${w.example_meaning ? `<div class="ex-viet">${esc(w.example_meaning)}</div>` : ''}</td> 
       <td style="font-size:12px;color:var(--txt3)">${esc(w.topic || '')}</td>
       <td class="admin-only" style="white-space:nowrap">
         <button class="btn-edit" onclick="editWord(${w.id})" title="Chỉnh sửa">✎</button>
