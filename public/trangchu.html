@@ -566,25 +566,38 @@
                     <p class="topik-desc">Nhập đoạn văn để chuyển sang lưới ô thi TOPIK (1 từ/ô, 20 ô/hàng)</p>
                 </div>
                 <div class="topik-controls">
-                    <textarea id="topikInput" class="topik-textarea" placeholder="Dán đoạn văn tiếng Hàn vào đây...&#10;&#10;Ví dụ: 저는 한국어를 공부합니다. 한국어는 매우 재미있습니다."></textarea>
-                    <div class="topik-btn-row">
-                        <button class="btn btn-dark" onclick="topikRender()">
-                            <span class="material-icons" style="font-size:16px;margin-right:4px">grid_on</span>Tạo lưới TOPIK
-                        </button>
+                    <input id="topikTitleInput" class="topik-title-input" type="text" placeholder="Tiêu đề đoạn văn (tuỳ chọn)..." maxlength="100" autocomplete="off">
+                    <textarea id="topikInput" class="topik-textarea" placeholder="Dán đoạn văn tiếng Hàn vào đây...&#10;&#10;Ví dụ: 저는 한국어를 공부합니다. 한국어는 매우 재미있습니다." oninput="topikRealtimeRender()"></textarea>
+                    <div class="topik-btn-row"> 
                         <button class="btn btn-ghost" onclick="topikPaste()" title="Dán nội dung từ clipboard">
-                            <span class="material-icons" style="font-size:16px;margin-right:4px">content_paste</span>Dán
+                            <span class="material-icons" style="font-size:16px;margin-right:0px">content_paste</span>
                         </button>
                         <button class="btn btn-ghost" onclick="topikClear()">
-                            <span class="material-icons" style="font-size:16px;margin-right:4px">clear</span>Xóa
+                            <span class="material-icons" style="font-size:16px;margin-right:0px">clear</span>
+                        </button>
+                        <button class="btn btn-ghost" id="topikSaveBtn" onclick="topikSaveGrid()">
+                            <span class="material-icons" style="font-size:16px;margin-right:0px">save</span>
                         </button>
                         <button class="btn btn-ghost" onclick="topikPrint()">
-                            <span class="material-icons" style="font-size:16px;margin-right:4px">print</span>In
+                            <span class="material-icons" style="font-size:16px;margin-right:0px">print</span>
                         </button>
                         <button class="btn topik-ai-btn" onclick="openTopikAIPopup()">
-                            <span style="font-size:15px;margin-right:5px">✦</span>AI Generation
+                            <span style="font-size:15px;margin-right:2px;margin-left:2px">✦</span>
                         </button>
                     </div>
                 </div>
+                <!-- Lịch sử đoạn văn -->
+                <div class="topik-history-section" id="topikHistorySection" style="display:none">
+                    <div class="topik-history-header">
+                        <span class="material-icons" style="font-size:16px;vertical-align:middle;margin-right:0px">history</span>
+                        Lịch sử đoạn văn
+                        <button class="btn btn-ghost" onclick="topikClearHistory()" style="margin-left:auto;font-size:11px;padding:3px 10px;color:var(--txt3)">
+                            <span class="material-icons" style="font-size:13px;vertical-align:middle">delete_sweep</span> 
+                        </button>
+                    </div>
+                    <div class="topik-history-list" id="topikHistoryList"></div>
+                </div>
+
                 <div id="topikResult" class="topik-result" style="display:none">
                     <div class="topik-stats" id="topikStats"></div>
                     <div class="topik-grid-container" id="topikGridContainer"></div>

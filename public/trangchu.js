@@ -3714,13 +3714,153 @@ function sGetTextBeforeCursor() {
    - 1 hàng = 20 ô
 ══════════════════════════════════════════════════ */
 
-function topikInit() {}
+/* ── TOPIK History (localStorage) ── */
+const TOPIK_HISTORY_KEY = 'topikHistory_v1';
+const TOPIK_HISTORY_MAX = 30;
+
+function topikGetHistory() {
+    try { return JSON.parse(localStorage.getItem(TOPIK_HISTORY_KEY) || '[]'); } catch { return []; }
+}
+
+function topikSaveToHistory(text, title) {
+    if (!text || text.trim().length < 5) return;
+    const history = topikGetHistory();
+    const filtered = history.filter(h => h.text !== text);
+    filtered.unshift({
+        text,
+        title: (title || '').trim() || '',
+        saved_at: new Date().toISOString(),
+        char_count: text.length
+    });
+    // Giới hạn số lượng
+    const trimmed = filtered.slice(0, TOPIK_HISTORY_MAX);
+    localStorage.setItem(TOPIK_HISTORY_KEY, JSON.stringify(trimmed));
+}
+
+function topikDeleteHistoryItem(idx) {
+    const history = topikGetHistory();
+    history.splice(idx, 1);
+    localStorage.setItem(TOPIK_HISTORY_KEY, JSON.stringify(history));
+    topikRenderHistory();
+}
+
+function topikClearHistory() {
+    if (!confirm('Xóa toàn bộ lịch sử TOPIK?')) return;
+    localStorage.removeItem(TOPIK_HISTORY_KEY);
+    topikRenderHistory();
+    toast('Đã xóa lịch sử');
+}
+
+function topikLoadHistoryItem(idx) {
+    const history = topikGetHistory();
+    const item = history[idx];
+    if (!item) return;
+    document.getElementById('topikInput').value = item.text;
+    const ti = document.getElementById('topikTitleInput');
+    if (ti) ti.value = item.title || '';
+    toast('Đã tải đoạn văn từ lịch sử');
+    document.getElementById('topikInput').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function topikRenderHistory() {
+    const history = topikGetHistory();
+    const section = document.getElementById('topikHistorySection');
+    const listEl = document.getElementById('topikHistoryList');
+    if (!section || !listEl) return;
+
+    section.style.display = history.length ? '' : 'none';
+
+    if (!history.length) { listEl.innerHTML = ''; return; }
+
+    function formatDate(iso) {
+        const d = new Date(iso);
+        const now = new Date();
+        const diffMs = now - d;
+        const diffMin = Math.floor(diffMs / 60000);
+        const diffH = Math.floor(diffMs / 3600000);
+        const diffDay = Math.floor(diffMs / 86400000);
+        if (diffMin < 1) return 'Vừa xong';
+        if (diffMin < 60) return `${diffMin} phút trước`;
+        if (diffH < 24) return `${diffH} giờ trước`;
+        if (diffDay === 1) return 'Hôm qua';
+        return d.toLocaleDateString('vi-VN');
+    }
+
+    listEl.innerHTML = history.map((item, i) => {
+        const preview = item.text.slice(0, 80).replace(/\n/g, ' ') + (item.text.length > 80 ? '…' : '');
+        const charCount = item.char_count || item.text.length;
+        const titleHtml = item.title ? `<div class="topik-history-item-title">${esc(item.title)}</div>` : '';
+        return `
+        <div class="topik-history-item" onclick="topikLoadHistoryItem(${i})">
+            <div class="topik-history-item-body">
+                ${titleHtml}<div class="topik-history-item-preview">${esc(preview)}</div>
+                <div class="topik-history-item-meta">${charCount} ký tự · ${formatDate(item.saved_at)}</div>
+            </div>
+            <button class="topik-history-del" title="Xóa"
+                onclick="event.stopPropagation(); topikDeleteHistoryItem(${i})">
+                <span class="material-icons" style="font-size:15px;vertical-align:middle">close</span>
+            </button>
+        </div>`;
+    }).join('');
+}
+
+/* ── TOPIK Realtime Render ── */
+let _topikRealtimeTimer = null;
+function topikRealtimeRender() {
+    clearTimeout(_topikRealtimeTimer);
+    _topikRealtimeTimer = setTimeout(() => {
+        const input = document.getElementById('topikInput').value.trim();
+        if (!input) {
+            document.getElementById('topikResult').style.display = 'none';
+            return;
+        }
+        topikRenderGrid(input);
+    }, 150);
+}
+window.topikRealtimeRender = topikRealtimeRender;
+
+function topikInit() {
+    topikRenderHistory();
+}
+
+// Expose tất cả hàm topik ra global
+window.topikInit              = topikInit;
+window.topikRender            = topikRender;
+window.topikRenderGrid        = topikRenderGrid;
+window.topikPaste             = topikPaste;
+window.topikClear             = topikClear;
+window.topikPrint             = topikPrint;
+window.topikClearHistory      = topikClearHistory;
+window.topikDeleteHistoryItem = topikDeleteHistoryItem;
+window.topikLoadHistoryItem   = topikLoadHistoryItem;
+window.topikSaveGrid          = topikSaveGrid;
+
+// Lưu nội dung lưới hiện tại vào localStorage (hỗ trợ cả 2 chế độ)
+
+
+// Lưu nội dung lưới hiện tại vào localStorage (hỗ trợ cả 2 chế độ)
+function topikSaveGrid() {
+    const resultEl = document.getElementById('topikResult');
+    if (!resultEl || resultEl.style.display === 'none') {
+        toast('Chưa có lưới để lưu!'); return;
+    }
+
+    const input = document.getElementById('topikInput').value.trim();
+    if (!input) { toast('Không có nội dung để lưu!'); return; }
+    const title = (document.getElementById('topikTitleInput')?.value || '').trim();
+    topikSaveToHistory(input, title);
+    topikRenderHistory();
+    const saveData = { mode: 'text', text: input, title, savedAt: Date.now() };
+    localStorage.setItem('topikSavedGrid', JSON.stringify(saveData));
+    toast('Đã lưu lưới vào trình duyệt!');
+}
 
 async function topikPaste() {
     try {
         const text = await navigator.clipboard.readText();
         if (text) {
             document.getElementById('topikInput').value = text;
+            topikRealtimeRender();
             toast('Đã dán nội dung từ clipboard!');
         } else {
             toast('Clipboard trống!');
@@ -3763,6 +3903,7 @@ function topikTokenize(text) {
         tokens.push({ type: 'indent' });
 
         let i = 0;
+        let lastWasContent = false;
         while (i < para.length) {
             const ch = para[i];
 
@@ -3808,15 +3949,29 @@ function topikTokenize(text) {
                 continue;
             }
 
-            // Latin / ký tự khác → mỗi char 1 ô
-            tokens.push({ type: 'latin', text: ch });
+            // Chữ Latinh → gom 2 chữ 1 ô theo chuẩn TOPIK
+            if (/[a-zA-Z]/.test(ch)) {
+                let latinStr = '';
+                while (i < para.length && /[a-zA-Z]/.test(para[i])) { latinStr += para[i++]; }
+                for (let j = 0; j < latinStr.length; j += 2) {
+                    tokens.push({ type: 'latin', text: latinStr.slice(j, j + 2) });
+                }
+                lastWasContent = true;
+                continue;
+            }
+
+            // Ký tự khác → mỗi char 1 ô
+            tokens.push({ type: 'other', text: ch });
             lastWasContent = true;
             i++;
         }
 
-        if (pi < paragraphs.length - 1) {
-            tokens.push({ type: 'para_end' });
-        }
+        // Luôn push para_end cho mọi đoạn...
+
+        // Luôn push para_end cho mọi đoạn (kể cả đoạn cuối)
+        // để layout fill đủ hàng cuối một cách tường minh,
+        // thay vì phụ thuộc vào vòng fill backup ở cuối topikLayout.
+        tokens.push({ type: 'para_end' });
     }
 
     return tokens;
@@ -3840,7 +3995,11 @@ function topikLayout(tokens) {
         });
     }
 
-    function currentCol() { return cellCount % COLS || COLS; }
+    // nextCol(): vị trí (1-indexed) của ô SẮP được điền tiếp theo.
+    // cellCount là số ô đã điền → ô tiếp theo ở vị trí (cellCount % COLS) + 1.
+    // Khi cellCount % COLS === 0 tức đang ở đầu hàng mới → ô tiếp theo là cột 1.
+    // → isLastCol đúng khi (cellCount % COLS) === COLS - 1  (0-indexed: ô thứ 19 trong hàng)
+    function nextCol() { return (cellCount % COLS) + 1; }
 
     const CONTENT_TYPES = new Set(['syllable', 'num', 'latin', 'punct', 'punct_space']);
 
@@ -3849,7 +4008,13 @@ function topikLayout(tokens) {
 
         // ── Đầu đoạn: fill hàng hiện tại rồi thêm ô indent ──
         if (tok.type === 'indent') {
-            if (cellCount > 0 && cellCount % COLS !== 0) {
+            if (cellCount === 0) {
+                // Đoạn đầu tiên: thêm ô blank giống các đoạn khác
+                addCell('', { blank: true });
+                continue;
+            }
+            // Đoạn tiếp theo: fill nốt hàng hiện tại rồi thêm ô thụt lùi
+            if (cellCount % COLS !== 0) {
                 while (cellCount % COLS !== 0) addCell('');
             }
             addCell('', { blank: true }); // ô lùi đầu đoạn
@@ -3864,17 +4029,24 @@ function topikLayout(tokens) {
 
         // ── Ô cách giữa các từ (space) ──
         if (tok.type === 'space') {
-            // Không thêm ô trống nếu đang đứng đầu hàng mới
+            // Không thêm ô trống nếu đang đứng ở đầu hàng (ô 0 hoặc vừa bắt đầu hàng mới)
+            // cellCount % COLS === 0 nghĩa là vừa điền xong ô cuối hàng trước → đầu hàng mới
             if (cellCount % COLS !== 0) {
                 addCell('', { blank: true });
+                // Nếu vừa thêm xong mà lại rơi đúng đầu hàng mới thì xóa ô trống đó đi
+                // if (cellCount % COLS === 0) {
+                //     cells.pop();
+                //     cellCount--;
+                // }
             }
             continue;
         }
 
         // ── Token nội dung ──
         if (CONTENT_TYPES.has(tok.type)) {
-            const col = currentCol();
-            const isLastCol = (col === COLS);
+            // isLastCol: ô SẮP điền có phải ô cuối hàng (cột 20) không?
+            // nextCol() = (cellCount % COLS) + 1; khi = 20 → đây là ô cuối hàng.
+            const isLastCol = (cellCount % COLS) === (COLS - 1);
             const nextTok = tokens[ti + 1];
 
             // Nếu ô này là ô cuối hàng VÀ token tiếp theo là dấu câu
@@ -3882,18 +4054,17 @@ function topikLayout(tokens) {
             if (isLastCol && nextTok && (nextTok.type === 'punct' || nextTok.type === 'punct_space')) {
                 addCell(tok.text + nextTok.text);
                 const wasSpace = nextTok.type === 'punct_space';
-                ti++; // skip dấu
-                if (wasSpace) {
-                    // Sau ! ? cần 1 ô trống — nhưng đây đã đầu hàng mới rồi
-                    // nên KHÔNG thêm ô trống (tránh ô trắng đầu hàng)
-                    // → bỏ qua ô trống vì dòng mới bắt đầu
-                }
+                ti++;
+                if (wasSpace) { /* đầu hàng mới rồi, không thêm ô trống */ }
             } else {
                 addCell(tok.text);
                 if (tok.type === 'punct_space') {
-                    // Sau ! ? thêm 1 ô trống — nhưng không được ở đầu hàng mới
                     if (cellCount % COLS !== 0) {
                         addCell('', { blank: true });
+                        if (cellCount % COLS === 0) {
+                            cells.pop();
+                            cellCount--;
+                        }
                     }
                 }
             }
@@ -3903,6 +4074,32 @@ function topikLayout(tokens) {
 
     // Fill hàng cuối
     while (cellCount % COLS !== 0) addCell('');
+
+    // ── Post-process: không để từ bị tách cuối hàng ──
+    // Nếu ô cuối hàng có nội dung VÀ ô đầu hàng sau cũng có nội dung (space bị nuốt)
+    // → đẩy ô cuối xuống đầu hàng sau, fill ô cuối = trống
+    // for (let i = COLS - 1; i < cells.length - COLS; i += COLS) {
+    //     const lastCell = cells[i];
+    //     const firstNextCell = cells[i + 1];
+    //     if (lastCell.text && !lastCell.blank && firstNextCell.text && !firstNextCell.blank) {
+    //         // Dịch chuyển: fill ô cuối hàng = trống, chèn nội dung vào đầu hàng sau
+    //         // nhưng đầu hàng sau đã có nội dung → cần shift toàn bộ hàng sau sang phải 1 ô
+    //         const movedText = lastCell.text;
+    //         lastCell.text = '';
+    //         // Shift hàng tiếp theo sang phải 1, chèn movedText vào đầu
+    //         const rowStart = i + 1;
+    //         const rowEnd = i + COLS; // exclusive
+    //         // Ô cuối hàng sau sẽ bị đẩy ra → chỉ shift nếu ô cuối hàng sau trống
+    //         if (!cells[rowEnd - 1].text) {
+    //             for (let j = rowEnd - 1; j > rowStart; j--) {
+    //                 cells[j].text  = cells[j - 1].text;
+    //                 cells[j].blank = cells[j - 1].blank;
+    //             }
+    //             cells[rowStart].text  = movedText;
+    //             cells[rowStart].blank = false;
+    //         }
+    //     }
+    // }
 
     // Chunk thành hàng 20 ô
     const rows = [];
@@ -3919,10 +4116,7 @@ function topikLayout(tokens) {
     return { rows, milestoneRows };
 }
 
-function topikRender() {
-    const input = document.getElementById('topikInput').value.trim();
-    if (!input) { toast('Vui lòng nhập đoạn văn!'); return; }
-
+function topikRenderGrid(input) {
     const tokens = topikTokenize(input);
     const { rows, milestoneRows } = topikLayout(tokens);
 
@@ -3964,5 +4158,12 @@ function topikRender() {
     });
 
     document.getElementById('topikResult').style.display = 'block';
-    container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function topikRender() {
+    const input = document.getElementById('topikInput').value.trim();
+    if (!input) { toast('Vui lòng nhập đoạn văn!'); return; }
+
+    topikRenderGrid(input);
+    document.getElementById('topikGridContainer').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
