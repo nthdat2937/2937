@@ -5,7 +5,8 @@
   "redirects": [
     { "source": "/songs", "destination": "/tools/songs/index.html", "permanent": true},
     { "source": "/(.*)/index", "destination": "/$1", "permanent": true },
-    { "source": "/fb", "destination": "https://facebook.com/yourpage", "permanent": false },
+    { "source": "/fb", "destination": "https://facebook.com/nthdat.7", "permanent": false },
+    { "source": "/fb", "destination": "https://facebook.com/nthdat.7", "permanent": false },
     { "source": "index1.html", "destination": "/", "permanent": true}
   ],
 
