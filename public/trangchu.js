@@ -120,7 +120,7 @@ const sb = {
                 return;
             }
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            const tabNames = ['list', 'flash', 'write', 'type', 'speed', 'listen', 'mc', 'quiz', 'topik', 'soan', 'admin'];
+            const tabNames = ['list', 'flash', 'write', 'type', 'speed', 'listen', 'mc', 'quiz', 'topik', 'chat', 'soan', 'admin'];
             document.querySelectorAll('.tab').forEach((t, i) => { if (tabNames[i] === n) t.classList.add('active'); });
             document.querySelectorAll('.pane').forEach(p => p.classList.remove('active'));
             document.getElementById('pane-' + n).classList.add('active');
@@ -845,7 +845,7 @@ const sb = {
                 <div class="speed-metric-item">
                     <span class="speed-metric-label">Tốc độ</span>
                     <span class="speed-metric-value accent" id="sWpm">0</span>
-                    <span class="speed-metric-unit">wpm</span>
+                    <span class="speed-metric-unit">cpm</span>
                 </div>
                 <div class="speed-metric-sep"></div>
                 <div class="speed-metric-item">
@@ -877,7 +877,7 @@ const sb = {
                 <div class="speed-result-grid">
                     <div class="speed-result-item">
                         <div class="speed-result-val" id="rWpm">-</div>
-                        <div class="speed-result-lbl">WPM</div>
+                        <div class="speed-result-lbl">CPM</div>
                     </div>
                     <div class="speed-result-item">
                         <div class="speed-result-val" id="rAcc">-</div>
@@ -907,21 +907,27 @@ const sb = {
 
             // ==== Extract single word/syllable ====
             function extractWord(w) {
+                // Hàm dọn dẹp ký tự đặc biệt: thay thế ngoặc, chấm, phẩy... bằng khoảng trắng
+                const cleanText = (text) => (text || '').replace(/[()\[\]{}.,!?;:"'“”‘’~]/g, ' ').trim();
+
                 if (currentMode === 'korean') {
-                    // Korean word: split by space, take 1 syllable
-                    const parts = (w.korean || '').trim().split(/\s+/).filter(Boolean);
+                    // Korean word: làm sạch trước rồi mới tách theo khoảng trắng
+                    const parts = cleanText(w.korean).split(/\s+/).filter(Boolean);
                     if (!parts.length) return null;
                     return parts[Math.floor(Math.random() * parts.length)];
                 } else {
-                    // Vietnamese meaning: split by comma first, then by space
+                    // Vietnamese meaning: tách theo dấu phẩy trước để lấy cụm nghĩa
                     const meaning = (w.meaning || '').trim();
-                    // try comma-split first
-                    const commaParts = meaning.split(',').map(s => s.trim()).filter(Boolean);
-                    const chosen = commaParts[Math.floor(Math.random() * commaParts.length)] || meaning;
-                    // if chosen still has spaces (multiple words), pick one word
-                    const spaceParts = chosen.split(/\s+/).filter(Boolean);
+                    const commaParts = meaning.split(',').filter(Boolean);
+                    
+                    // Chọn ngẫu nhiên 1 cụm nghĩa, sau đó làm sạch ký tự đặc biệt
+                    const chosenRaw = commaParts[Math.floor(Math.random() * commaParts.length)] || meaning;
+                    const chosenClean = cleanText(chosenRaw);
+                    
+                    // Tách cụm nghĩa thành các từ đơn và chọn 1 từ
+                    const spaceParts = chosenClean.split(/\s+/).filter(Boolean);
                     if (spaceParts.length > 1) return spaceParts[Math.floor(Math.random() * spaceParts.length)];
-                    return chosen;
+                    return chosenClean;
                 }
             }
 
@@ -985,17 +991,17 @@ const sb = {
                 });
             }
 
-            function updateMetrics() {
-                const wpm = timerLeft < 60 ? Math.round((correctChars / 5) / ((60 - timerLeft) / 60)) : 0;
-                const acc = totalTyped > 0 ? Math.round((correctChars / totalTyped) * 100) : 100;
-                const score = Math.round(wpm * (acc / 100));
-                const wpmEl = document.getElementById('sWpm');
-                const accEl = document.getElementById('sAcc');
-                const scoreEl = document.getElementById('sScore');
-                if (wpmEl) wpmEl.textContent = isFinite(wpm) ? wpm : 0;
-                if (accEl) accEl.textContent = acc + '%';
-                if (scoreEl) scoreEl.textContent = isFinite(score) ? score : 0;
-            }
+            // function updateMetrics() {
+            //     const wpm = timerLeft < 60 ? Math.round((correctChars / 5) / ((60 - timerLeft) / 60)) : 0;
+            //     const acc = totalTyped > 0 ? Math.round((correctChars / totalTyped) * 100) : 100;
+            //     const score = Math.round(wpm * (acc / 100));
+            //     const wpmEl = document.getElementById('sWpm');
+            //     const accEl = document.getElementById('sAcc');
+            //     const scoreEl = document.getElementById('sScore');
+            //     if (wpmEl) wpmEl.textContent = isFinite(wpm) ? wpm : 0;
+            //     if (accEl) accEl.textContent = acc + '%';
+            //     if (scoreEl) scoreEl.textContent = isFinite(score) ? score : 0;
+            // }
 
             function updateHintBar() {
                 const bar = document.getElementById('speedHintBar');
@@ -1030,16 +1036,111 @@ const sb = {
                 }, 1000);
             }
 
+            // function finishRound() {
+            //     finished = true;
+            //     clearInterval(timerInterval);
+            //     timerInterval = null;
+
+            //     const wpm = timerLeft < 60 ? Math.round((correctChars / 5) / ((60 - timerLeft + (timerLeft > 0 ? 0 : 0)) / 60)) : 0;
+            //     const elapsed = Math.max(1, 60 - timerLeft);
+            //     const finalWpm = Math.round((correctChars / 5) / (elapsed / 60));
+            //     const acc = totalTyped > 0 ? Math.round((correctChars / totalTyped) * 100) : 100;
+            //     const score = Math.round(finalWpm * (acc / 100));
+
+            //     const arena = document.getElementById('speedArena');
+            //     const metrics = document.getElementById('speedMetrics');
+            //     const result = document.getElementById('speedResult');
+            //     const inp = document.getElementById('speedInput');
+            //     if (arena) arena.style.display = 'none';
+            //     if (metrics) metrics.style.display = 'none';
+            //     if (inp) inp.blur();
+
+            //     document.getElementById('rWpm').textContent = isFinite(finalWpm) ? finalWpm : 0;
+            //     document.getElementById('rAcc').textContent = acc + '%';
+            //     document.getElementById('rWords').textContent = wordsCompleted;
+            //     document.getElementById('rScore').textContent = isFinite(score) ? score : 0;
+
+            //     if (result) result.style.display = 'flex';
+            // }
+
+            // Thêm hàm rã chữ Hàn ra thành từng âm vị (Jamo) để đếm đúng số phím vật lý
+            function getStrokeCount(str) {
+                if (!str) return 0;
+                // Nếu là tiếng Hàn, tháo tung chữ ra (VD: "한" -> "ㅎ","ㅏ","ㄴ" -> 3 phím)
+                if (currentMode === 'korean' && window.Hangul) {
+                    return Hangul.d(str).length; 
+                }
+                return str.length; // Tiếng Việt thì đếm bình thường
+            }
+
+            // Ghi đè hàm updateMetrics để tính toán thời gian thực
+            function updateMetrics() {
+                // Tính luôn cả các chữ đang gõ dở dang trên ô input
+                let liveCorrect = 0, liveTotal = 0;
+                if (started && liveInput) {
+                    const expected = pool[wordIdx] || '';
+                    const typedArr = [...liveInput];
+                    const expArr = [...expected];
+                    const maxLen = Math.max(typedArr.length, expArr.length);
+                    
+                    for (let i = 0; i < maxLen; i++) {
+                        const tChar = typedArr[i] || '';
+                        const eChar = expArr[i] || '';
+                        liveTotal += getStrokeCount(tChar);
+                        if (tChar && tChar === eChar) {
+                            liveCorrect += getStrokeCount(eChar);
+                        }
+                    }
+                }
+
+                const totalC = correctChars + liveCorrect;
+                const totalT = totalTyped + liveTotal;
+
+                // Tính CPM thay vì WPM (Bỏ chia 5)
+                const elapsed = Math.max(1, 60 - timerLeft);
+                const cpm = Math.round(totalC / (elapsed / 60)); 
+                const acc = totalT > 0 ? Math.round((totalC / totalT) * 100) : 100;
+                
+                // Tớ chia 5 lại ở phần tính Score để điểm của ông chủ không bị bơm lên gấp 5 lần so với cũ nha
+                const score = Math.round((cpm / 5) * (acc / 100));
+
+                const wpmEl = document.getElementById('sWpm');
+                const accEl = document.getElementById('sAcc');
+                const scoreEl = document.getElementById('sScore');
+                if (wpmEl) wpmEl.textContent = isFinite(cpm) ? cpm : 0; // Vẫn chèn vào sWpm nhưng giá trị là cpm
+                if (accEl) accEl.textContent = acc + '%';
+                if (scoreEl) scoreEl.textContent = isFinite(score) ? score : 0;
+            }
+
+            // Ghi đè hàm kết thúc game để gom nốt mấy chữ gõ dở
             function finishRound() {
                 finished = true;
                 clearInterval(timerInterval);
                 timerInterval = null;
 
-                const wpm = timerLeft < 60 ? Math.round((correctChars / 5) / ((60 - timerLeft + (timerLeft > 0 ? 0 : 0)) / 60)) : 0;
+                let liveCorrect = 0, liveTotal = 0;
+                if (liveInput) {
+                    const expected = pool[wordIdx] || '';
+                    const typedArr = [...liveInput];
+                    const expArr = [...expected];
+                    const maxLen = Math.max(typedArr.length, expArr.length);
+                    for (let i = 0; i < maxLen; i++) {
+                        const tChar = typedArr[i] || '';
+                        const eChar = expArr[i] || '';
+                        liveTotal += getStrokeCount(tChar);
+                        if (tChar && tChar === eChar) {
+                            liveCorrect += getStrokeCount(eChar);
+                        }
+                    }
+                }
+                const finalCorrect = correctChars + liveCorrect;
+                const finalTotal = totalTyped + liveTotal;
+
+                // Tính CPM chung cuộc
                 const elapsed = Math.max(1, 60 - timerLeft);
-                const finalWpm = Math.round((correctChars / 5) / (elapsed / 60));
-                const acc = totalTyped > 0 ? Math.round((correctChars / totalTyped) * 100) : 100;
-                const score = Math.round(finalWpm * (acc / 100));
+                const finalCpm = Math.round(finalCorrect / (elapsed / 60));
+                const acc = finalTotal > 0 ? Math.round((finalCorrect / finalTotal) * 100) : 100;
+                const score = Math.round((finalCpm / 5) * (acc / 100));
 
                 const arena = document.getElementById('speedArena');
                 const metrics = document.getElementById('speedMetrics');
@@ -1049,7 +1150,7 @@ const sb = {
                 if (metrics) metrics.style.display = 'none';
                 if (inp) inp.blur();
 
-                document.getElementById('rWpm').textContent = isFinite(finalWpm) ? finalWpm : 0;
+                document.getElementById('rWpm').textContent = isFinite(finalCpm) ? finalCpm : 0; // Trả về CPM
                 document.getElementById('rAcc').textContent = acc + '%';
                 document.getElementById('rWords').textContent = wordsCompleted;
                 document.getElementById('rScore').textContent = isFinite(score) ? score : 0;
@@ -1124,6 +1225,7 @@ const sb = {
                         inp.value = liveInput;
                         renderTextArea();
                         updateHintBar();
+                        updateMetrics();
                     }
                     return;
                 }
@@ -1132,7 +1234,7 @@ const sb = {
                 if (e.key === 'Escape') { e.preventDefault(); speedRestart(); return; }
             });
 
-            // Helper: submit current word
+            // Ghi đè hàm submitWord
             function submitWord(typed) {
                 if (!typed) return;
                 if (!started) { started = true; startTimer(); }
@@ -1141,10 +1243,14 @@ const sb = {
                 const typedArr = [...typed];
                 const expArr = [...expected];
                 const charsToCompare = Math.max(typedArr.length, expArr.length);
+                
                 for (let i = 0; i < charsToCompare; i++) {
-                    totalTyped++;
-                    if (i < typedArr.length && i < expArr.length && typedArr[i] === expArr[i]) {
-                        correctChars++;
+                    const tChar = typedArr[i] || '';
+                    const eChar = expArr[i] || '';
+                    // Sử dụng getStrokeCount thay vì ++
+                    totalTyped += getStrokeCount(tChar);
+                    if (tChar && tChar === eChar) {
+                        correctChars += getStrokeCount(eChar);
                     }
                 }
                 if (typed === expected) wordsCompleted++;
@@ -1176,6 +1282,7 @@ const sb = {
                 liveInput = val;
                 renderTextArea();
                 updateHintBar();
+                updateMetrics();
             });
 
             // Click arena to focus input
@@ -4166,4 +4273,258 @@ function topikRender() {
 
     topikRenderGrid(input);
     document.getElementById('topikGridContainer').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+/* ══════════════════════════════════════
+   POMODORO LOGIC
+══════════════════════════════════════ */
+const pomoModes = {
+    work: 25 * 60,
+    shortBreak: 5 * 60,
+    longBreak: 15 * 60
+};
+let currentPomoMode = 'work';
+let pomoTimeLeft = pomoModes[currentPomoMode];
+let pomoInterval = null;
+let isPomoRunning = false;
+
+window.togglePomodoro = function() {
+    document.getElementById('floatingPomo').classList.toggle('open');
+};
+
+window.setPomoMode = function(mode, btn) {
+    // Cập nhật giao diện nút Tab
+    document.querySelectorAll('.pomo-tab').forEach(t => t.classList.remove('active'));
+    if(btn) btn.classList.add('active');
+    else document.querySelector(`.pomo-tab[onclick*="${mode}"]`).classList.add('active');
+
+    // Reset lại logic đồng hồ theo chế độ mới
+    currentPomoMode = mode;
+    pomoTimeLeft = pomoModes[currentPomoMode];
+    clearInterval(pomoInterval);
+    isPomoRunning = false;
+    updatePomoDisplay();
+    updatePomoBtnState();
+};
+
+window.updatePomoDisplay = function() {
+    let m = Math.floor(pomoTimeLeft / 60);
+    let s = pomoTimeLeft % 60;
+    const timeString = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+    
+    // Cập nhật số to trong bảng
+    document.getElementById('pomoTimerDisplay').textContent = timeString;
+
+    // Cập nhật ra ngoài nút bong bóng mini
+    const floatingBtn = document.querySelector('.floating-pomo-btn');
+    if (floatingBtn) {
+        // Chỉ hiện số khi đang chạy cho gọn, hoặc ông chủ có thể bỏ câu điều kiện if để lúc nào nó cũng hiện
+        if (isPomoRunning) {
+            floatingBtn.innerHTML = `🍅 ${timeString}`;
+        } else {
+            floatingBtn.innerHTML = `🍅`;
+        }
+    }
+
+    // Hiển thị thời gian đếm ngược lên Tab trình duyệt
+    if (isPomoRunning) {
+        document.title = `[${timeString}] HanVocab`;
+    } else {
+        document.title = 'HanVocab';
+    }
+};
+
+window.togglePomoTimer = function() {
+    if (isPomoRunning) {
+        // Nếu đang chạy thì Tạm dừng
+        clearInterval(pomoInterval);
+        isPomoRunning = false;
+    } else {
+        // Bắt đầu đếm ngược
+        isPomoRunning = true;
+        pomoInterval = setInterval(() => {
+            pomoTimeLeft--;
+            updatePomoDisplay();
+
+            // Xử lý khi hết giờ
+            if (pomoTimeLeft <= 0) {
+                clearInterval(pomoInterval);
+                isPomoRunning = false;
+                updatePomoBtnState();
+                updatePomoDisplay();
+                
+                // Kêu chuông bíp bíp
+                playPomoAlarm();
+                
+                // Hiện thông báo (Dùng setTimeout để chuông kêu trước khi Alert block luồng trình duyệt)
+                setTimeout(() => {
+                    alert("Hết giờ rồi ông chủ ơi 🫪! Thay đổi chế độ học/nghỉ ngơi đi nào.");
+                }, 100);
+            }
+        }, 1000);
+    }
+    updatePomoBtnState();
+};
+
+window.resetPomoTimer = function() {
+    clearInterval(pomoInterval);
+    isPomoRunning = false;
+    pomoTimeLeft = pomoModes[currentPomoMode];
+    updatePomoDisplay();
+    updatePomoBtnState();
+};
+
+window.updatePomoBtnState = function() {
+    const btn = document.getElementById('pomoStartBtn');
+    if (isPomoRunning) {
+        btn.textContent = 'Tạm dừng';
+        btn.className = 'pomo-btn pause';
+    } else {
+        btn.textContent = 'Bắt đầu';
+        btn.className = 'pomo-btn start';
+    }
+};
+
+// Hàm tạo âm thanh tít tít báo hiệu hết giờ không cần file mp3 (dùng Web Audio API)
+window.playPomoAlarm = function() {
+    try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        // Tạo tiếng Bíp 1
+        const osc1 = ctx.createOscillator();
+        osc1.type = 'sine';
+        osc1.frequency.setValueAtTime(800, ctx.currentTime); // Tần số âm thanh
+        osc1.connect(ctx.destination);
+        osc1.start();
+        osc1.stop(ctx.currentTime + 0.3); // Kêu 0.3s
+        
+        // Tạo tiếng Bíp 2 sau đó 0.4s
+        const osc2 = ctx.createOscillator();
+        osc2.type = 'sine';
+        osc2.frequency.setValueAtTime(800, ctx.currentTime + 0.4); 
+        osc2.connect(ctx.destination);
+        osc2.start(ctx.currentTime + 0.4);
+        osc2.stop(ctx.currentTime + 0.7);
+
+    } catch(e) {
+        console.log("Trình duyệt không hỗ trợ Web Audio API");
+    }
+};
+
+// Khởi động giao diện ban đầu lúc mới load trang
+updatePomoDisplay();
+
+/* ══════════════════════════════════════
+   DRAG & DROP POMODORO (HÚT CẠNH + ĐỔI HƯỚNG BUNG)
+══════════════════════════════════════ */
+const pomoWrapper = document.getElementById('pomoWrapper');
+const pomoHeader = document.querySelector('.pomo-header');
+const pomoBtn = document.querySelector('.floating-pomo-btn');
+
+let isDragging = false;
+let hasMoved = false; 
+let isBtnTarget = false; 
+let startX, startY;
+let wrapperInitX, wrapperInitY;
+
+pomoHeader.addEventListener('mousedown', (e) => startDrag(e, false));
+pomoHeader.addEventListener('touchstart', (e) => startDrag(e, false), {passive: false});
+
+pomoBtn.addEventListener('mousedown', (e) => startDrag(e, true));
+pomoBtn.addEventListener('touchstart', (e) => startDrag(e, true), {passive: false});
+
+document.addEventListener('mousemove', onDragMove);
+document.addEventListener('touchmove', onDragMove, {passive: false});
+document.addEventListener('mouseup', onDragEnd);
+document.addEventListener('touchend', onDragEnd);
+
+function startDrag(e, isBtn) {
+    if (e.target.tagName === 'BUTTON' && !isBtn) return; 
+
+    isDragging = true;
+    hasMoved = false;
+    isBtnTarget = isBtn;
+
+    const clientX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
+    const clientY = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY;
+    startX = clientX;
+    startY = clientY;
+
+    const rect = pomoWrapper.getBoundingClientRect();
+    wrapperInitX = rect.left;
+    wrapperInitY = rect.top;
+
+    pomoWrapper.style.bottom = 'auto';
+    pomoWrapper.style.right = 'auto';
+    pomoWrapper.style.left = wrapperInitX + 'px';
+    pomoWrapper.style.top = wrapperInitY + 'px';
+    pomoWrapper.style.transition = 'none';
+}
+
+function onDragMove(e) {
+    if (!isDragging) return;
+
+    const clientX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
+    const clientY = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY;
+
+    const dx = clientX - startX;
+    const dy = clientY - startY;
+
+    if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
+        hasMoved = true;
+        if (e.type.includes('touch')) e.preventDefault(); 
+        pomoWrapper.style.left = (wrapperInitX + dx) + 'px';
+        pomoWrapper.style.top = (wrapperInitY + dy) + 'px';
+    }
+}
+
+function onDragEnd() {
+    if (!isDragging) return;
+    isDragging = false;
+    
+    if (isBtnTarget && !hasMoved) {
+        togglePomodoro();
+        return; 
+    }
+
+    if (hasMoved) {
+        const rect = pomoWrapper.getBoundingClientRect();
+        const screenW = window.innerWidth;
+        const screenH = window.innerHeight;
+        const PADDING = 24;
+
+        // 1. Chống lọt ra ngoài mép dọc
+        let targetY = rect.top;
+        const maxY = screenH - rect.height - PADDING; 
+        targetY = Math.max(PADDING, Math.min(targetY, maxY)); 
+
+        // 2. Hút nam châm ngang + Quyết định hướng lề
+        let targetX;
+        const centerX = rect.left + (rect.width / 2); 
+
+        if (centerX < screenW / 2) {
+            targetX = PADDING; // Hút mép trái
+            pomoWrapper.classList.add('align-left');
+            pomoWrapper.classList.remove('align-right');
+        } else {
+            targetX = screenW - rect.width - PADDING; // Hút mép phải
+            pomoWrapper.classList.add('align-right');
+            pomoWrapper.classList.remove('align-left');
+        }
+
+        // 3. Quyết định hướng bung dọc (Tùy theo nửa trên/dưới)
+        const centerY = targetY + (rect.height / 2);
+        if (centerY < screenH / 2) {
+            pomoWrapper.classList.add('valign-top'); // Ở trên -> Bung xuống
+            pomoWrapper.classList.remove('valign-bottom');
+        } else {
+            pomoWrapper.classList.add('valign-bottom'); // Ở dưới -> Bung lên
+            pomoWrapper.classList.remove('valign-top');
+        }
+
+        // 4. Bật trượt mượt
+        pomoWrapper.style.transition = 'left 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), top 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)';
+        pomoWrapper.style.left = targetX + 'px';
+        pomoWrapper.style.top = targetY + 'px';
+    }
 }

@@ -127,17 +127,17 @@
           <span class="sidebar-icon material-icons">keyboard</span>
           <span>Luyện từ</span>
         </button>
+        <button class="sidebar-item" data-label="Luyện nghe" onclick="sidebarSwitch('listen', this)">
+            <span class="sidebar-icon material-icons">headphones</span>
+            <span>Luyện nghe</span>
+        </button>
+        <button class="sidebar-item" data-label="Trắc nghiệm" onclick="sidebarSwitch('mc', this)">
+            <span class="sidebar-icon material-icons">check_circle</span>
+            <span>Trắc nghiệm</span>
+        </button>
         <button class="sidebar-item" data-label="Tốc độ gõ" onclick="sidebarSwitch('speed', this)">
           <span class="sidebar-icon material-icons">speed</span>
           <span>Tốc độ gõ</span>
-        </button>
-        <button class="sidebar-item" data-label="Luyện nghe" onclick="sidebarSwitch('listen', this)">
-          <span class="sidebar-icon material-icons">headphones</span>
-          <span>Luyện nghe</span>
-        </button>
-        <button class="sidebar-item" data-label="Trắc nghiệm" onclick="sidebarSwitch('mc', this)">
-          <span class="sidebar-icon material-icons">check_circle</span>
-          <span>Trắc nghiệm</span>
         </button>
         <button class="sidebar-item" data-label="Kiểm tra" onclick="sidebarSwitch('quiz', this)">
           <span class="sidebar-icon material-icons">quiz</span>
@@ -146,6 +146,10 @@
         <button class="sidebar-item" data-label="TOPIK Grid" onclick="sidebarSwitch('topik', this)">
           <span class="sidebar-icon material-icons">grid_on</span>
           <span>TOPIK Grid</span>
+        </button>
+        <button class="sidebar-item" data-label="Chat" onclick="sidebarSwitch('chat', this)">
+            <span class="sidebar-icon material-icons">forum</span>
+            <span>Chat</span>
         </button>
         <button class="sidebar-item tab-soan-hide" data-label="Soạn bài" onclick="sidebarSwitch('soan', this)">
           <span class="sidebar-icon material-icons">menu_book</span>
@@ -605,6 +609,11 @@
             </div>
         </div>
 
+        <!-- TAB: CHAT -->
+<div id="pane-chat" class="pane">
+    <iframe src="tools/chatv2/index.html" class="chat-iframe" title="2937.Chat"></iframe>
+</div>
+
         <!-- TAB: ADMIN -->
         <div id="pane-admin" class="pane admin-only">
             <div id="adminWrap"><div class="empty-state">Đang tải...</div></div>
@@ -709,6 +718,32 @@
       </div><!-- /.shell -->
     </div><!-- /.main-content -->
   </div><!-- /.main-area -->
+
+  <!-- 🍅 TRẠM POMODORO (TỰ ĐỘNG BUNG HƯỚNG) -->
+    <div id="pomoWrapper" class="pomo-wrapper align-left valign-bottom">
+        <button class="floating-pomo-btn" title="Mở Pomodoro">🍅</button>
+        
+        <div class="floating-pomo-container" id="floatingPomo">
+            <div class="pomo-header">
+                <span>🍅 2937.Pomodoro</span>
+                <button onclick="togglePomodoro()" title="Đóng">✕</button>
+            </div>
+            <div class="pomo-body">
+                <div class="pomo-tabs">
+                    <button class="pomo-tab active" onclick="setPomoMode('work', this)">Làm việc</button>
+                    <button class="pomo-tab" onclick="setPomoMode('shortBreak', this)">Nghỉ ngắn</button>
+                    <button class="pomo-tab" onclick="setPomoMode('longBreak', this)">Nghỉ dài</button>
+                </div>
+                <div class="pomo-timer" id="pomoTimerDisplay">25:00</div>
+                <div class="pomo-controls">
+                    <button class="pomo-btn start" id="pomoStartBtn" onclick="togglePomoTimer()">Bắt đầu</button>
+                    <button class="pomo-icon-btn" onclick="resetPomoTimer()" title="Làm mới">
+                        <span class="material-icons" style="font-size: 20px;">refresh</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script src="trangchu.js"></script>
     <script>

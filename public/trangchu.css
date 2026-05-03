@@ -3953,7 +3953,8 @@ body {
     overflow: hidden;
     max-height: 200px;
     overflow-y: auto;
-    word-break: break-all;
+    /* word-break: break-all; */
+    overflow-wrap: break-word;
     user-select: none;
     position: relative;
 }
@@ -3962,7 +3963,8 @@ body {
 
 /* Word and char spans */
 .s-word {
-    display: inline;
+    display: inline-block;
+    white-space: nowrap;
 }
 
 .s-dot {
@@ -4362,3 +4364,207 @@ body {
     color: var(--accent);
     margin-bottom: 2px;
 }
+
+.chat-iframe {
+    width: 100%;
+    height: calc(100vh - 120px); /* Tự động dãn full chiều cao trừ đi phần topbar */
+    border: 0.5px solid var(--bdr);
+    border-radius: var(--rl);
+    background: var(--bg);
+    display: block;
+}
+
+/* ══════════════════════════════════════
+   POMODORO FLOATING WIDGET (NEO VỊ TRÍ)
+══════════════════════════════════════ */
+.pomo-wrapper {
+    position: fixed;
+    bottom: 24px;
+    left: 24px;
+    height: 56px;
+    width: max-content; /* Ôm trọn đúng trái cà chua */
+    z-index: 1000;
+}
+
+.floating-pomo-btn {
+    width: auto;
+    min-width: 56px;
+    height: 100%;
+    padding: 0 16px;
+    border-radius: 28px;
+    background: #ff6b6b;
+    color: #fff;
+    font-size: 18px;
+    font-weight: 700;
+    font-family: monospace;
+    letter-spacing: 1px;
+    border: none;
+    box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+.floating-pomo-btn:hover { 
+    transform: scale(1.05); 
+    box-shadow: 0 6px 16px rgba(255, 107, 107, 0.5);
+}
+
+.floating-pomo-container {
+    position: absolute; /* Lơ lửng bám theo trái cà */
+    width: 290px;
+    background: var(--bg3);
+    border: 1px solid var(--bdr2);
+    border-radius: var(--rl);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+    display: none; 
+    flex-direction: column;
+    overflow: hidden;
+    font-family: inherit;
+    animation: popupFadeIn .15s ease;
+}
+.floating-pomo-container.open { display: flex; }
+
+/* 🧠 ĐÓNG VAI TRÒ ĐIỀU HƯỚNG BUNG BẢNG */
+/* Góc Trái -> Căn lề trái */
+.pomo-wrapper.align-left .floating-pomo-container { left: 0; right: auto; }
+/* Góc Phải -> Căn lề phải */
+.pomo-wrapper.align-right .floating-pomo-container { right: 0; left: auto; }
+/* Nửa trên màn hình -> Bung xuống dưới */
+.pomo-wrapper.valign-top .floating-pomo-container { top: calc(100% + 12px); bottom: auto; }
+/* Nửa dưới màn hình -> Bung lên trên */
+.pomo-wrapper.valign-bottom .floating-pomo-container { bottom: calc(100% + 12px); top: auto; }
+
+.pomo-header {
+    cursor: grab;
+    user-select: none;
+}
+.pomo-header:active { cursor: grabbing; }
+
+.floating-pomo-btn:hover { 
+    transform: scale(1.05); 
+    box-shadow: 0 6px 16px rgba(255, 107, 107, 0.5);
+}
+
+
+.floating-pomo-container.open { display: flex; }
+
+.pomo-header {
+    cursor: grab;
+    user-select: none;
+}
+.pomo-header:active {
+    cursor: grabbing;
+}
+.floating-pomo-btn:hover { 
+    transform: scale(1.05); 
+    box-shadow: 0 6px 16px rgba(255, 107, 107, 0.5);
+}
+
+/* Thêm con trỏ kéo thả cho thanh tiêu đề */
+.pomo-header {
+    cursor: grab; /* Hiện biểu tượng bàn tay */
+    user-select: none; /* Tránh bôi đen chữ khi đang kéo */
+}
+.pomo-header:active {
+    cursor: grabbing; /* Nắm bàn tay lại khi click */
+}
+
+.floating-pomo-container.open { display: flex; }
+
+.pomo-header {
+    background: var(--bg2);
+    padding: 12px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--bdr);
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--txt);
+}
+.pomo-header button {
+    background: none; border: none; cursor: pointer; color: var(--txt3); font-size: 16px; transition: color 0.15s;
+}
+.pomo-header button:hover { color: var(--txt); }
+
+.pomo-body {
+    padding: 24px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+.pomo-tabs {
+    display: flex;
+    background: var(--bg2);
+    border-radius: 20px;
+    padding: 4px;
+    gap: 4px;
+    border: 1px solid var(--bdr);
+}
+.pomo-tab {
+    padding: 6px 12px;
+    border: none;
+    background: transparent;
+    color: var(--txt2);
+    border-radius: 16px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+}
+.pomo-tab.active { 
+    background: var(--bg); 
+    color: #ff6b6b; 
+    box-shadow: 0 2px 4px rgba(0,0,0,0.08); 
+}
+
+.pomo-timer {
+    font-size: 56px;
+    font-weight: 800;
+    color: var(--txt);
+    font-variant-numeric: tabular-nums; /* Canh số không bị nhảy kích thước */
+    letter-spacing: -0.02em;
+    line-height: 1;
+}
+
+.pomo-controls {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    width: 100%;
+}
+.pomo-btn {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    border-radius: var(--r);
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+}
+.pomo-btn.start { background: #ff6b6b; color: #fff; }
+.pomo-btn.pause { background: var(--bg2); color: var(--txt); border: 1px solid var(--bdr2); }
+.pomo-btn:hover { opacity: 0.85; transform: translateY(-1px); }
+.pomo-btn:active { transform: none; }
+
+.pomo-icon-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: var(--r);
+    border: 1px solid var(--bdr2);
+    background: var(--bg2);
+    color: var(--txt2);
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.pomo-icon-btn:hover { background: var(--bdr); color: var(--txt); }
