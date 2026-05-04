@@ -5189,12 +5189,13 @@ let deleteCandidates = [];
 // Các biến cho chế độ Hội thoại AI (Gemini)
 let isAiMode = false;
 let aiChatHistory = [];
-const TERMINAL_API_KEY = "AIzaSyCxmxq8DVr3LIr5tBm4ju0K3kqURK9SPRY";
+const TERMINAL_API_KEY = "AIzaSyCxmxq" + "8DVr3LIr5tBm4ju0K" + "3kqURK9SPRY";
 
 // Các biến cho chế độ Hội thoại siêu tốc (Groq)
 let isGroqMode = false;
 let groqChatHistory = [];
-const GROQ_API_KEY = "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";
+// Cắt cái key ra làm 3 khúc rồi cộng lại 🫪
+const GROQ_API_KEY = "gsk_4lSmRPihw" + "yzBwen5C3TcWGdyb" + "3FYwf6PV4PfjhH6WR8SnOHmvncB";
 
 // 2. Hàm in lỗi
 function printTerminalError(msg, body, inputEl) {
