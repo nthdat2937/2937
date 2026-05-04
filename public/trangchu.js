@@ -155,7 +155,7 @@ const sb = {
                 return;
             }
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            const tabNames = ['home', 'calendar', 'list', 'flash', 'write', 'type', 'speed', 'listen', 'mc', 'quiz', 'topik', 'chat', 'soan', 'admin'];
+            const tabNames = ['home', 'calendar', 'list', 'flash', 'write', 'type', 'speed', 'listen', 'mc', 'quiz', 'topik', 'chat', 'soan', 'admin', 'music'];
             document.querySelectorAll('.tab').forEach((t, i) => { if (tabNames[i] === n) t.classList.add('active'); });
             document.querySelectorAll('.pane').forEach(p => p.classList.remove('active'));
             document.getElementById('pane-' + n).classList.add('active');
@@ -3165,7 +3165,8 @@ const sb = {
                 'kiemtra': 'quiz', 'quiz': 'quiz',
                 'topik': 'topik', // <-- Bổ sung dòng này
                 'soan': 'soan', 'admin': 'admin',
-                'chat': 'chat'
+                'chat': 'chat',
+                'nhac': 'music',
             };
 
             if (kiemtra) {

@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>iOS Glass Clock 🫪</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            /* Font chữ hệ thống chuẩn của Apple */
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            /* Hình nền màu sắc hòa quyện rực rỡ như wallpaper iOS */
+            background: linear-gradient(45deg, #ff2a5f, #6a00ff, #00f0ff);
+            background-size: 300% 300%;
+            animation: gradientBG 12s ease infinite;
+            overflow: hidden;
+            position: relative;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Những khối màu chuyển động phía sau để làm nổi bật độ "saturate" của kính */
+        .blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            z-index: 1;
+        }
+
+        .blob1 {
+            width: 400px;
+            height: 400px;
+            background: #ff007f;
+            top: -10%;
+            left: -10%;
+            animation: floatBlob 10s infinite alternate;
+        }
+
+        .blob2 {
+            width: 500px;
+            height: 500px;
+            background: #00f0ff;
+            bottom: -20%;
+            right: -10%;
+            animation: floatBlob 8s infinite alternate-reverse;
+        }
+
+        @keyframes floatBlob {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(60px, 60px) scale(1.2); }
+        }
+
+        /* Khối kính chuẩn style iPhone (Glassmorphism) */
+        .ios-glass {
+            position: relative;
+            z-index: 10;
+            width: 360px;
+            height: 360px;
+            
+            /* Bo góc chuẩn (Squircle) của Apple */
+            border-radius: 45px;
+            
+            /* CÔNG THỨC KÍNH iPHONE: Nền trắng cực mỏng + Blur mạnh + Tăng độ bão hòa màu (Saturate) */
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(25px) saturate(200%);
+            -webkit-backdrop-filter: blur(25px) saturate(200%);
+            
+            /* Viền bóng bẩy mô phỏng độ dày của mặt kính */
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 
+                0 25px 45px rgba(0, 0, 0, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.5);
+                
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: #fff;
+            
+            /* Hiệu ứng nhịp thở nhẹ nhàng, lơ lửng */
+            animation: breathe 5s ease-in-out infinite;
+        }
+
+        @keyframes breathe {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-10px) scale(1.02); }
+        }
+
+        .date {
+            font-size: 1.1rem;
+            font-weight: 400;
+            letter-spacing: 1.5px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            opacity: 0.85;
+            text-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .time-wrapper {
+            display: flex;
+            align-items: center;
+        }
+
+        .time {
+            font-size: 6rem;
+            /* Chữ siêu mỏng sang trọng */
+            font-weight: 200; 
+            line-height: 1;
+            text-shadow: 0 5px 15px rgba(0,0,0,0.15);
+            letter-spacing: -3px;
+            display: flex;
+            align-items: center;
+        }
+
+        .sec-container {
+            display: flex;
+            flex-direction: column;
+            margin-left: 12px;
+            margin-top: 15px;
+        }
+
+        .sec {
+            font-size: 1.8rem;
+            font-weight: 400;
+            letter-spacing: 0;
+            opacity: 0.9;
+        }
+
+        .am-pm {
+            font-size: 1rem;
+            font-weight: 600;
+            opacity: 0.7;
+            margin-top: -2px;
+        }
+
+        .colon {
+            animation: blink 2s step-start infinite;
+            margin: 0 2px;
+            position: relative;
+            top: -5px;
+        }
+
+        @keyframes blink {
+            50% { opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="blob blob1"></div>
+    <div class="blob blob2"></div>
+
+    <div class="ios-glass">
+        <div class="date" id="date">Đang tải...</div>
+        <div class="time-wrapper">
+            <div class="time">
+                <span id="hrs">00</span>
+                <span class="colon">:</span>
+                <span id="min">00</span>
+            </div>
+            <div class="sec-container">
+                <span id="sec" class="sec">00</span>
+                <span id="ampm" class="am-pm">AM</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function updateClock() {
+            const now = new Date();
+            
+            let h = now.getHours();
+            let m = now.getMinutes();
+            let s = now.getSeconds();
+            
+            // Xác định AM hay PM
+            const ampm = h >= 12 ? 'PM' : 'AM';
+            
+            // Chuyển sang định dạng 12 giờ cho giống điện thoại
+            h = h % 12;
+            h = h ? h : 12; // Nếu h = 0 thì đổi thành 12
+
+            h = h < 10 ? '0' + h : h;
+            m = m < 10 ? '0' + m : m;
+            s = s < 10 ? '0' + s : s;
+
+            document.getElementById('hrs').textContent = h;
+            document.getElementById('min').textContent = m;
+            document.getElementById('sec').textContent = s;
+            document.getElementById('ampm').textContent = ampm;
+
+            const days = ["Chủ nhật", "Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy"];
+            const dayName = days[now.getDay()];
+            const date = now.getDate();
+            const month = now.getMonth() + 1;
+
+            document.getElementById('date').textContent = `${dayName}, ${date} tháng ${month}`;
+        }
+
+        updateClock();
+        setInterval(updateClock, 1000);
+    </script>
+</body>
+</html>

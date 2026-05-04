@@ -216,6 +216,13 @@
           <span class="sidebar-icon material-icons">menu_book</span>
           <span>Soạn bài</span>
         </button>
+
+        <!--Thêm tab-->
+        <button class="sidebar-item" data-label="Web của tôi" onclick="sidebarSwitch('music', this)">
+            <span class="sidebar-icon material-icons">music_note</span>
+            <span>Nhạc</span>
+        </button>
+
         <button class="sidebar-item admin-only" data-label="Admin" onclick="sidebarSwitch('admin', this)">
           <span class="sidebar-icon material-icons">admin_panel_settings</span>
           <span>Admin</span>
@@ -810,6 +817,15 @@
         <!-- TAB: CHAT -->
 <div id="pane-chat" class="pane">
     <iframe src="tools/chatv2/index.html" class="chat-iframe" title="2937.Chat"></iframe>
+</div>
+
+<!--Thêm tab-->
+<!-- Thêm vào khu vực các pane trong trangchu.html -->
+<div id="pane-music" class="pane">
+    <iframe src="/2937/public/tools/songs/index.html" 
+            class="chat-iframe" 
+            title="My Custom Tab">
+    </iframe>
 </div>
 
         <!-- TAB: ADMIN -->
