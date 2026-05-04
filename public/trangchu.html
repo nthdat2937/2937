@@ -90,6 +90,14 @@
     </div>
   </div>
 
+  <!-- Bảng Popup Cài Đặt -->
+  <div class="nav-menu-popup" id="settingsMenuPopup" style="right: 56px;"> <!-- Đặt lệch trái 1 xíu để tránh cái popup kia -->
+    <div class="nav-menu-title">Tùy chỉnh thanh bên</div>
+    <div class="settings-list" id="sidebarSettingsList">
+      <!-- JS sẽ tự động bốc các tab trên thanh bên nhét vào đây -->
+    </div>
+  </div>
+
   <!-- ══ GLOBAL TOPBAR ══ -->
   <div class="global-topbar">
     <button class="sidebar-toggle-btn" id="sidebarToggle" onclick="toggleSidebar()" title="Thu gọn menu">
@@ -99,9 +107,52 @@
       <span class="logo-badge">한버갑</span>
       <span class="logo-text" id="logoText">HanVocab</span>
     </a>
-    <button class="nav-menu-btn" id="navMenuBtn" onclick="toggleNavMenu(event)" title="Mở menu điều hướng">
-      <span class="material-icons">apps</span>
-    </button>
+    
+    <!-- KHU VỰC GIỮA: Search, Streak, Clock & Weather -->
+    <div class="topbar-center" style="margin-left: 20px; display: flex; align-items: center; gap: 12px; flex: 1;">
+        
+        <!-- Ô Search Nhanh -->
+        <div class="global-search" style="position: relative; max-width: 220px; width: 100%;">
+            <span class="material-icons" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-size: 16px; color: var(--txt3);">search</span>
+            <input type="text" id="globalSearchInp" placeholder="Tra từ nhanh..." onkeydown="if(event.key==='Enter') doGlobalSearch(this.value)" style="width: 100%; padding: 6px 12px 6px 32px; border-radius: 20px; border: 1px solid var(--bdr2); background: var(--bg2); color: var(--txt); font-size: 13px; outline: none; transition: border-color 0.15s;" onfocus="this.style.borderColor='var(--accent, #4f7cff)'" onblur="this.style.borderColor='var(--bdr2)'" />
+        </div>
+
+        <!-- Streak Lửa -->
+        <div class="topbar-streak" title="Chuỗi ngày học tập liên tục" style="display: flex; align-items: center; gap: 4px; font-size: 13px; font-weight: 700; color: #f97316; background: rgba(249, 115, 22, 0.1); padding: 4px 10px; border-radius: 20px; border: 0.5px solid rgba(249, 115, 22, 0.3); cursor: pointer;">
+            <span class="material-icons" style="font-size: 16px;">local_fire_department</span>
+            <span id="topbarStreakVal">0</span>
+        </div>
+
+        <!-- Ngày & Ticker Sự kiện hôm nay -->
+        <div class="topbar-date-event" style="display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: var(--txt2); background: var(--bg2); padding: 4px 12px; border-radius: 20px; border: 0.5px solid var(--bdr); user-select: none; max-width: 300px; flex: 1;">
+            <span id="topbarDate">--/--</span>
+            <span style="color: var(--bdr2);">|</span>
+            <div id="topbarEventTicker" style="position: relative; height: 18px; overflow: hidden; flex: 1; display: flex; align-items: center;">
+                <span id="topbarEventText" style="display: block; width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--accent, #4f7cff); font-weight: 700;">Đang tải lịch...</span>
+            </div>
+        </div>
+
+        <!-- Đồng hồ & Thời tiết (Suwon) -->
+        <div class="topbar-weather" style="display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: var(--txt2); background: var(--bg2); padding: 4px 12px; border-radius: 20px; border: 0.5px solid var(--bdr); user-select: none;">
+            <span id="topbarClock">--:--</span>
+            <span style="color: var(--bdr2);">|</span>
+            <span id="topbarTemp">⛅ --°C</span>
+        </div>
+        
+    </div>
+    
+    <!-- KHU VỰC PHẢI: Menu, Settings -->
+    <div style="margin-left: auto; display: flex; gap: 4px;">
+        <!-- Nút Cài đặt (Bánh răng) -->
+        <button class="nav-menu-btn" id="settingsBtn" onclick="toggleSettingsMenu(event)" title="Tùy chỉnh thanh bên" style="margin-left: 0;">
+          <span class="material-icons">settings</span>
+        </button>
+
+        <!-- Nút Menu (9 ô vuông) -->
+        <button class="nav-menu-btn" id="navMenuBtn" onclick="toggleNavMenu(event)" title="Mở menu điều hướng" style="margin-left: 0;">
+          <span class="material-icons">apps</span>
+        </button>
+    </div>
   </div>
 
   <!-- ══ MAIN AREA: Sidebar + Content ══ -->
@@ -111,6 +162,12 @@
     <nav class="sidebar">
       <div class="sidebar-section-label">HỌC TẬP</div>
       <div class="sidebar-nav">
+        <!-- Nút Trang chủ mới thêm -->
+        <button class="sidebar-item" data-label="Trang chủ" onclick="sidebarSwitch('home', this)">
+          <span class="sidebar-icon material-icons">home</span>
+          <span>Trang chủ</span>
+        </button>
+        <!-- Nút Danh sách (đang có sẵn) -->
         <button class="sidebar-item active" data-label="Danh sách" onclick="sidebarSwitch('list', this)">
           <span class="sidebar-icon material-icons">grid_view</span>
           <span>Danh sách</span>
@@ -146,6 +203,10 @@
         <button class="sidebar-item" data-label="TOPIK Grid" onclick="sidebarSwitch('topik', this)">
           <span class="sidebar-icon material-icons">grid_on</span>
           <span>TOPIK Grid</span>
+        </button>
+        <button class="sidebar-item" data-label="Lịch" onclick="openInternalTool('calendar', 'lich')">
+          <span class="sidebar-icon material-icons">calendar_month</span>
+          <span>Lịch</span>
         </button>
         <button class="sidebar-item" data-label="Chat" onclick="sidebarSwitch('chat', this)">
             <span class="sidebar-icon material-icons">forum</span>
@@ -220,6 +281,59 @@
             <h1>HanVocab</h1>
             <div class="auth-btns" id="authSection2"></div>
             <button class="btn btn-ghost" onclick="exportCSV()">Xuất Excel</button>
+        </div>
+
+        <!-- TAB: TRANG CHỦ -->
+        <div id="pane-home" class="pane">
+            <div id="homeGridWrap" style="padding: 24px 20px; max-width: 1000px; margin: 0 auto;">
+                <h2 style="margin-bottom: 20px; font-size: 18px; font-weight: 700; color: var(--txt);">Khám phá tiện ích HanVocab</h2>
+                <div class="home-grid">
+                    <div class="home-card" onclick="openInternalTool('list', 'danhsach')">
+                        <span class="material-icons">grid_view</span>
+                        <div class="hc-info"><div class="hc-title">Danh sách</div><div class="hc-desc">Quản lý từ vựng của bạn</div></div>
+                    </div>
+                    <div class="home-card" onclick="openInternalTool('flash', 'flashcard')">
+                        <span class="material-icons">style</span>
+                        <div class="hc-info"><div class="hc-title">Flashcard</div><div class="hc-desc">Ôn tập qua thẻ ghi nhớ</div></div>
+                    </div>
+                    <div class="home-card" onclick="openInternalTool('write', 'luyenviet')">
+                        <span class="material-icons">edit</span>
+                        <div class="hc-info"><div class="hc-title">Luyện viết</div><div class="hc-desc">Vẽ tay chữ Hàn</div></div>
+                    </div>
+                    <div class="home-card" onclick="openInternalTool('type', 'luyentu')">
+                        <span class="material-icons">keyboard</span>
+                        <div class="hc-info"><div class="hc-title">Luyện từ</div><div class="hc-desc">Gõ phím nhớ mặt chữ</div></div>
+                    </div>
+                    <div class="home-card" onclick="openInternalTool('speed', 'tocdogo')">
+                        <span class="material-icons">speed</span>
+                        <div class="hc-info"><div class="hc-title">Tốc độ gõ</div><div class="hc-desc">Sinh tồn & Đo tốc độ CPM</div></div>
+                    </div>
+                    <div class="home-card" onclick="openInternalTool('listen', 'luyennghe')">
+                        <span class="material-icons">headphones</span>
+                        <div class="hc-info"><div class="hc-title">Luyện nghe</div><div class="hc-desc">Nghe và chép chính tả</div></div>
+                    </div>
+                    <div class="home-card" onclick="openInternalTool('mc', 'tracnghiem')">
+                        <span class="material-icons">check_circle</span>
+                        <div class="hc-info"><div class="hc-title">Trắc nghiệm</div><div class="hc-desc">Chọn đáp án đúng</div></div>
+                    </div>
+                    <div class="home-card" onclick="openInternalTool('quiz', 'kiemtra')">
+                        <span class="material-icons">quiz</span>
+                        <div class="hc-info"><div class="hc-title">Kiểm tra</div><div class="hc-desc">Bài test tính điểm</div></div>
+                    </div>
+                    <div class="home-card" onclick="openInternalTool('topik', 'topik')">
+                        <span class="material-icons">grid_on</span>
+                        <div class="hc-info"><div class="hc-title">TOPIK Grid</div><div class="hc-desc">Luyện viết giấy kẻ ô</div></div>
+                    </div>
+                    <div class="home-card" onclick="openInternalTool('chat', 'chat')">
+                        <span class="material-icons">forum</span>
+                        <div class="hc-info"><div class="hc-title">Chat</div><div class="hc-desc">Trò chuyện giải trí</div></div>
+                    </div>
+                    <div class="home-card tab-soan-hide" onclick="openInternalTool('soan', 'soan')">
+                        <span class="material-icons">menu_book</span>
+                        <div class="hc-info"><div class="hc-title">Soạn bài</div><div class="hc-desc">Viết bài học & ghi chú</div></div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- TAB: LIST -->
@@ -378,6 +492,90 @@
         <!-- TAB: QUIZ -->
         <div id="pane-quiz" class="pane">
             <div id="quizWrap"><div class="empty-state">Đang tải bài kiểm tra...</div></div>
+        </div>
+
+        <!-- TAB: LỊCH (CALENDAR) -->
+        <div id="pane-calendar" class="pane">
+            <div class="cal-wrap">
+                <div class="cal-header">
+                    <button class="wp-icon-btn" onclick="calPrevMonth()">
+                        <span class="material-icons">chevron_left</span>
+                    </button>
+                    <h2 id="calMonthYear" class="cal-title">Tháng 5, 2026</h2>
+                    <button class="wp-icon-btn" onclick="calNextMonth()">
+                        <span class="material-icons">chevron_right</span>
+                    </button>
+                </div>
+                <div class="cal-weekdays">
+                    <div>CN</div><div>T2</div><div>T3</div><div>T4</div><div>T5</div><div>T6</div><div>T7</div>
+                </div>
+                <div class="cal-days" id="calDays"></div>
+            </div>
+        </div>
+
+        <!-- MODAL CHI TIẾT & THÊM SỰ KIỆN LỊCH -->
+        <div class="modal-bg" id="calEventModal">
+            <div class="modal" style="max-width: 450px;">
+                <button class="modal-close" onclick="closeCalModal()" style="position:absolute; top:10px; right:10px; border:none; background:none; cursor:pointer; font-size:16px; color:var(--txt3);">✕</button>
+                <h3 id="calModalTitle">Lịch trình ngày</h3>
+                <p id="calEventDateLbl" style="font-size: 13px; color: var(--txt3); margin-bottom: 14px; font-weight: 500;"></p>
+                
+                <!-- Khu vực 1: Hiển thị danh sách sự kiện (Mặc định hiện) -->
+                <div id="calEventListView">
+                    <div id="calEventListContent" style="max-height: 320px; overflow-y: auto; margin-bottom: 16px; display: flex; flex-direction: column; gap: 10px;">
+                        <!-- JS sẽ đổ danh sách vào đây -->
+                    </div>
+                    
+                    <!-- Đã thêm nút Đóng nằm cạnh nút Thêm -->
+                    <div style="display: flex; gap: 8px;">
+                        <button class="btn btn-ghost" style="flex: 1; padding: 10px;" onclick="closeCalModal()">Đóng</button>
+                        <button class="btn btn-dark" style="flex: 2; padding: 10px;" onclick="showCalAddForm()">+ Thêm lịch học</button>
+                    </div>
+                </div>
+
+                <!-- Khu vực 2: Form thêm sự kiện chi tiết (Mặc định ẩn) -->
+                <div id="calEventAddView" style="display: none;">
+                    <div class="fg" style="margin-bottom: 12px;">
+                        <label>Tiết học</label>
+                        <input type="text" id="calEvPeriod" placeholder="Ví dụ: Tiết 1-3, Ca chiều..." />
+                    </div>
+                    <div class="fg" style="margin-bottom: 12px;">
+                        <label>Nội dung</label>
+                        <input type="text" id="calEvContent" placeholder="Ví dụ: Ngữ pháp bài 5..." />
+                    </div>
+                    <div class="fg" style="margin-bottom: 12px;">
+                        <label>Bài tập</label>
+                        <input type="text" id="calEvHomework" placeholder="Ví dụ: Làm workbook trang 20..." />
+                    </div>
+                    
+                    <div class="fg" style="margin-bottom: 16px;">
+                        <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; text-transform: none; color: var(--txt); font-size: 13px;">
+                            <input type="checkbox" id="calEvYearly" style="width: auto; margin:0;" />
+                            Lặp lại hàng năm (Sinh nhật, lễ tết, kỷ niệm...)
+                        </label>
+                    </div>
+
+                    <!-- Khu vực quyền lực của Admin -->
+                    <div id="calAdminOptions" class="admin-only" style="display:none; background: var(--bg2); padding: 12px; border-radius: 8px; margin-bottom: 18px; border: 0.5px dashed var(--bdr2);">
+                        <label style="font-size: 10px; font-weight: 600; color: #1a56db; margin-bottom: 8px; display: block;">TÙY CHỈNH ADMIN</label>
+                        <div style="display: flex; gap: 10px;">
+                            <div class="fg" style="flex: 1;">
+                                <label>Màu nền</label>
+                                <input type="color" id="calEvColor" value="#1a56db" style="height: 36px; padding: 2px; cursor: pointer;" />
+                            </div>
+                            <div class="fg" style="flex: 2;">
+                                <label>Icon (Material)</label>
+                                <input type="text" id="calEvIcon" placeholder="Ví dụ: cake, star, flag..." onkeydown="if(event.key==='Enter') saveCalEvent()" />
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="modal-btns">
+                        <button class="btn btn-ghost" onclick="hideCalAddForm()">Quay lại</button>
+                        <button class="btn btn-dark" onclick="saveCalEvent()">Lưu sự kiện</button>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- TAB: SOẠN BÀI -->
@@ -721,7 +919,7 @@
 
   <!-- 🍅 TRẠM POMODORO (TỰ ĐỘNG BUNG HƯỚNG) -->
     <div id="pomoWrapper" class="pomo-wrapper align-left valign-bottom">
-        <button class="floating-pomo-btn" title="Mở Pomodoro">🍅</button>
+        <button class="floating-pomo-btn" title="Mở Pomodoro"><span class="material-icons">timer</span></button>
         
         <div class="floating-pomo-container" id="floatingPomo">
             <div class="pomo-header">
@@ -1064,6 +1262,7 @@
     }
     function closeNavMenu() {
         document.getElementById('navMenuPopup').classList.remove('open');
+        document.getElementById('settingsMenuPopup').classList.remove('open'); // Thêm dòng này
         document.getElementById('navMenuOverlay').classList.remove('open');
     }
     document.addEventListener('keydown', function(e) {

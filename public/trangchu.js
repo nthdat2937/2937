@@ -23,13 +23,48 @@ const sb = {
             let profileData = null;
             if (user) {
                 await new Promise(resolve => {
-                    sp.from('profiles').select('role, display_name, avatar').eq('id', user.id).single().then(({ data }) => {
+                    // Đã sửa lại đúng tên cột: Streak và "Ngày cuối" (có dấu cách phải bọc ngoặc kép)
+                    sp.from('profiles').select('role, display_name, avatar, Streak, "Ngày cuối"').eq('id', user.id).single().then(({ data }) => {
                         isAdmin = data?.role?.toLowerCase() === 'admin';
                         profileData = data;
+                        
+                        // ── XỬ LÝ LOGIC STREAK (CHUỖI NGÀY HỌC) ──
+                        let currentStreak = data?.Streak || 0;
+                        let lastDate = data?.['Ngày cuối']; // Dùng ngoặc vuông để gọi tên biến có dấu cách
+                        
+                        // Lấy ngày chuẩn YYYY-MM-DD
+                        const now = new Date();
+                        const todayStr = now.toLocaleDateString('en-CA'); 
+                        
+                        const yesterday = new Date(now);
+                        yesterday.setDate(yesterday.getDate() - 1);
+                        const yesterdayStr = yesterday.toLocaleDateString('en-CA');
+                        
+                        // Nếu user đăng nhập vào một ngày mới
+                        if (lastDate !== todayStr) {
+                            if (lastDate === yesterdayStr) {
+                                currentStreak++; // Hôm qua có học -> Cộng dồn chuỗi
+                            } else {
+                                currentStreak = 1; // Cách quá 1 ngày -> Đứt chuỗi, cày lại
+                            }
+                            // Bắn bản cập nhật lên Supabase đúng tên cột
+                            sp.from('profiles').update({ 'Streak': currentStreak, 'Ngày cuối': todayStr }).eq('id', user.id).then();
+                        }
+                        
+                        // Cập nhật con số lên ngọn lửa trên Topbar
+                        const streakValEl = document.getElementById('topbarStreakVal');
+                        if (streakValEl) streakValEl.textContent = currentStreak;
+                        
                         resolve();
                     }).catch(() => resolve());
                 });
+            } else {
+                // Khách chưa đăng nhập -> Ngọn lửa về 0
+                const streakValEl = document.getElementById('topbarStreakVal');
+                if (streakValEl) streakValEl.textContent = '0';
             }
+
+            // Phần giao diện user cũ giữ nguyên
             document.body.classList.toggle('is-admin', isAdmin);
             const authSec = document.getElementById('authSection');
             if (user) {
@@ -120,7 +155,7 @@ const sb = {
                 return;
             }
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            const tabNames = ['list', 'flash', 'write', 'type', 'speed', 'listen', 'mc', 'quiz', 'topik', 'chat', 'soan', 'admin'];
+            const tabNames = ['home', 'calendar', 'list', 'flash', 'write', 'type', 'speed', 'listen', 'mc', 'quiz', 'topik', 'chat', 'soan', 'admin'];
             document.querySelectorAll('.tab').forEach((t, i) => { if (tabNames[i] === n) t.classList.add('active'); });
             document.querySelectorAll('.pane').forEach(p => p.classList.remove('active'));
             document.getElementById('pane-' + n).classList.add('active');
@@ -134,7 +169,8 @@ const sb = {
             if (n === 'quiz') buildQuiz();
             if (n === 'topik') topikInit();
             if (n === 'admin') buildAdmin();
-            if (n === 'soan') { soanInit(); }
+            if (n === 'soan') { soanInit(); };
+            if (n === 'calendar') renderCalendar();
         }
 
 
@@ -835,6 +871,10 @@ const sb = {
                     <option value="">Tất cả chủ đề</option>
                     ${topics.map(t => `<option value="${esc(t)}">${esc(t)}</option>`).join('')}
                 </select>
+                <select class="speed-select" id="speedGameMode" onchange="speedRestart()" style="color: #c0392b; font-weight: 700;">
+                    <option value="normal">⏱ Đếm ngược 60s</option>
+                    <option value="survival">🔥 Sinh Tồn (15s)</option>
+                </select>
                 <button class="speed-restart-btn" id="speedRestartBtn" onclick="speedRestart()" title="Làm lại (Tab)">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
                     Làm lại
@@ -904,6 +944,36 @@ const sb = {
             let timerLeft = 60, timerInterval = null;
             let currentMode = 'korean'; // 'korean' | 'viet'
             let liveInput = ''; // raw QWERTY buffer for Korean mode
+
+            // --- THÊM VÀO KHU VỰC KHAI BÁO BIẾN ---
+            let isSurvivalMode = false;
+            let elapsedSeconds = 0; // Đếm thời gian trôi qua thực tế để tính CPM cho chuẩn
+
+            // Hàm tạo hiệu ứng +2s / -1s bay lơ lửng
+            function showFloatingTime(text, type) {
+                const timerWrap = document.getElementById('sTimer').parentNode;
+                timerWrap.style.position = 'relative';
+                const floatEl = document.createElement('div');
+                floatEl.textContent = text;
+                floatEl.style.position = 'absolute';
+                floatEl.style.top = '-15px';
+                floatEl.style.right = '0';
+                floatEl.style.color = type === 'correct' ? '#1D9E75' : '#c0392b';
+                floatEl.style.fontWeight = '800';
+                floatEl.style.fontSize = '16px';
+                floatEl.style.pointerEvents = 'none';
+                floatEl.style.transition = 'all 0.6s ease-out';
+                floatEl.style.opacity = '1';
+                floatEl.style.transform = 'translateY(0) scale(1)';
+                timerWrap.appendChild(floatEl);
+                
+                // Kích hoạt bay lên
+                setTimeout(() => {
+                    floatEl.style.opacity = '0';
+                    floatEl.style.transform = 'translateY(-25px) scale(1.2)';
+                }, 20);
+                setTimeout(() => floatEl.remove(), 600);
+            }
 
             // ==== Extract single word/syllable ====
             function extractWord(w) {
@@ -1026,13 +1096,19 @@ const sb = {
                 if (timerInterval) return;
                 timerInterval = setInterval(() => {
                     timerLeft--;
+                    elapsedSeconds++; // Tăng thời gian thực tế
                     const timerEl = document.getElementById('sTimer');
                     if (timerEl) {
                         timerEl.textContent = timerLeft;
                         if (timerLeft <= 10) timerEl.classList.add('danger');
+                        else timerEl.classList.remove('danger');
                     }
                     updateMetrics();
-                    if (timerLeft <= 0) finishRound();
+                    
+                    if (timerLeft <= 0) {
+                        // Kêu chuông "tạch" khi hết giờ nếu ông chủ thích
+                        finishRound();
+                    }
                 }, 1000);
             }
 
@@ -1097,7 +1173,8 @@ const sb = {
                 const totalT = totalTyped + liveTotal;
 
                 // Tính CPM thay vì WPM (Bỏ chia 5)
-                const elapsed = Math.max(1, 60 - timerLeft);
+                // Tính thời gian dựa trên giây thực tế đã trôi qua
+                const elapsed = Math.max(1, elapsedSeconds);
                 const cpm = Math.round(totalC / (elapsed / 60)); 
                 const acc = totalT > 0 ? Math.round((totalC / totalT) * 100) : 100;
                 
@@ -1137,7 +1214,8 @@ const sb = {
                 const finalTotal = totalTyped + liveTotal;
 
                 // Tính CPM chung cuộc
-                const elapsed = Math.max(1, 60 - timerLeft);
+                // Tính thời gian dựa trên giây thực tế đã trôi qua
+                const elapsed = Math.max(1, elapsedSeconds);
                 const finalCpm = Math.round(finalCorrect / (elapsed / 60));
                 const acc = finalTotal > 0 ? Math.round((finalCorrect / finalTotal) * 100) : 100;
                 const score = Math.round((finalCpm / 5) * (acc / 100));
@@ -1173,13 +1251,20 @@ const sb = {
                 correctChars = 0;
                 totalTyped = 0;
                 wordsCompleted = 0;
-                timerLeft = 60;
+                elapsedSeconds = 0;
                 wordIdx = 0;
                 charIdx = 0;
                 liveInput = '';
 
+                // Nhận diện chế độ chơi để cài thời gian gốc
+                isSurvivalMode = document.getElementById('speedGameMode')?.value === 'survival';
+                timerLeft = isSurvivalMode ? 15 : 60;
+
                 const timerEl = document.getElementById('sTimer');
-                if (timerEl) { timerEl.textContent = '60'; timerEl.classList.remove('danger'); }
+                if (timerEl) { 
+                    timerEl.textContent = timerLeft; 
+                    timerEl.classList.remove('danger'); 
+                }
 
                 const arena = document.getElementById('speedArena');
                 const metrics = document.getElementById('speedMetrics');
@@ -1235,6 +1320,7 @@ const sb = {
             });
 
             // Ghi đè hàm submitWord
+            // Ghi đè hàm nộp chữ để cộng/trừ giờ
             function submitWord(typed) {
                 if (!typed) return;
                 if (!started) { started = true; startTimer(); }
@@ -1247,13 +1333,29 @@ const sb = {
                 for (let i = 0; i < charsToCompare; i++) {
                     const tChar = typedArr[i] || '';
                     const eChar = expArr[i] || '';
-                    // Sử dụng getStrokeCount thay vì ++
                     totalTyped += getStrokeCount(tChar);
                     if (tChar && tChar === eChar) {
                         correctChars += getStrokeCount(eChar);
                     }
                 }
-                if (typed === expected) wordsCompleted++;
+
+                // KIỂM TRA ĐÚNG/SAI VÀ PHẠT GIỜ ⏳
+                if (typed === expected) {
+                    wordsCompleted++;
+                    if (isSurvivalMode) {
+                        timerLeft += 2; // Gõ đúng +2s
+                        showFloatingTime('+2s', 'correct');
+                    }
+                } else {
+                    if (isSurvivalMode) {
+                        timerLeft = Math.max(0, timerLeft - 1); // Gõ sai -1s
+                        showFloatingTime('-1s', 'wrong');
+                        if (timerLeft === 0) {
+                            finishRound();
+                            return;
+                        }
+                    }
+                }
 
                 wordIdx++;
                 liveInput = '';
@@ -3052,13 +3154,18 @@ const sb = {
             const kiemtra = p.get('kiemtra');
 
             const modeMap = {
+                'home': 'home',
+                'lich': 'calendar', 'calendar': 'calendar',
                 'danhsach': 'list', 'flashcard': 'flash', 'flash': 'flash',
                 'luyenviet': 'write', 'write': 'write',
                 'luyentu': 'type', 'type': 'type',
-                'luyenghe': 'listen', 'listen': 'listen',
+                'tocdogo': 'speed', 'speed': 'speed', // <-- Bổ sung dòng này
+                'luyennghe': 'listen', 'listen': 'listen',
                 'tracnghiem': 'mc', 'mc': 'mc',
                 'kiemtra': 'quiz', 'quiz': 'quiz',
+                'topik': 'topik', // <-- Bổ sung dòng này
                 'soan': 'soan', 'admin': 'admin',
+                'chat': 'chat'
             };
 
             if (kiemtra) {
@@ -3089,7 +3196,7 @@ const sb = {
                 const tab = modeMap[mode];
                 switchTab(tab);
                 document.querySelectorAll('.sidebar-item').forEach(i => {
-                    const labelMap = { list:'Danh sách', flash:'Flashcard', write:'Luyện viết', type:'Luyện từ', listen:'Luyện nghe', mc:'Trắc nghiệm', quiz:'Kiểm tra', soan:'Soạn bài', admin:'Admin' };
+                    const labelMap = { home: 'Trang chủ', calendar: 'Lịch', list:'Danh sách', flash:'Flashcard', write:'Luyện viết', type:'Luyện từ', listen:'Luyện nghe', mc:'Trắc nghiệm', quiz:'Kiểm tra', soan:'Soạn bài', admin:'Admin' };
                     i.classList.toggle('active', i.dataset.label === (labelMap[tab] || ''));
                 });
             }
@@ -4322,7 +4429,7 @@ window.updatePomoDisplay = function() {
         if (isPomoRunning) {
             floatingBtn.innerHTML = `🍅 ${timeString}`;
         } else {
-            floatingBtn.innerHTML = `🍅`;
+            floatingBtn.innerHTML = `<span class="material-icons">timer</span>`;
         }
     }
 
@@ -4413,6 +4520,24 @@ window.playPomoAlarm = function() {
 
 // Khởi động giao diện ban đầu lúc mới load trang
 updatePomoDisplay();
+
+/* ══════════════════════════════════════
+   TRANG CHỦ - QUẢN LÝ TIỆN ÍCH TRONG WEB
+══════════════════════════════════════ */
+window.openInternalTool = function(tabName, modeValue) {
+    // 1. Cập nhật thanh địa chỉ URL theo dạng ?mode=... (không reload web)
+    const url = new URL(window.location);
+    url.searchParams.set('mode', modeValue);
+    window.history.pushState({}, '', url);
+
+    // 2. Kích hoạt tính năng
+    switchTab(tabName);
+    
+    // 3. Quét và cập nhật lại vệt sáng (active) trên menu thanh bên
+    document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+    const sidebarBtn = document.querySelector(`.sidebar-item[onclick*="'${tabName}'"]`);
+    if (sidebarBtn) sidebarBtn.classList.add('active');
+};
 
 /* ══════════════════════════════════════
    DRAG & DROP POMODORO (HÚT CẠNH + ĐỔI HƯỚNG BUNG)
@@ -4527,4 +4652,496 @@ function onDragEnd() {
         pomoWrapper.style.left = targetX + 'px';
         pomoWrapper.style.top = targetY + 'px';
     }
+}
+
+/* ══════════════════════════════════════
+   CÀI ĐẶT THANH BÊN (SETTINGS) MỚI
+══════════════════════════════════════ */
+let sidebarPrefs = JSON.parse(localStorage.getItem('hanvocab_sidebar_prefs')) || {};
+
+function initSidebarSettings() {
+    const listEl = document.getElementById('sidebarSettingsList');
+    const sidebarItems = document.querySelectorAll('.sidebar-nav .sidebar-item');
+    
+    if (!listEl) return;
+    let html = '';
+    
+    sidebarItems.forEach((item, index) => {
+        const label = item.getAttribute('data-label');
+        if (!label) return; 
+
+        // 1. NGÓ LƠ NÚT ADMIN: Không cho hiện trong bảng Cài đặt
+        if (label === 'Admin') return; 
+
+        const itemId = 'sidebar_item_nav_' + index;
+        item.id = itemId; 
+
+        // 2. NHỮNG NÚT "BẤT TỬ": Bắt buộc phải hiện, không cho phép tắt
+        const isAlwaysVisible = (label === 'Trang chủ' || label === 'Danh sách');
+
+        // Mặc định bật nếu người dùng chưa tắt (và không phải nút bất tử)
+        const isVisible = isAlwaysVisible ? true : (sidebarPrefs[label] !== false); 
+        
+        // Gán trạng thái ẩn/hiện lúc load web
+        item.style.display = isVisible ? 'flex' : 'none';
+
+        // 3. TẠO GIAO DIỆN CHECKBOX
+        if (isAlwaysVisible) {
+            // Nút bất tử: Checkbox bị khóa cứng (disabled), mờ đi cho đẹp
+            html += `
+            <label class="settings-item" style="opacity: 0.6; cursor: not-allowed;" title="Tính năng gốc, không thể tắt">
+                <span>${esc(label)}</span>
+                <input type="checkbox" checked disabled style="cursor: not-allowed;" />
+            </label>`;
+        } else {
+            // Nút bình thường: Cho phép tắt/bật thoải mái
+            html += `
+            <label class="settings-item">
+                <span>${esc(label)}</span>
+                <input type="checkbox" onchange="toggleSidebarItem('${escA(label)}', '${itemId}', this.checked)" ${isVisible ? 'checked' : ''} />
+            </label>`;
+        }
+    });
+    
+    listEl.innerHTML = html;
+}
+
+window.toggleSidebarItem = function(label, itemId, isVisible) {
+    // Lưu vào LocalStorage
+    sidebarPrefs[label] = isVisible;
+    localStorage.setItem('hanvocab_sidebar_prefs', JSON.stringify(sidebarPrefs));
+    
+    // Gán lại giao diện
+    const item = document.getElementById(itemId);
+    if (item) {
+        item.style.display = isVisible ? 'flex' : 'none';
+    }
+};
+
+window.toggleSettingsMenu = function(e) {
+    e.stopPropagation();
+    const popup = document.getElementById('settingsMenuPopup');
+    const overlay = document.getElementById('navMenuOverlay');
+    
+    // Đóng cái menu gốc nếu nó đang lỡ mở
+    document.getElementById('navMenuPopup').classList.remove('open');
+    
+    const isOpen = popup.classList.toggle('open');
+    overlay.classList.toggle('open', isOpen);
+};
+
+// Khởi chạy vòng quét sau khi web load xong
+setTimeout(initSidebarSettings, 300);
+
+/* ══════════════════════════════════════
+   CALENDAR (LỊCH TỰ CODE - SERVER & LOCAL)
+══════════════════════════════════════ */
+let calCurrentDate = new Date();
+let selectedCalDate = null;
+
+// Lưu trữ 2 luồng dữ liệu riêng biệt
+let calEvents = JSON.parse(localStorage.getItem('hanvocab_cal_events')) || {}; // Lịch cá nhân
+let globalCalEvents = []; // Lịch chung Server (Supabase)
+
+// ── TẢI LỊCH TỪ SERVER ──
+async function loadGlobalCalendar() {
+    if (!sp) return;
+    try {
+        const { data, error } = await sp.from('calendar_events').select('*');
+        if (error) {
+            console.warn('Chưa tạo bảng calendar_events hoặc lỗi:', error);
+            return;
+        }
+        if (data) {
+            globalCalEvents = data;
+            // Nếu đang mở tab Lịch thì vẽ lại luôn
+            if (document.getElementById('pane-calendar')?.classList.contains('active')) {
+                renderCalendar();
+            }
+            // 🚨 THÊM DÒNG NÀY: Ép Topbar cập nhật ngay sau khi Server đổ dữ liệu về!
+            if (typeof updateTopbarDateAndEvents === 'function') {
+                updateTopbarDateAndEvents();
+            }
+        }
+    } catch (e) { console.error(e); }
+}
+// Chạy hàm tải lịch ngay khi load web (đợi 1s cho an toàn)
+setTimeout(loadGlobalCalendar, 1000);
+
+
+/////
+// ── VẼ LỊCH ──
+window.renderCalendar = function() {
+    const year = calCurrentDate.getFullYear();
+    const month = calCurrentDate.getMonth();
+    const lbl = document.getElementById('calMonthYear');
+    if (lbl) lbl.textContent = `Tháng ${month + 1}, ${year}`;
+    
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const daysContainer = document.getElementById('calDays');
+    if (!daysContainer) return;
+    daysContainer.innerHTML = '';
+    
+    const today = new Date();
+    for (let i = 0; i < firstDay; i++) daysContainer.innerHTML += `<div class="cal-day empty"></div>`;
+    
+    for (let i = 1; i <= daysInMonth; i++) {
+        const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+        const isToday = (i === today.getDate() && month === today.getMonth() && year === today.getFullYear());
+        
+        // Lọc sự kiện Server (Có tính lặp năm - Cắt "YYYY-" đi để so sánh "MM-DD")
+        const dayEventsGlobal = globalCalEvents.filter(e => e.date === dateKey || (e.is_yearly && e.date.substring(5) === dateKey.substring(5)));
+        
+        // Lọc sự kiện Local (Có tính lặp năm)
+        const dayEventsLocal = [];
+        Object.keys(calEvents).forEach(dKey => {
+            calEvents[dKey].forEach(ev => {
+                const isYearly = typeof ev === 'object' && ev.is_yearly;
+                if (dKey === dateKey || (isYearly && dKey.substring(5) === dateKey.substring(5))) {
+                    dayEventsLocal.push(ev);
+                }
+            });
+        });
+        
+        // 1. Render lịch Server (Màu & Icon tùy chỉnh)
+        let eventsHtml = dayEventsGlobal.map(ev => {
+            const iconHtml = ev.icon ? `<span class="material-icons" style="font-size:11px; margin-right:3px; vertical-align:middle;">${esc(ev.icon)}</span>` : '';
+            const bgColor = ev.color || '#1a56db';
+            return `<div class="cal-event" style="background: ${bgColor};" title="[Chung] ${escA(ev.content)}">${iconHtml}${ev.period ? `<span style="opacity:0.8; margin-right:3px;">${esc(ev.period)}</span> ` : ''}${esc(ev.content)}</div>`;
+        }).join('');
+        
+        // 2. Render lịch Cá nhân
+        eventsHtml += dayEventsLocal.map(ev => {
+            if (typeof ev === 'string') return `<div class="cal-event">${esc(ev)}</div>`;
+            const iconHtml = ev.is_yearly ? `<span class="material-icons" style="font-size:11px; margin-right:3px; vertical-align:middle;">event_repeat</span>` : '';
+            return `<div class="cal-event" title="[Cá nhân] ${escA(ev.content)}">${iconHtml}<span style="color:#ffb8b8;">${esc(ev.period)}</span> ${esc(ev.content)}</div>`;
+        }).join('');
+        
+        daysContainer.innerHTML += `
+            <div class="cal-day ${isToday ? 'today' : ''}" onclick="openCalModal('${dateKey}')">
+                <div class="cal-day-num">${i}</div>
+                ${eventsHtml}
+            </div>
+        `;
+    }
+};
+
+// ── HIỂN THỊ DANH SÁCH ──
+window.renderCalEventList = function() {
+    const listEl = document.getElementById('calEventListContent');
+    
+    // Lọc sự kiện Server
+    const dayEventsGlobal = globalCalEvents.filter(e => e.date === selectedCalDate || (e.is_yearly && e.date.substring(5) === selectedCalDate.substring(5)));
+    
+    // Lọc sự kiện Local kèm index gốc để xóa cho chuẩn xác
+    const dayEventsLocal = [];
+    Object.keys(calEvents).forEach(dKey => {
+        calEvents[dKey].forEach((ev, idx) => {
+            const isYearly = typeof ev === 'object' && ev.is_yearly;
+            if (dKey === selectedCalDate || (isYearly && dKey.substring(5) === selectedCalDate.substring(5))) {
+                let evObj = typeof ev === 'string' ? { content: ev } : { ...ev };
+                evObj._origKey = dKey; // Chìa khóa để tìm về quá khứ xóa
+                evObj._origIdx = idx;
+                dayEventsLocal.push(evObj);
+            }
+        });
+    });
+    
+    if (dayEventsLocal.length === 0 && dayEventsGlobal.length === 0) {
+        listEl.innerHTML = '<div style="text-align:center; padding: 24px; font-size: 13px; color: var(--txt3);">🫪 Trống trơn! Không có sự kiện nào.</div>';
+        return;
+    }
+    
+    let html = '';
+    
+    dayEventsGlobal.forEach(ev => {
+        const iconHtml = ev.icon ? `<span class="material-icons" style="font-size:14px; vertical-align:middle; color:${ev.color};">${esc(ev.icon)}</span> ` : '';
+        const repeatBadge = ev.is_yearly ? `<span style="background:#e0e7ff; color:#4338ca; padding:2px 6px; border-radius:4px; font-size:9px; margin-left:6px;">HÀNG NĂM</span>` : '';
+        html += `
+        <div class="cal-detail-item" style="border-left: 3px solid ${ev.color || '#1a56db'};">
+            ${isAdmin ? `<button class="del-btn" onclick="deleteCalEvent('${ev.id}', true)" title="Xóa lịch Server"><span class="material-icons" style="font-size:16px;">delete</span></button>` : ''}
+            <div class="cal-detail-row"><strong>Trạng thái:</strong> <span style="color: ${ev.color || '#1a56db'}; font-weight: 700; font-size: 11px;">[LỊCH CHUNG SERVER]</span>${repeatBadge}</div>
+            ${ev.period ? `<div class="cal-detail-row"><strong>Tiết:</strong> <span style="color: var(--accent, #4f7cff); font-weight: 600;">${esc(ev.period)}</span></div>` : ''}
+            <div class="cal-detail-row"><strong>Nội dung:</strong> ${iconHtml}${esc(ev.content || '—')}</div>
+            ${ev.homework ? `<div class="cal-detail-row"><strong>Bài tập:</strong> ${esc(ev.homework)}</div>` : ''}
+        </div>`;
+    });
+    
+    dayEventsLocal.forEach(ev => {
+        const repeatBadge = ev.is_yearly ? `<span style="background:#fce7f3; color:#4f46e5; padding:2px 6px; border-radius:4px; font-size:9px; margin-left:6px;">HÀNG NĂM</span>` : '';
+        html += `
+        <div class="cal-detail-item">
+            <button class="del-btn" onclick="deleteCalEvent('${ev._origKey}', false, ${ev._origIdx})" title="Xóa lịch cá nhân"><span class="material-icons" style="font-size:16px;">delete</span></button>
+            <div class="cal-detail-row"><strong>Trạng thái:</strong> <span style="color: #6b7280; font-weight: 700; font-size: 11px;">[LỊCH CÁ NHÂN]</span>${repeatBadge}</div>
+            ${ev.period ? `<div class="cal-detail-row"><strong>Tiết:</strong> <span style="color: var(--accent, #4f7cff); font-weight: 600;">${esc(ev.period)}</span></div>` : ''}
+            <div class="cal-detail-row"><strong>Nội dung:</strong> ${esc(ev.content || '—')}</div>
+            ${ev.homework ? `<div class="cal-detail-row"><strong>Bài tập:</strong> ${esc(ev.homework)}</div>` : ''}
+        </div>`;
+    });
+    
+    listEl.innerHTML = html;
+};
+
+// ── LƯU & XÓA ──
+window.showCalAddForm = function() {
+    document.getElementById('calEventListView').style.display = 'none';
+    document.getElementById('calEventAddView').style.display = 'block';
+    document.getElementById('calModalTitle').innerHTML = isAdmin ? 'Thêm lịch <span style="color:#1a56db;">[SERVER]</span>' : 'Thêm lịch <span style="color:#6b7280;">[CÁ NHÂN]</span>';
+    
+    document.getElementById('calEvPeriod').value = '';
+    document.getElementById('calEvContent').value = '';
+    document.getElementById('calEvHomework').value = '';
+    document.getElementById('calEvYearly').checked = false;
+    
+    // Hiện khung tùy chỉnh cho Admin
+    document.getElementById('calAdminOptions').style.display = isAdmin ? 'block' : 'none';
+    document.getElementById('calEvColor').value = '#1a56db';
+    document.getElementById('calEvIcon').value = '';
+    
+    setTimeout(() => document.getElementById('calEvPeriod').focus(), 50);
+};
+
+window.saveCalEvent = async function() {
+    const period = document.getElementById('calEvPeriod').value.trim();
+    const content = document.getElementById('calEvContent').value.trim();
+    const homework = document.getElementById('calEvHomework').value.trim();
+    const is_yearly = document.getElementById('calEvYearly').checked;
+    
+    if (!period && !content) { toast('Gõ nhẹ cái Tiết học hoặc Nội dung nha!'); return; }
+    
+    if (isAdmin) {
+        const color = document.getElementById('calEvColor').value || '#1a56db';
+        const icon = document.getElementById('calEvIcon').value.trim();
+        const entry = { date: selectedCalDate, period, content, homework, is_yearly, color, icon };
+        try {
+            const { data, error } = await sp.from('calendar_events').insert([entry]).select();
+            if (error) throw error;
+            if (data && data.length) globalCalEvents.push(data[0]);
+            toast('Đã lưu sự kiện Server!');
+        } catch(e) { toast('Lỗi: ' + e.message); return; }
+    } else {
+        if (!calEvents[selectedCalDate]) calEvents[selectedCalDate] = [];
+        calEvents[selectedCalDate].push({ period, content, homework, is_yearly });
+        localStorage.setItem('hanvocab_cal_events', JSON.stringify(calEvents));
+        toast('Đã lưu lịch cá nhân!');
+    }
+    
+    renderCalendar();
+    hideCalAddForm();
+    renderCalEventList();
+};
+
+window.deleteCalEvent = async function(idOrOrigKey, isGlobal, origIdx) {
+    if (!confirm('Chắc chắn muốn xóa lịch này?')) return;
+    
+    if (isGlobal) {
+        if (!isAdmin) { toast('Chỉ Admin mới xóa được lịch chung!'); return; }
+        try {
+            const { error } = await sp.from('calendar_events').delete().eq('id', idOrOrigKey);
+            if (error) throw error;
+            globalCalEvents = globalCalEvents.filter(e => String(e.id) !== String(idOrOrigKey));
+            toast('Đã xóa lịch Server!');
+        } catch(e) { toast('Lỗi: ' + e.message); return; }
+    } else {
+        calEvents[idOrOrigKey].splice(origIdx, 1);
+        if (calEvents[idOrOrigKey].length === 0) delete calEvents[idOrOrigKey];
+        localStorage.setItem('hanvocab_cal_events', JSON.stringify(calEvents));
+        toast('Đã xóa lịch cá nhân!');
+    }
+    
+    renderCalendar();
+    renderCalEventList();
+};
+
+window.calPrevMonth = function() { calCurrentDate.setMonth(calCurrentDate.getMonth() - 1); renderCalendar(); };
+window.calNextMonth = function() { calCurrentDate.setMonth(calCurrentDate.getMonth() + 1); renderCalendar(); };
+
+// ── QUẢN LÝ MODAL ──
+window.openCalModal = function(dateKey) {
+    selectedCalDate = dateKey;
+    const [y, m, d] = dateKey.split('-');
+    document.getElementById('calEventDateLbl').textContent = `Thứ ${new Date(y, m-1, d).getDay() === 0 ? 'Chủ nhật' : new Date(y, m-1, d).getDay() + 1}, ngày ${d}/${m}/${y}`;
+    
+    renderCalEventList();
+    document.getElementById('calEventListView').style.display = 'block';
+    document.getElementById('calEventAddView').style.display = 'none';
+    document.getElementById('calModalTitle').textContent = 'Lịch trình ngày';
+    document.getElementById('calEventModal').classList.add('show');
+};
+window.closeCalModal = function() { document.getElementById('calEventModal').classList.remove('show'); };
+
+
+// ── FORM ACTIONS ──
+window.showCalAddForm = function() {
+    document.getElementById('calEventListView').style.display = 'none';
+    document.getElementById('calEventAddView').style.display = 'block';
+    // Đổi tiêu đề dựa theo role
+    document.getElementById('calModalTitle').innerHTML = isAdmin ? 'Thêm lịch <span style="color:#1a56db;">[SERVER]</span>' : 'Thêm lịch <span style="color:#6b7280;">[CÁ NHÂN]</span>';
+    
+    document.getElementById('calEvPeriod').value = '';
+    document.getElementById('calEvContent').value = '';
+    document.getElementById('calEvHomework').value = '';
+    setTimeout(() => document.getElementById('calEvPeriod').focus(), 50);
+};
+
+window.hideCalAddForm = function() {
+    document.getElementById('calEventListView').style.display = 'block';
+    document.getElementById('calEventAddView').style.display = 'none';
+    document.getElementById('calModalTitle').textContent = 'Lịch trình ngày';
+};
+
+/* ══════════════════════════════════════
+   TOPBAR WIDGETS (CLOCK, WEATHER, SEARCH)
+══════════════════════════════════════ */
+// 1. Đồng hồ
+function updateTopbarClock() {
+    const now = new Date();
+    const clockEl = document.getElementById('topbarClock');
+    if (clockEl) clockEl.textContent = now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+}
+setInterval(updateTopbarClock, 1000);
+updateTopbarClock();
+
+// 2. Thời tiết Suwon (Sử dụng Open-Meteo API miễn phí, không cần key)
+async function fetchWeather() {
+    try {
+        // Tọa độ Suwon: Lat 37.2636, Lon 127.0286
+        const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=37.2636&longitude=127.0286&current_weather=true');
+        const data = await res.json();
+        if (data && data.current_weather) {
+            const temp = Math.round(data.current_weather.temperature);
+            const code = data.current_weather.weathercode;
+            let icon = '⛅'; // Default
+            if (code === 0) icon = '☀️'; // Nắng
+            else if (code >= 1 && code <= 3) icon = '⛅'; // Có mây
+            else if (code >= 51 && code <= 67) icon = '🌧️'; // Mưa
+            else if (code >= 71 && code <= 77) icon = '❄️'; // Tuyết
+            else if (code >= 95) icon = '🌩️'; // Bão
+            
+            const tempEl = document.getElementById('topbarTemp');
+            if (tempEl) tempEl.textContent = `${icon} ${temp}°C`;
+        }
+    } catch(e) { console.log('Không lấy được thời tiết:', e); }
+}
+fetchWeather();
+setInterval(fetchWeather, 30 * 60 * 1000); // Tự cập nhật mỗi 30 phút
+
+// 3. Tra từ nhanh toàn cục
+window.doGlobalSearch = function(val) {
+    if (!val.trim()) return;
+    
+    // Đá người dùng về tab Danh sách
+    openInternalTool('list', 'danhsach');
+    
+    // Bắn chữ xuống thanh search chính và kích hoạt bộ lọc
+    const mainSearch = document.getElementById('searchKor');
+    if (mainSearch) {
+        mainSearch.value = val;
+        mainSearch.focus();
+        onSearch(); // Kích hoạt lọc bảng ngay lập tức
+    }
+    
+    // Xóa trắng ô search topbar cho đẹp
+    document.getElementById('globalSearchInp').value = '';
+};
+
+// 4. Ngày và Ticker Sự kiện hôm nay
+let topbarEventsList = [];
+let topbarEventTickerTimer = null;
+let currentEventIdx = 0;
+
+window.updateTopbarDateAndEvents = function() {
+    const now = new Date();
+    const days = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
+    const dateStr = `${days[now.getDay()]}, ${now.getDate()}/${now.getMonth() + 1}`;
+    const dateEl = document.getElementById('topbarDate');
+    if(dateEl) dateEl.textContent = dateStr;
+
+    // Lấy Key ngày chuẩn hôm nay
+    const y = now.getFullYear();
+    const m = String(now.getMonth() + 1).padStart(2, '0');
+    const d = String(now.getDate()).padStart(2, '0');
+    const dateKey = `${y}-${m}-${d}`;
+    const mmdd = `${m}-${d}`;
+
+    let todaysEvents = [];
+
+    // Hàm thông minh tự động ghép Tiết học + Nội dung
+    const formatEventText = (ev) => {
+        if (typeof ev === 'string') return ev;
+        let txt = '';
+        if (ev.period) txt += `[${ev.period}] `; // Đóng ngoặc vuông cái tiết học cho ngầu
+        if (ev.content) txt += ev.content;
+        return txt.trim() || 'Sự kiện không tên';
+    };
+    
+    // Moi sự kiện từ Server
+    if (typeof globalCalEvents !== 'undefined') {
+        globalCalEvents.forEach(ev => {
+            if (ev.date === dateKey || (ev.is_yearly && ev.date.substring(5) === mmdd)) {
+                todaysEvents.push(formatEventText(ev));
+            }
+        });
+    }
+    
+    // Moi sự kiện từ Local (Cá nhân)
+    if (typeof calEvents !== 'undefined') {
+        Object.keys(calEvents).forEach(dKey => {
+            calEvents[dKey].forEach(ev => {
+                const isYearly = typeof ev === 'object' && ev.is_yearly;
+                if (dKey === dateKey || (isYearly && dKey.substring(5) === mmdd)) {
+                    todaysEvents.push(formatEventText(ev));
+                }
+            });
+        });
+    }
+
+    // Chốt danh sách sự kiện
+    topbarEventsList = todaysEvents.length ? todaysEvents : ['Trống lịch! Chơi game thôi 🫪'];
+    startEventTicker();
+};
+
+window.startEventTicker = function() {
+    clearInterval(topbarEventTickerTimer);
+    const textEl = document.getElementById('topbarEventText');
+    if (!textEl) return;
+
+    currentEventIdx = 0;
+    textEl.textContent = topbarEventsList[currentEventIdx];
+    textEl.classList.remove('ticker-in', 'ticker-out'); // Gỡ hiệu ứng nếu có
+
+    // Nếu có từ 2 sự kiện trở lên thì mới quay vòng
+    if (topbarEventsList.length > 1) {
+        topbarEventTickerTimer = setInterval(() => {
+            textEl.classList.remove('ticker-in');
+            textEl.classList.add('ticker-out');
+            
+            setTimeout(() => {
+                currentEventIdx = (currentEventIdx + 1) % topbarEventsList.length;
+                textEl.textContent = topbarEventsList[currentEventIdx];
+                textEl.classList.remove('ticker-out');
+                textEl.classList.add('ticker-in');
+            }, 400); 
+        }, 3500); 
+    }
+};
+
+// Cập nhật sau 1.5s lúc load web để đảm bảo Supabase đã đổ dữ liệu về
+setTimeout(updateTopbarDateAndEvents, 1500); 
+
+// Gắn sự kiện để hễ thêm/xóa lịch là Topbar tự động cập nhật ngay lập tức
+const originalSaveCalEvent2937 = window.saveCalEvent;
+if(originalSaveCalEvent2937) {
+    window.saveCalEvent = async function() {
+        await originalSaveCalEvent2937.apply(this, arguments);
+        setTimeout(updateTopbarDateAndEvents, 500);
+    };
+}
+const originalDeleteCalEvent2937 = window.deleteCalEvent;
+if(originalDeleteCalEvent2937) {
+    window.deleteCalEvent = async function() {
+        await originalDeleteCalEvent2937.apply(this, arguments);
+        setTimeout(updateTopbarDateAndEvents, 500);
+    };
 }
