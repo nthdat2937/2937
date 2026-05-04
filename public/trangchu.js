@@ -150,28 +150,53 @@ const sb = {
         let quizInProgress = false; // lock flag khi đang làm bài
 
         function switchTab(n) {
-            if (quizInProgress && n !== 'quiz') {
-                toast('⚠️ Đang làm bài kiểm tra! Hãy nộp hoặc bỏ cuộc trước.');
-                return;
-            }
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            const tabNames = ['home', 'calendar', 'list', 'flash', 'write', 'type', 'speed', 'listen', 'mc', 'quiz', 'topik', 'chat', 'soan', 'admin', 'music'];
-            document.querySelectorAll('.tab').forEach((t, i) => { if (tabNames[i] === n) t.classList.add('active'); });
-            document.querySelectorAll('.pane').forEach(p => p.classList.remove('active'));
-            document.getElementById('pane-' + n).classList.add('active');
-            document.body.classList.toggle('soan-active', n === 'soan');
-            if (n === 'flash') buildFlash();
-            if (n === 'write') buildWrite();
-            if (n === 'type') buildType();
-            if (n === 'speed') buildSpeed();
-            if (n === 'listen') buildListen();
-            if (n === 'mc') { buildMC(); requestAnimationFrame(() => { const w = document.getElementById('mcWrap'); if (w) w.focus(); }); }
-            if (n === 'quiz') buildQuiz();
-            if (n === 'topik') topikInit();
-            if (n === 'admin') buildAdmin();
-            if (n === 'soan') { soanInit(); };
-            if (n === 'calendar') renderCalendar();
+    if (quizInProgress && n !== 'quiz') {
+        toast('⚠️ Đang làm bài kiểm tra! Hãy nộp hoặc bỏ cuộc trước.');
+        return;
+    }
+    
+    // 1. Cập nhật trạng thái Active cho các nút tab
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    const tabNames = ['home', 'calendar', 'list', 'flash', 'write', 'type', 'speed', 'listen', 'mc', 'quiz', 'topik', 'chat', 'soan', 'admin', 'music', 'terminal'];
+    document.querySelectorAll('.tab').forEach((t, i) => { 
+        if (tabNames[i] === n) t.classList.add('active'); 
+    });
+
+    // 2. Ẩn tất cả các pane và hiện pane được chọn
+    document.querySelectorAll('.pane').forEach(p => p.classList.remove('active'));
+    const targetPane = document.getElementById('pane-' + n);
+    if (targetPane) targetPane.classList.add('active');
+    
+    // 3. Logic riêng cho tab Soạn bài
+    document.body.classList.toggle('soan-active', n === 'soan');
+
+    // 4. LOGIC TERMINAL (Sửa lỗi hiển thị Admin ngay lập tức)
+    if (n === 'terminal') {
+        const promptPrefix = document.getElementById('terminalPromptPrefix');
+        if (promptPrefix) {
+            const userType = isAdmin ? 'admin' : 'user';
+            const symbol = isAdmin ? '#' : '$';
+            promptPrefix.textContent = userType + '@hanvocab:~' + symbol + ' ';
         }
+        setTimeout(() => {
+            const input = document.getElementById('terminalInput');
+            if (input) input.focus();
+        }, 100);
+    }
+
+    // 5. Khởi tạo lại các tính năng khác
+    if (n === 'flash') buildFlash();
+    if (n === 'write') buildWrite();
+    if (n === 'type') buildType();
+    if (n === 'speed') buildSpeed();
+    if (n === 'listen') buildListen();
+    if (n === 'mc') { buildMC(); requestAnimationFrame(() => { const w = document.getElementById('mcWrap'); if (w) w.focus(); }); }
+    if (n === 'quiz') buildQuiz();
+    if (n === 'topik') topikInit();
+    if (n === 'admin') buildAdmin();
+    if (n === 'soan') { soanInit(); }
+    if (n === 'calendar') renderCalendar();
+}
 
 
         function updateTopics() {
@@ -5146,3 +5171,536 @@ if(originalDeleteCalEvent2937) {
         setTimeout(updateTopbarDateAndEvents, 500);
     };
 }
+
+// ===================================================================
+// 1. KHAI BÁO BIẾN HỆ THỐNG CHO TERMINAL (Đã tích hợp Gemini & Groq) 🫪
+// ===================================================================
+let commandHistory = [];
+let historyIndex = -1;
+const USER_COMMANDS = ['help', 'clear', 'exit', 'list', 'ai', 'groq'];
+const ADMIN_COMMANDS = ['add', 'delete'];
+
+// Các biến lưu trạng thái Terminal
+let isWaitingForConfirm = false;
+let pendingAddData = null;
+let isWaitingForDelete = false;
+let deleteCandidates = [];
+
+// Các biến cho chế độ Hội thoại AI (Gemini)
+let isAiMode = false;
+let aiChatHistory = [];
+const TERMINAL_API_KEY = "AIzaSyCxmxq8DVr3LIr5tBm4ju0K3kqURK9SPRY";
+
+// Các biến cho chế độ Hội thoại siêu tốc (Groq)
+let isGroqMode = false;
+let groqChatHistory = [];
+const GROQ_API_KEY = "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";
+
+// 2. Hàm in lỗi
+function printTerminalError(msg, body, inputEl) {
+    const errorLine = document.createElement('div');
+    errorLine.className = 'terminal-line';
+    errorLine.style.color = '#ff5f56'; 
+    errorLine.textContent = msg;
+    body.insertBefore(errorLine, inputEl);
+}
+
+// 3. Hàm in danh sách trợ giúp
+function printHelp(body, inputEl) {
+    let helpMsg = `Available commands for you:\n- ${USER_COMMANDS.join('\n- ')}`;
+    if (isAdmin) {
+        helpMsg += `\n\nAdmin privileges detected! Extra commands:\n- ${ADMIN_COMMANDS.join('\n- ')}`;
+    }
+    const line = document.createElement('div');
+    line.className = 'terminal-line';
+    line.style.color = '#ffbd2e'; 
+    line.style.whiteSpace = 'pre';
+    line.textContent = helpMsg;
+    body.insertBefore(line, inputEl);
+}
+
+// ===================================================================
+// 4. LẮNG NGHE SỰ KIỆN BÀN PHÍM TRONG TERMINAL
+// ===================================================================
+document.getElementById('terminalInput')?.addEventListener('keydown', function(e) {
+    const body = document.getElementById('terminalBody');
+    const inputField = this;
+    if (!body) return;
+
+    // --- Xử lý mũi tên LÊN/XUỐNG cho lịch sử (Khóa khi ở chế độ chờ hoặc AI) ---
+    if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (!isWaitingForConfirm && !isWaitingForDelete && !isAiMode && !isGroqMode && commandHistory.length > 0) {
+            if (historyIndex === -1) historyIndex = commandHistory.length - 1;
+            else if (historyIndex > 0) historyIndex--;
+            this.value = commandHistory[historyIndex];
+        }
+    } 
+    else if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        if (!isWaitingForConfirm && !isWaitingForDelete && !isAiMode && !isGroqMode && historyIndex !== -1) {
+            if (historyIndex < commandHistory.length - 1) {
+                historyIndex++;
+                this.value = commandHistory[historyIndex];
+            } else {
+                historyIndex = -1;
+                this.value = "";
+            }
+        }
+    }
+    // --- Xử lý ENTER (Chạy lệnh / Nhắn tin) ---
+    else if (e.key === 'Enter') {
+        const input = this.value.trim();
+        if (input === "" && !isWaitingForConfirm && !isWaitingForDelete) return;
+
+        // Lưu lịch sử lệnh (Chỉ lưu lệnh hệ thống)
+        if (!isWaitingForConfirm && !isWaitingForDelete && !isAiMode && !isGroqMode && commandHistory[commandHistory.length - 1] !== input && input !== "") {
+            commandHistory.push(input);
+        }
+        historyIndex = -1;
+
+        // 🧠 NẾU ĐANG TRONG CHẾ ĐỘ GROQ (SIÊU TỐC) ⚡
+        if (isGroqMode) {
+            const ans = input.toLowerCase();
+            
+            if (ans === 'exit' || ans === 'quit') {
+                isGroqMode = false;
+                const resLine = document.createElement('div');
+                resLine.className = 'terminal-line';
+                resLine.style.color = '#f97316';
+                resLine.textContent = `[Groq] Đã ngắt kết nối siêu tốc. Trở về Terminal hệ thống. 🫪`;
+                body.insertBefore(resLine, inputField.parentElement);
+                
+                document.getElementById('terminalPromptPrefix').textContent = (isAdmin ? 'admin' : 'user') + '@hanvocab:~' + (isAdmin ? '#' : '$') + ' ';
+                this.value = "";
+                body.scrollTop = body.scrollHeight;
+                return;
+            }
+
+            const userLine = document.createElement('div');
+            userLine.className = 'terminal-line';
+            userLine.innerHTML = `<span class="terminal-prompt" style="color: #fbd38d;">you@groq:~$</span> <span style="color: #fff;">${esc(input)}</span>`;
+            body.insertBefore(userLine, inputField.parentElement);
+
+            groqChatHistory.push({ role: "user", content: input });
+
+            const loadingLine = document.createElement('div');
+            loadingLine.className = 'terminal-line';
+            loadingLine.style.color = '#6b7280';
+            loadingLine.style.fontStyle = 'italic';
+            loadingLine.textContent = 'Groq đang bay tới server... ⚡';
+            body.insertBefore(loadingLine, inputField.parentElement);
+            
+            this.value = "";
+            this.disabled = true;
+            body.scrollTop = body.scrollHeight;
+
+            const startTime = performance.now();
+
+            fetch("https://api.groq.com/openai/v1/chat/completions", {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${GROQ_API_KEY}`
+                },
+                body: JSON.stringify({
+                    model: "openai/gpt-oss-120b",
+                    messages: groqChatHistory,
+                    temperature: 0.7
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                loadingLine.remove();
+                if (data.error) throw new Error(data.error.message);
+                
+                const endTime = performance.now();
+                const timeTaken = ((endTime - startTime) / 1000).toFixed(2);
+                
+                const reply = data.choices[0].message.content;
+                groqChatHistory.push({ role: "assistant", content: reply });
+
+                const aiLine = document.createElement('div');
+                aiLine.className = 'terminal-line';
+                aiLine.style.color = '#f97316'; // Màu cam Groq
+                const promptSpan = `<span class="terminal-prompt" style="color: #ea580c;">groq@ai:~$</span> `;
+                aiLine.innerHTML = promptSpan;
+                body.insertBefore(aiLine, inputField.parentElement);
+
+
+                let i = 0;
+                let formattedReply = reply.replace(/\*\*(.*?)\*\*/g, '<strong style="color:#fff;">$1</strong>').replace(/\n/g, '<br>');
+                let currentText = "";
+                let isTag = false;
+
+                function typeWriterTerminal() {
+                    if (i < formattedReply.length) {
+                        let char = formattedReply.charAt(i);
+                        if (char === '<') isTag = true;
+                        currentText += char;
+                        if (char === '>') isTag = false;
+
+                        if (!isTag) {
+                            aiLine.innerHTML = promptSpan + currentText;
+                            body.scrollTop = body.scrollHeight;
+                        }
+                        i++;
+                        setTimeout(typeWriterTerminal, isTag ? 0 : 8); // Tốc độ gõ siêu lẹ 8ms
+                    } else {
+                        inputField.disabled = false;
+                        inputField.focus();
+                    }
+                }
+                typeWriterTerminal();
+            })
+            .catch(err => {
+                loadingLine.remove();
+                groqChatHistory.pop();
+                printTerminalError(`[Lỗi Groq] ${err.message} 🫪`, body, inputField.parentElement);
+                inputField.disabled = false;
+                inputField.focus();
+            });
+
+            return; 
+        }
+
+        // 🧠 NẾU ĐANG TRONG CHẾ ĐỘ HỘI THOẠI AI (GEMINI)
+        if (isAiMode) {
+            const ans = input.toLowerCase();
+            
+            if (ans === 'exit' || ans === 'quit') {
+                isAiMode = false;
+                const resLine = document.createElement('div');
+                resLine.className = 'terminal-line';
+                resLine.style.color = '#ffbd2e';
+                resLine.textContent = `[Gemini] Đã ngắt kết nối AI. Trở về Terminal hệ thống. 🫪`;
+                body.insertBefore(resLine, inputField.parentElement);
+                
+                document.getElementById('terminalPromptPrefix').textContent = (isAdmin ? 'admin' : 'user') + '@hanvocab:~' + (isAdmin ? '#' : '$') + ' ';
+                this.value = "";
+                body.scrollTop = body.scrollHeight;
+                return;
+            }
+
+            const userLine = document.createElement('div');
+            userLine.className = 'terminal-line';
+            userLine.innerHTML = `<span class="terminal-prompt" style="color: #a78bfa;">you@gemini:~$</span> <span style="color: #fff;">${esc(input)}</span>`;
+            body.insertBefore(userLine, inputField.parentElement);
+
+            aiChatHistory.push({ role: "user", parts: [{ text: input }] });
+
+            const loadingLine = document.createElement('div');
+            loadingLine.className = 'terminal-line';
+            loadingLine.style.color = '#6b7280';
+            loadingLine.style.fontStyle = 'italic';
+            loadingLine.textContent = 'Gemini đang gõ... ⏳';
+            body.insertBefore(loadingLine, inputField.parentElement);
+            
+            this.value = "";
+            this.disabled = true; 
+            body.scrollTop = body.scrollHeight;
+
+            fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${TERMINAL_API_KEY}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ contents: aiChatHistory })
+            })
+            .then(res => res.json())
+            .then(data => {
+                loadingLine.remove();
+                if (data.error) throw new Error(data.error.message);
+                
+                const reply = data.candidates[0].content.parts[0].text;
+                aiChatHistory.push({ role: "model", parts: [{ text: reply }] });
+
+                const aiLine = document.createElement('div');
+                aiLine.className = 'terminal-line';
+                aiLine.style.color = '#a3c97a';
+                const promptSpan = `<span class="terminal-prompt" style="color: #6366f1;">gemini@ai:~$</span> `;
+                aiLine.innerHTML = promptSpan;
+                body.insertBefore(aiLine, inputField.parentElement);
+
+                let i = 0;
+                let formattedReply = reply.replace(/\*\*(.*?)\*\*/g, '<strong style="color:#fff;">$1</strong>').replace(/\n/g, '<br>');
+                let currentText = "";
+                let isTag = false;
+
+                function typeWriterTerminal() {
+                    if (i < formattedReply.length) {
+                        let char = formattedReply.charAt(i);
+                        if (char === '<') isTag = true;
+                        currentText += char;
+                        if (char === '>') isTag = false;
+
+                        if (!isTag) {
+                            aiLine.innerHTML = promptSpan + currentText;
+                            body.scrollTop = body.scrollHeight;
+                        }
+                        i++;
+                        setTimeout(typeWriterTerminal, isTag ? 0 : 12);
+                    } else {
+                        inputField.disabled = false;
+                        inputField.focus();
+                    }
+                }
+                typeWriterTerminal();
+            })
+            .catch(err => {
+                loadingLine.remove();
+                aiChatHistory.pop(); 
+                printTerminalError(`[Lỗi Gemini] ${err.message} 🫪`, body, inputField.parentElement);
+                inputField.disabled = false;
+                inputField.focus();
+            });
+
+            return; 
+        }
+
+        // =========================================================
+        // IN DÒNG LỆNH CỦA USER RA MÀN HÌNH (Dành cho Lệnh Hệ Thống)
+        // =========================================================
+        const userLine = document.createElement('div');
+        userLine.className = 'terminal-line';
+        if (isWaitingForConfirm) {
+            userLine.innerHTML = `<span class="terminal-prompt">></span> ${esc(input)}`;
+        } else if (isWaitingForDelete) {
+            userLine.innerHTML = `<span class="terminal-prompt">delete></span> ${esc(input)}`;
+        } else {
+            const promptSymbol = isAdmin ? '#' : '$'; 
+            const userType = isAdmin ? 'admin' : 'user';
+            userLine.innerHTML = `<span class="terminal-prompt">${userType}@hanvocab:~${promptSymbol}</span> ${esc(input)}`;
+        }
+        body.insertBefore(userLine, this.parentElement);
+
+        // 🧠 NẾU ĐANG TRONG TRẠNG THÁI CHỜ XÁC NHẬN [Y/n] CHO LỆNH ADD
+        if (isWaitingForConfirm) {
+            const ans = input.toLowerCase();
+            if (ans === 'y' || ans === 'yes' || ans === '') { 
+                doAdd({ 
+                    kor: pendingAddData.word, type: pendingAddData.class, mean: pendingAddData.mean, 
+                    rom: typeof romanize === 'function' ? romanize(pendingAddData.word) : '', 
+                    ex: '', exm: '', topic: 'Terminal' 
+                });
+                
+                const resLine = document.createElement('div');
+                resLine.className = 'terminal-line';
+                resLine.style.color = '#27c93f';
+                resLine.textContent = pendingAddData.isNewMeaning 
+                    ? `[OK] Đã thêm nghĩa mới "${pendingAddData.mean}" cho từ "${pendingAddData.word}" nha ông chủ! 🫪`
+                    : `[OK] Đã thêm thành công từ "${pendingAddData.word}" nha ông chủ! 🫪`;
+                body.insertBefore(resLine, this.parentElement);
+            } else {
+                const resLine = document.createElement('div');
+                resLine.className = 'terminal-line';
+                resLine.style.color = '#ffbd2e';
+                resLine.textContent = `[ABORT] Tớ đã hủy thao tác thêm từ rồi nhé.`;
+                body.insertBefore(resLine, this.parentElement);
+            }
+            isWaitingForConfirm = false;
+            pendingAddData = null;
+            document.getElementById('terminalPromptPrefix').textContent = (isAdmin ? 'admin' : 'user') + '@hanvocab:~' + (isAdmin ? '#' : '$') + ' ';
+        } 
+        
+        // 🧠 NẾU ĐANG TRONG TRẠNG THÁI CHỜ CHỌN TỪ ĐỂ XÓA CHO LỆNH DELETE
+        else if (isWaitingForDelete) {
+            const ans = input.toLowerCase();
+            if (ans === 'c' || ans === 'cancel' || ans === 'n') {
+                printTerminalError(`[ABORT] Đã quay xe, không trảm từ nào hết 🫪.`, body, this.parentElement);
+            } else {
+                const idx = parseInt(ans) - 1;
+                if (isNaN(idx) || idx < 0 || idx >= deleteCandidates.length) {
+                    printTerminalError(`Số không hợp lệ! Nhập lại từ 1 đến ${deleteCandidates.length}, hoặc gõ 'c' để thoát nha ông chủ.`, body, this.parentElement);
+                    this.value = "";
+                    body.scrollTop = body.scrollHeight;
+                    return; 
+                }
+
+                const targetWord = deleteCandidates[idx];
+                
+                if (typeof sb !== 'undefined' && sb) {
+                    sp.from('korean_vocab').delete().eq('id', targetWord.id).then(({error}) => {
+                        if (!error) { words = words.filter(w => w.id !== targetWord.id); refresh(); }
+                    });
+                } else {
+                    words = words.filter(w => w.id !== targetWord.id);
+                    if (typeof saveLocal === 'function') saveLocal();
+                    refresh();
+                }
+
+                const resLine = document.createElement('div');
+                resLine.className = 'terminal-line';
+                resLine.style.color = '#ff5f56';
+                resLine.textContent = `[DELETED] Tiễn bạn "${targetWord.korean}" lên đường bình an! 🫪`;
+                body.insertBefore(resLine, this.parentElement);
+            }
+            isWaitingForDelete = false;
+            deleteCandidates = [];
+            document.getElementById('terminalPromptPrefix').textContent = (isAdmin ? 'admin' : 'user') + '@hanvocab:~' + (isAdmin ? '#' : '$') + ' ';
+        }
+
+        // 🧠 NẾU LÀ GÕ LỆNH HỆ THỐNG BÌNH THƯỜNG
+        else {
+            const args = input.split(' ');
+            const command = args[0].toLowerCase();
+            
+            const isUserCmd = USER_COMMANDS.includes(command);
+            const isAdminCmd = ADMIN_COMMANDS.includes(command);
+
+            if (isAdminCmd && !isAdmin) {
+                printTerminalError(`Permission denied: Command '${command}' requires root privileges.`, body, this.parentElement);
+            } else if (!isUserCmd && !isAdminCmd) {
+                printTerminalError(`-bash: ${command}: command not found`, body, this.parentElement);
+            } else if (command === 'clear') {
+                const lines = body.querySelectorAll('.terminal-line');
+                lines.forEach(line => line.remove());
+            } else if (command === 'help') {
+                printHelp(body, this.parentElement);
+            } else if (command === 'groq') {
+                // 🟢 Lệnh kích hoạt chế độ Chat siêu tốc Groq
+                isGroqMode = true;
+                
+                const welcomeLine = document.createElement('div');
+                welcomeLine.className = 'terminal-line';
+                welcomeLine.style.color = '#f97316'; // Màu cam Groq
+                welcomeLine.innerHTML = `<strong>[Groq System]</strong> Đã kết nối AI Llama 3 siêu tốc ⚡!<br>Gõ <span style="color:#ffbd2e">exit</span> để thoát khỏi chế độ này.`;
+                body.insertBefore(welcomeLine, this.parentElement);
+                
+                document.getElementById('terminalPromptPrefix').innerHTML = '<span style="color: #fbd38d;">you@groq:~$</span> ';
+                
+                if (groqChatHistory.length === 0) {
+                    groqChatHistory.push({
+                        role: "system",
+                        content: "Bạn là một trợ lý ảo siêu nhanh tên là 2937 AI. AI giúp giải đáp mọi thắc mắc về việc học tiếng Hàn và du học Hàn Quốc. Không trả lời những câu hỏi không liên quan tới việc học tiếng Hàn và du học Hàn Quốc. Ví dụ như không trả lời mấy câu hỏi kiêu 'Code cho tôi trang web học tiếng Hàn'. Hãy trả lời bằng tiếng Việt, xưng 'tớ' và gọi người dùng là 'ông chủ'. Thường xuyên sử dụng icon '🫪'."
+                    });
+                    groqChatHistory.push({
+                        role: "assistant",
+                        content: "Tuân lệnh ông chủ 🫪! Groq siêu tốc đã sẵn sàng."
+                    });
+                }
+            } else if (command === 'ai') {
+                // 🟢 Lệnh kích hoạt chế độ Chat AI Gemini
+                isAiMode = true;
+                
+                const welcomeLine = document.createElement('div');
+                welcomeLine.className = 'terminal-line';
+                welcomeLine.style.color = '#a78bfa'; 
+                welcomeLine.innerHTML = `<strong>[Gemini System]</strong> Đã kết nối trí tuệ nhân tạo thành công 🫪!<br>Tớ ở đây sẵn sàng trả lời mọi thứ. Gõ <span style="color:#ffbd2e">exit</span> để thoát khỏi chế độ này.`;
+                body.insertBefore(welcomeLine, this.parentElement);
+                
+                document.getElementById('terminalPromptPrefix').innerHTML = '<span style="color: #a78bfa;">you@gemini:~$</span> ';
+                
+                if (aiChatHistory.length === 0) {
+                    aiChatHistory.push({
+                        role: "user",
+                        parts: [{ text: "Hãy đóng vai là Gemini, một trợ lý ảo dễ thương, xưng 'tớ' và gọi người dùng là 'ông chủ'. Thường xuyên sử dụng icon '🫪'." }]
+                    });
+                    aiChatHistory.push({
+                        role: "model",
+                        parts: [{ text: "Tuân lệnh ông chủ 🫪! Tớ sẵn sàng phục vụ rồi đây." }]
+                    });
+                }
+            } else if (command === 'exit') {
+                if (typeof openInternalTool === 'function') {
+                    openInternalTool('home', 'home');
+                } else {
+                    switchTab('home');
+                }
+                const resLine = document.createElement('div');
+                resLine.className = 'terminal-line';
+                resLine.style.color = '#27c93f';
+                resLine.textContent = `[OK] Đang dọn dẹp và đưa ông chủ về Trang Chủ... Tạm biệt! 🫪`;
+                body.insertBefore(resLine, this.parentElement);
+            } else if (command === 'list') {
+                if (!words || words.length === 0) {
+                    printTerminalError(`Kho từ vựng đang trống trơn ông chủ ơi! 🫪`, body, this.parentElement);
+                } else {
+                    const sortedWords = [...words].sort((a, b) => (a.korean || '').localeCompare(b.korean || ''));
+                    let listMsg = 'DANH SÁCH TỪ VỰNG HIỆN CÓ:\n--------------------------\n';
+                    sortedWords.forEach(w => {
+                        listMsg += `> ${w.korean} : ${w.meaning} [${w.type || '기타'}]\n`;
+                    });
+                    const resLine = document.createElement('div');
+                    resLine.className = 'terminal-line';
+                    resLine.style.color = '#85B7EB';
+                    resLine.style.whiteSpace = 'pre';
+                    resLine.textContent = listMsg;
+                    body.insertBefore(resLine, this.parentElement);
+                }
+            } else if (command === 'delete') {
+                deleteCandidates = words.filter(w => w.topic === 'Terminal');
+                
+                if (deleteCandidates.length === 0) {
+                    printTerminalError(`Chưa có từ nào được thêm qua Terminal để xóa đâu nha! 🫪`, body, this.parentElement);
+                } else {
+                    isWaitingForDelete = true;
+                    let promptMsg = 'DANH SÁCH TỪ TERMINAL:\n----------------------\n';
+                    deleteCandidates.forEach((w, i) => {
+                        promptMsg += `[${i + 1}] ${w.korean} - ${w.meaning}\n`;
+                    });
+                    promptMsg += `\nÔng chủ muốn trảm từ số mấy? (Hoặc gõ 'c' để quay xe) 🫪:`;
+
+                    const promptLine = document.createElement('div');
+                    promptLine.className = 'terminal-line';
+                    promptLine.style.color = '#ffbd2e';
+                    promptLine.style.whiteSpace = 'pre';
+                    promptLine.textContent = promptMsg;
+                    body.insertBefore(promptLine, this.parentElement);
+                    
+                    document.getElementById('terminalPromptPrefix').textContent = 'delete> ';
+                }
+            } else if (command === 'add') {
+                const payloadStr = input.substring(3).trim();
+                const regex = /(word|mean|class)\s+(.+?)(?=\s+(?:word|mean|class)\b|$)/gi;
+                let match;
+                let parsed = { word: '', mean: '', class: '기타' };
+                
+                while ((match = regex.exec(payloadStr)) !== null) {
+                    const key = match[1].toLowerCase();
+                    const val = match[2].trim();
+                    if (key === 'word') parsed.word = val;
+                    if (key === 'mean') parsed.mean = val;
+                    if (key === 'class') {
+                        const rawClass = val.toLowerCase();
+                        if (['noun', 'n', 'danh từ', 'danh tu', '명사'].includes(rawClass)) parsed.class = '명사';
+                        else if (['verb', 'v', 'động từ', 'dong tu', '동사'].includes(rawClass)) parsed.class = '동사';
+                        else if (['adj', 'a', 'adjective', 'tính từ', 'tinh tu', '형용사'].includes(rawClass)) parsed.class = '형용사';
+                        else if (['adv', 'adverb', 'trạng từ', 'trang tu', '부사'].includes(rawClass)) parsed.class = '부사';
+                        else if (['excl', 'thán từ', 'than tu', '감탄사'].includes(rawClass)) parsed.class = '감탄사';
+                        else parsed.class = '기타';
+                    }
+                }
+
+                if (!parsed.word || !parsed.mean) {
+                    printTerminalError(`Lỗi cú pháp gòi! Ông chủ cần gõ ít nhất 'word' và 'mean'.\nVD: add word 한국 class noun mean Hàn Quốc`, body, this.parentElement);
+                } else {
+                    const existing = words.filter(w => w.korean === parsed.word);
+                    const sameMean = existing.some(w => norm(w.meaning) === norm(parsed.mean));
+                    
+                    if (sameMean) {
+                        printTerminalError(`[WARN] Từ "${parsed.word}" với nghĩa "${parsed.mean}" đã có sẵn trong từ điển rồi ông chủ ơi! 🫪`, body, this.parentElement);
+                    } else {
+                        isWaitingForConfirm = true;
+                        parsed.isNewMeaning = existing.length > 0;
+                        pendingAddData = parsed;
+                        
+                        const promptLine = document.createElement('div');
+                        promptLine.className = 'terminal-line';
+                        promptLine.style.color = '#85B7EB';
+                        
+                        if (parsed.isNewMeaning) {
+                            promptLine.innerText = `Từ "${parsed.word}" đã tồn tại với nghĩa:\n${existing.map(w => '• ' + w.meaning).join('\n')}\n\nÔng chủ có muốn thêm nghĩa mới "${parsed.mean}" không 🫪? [Y/n]`;
+                        } else {
+                            promptLine.innerText = `Ông chủ có chắc muốn thêm từ mới này không 🫪?\n🇰🇷 Từ: ${parsed.word}\n🏷️ Loại: ${parsed.class}\n🇻🇳 Nghĩa: ${parsed.mean}\n\n[Y/n]`;
+                        }
+                        
+                        body.insertBefore(promptLine, this.parentElement);
+                        document.getElementById('terminalPromptPrefix').textContent = '> ';
+                    }
+                }
+            }
+        }
+
+        this.value = "";
+        body.scrollTop = body.scrollHeight;
+    }
+});

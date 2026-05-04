@@ -217,6 +217,13 @@
           <span>Soạn bài</span>
         </button>
 
+        <!--Terminal-->
+        <!-- Thêm vào thanh bên (sidebar-nav) -->
+<button class="sidebar-item" data-label="Terminal" onclick="sidebarSwitch('terminal', this)">
+  <span class="sidebar-icon material-icons">terminal</span>
+  <span>Terminal</span>
+</button>
+
         <!--Thêm tab-->
         <button class="sidebar-item" data-label="Web của tôi" onclick="sidebarSwitch('music', this)">
             <span class="sidebar-icon material-icons">music_note</span>
@@ -819,10 +826,33 @@
     <iframe src="tools/chatv2/index.html" class="chat-iframe" title="2937.Chat"></iframe>
 </div>
 
+<!--Terminal-->
+<!-- Thêm vào khu vực main-content (cùng chỗ với pane-list, pane-flash...) -->
+<div id="pane-terminal" class="pane">
+    <div class="terminal-container">
+        <div class="terminal-header">
+            <div class="terminal-dots">
+                <span class="dot red"></span>
+                <span class="dot yellow"></span>
+                <span class="dot green"></span>
+            </div>
+            <div class="terminal-title">hanvocab -- bash</div>
+        </div>
+        <div class="terminal-body" id="terminalBody">
+            <div class="terminal-line">Chào mừng ông chủ đến với HanVocab Terminal v1.0.0 🫪</div>
+            <div class="terminal-line">Gõ 'help' để xem danh sách lệnh (Tính năng đang phát triển...)</div>
+            <div class="terminal-input-line">
+                <span class="terminal-prompt" id="terminalPromptPrefix">user@hanvocab:~$</span>
+                <input type="text" id="terminalInput" spellcheck="false" autocomplete="off" autofocus>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!--Thêm tab-->
 <!-- Thêm vào khu vực các pane trong trangchu.html -->
 <div id="pane-music" class="pane">
-    <iframe src="/2937/public/tools/songs/index.html" 
+    <iframe src="tools/songs/index.html" 
             class="chat-iframe" 
             title="My Custom Tab">
     </iframe>

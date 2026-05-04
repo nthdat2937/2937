@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Groq Chat Siêu Tốc 🫪</title>
+    <style>
+        :root {
+            --primary: #f97316; /* Đổi sang màu cam cho đúng nhận diện của Groq */
+            --primary-hover: #ea580c;
+            --bg: #111827; /* Nền tối cho ngầu */
+            --chat-bg: #1f2937;
+            --user-msg: #f97316;
+            --ai-msg: #374151;
+            --txt-dark: #f9fafb;
+            --txt-light: #ffffff;
+            --border: #4b5563;
+        }
+
+        body {
+            font-family: 'Segoe UI', -apple-system, sans-serif;
+            background: var(--bg);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .chat-container {
+            width: 100%;
+            max-width: 480px;
+            height: 85vh;
+            background: var(--chat-bg);
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+
+        .chat-header {
+            background: var(--primary);
+            color: var(--txt-light);
+            padding: 16px 20px;
+            font-size: 16px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            z-index: 10;
+        }
+
+        .chat-header .dot {
+            width: 10px;
+            height: 10px;
+            background: #22c55e;
+            border-radius: 50%;
+            display: inline-block;
+            box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.3);
+        }
+
+        .chat-box {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .chat-box::-webkit-scrollbar { width: 6px; }
+        .chat-box::-webkit-scrollbar-thumb { background: #6b7280; border-radius: 10px; }
+
+        .msg-wrap {
+            display: flex;
+            flex-direction: column;
+            max-width: 85%;
+        }
+
+        .msg-wrap.user {
+            align-self: flex-end;
+            align-items: flex-end;
+        }
+
+        .msg-wrap.ai {
+            align-self: flex-start;
+            align-items: flex-start;
+        }
+
+        .msg-bubble {
+            padding: 12px 16px;
+            font-size: 14.5px;
+            line-height: 1.5;
+            word-wrap: break-word;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .msg-wrap.user .msg-bubble {
+            background: var(--user-msg);
+            color: var(--txt-light);
+            border-radius: 18px 18px 4px 18px;
+        }
+
+        .msg-wrap.ai .msg-bubble {
+            background: var(--ai-msg);
+            color: var(--txt-dark);
+            border: 1px solid var(--border);
+            border-radius: 18px 18px 18px 4px;
+        }
+
+        .msg-time {
+            font-size: 11px;
+            color: #9ca3af;
+            margin-top: 4px;
+            margin-bottom: 2px;
+        }
+
+        .typing-indicator {
+            font-size: 13px;
+            color: #9ca3af;
+            font-style: italic;
+            align-self: flex-start;
+            animation: pulse 1.5s infinite;
+            display: none;
+            padding-left: 10px;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+
+        .input-area {
+            background: #1f2937;
+            padding: 14px 16px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .input-area input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid #4b5563;
+            border-radius: 24px;
+            font-family: inherit;
+            font-size: 14px;
+            outline: none;
+            background: #374151;
+            color: #fff;
+            transition: all 0.2s;
+        }
+
+        .input-area input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(249,115,22,0.2);
+        }
+
+        .input-area button {
+            background: var(--primary);
+            color: #fff;
+            border: none;
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+        }
+
+        .input-area button:hover {
+            background: var(--primary-hover);
+            transform: scale(1.05);
+        }
+
+        .input-area button:active {
+            transform: scale(0.95);
+        }
+
+        .input-area button svg {
+            width: 18px;
+            height: 18px;
+            fill: currentColor;
+            margin-left: 2px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="chat-container">
+        <div class="chat-header">
+            <span class="dot"></span>
+            Groq Assistant ⚡
+        </div>
+        
+        <div class="chat-box" id="chatBox">
+            <div class="msg-wrap ai">
+                <div class="msg-bubble">Chào ông chủ! Tớ là Groq (phiên bản siêu tốc độ), đã lên đồ sẵn sàng. Thử nhắn gì cho tớ xem tớ phản hồi lẹ cỡ nào nhé 🫪!</div>
+                <div class="msg-time">Vừa xong</div>
+            </div>
+        </div>
+        
+        <div class="typing-indicator" id="typingIndicator">Đang kết nối siêu tốc... ⚡</div>
+
+        <div class="input-area">
+            <input type="text" id="chatInput" placeholder="Gõ tin nhắn cho tớ vào đây..." autocomplete="off">
+            <button onclick="sendMessage()" title="Gửi">
+                <svg viewBox="0 0 24 24"><path d="M2,21L23,12L2,3V10L17,12L2,14V21Z"></path></svg>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // API Key Groq xịn xò của ông chủ 🫪
+        const API_KEY = "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";
+        
+        const chatInput = document.getElementById('chatInput');
+        const chatBox = document.getElementById('chatBox');
+        const typingIndicator = document.getElementById('typingIndicator');
+        
+        // Mảng lịch sử chat chuẩn của Groq (giống hệt chuẩn OpenAI)
+        let chatHistory = [
+            { role: "system", content: "Bạn là một trợ lý ảo siêu nhanh. Hãy trả lời bằng tiếng Việt, xưng 'tớ' và gọi người dùng là 'ông chủ'. Thường xuyên dùng icon '🫪'." }
+        ];
+
+        chatInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') sendMessage();
+        });
+
+        function getCurrentTime() {
+            const now = new Date();
+            return now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+        }
+
+        // 🧠 Hàm in tin nhắn + Hiệu ứng gõ phím
+        function appendMessage(role, text, useTypingEffect = false) {
+            const wrap = document.createElement('div');
+            wrap.className = `msg-wrap ${role}`;
+            
+            let formattedText = text.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>').replace(/\n/g, '<br>');
+
+            wrap.innerHTML = `
+                <div class="msg-bubble"></div>
+                <div class="msg-time">${getCurrentTime()}</div>
+            `;
+            
+            chatBox.appendChild(wrap);
+            const bubble = wrap.querySelector('.msg-bubble');
+
+            if (useTypingEffect && role === 'ai') {
+                let i = 0;
+                let isTag = false;
+                let currentHTML = "";
+                
+                function typeWriter() {
+                    if (i < formattedText.length) {
+                        let char = formattedText.charAt(i);
+                        if (char === '<') isTag = true;
+                        currentHTML += char;
+                        if (char === '>') isTag = false;
+                        
+                        if (!isTag) {
+                            bubble.innerHTML = currentHTML;
+                            chatBox.scrollTop = chatBox.scrollHeight;
+                        }
+                        
+                        i++;
+                        setTimeout(typeWriter, isTag ? 0 : 8); // Tốc độ gõ 8ms để theo kịp tốc độ của Groq
+                    }
+                }
+                typeWriter();
+            } else {
+                bubble.innerHTML = formattedText;
+                chatBox.scrollTop = chatBox.scrollHeight;
+            }
+        }
+
+        async function sendMessage() {
+            const text = chatInput.value.trim();
+            if (!text) return;
+
+            appendMessage('user', text, false);
+            chatInput.value = '';
+            
+            // Đưa tin nhắn của User vào bộ nhớ
+            chatHistory.push({ role: "user", content: text });
+
+            typingIndicator.style.display = 'block';
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            try {
+                const startTime = performance.now();
+                
+                // Gọi API Groq (Mô hình Llama 3 cực xịn)
+                const url = "https://api.groq.com/openai/v1/chat/completions";
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${API_KEY}`
+                    },
+                    body: JSON.stringify({
+                        model: "openai/gpt-oss-120b", // Dùng con Llama 3 8 tỷ tham số, phản hồi bao mượt
+                        messages: chatHistory,
+                        temperature: 0.7
+                    })
+                });
+
+                const data = await response.json();
+                typingIndicator.style.display = 'none';
+
+                if (!response.ok) {
+                    throw new Error(data.error?.message || "Lỗi kết nối API");
+                }
+
+                const endTime = performance.now();
+                const timeTaken = ((endTime - startTime) / 1000).toFixed(2);
+
+                // Lấy kết quả
+                const aiResponse = data.choices[0].message.content;
+                
+                // Khoe thông số tốc độ của Groq ở cuối câu
+                const speedNote = `<br><br><span style="font-size: 11px; color: #10b981; font-weight: normal; font-style: italic;">⚡ Tốc độ: ${timeTaken} giây (${data.usage.completion_tokens} chữ)</span>`;
+                
+                appendMessage('ai', aiResponse + speedNote, true);
+
+                // Lưu lại câu trả lời vào bộ nhớ
+                chatHistory.push({ role: "assistant", content: aiResponse });
+
+            } catch (error) {
+                typingIndicator.style.display = 'none';
+                appendMessage('ai', `❌ Lỗi rồi ông chủ: ${error.message} 🫪`, false);
+                chatHistory.pop();
+            }
+        }
+    </script>
+</body>
+</html>
