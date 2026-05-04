@@ -5173,7 +5173,7 @@ if(originalDeleteCalEvent2937) {
 }
 
 // ===================================================================
-// 1. KHAI BÁO BIẾN HỆ THỐNG CHO TERMINAL (Đã giấu Key Groq) 🫪
+// 1. KHAI BÁO BIẾN HỆ THỐNG CHO TERMINAL (Đã giấu sạch 100% Key) 🫪
 // ===================================================================
 let commandHistory = [];
 let historyIndex = -1;
@@ -5185,10 +5185,9 @@ let pendingAddData = null;
 let isWaitingForDelete = false;
 let deleteCandidates = [];
 
-// Gemini (Tạm thời vẫn để key ở đây, nếu ông chủ muốn giấu luôn thì bảo tớ nha)
+// Gemini (ĐÃ XÓA KEY KHỎI FRONTEND CHO AN TOÀN)
 let isAiMode = false;
 let aiChatHistory = [];
-const TERMINAL_API_KEY = "AIzaSyCxmxq" + "8DVr3LIr5tBm4ju0K" + "3kqURK9SPRY";
 
 // Groq (ĐÃ XÓA KEY KHỎI FRONTEND CHO AN TOÀN)
 let isGroqMode = false;
@@ -5252,7 +5251,7 @@ document.getElementById('terminalInput')?.addEventListener('keydown', function(e
         }
         historyIndex = -1;
 
-        // 🧠 CHẾ ĐỘ GROQ (SIÊU TỐC) ĐÃ DÙNG API NỘI BỘ VERCEL ⚡
+        // 🧠 CHẾ ĐỘ GROQ (SIÊU TỐC) ⚡
         if (isGroqMode) {
             const ans = input.toLowerCase();
             
@@ -5290,15 +5289,10 @@ document.getElementById('terminalInput')?.addEventListener('keydown', function(e
 
             const startTime = performance.now();
 
-            // 🟢 ĐÃ SỬA CHỖ NÀY: GỌI VÀO API NỘI BỘ, KHÔNG CẦN TRUYỀN KEY 🫪
             fetch("/api/chat-groq", {
                 method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    messages: groqChatHistory
-                })
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ messages: groqChatHistory })
             })
             .then(res => res.json())
             .then(data => {
@@ -5356,7 +5350,7 @@ document.getElementById('terminalInput')?.addEventListener('keydown', function(e
             return; 
         }
 
-        // 🧠 CHẾ ĐỘ GEMINI
+        // 🧠 CHẾ ĐỘ GEMINI ĐÃ DÙNG API NỘI BỘ VERCEL 🫪
         if (isAiMode) {
             const ans = input.toLowerCase();
             
@@ -5392,7 +5386,8 @@ document.getElementById('terminalInput')?.addEventListener('keydown', function(e
             this.disabled = true; 
             body.scrollTop = body.scrollHeight;
 
-            fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${TERMINAL_API_KEY}`, {
+            // 🟢 ĐÃ SỬA CHỖ NÀY: GỌI VÀO API NỘI BỘ, KHÔNG TRUYỀN KEY 🫪
+            fetch("/api/chat-gemini", {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ contents: aiChatHistory })
@@ -5400,7 +5395,7 @@ document.getElementById('terminalInput')?.addEventListener('keydown', function(e
             .then(res => res.json())
             .then(data => {
                 loadingLine.remove();
-                if (data.error) throw new Error(data.error.message);
+                if (data.error) throw new Error(data.error.message || data.error);
                 
                 const reply = data.candidates[0].content.parts[0].text;
                 aiChatHistory.push({ role: "model", parts: [{ text: reply }] });
@@ -5448,7 +5443,7 @@ document.getElementById('terminalInput')?.addEventListener('keydown', function(e
             return; 
         }
 
-        // LỆNH HỆ THỐNG
+        // LỆNH HỆ THỐNG BÌNH THƯỜNG
         const userLine = document.createElement('div');
         userLine.className = 'terminal-line';
         if (isWaitingForConfirm) {
@@ -5553,7 +5548,7 @@ document.getElementById('terminalInput')?.addEventListener('keydown', function(e
                 if (groqChatHistory.length === 0) {
                     groqChatHistory.push({
                         role: "system",
-                        content: "Bạn là một trợ lý ảo siêu nhanh tên là 2937 AI. AI giúp giải đáp mọi thắc mắc về việc học tiếng Hàn và du học Hàn Quốc. Không trả lời những câu hỏi không liên quan tới việc học tiếng Hàn và du học Hàn Quốc. Ví dụ như không trả lời mấy câu hỏi kiêu 'Code cho tôi trang web học tiếng Hàn'. Hãy trả lời bằng tiếng Việt, xưng 'tớ' và gọi người dùng là 'ông chủ'. Thường xuyên sử dụng icon '🫪'."
+                        content: "Bạn là một trợ lý ảo siêu nhanh tên là 2937 AI. Trả lời bằng tiếng Việt, xưng 'tớ' và gọi người dùng là 'ông chủ'. Thường xuyên sử dụng icon '🫪'."
                     });
                     groqChatHistory.push({
                         role: "assistant",
@@ -5565,7 +5560,7 @@ document.getElementById('terminalInput')?.addEventListener('keydown', function(e
                 const welcomeLine = document.createElement('div');
                 welcomeLine.className = 'terminal-line';
                 welcomeLine.style.color = '#a78bfa'; 
-                welcomeLine.innerHTML = `<strong>[Gemini System]</strong> Đã kết nối trí tuệ nhân tạo thành công 🫪!<br>Tớ ở đây sẵn sàng trả lời mọi thứ. Gõ <span style="color:#ffbd2e">exit</span> để thoát khỏi chế độ này.`;
+                welcomeLine.innerHTML = `<strong>[Gemini System]</strong> Đã kết nối AI qua Vercel Backend 🫪!<br>Tớ ở đây sẵn sàng trả lời mọi thứ. Gõ <span style="color:#ffbd2e">exit</span> để thoát khỏi chế độ này.`;
                 body.insertBefore(welcomeLine, this.parentElement);
                 
                 document.getElementById('terminalPromptPrefix').innerHTML = '<span style="color: #a78bfa;">you@gemini:~$</span> ';
