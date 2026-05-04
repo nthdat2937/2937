@@ -5173,31 +5173,27 @@ if(originalDeleteCalEvent2937) {
 }
 
 // ===================================================================
-// 1. KHAI BÁO BIẾN HỆ THỐNG CHO TERMINAL (Đã tích hợp Gemini & Groq) 🫪
+// 1. KHAI BÁO BIẾN HỆ THỐNG CHO TERMINAL (Đã giấu Key Groq) 🫪
 // ===================================================================
 let commandHistory = [];
 let historyIndex = -1;
 const USER_COMMANDS = ['help', 'clear', 'exit', 'list', 'ai', 'groq'];
 const ADMIN_COMMANDS = ['add', 'delete'];
 
-// Các biến lưu trạng thái Terminal
 let isWaitingForConfirm = false;
 let pendingAddData = null;
 let isWaitingForDelete = false;
 let deleteCandidates = [];
 
-// Các biến cho chế độ Hội thoại AI (Gemini)
+// Gemini (Tạm thời vẫn để key ở đây, nếu ông chủ muốn giấu luôn thì bảo tớ nha)
 let isAiMode = false;
 let aiChatHistory = [];
 const TERMINAL_API_KEY = "AIzaSyCxmxq" + "8DVr3LIr5tBm4ju0K" + "3kqURK9SPRY";
 
-// Các biến cho chế độ Hội thoại siêu tốc (Groq)
+// Groq (ĐÃ XÓA KEY KHỎI FRONTEND CHO AN TOÀN)
 let isGroqMode = false;
 let groqChatHistory = [];
-// Cắt cái key ra làm 3 khúc rồi cộng lại 🫪
-const GROQ_API_KEY = "gsk_4lSmRPihw" + "yzBwen5C3TcWGdyb" + "3FYwf6PV4PfjhH6WR8SnOHmvncB";
 
-// 2. Hàm in lỗi
 function printTerminalError(msg, body, inputEl) {
     const errorLine = document.createElement('div');
     errorLine.className = 'terminal-line';
@@ -5206,7 +5202,6 @@ function printTerminalError(msg, body, inputEl) {
     body.insertBefore(errorLine, inputEl);
 }
 
-// 3. Hàm in danh sách trợ giúp
 function printHelp(body, inputEl) {
     let helpMsg = `Available commands for you:\n- ${USER_COMMANDS.join('\n- ')}`;
     if (isAdmin) {
@@ -5228,7 +5223,6 @@ document.getElementById('terminalInput')?.addEventListener('keydown', function(e
     const inputField = this;
     if (!body) return;
 
-    // --- Xử lý mũi tên LÊN/XUỐNG cho lịch sử (Khóa khi ở chế độ chờ hoặc AI) ---
     if (e.key === 'ArrowUp') {
         e.preventDefault();
         if (!isWaitingForConfirm && !isWaitingForDelete && !isAiMode && !isGroqMode && commandHistory.length > 0) {
@@ -5249,18 +5243,16 @@ document.getElementById('terminalInput')?.addEventListener('keydown', function(e
             }
         }
     }
-    // --- Xử lý ENTER (Chạy lệnh / Nhắn tin) ---
     else if (e.key === 'Enter') {
         const input = this.value.trim();
         if (input === "" && !isWaitingForConfirm && !isWaitingForDelete) return;
 
-        // Lưu lịch sử lệnh (Chỉ lưu lệnh hệ thống)
         if (!isWaitingForConfirm && !isWaitingForDelete && !isAiMode && !isGroqMode && commandHistory[commandHistory.length - 1] !== input && input !== "") {
             commandHistory.push(input);
         }
         historyIndex = -1;
 
-        // 🧠 NẾU ĐANG TRONG CHẾ ĐỘ GROQ (SIÊU TỐC) ⚡
+        // 🧠 CHẾ ĐỘ GROQ (SIÊU TỐC) ĐÃ DÙNG API NỘI BỘ VERCEL ⚡
         if (isGroqMode) {
             const ans = input.toLowerCase();
             
@@ -5298,22 +5290,20 @@ document.getElementById('terminalInput')?.addEventListener('keydown', function(e
 
             const startTime = performance.now();
 
-            fetch("https://api.groq.com/openai/v1/chat/completions", {
+            // 🟢 ĐÃ SỬA CHỖ NÀY: GỌI VÀO API NỘI BỘ, KHÔNG CẦN TRUYỀN KEY 🫪
+            fetch("/api/chat-groq", {
                 method: 'POST',
                 headers: { 
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${GROQ_API_KEY}`
+                    'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    model: "openai/gpt-oss-120b",
-                    messages: groqChatHistory,
-                    temperature: 0.7
+                    messages: groqChatHistory
                 })
             })
             .then(res => res.json())
             .then(data => {
                 loadingLine.remove();
-                if (data.error) throw new Error(data.error.message);
+                if (data.error) throw new Error(data.error.message || data.error);
                 
                 const endTime = performance.now();
                 const timeTaken = ((endTime - startTime) / 1000).toFixed(2);
@@ -5323,14 +5313,15 @@ document.getElementById('terminalInput')?.addEventListener('keydown', function(e
 
                 const aiLine = document.createElement('div');
                 aiLine.className = 'terminal-line';
-                aiLine.style.color = '#f97316'; // Màu cam Groq
+                aiLine.style.color = '#f97316';
                 const promptSpan = `<span class="terminal-prompt" style="color: #ea580c;">groq@ai:~$</span> `;
                 aiLine.innerHTML = promptSpan;
                 body.insertBefore(aiLine, inputField.parentElement);
 
+                const speedNote = `\n<span style="font-size: 11px; color: #10b981; font-style: italic;">⚡ Tốc độ: ${timeTaken}s</span>`;
 
                 let i = 0;
-                let formattedReply = reply.replace(/\*\*(.*?)\*\*/g, '<strong style="color:#fff;">$1</strong>').replace(/\n/g, '<br>');
+                let formattedReply = reply.replace(/\*\*(.*?)\*\*/g, '<strong style="color:#fff;">$1</strong>').replace(/\n/g, '<br>') + speedNote;
                 let currentText = "";
                 let isTag = false;
 
@@ -5346,7 +5337,7 @@ document.getElementById('terminalInput')?.addEventListener('keydown', function(e
                             body.scrollTop = body.scrollHeight;
                         }
                         i++;
-                        setTimeout(typeWriterTerminal, isTag ? 0 : 8); // Tốc độ gõ siêu lẹ 8ms
+                        setTimeout(typeWriterTerminal, isTag ? 0 : 8); 
                     } else {
                         inputField.disabled = false;
                         inputField.focus();
@@ -5365,7 +5356,7 @@ document.getElementById('terminalInput')?.addEventListener('keydown', function(e
             return; 
         }
 
-        // 🧠 NẾU ĐANG TRONG CHẾ ĐỘ HỘI THOẠI AI (GEMINI)
+        // 🧠 CHẾ ĐỘ GEMINI
         if (isAiMode) {
             const ans = input.toLowerCase();
             
@@ -5457,9 +5448,7 @@ document.getElementById('terminalInput')?.addEventListener('keydown', function(e
             return; 
         }
 
-        // =========================================================
-        // IN DÒNG LỆNH CỦA USER RA MÀN HÌNH (Dành cho Lệnh Hệ Thống)
-        // =========================================================
+        // LỆNH HỆ THỐNG
         const userLine = document.createElement('div');
         userLine.className = 'terminal-line';
         if (isWaitingForConfirm) {
@@ -5473,7 +5462,6 @@ document.getElementById('terminalInput')?.addEventListener('keydown', function(e
         }
         body.insertBefore(userLine, this.parentElement);
 
-        // 🧠 NẾU ĐANG TRONG TRẠNG THÁI CHỜ XÁC NHẬN [Y/n] CHO LỆNH ADD
         if (isWaitingForConfirm) {
             const ans = input.toLowerCase();
             if (ans === 'y' || ans === 'yes' || ans === '') { 
@@ -5501,8 +5489,6 @@ document.getElementById('terminalInput')?.addEventListener('keydown', function(e
             pendingAddData = null;
             document.getElementById('terminalPromptPrefix').textContent = (isAdmin ? 'admin' : 'user') + '@hanvocab:~' + (isAdmin ? '#' : '$') + ' ';
         } 
-        
-        // 🧠 NẾU ĐANG TRONG TRẠNG THÁI CHỜ CHỌN TỪ ĐỂ XÓA CHO LỆNH DELETE
         else if (isWaitingForDelete) {
             const ans = input.toLowerCase();
             if (ans === 'c' || ans === 'cancel' || ans === 'n') {
@@ -5538,8 +5524,6 @@ document.getElementById('terminalInput')?.addEventListener('keydown', function(e
             deleteCandidates = [];
             document.getElementById('terminalPromptPrefix').textContent = (isAdmin ? 'admin' : 'user') + '@hanvocab:~' + (isAdmin ? '#' : '$') + ' ';
         }
-
-        // 🧠 NẾU LÀ GÕ LỆNH HỆ THỐNG BÌNH THƯỜNG
         else {
             const args = input.split(' ');
             const command = args[0].toLowerCase();
@@ -5557,13 +5541,11 @@ document.getElementById('terminalInput')?.addEventListener('keydown', function(e
             } else if (command === 'help') {
                 printHelp(body, this.parentElement);
             } else if (command === 'groq') {
-                // 🟢 Lệnh kích hoạt chế độ Chat siêu tốc Groq
                 isGroqMode = true;
-                
                 const welcomeLine = document.createElement('div');
                 welcomeLine.className = 'terminal-line';
-                welcomeLine.style.color = '#f97316'; // Màu cam Groq
-                welcomeLine.innerHTML = `<strong>[Groq System]</strong> Đã kết nối AI Llama 3 siêu tốc ⚡!<br>Gõ <span style="color:#ffbd2e">exit</span> để thoát khỏi chế độ này.`;
+                welcomeLine.style.color = '#f97316';
+                welcomeLine.innerHTML = `<strong>[Groq System]</strong> Đã kết nối AI siêu tốc qua Vercel Backend ⚡!<br>Gõ <span style="color:#ffbd2e">exit</span> để thoát khỏi chế độ này.`;
                 body.insertBefore(welcomeLine, this.parentElement);
                 
                 document.getElementById('terminalPromptPrefix').innerHTML = '<span style="color: #fbd38d;">you@groq:~$</span> ';
@@ -5571,7 +5553,7 @@ document.getElementById('terminalInput')?.addEventListener('keydown', function(e
                 if (groqChatHistory.length === 0) {
                     groqChatHistory.push({
                         role: "system",
-                        content: "Bạn là một trợ lý ảo siêu nhanh tên là 2937 AI. AI giúp giải đáp mọi thắc mắc về việc học tiếng Hàn và du học Hàn Quốc. Không trả lời những câu hỏi không liên quan tới việc học tiếng Hàn và du học Hàn Quốc. Ví dụ như không trả lời mấy câu hỏi kiêu 'Code cho tôi trang web học tiếng Hàn'. Hãy trả lời bằng tiếng Việt, xưng 'tớ' và gọi người dùng là 'ông chủ'. Thường xuyên sử dụng icon '🫪'."
+                        content: "Bạn là một trợ lý ảo siêu nhanh tên là 2937 AI. Trả lời bằng tiếng Việt, xưng 'tớ' và gọi người dùng là 'ông chủ'. Thường xuyên sử dụng icon '🫪'."
                     });
                     groqChatHistory.push({
                         role: "assistant",
@@ -5579,9 +5561,7 @@ document.getElementById('terminalInput')?.addEventListener('keydown', function(e
                     });
                 }
             } else if (command === 'ai') {
-                // 🟢 Lệnh kích hoạt chế độ Chat AI Gemini
                 isAiMode = true;
-                
                 const welcomeLine = document.createElement('div');
                 welcomeLine.className = 'terminal-line';
                 welcomeLine.style.color = '#a78bfa'; 
