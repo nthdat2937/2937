@@ -176,6 +176,8 @@
           <span class="sidebar-icon material-icons">style</span>
           <span>Flashcard</span>
         </button>
+        <hr>
+        <div class="sidebar-section-label">LUYỆN TẬP</div>
         <button class="sidebar-item" data-label="Luyện viết" onclick="sidebarSwitch('write', this)">
           <span class="sidebar-icon material-icons">edit</span>
           <span>Luyện viết</span>
@@ -196,10 +198,18 @@
           <span class="sidebar-icon material-icons">speed</span>
           <span>Tốc độ gõ</span>
         </button>
+        <hr>
+        <div class="sidebar-section-label">BÀI TẬP</div>
         <button class="sidebar-item" data-label="Kiểm tra" onclick="sidebarSwitch('quiz', this)">
           <span class="sidebar-icon material-icons">quiz</span>
           <span>Kiểm tra</span>
         </button>
+        <button class="sidebar-item admin-only" data-label="Admin" onclick="sidebarSwitch('admin', this)">
+          <span class="sidebar-icon material-icons">admin_panel_settings</span>
+          <span>Admin</span>
+        </button>
+        <hr>
+        <div class="sidebar-section-label">TIỆN ÍCH</div>
         <button class="sidebar-item" data-label="TOPIK Grid" onclick="sidebarSwitch('topik', this)">
           <span class="sidebar-icon material-icons">grid_on</span>
           <span>TOPIK Grid</span>
@@ -216,27 +226,15 @@
           <span class="sidebar-icon material-icons">menu_book</span>
           <span>Soạn bài</span>
         </button>
-
-        <!--Terminal-->
-        <!-- Thêm vào thanh bên (sidebar-nav) -->
-<button class="sidebar-item" data-label="Terminal" onclick="sidebarSwitch('terminal', this)">
-  <span class="sidebar-icon material-icons">terminal</span>
-  <span>Terminal</span>
-</button>
-
-        <!--Thêm tab-->
+        <button class="sidebar-item" data-label="Terminal" onclick="sidebarSwitch('terminal', this)">
+          <span class="sidebar-icon material-icons">terminal</span>
+          <span>Terminal</span>
+        </button>
         <button class="sidebar-item" data-label="Web của tôi" onclick="sidebarSwitch('music', this)">
             <span class="sidebar-icon material-icons">music_note</span>
             <span>Nhạc</span>
         </button>
-
-        <button class="sidebar-item admin-only" data-label="Admin" onclick="sidebarSwitch('admin', this)">
-          <span class="sidebar-icon material-icons">admin_panel_settings</span>
-          <span>Admin</span>
-        </button>
       </div>
-
-      <div class="sidebar-spacer"></div>
 
       <div class="sidebar-footer">
         <!-- Hidden authSection for JS compatibility -->
