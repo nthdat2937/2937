@@ -5,7 +5,6 @@ const sb = {
         const sp = supabase.createClient(sb.url, sb.key);
         let words = [], currentUser = null, isAdmin = false, pendingEntry = null, sTimer = null;
 
-        /* Auth */
         async function checkSession() {
             sp.auth.getSession().then(({ data: { session } }) => updateUser(session?.user || null));
         }
@@ -23,48 +22,43 @@ const sb = {
             let profileData = null;
             if (user) {
                 await new Promise(resolve => {
-                    // Đã sửa lại đúng tên cột: Streak và "Ngày cuối" (có dấu cách phải bọc ngoặc kép)
+
                     sp.from('profiles').select('role, display_name, avatar, Streak, "Ngày cuối"').eq('id', user.id).single().then(({ data }) => {
                         isAdmin = data?.role?.toLowerCase() === 'admin';
                         profileData = data;
-                        
-                        // ── XỬ LÝ LOGIC STREAK (CHUỖI NGÀY HỌC) ──
+
                         let currentStreak = data?.Streak || 0;
-                        let lastDate = data?.['Ngày cuối']; // Dùng ngoặc vuông để gọi tên biến có dấu cách
-                        
-                        // Lấy ngày chuẩn YYYY-MM-DD
+                        let lastDate = data?.['Ngày cuối'];
+
                         const now = new Date();
-                        const todayStr = now.toLocaleDateString('en-CA'); 
-                        
+                        const todayStr = now.toLocaleDateString('en-CA');
+
                         const yesterday = new Date(now);
                         yesterday.setDate(yesterday.getDate() - 1);
                         const yesterdayStr = yesterday.toLocaleDateString('en-CA');
-                        
-                        // Nếu user đăng nhập vào một ngày mới
+
                         if (lastDate !== todayStr) {
                             if (lastDate === yesterdayStr) {
-                                currentStreak++; // Hôm qua có học -> Cộng dồn chuỗi
+                                currentStreak++;
                             } else {
-                                currentStreak = 1; // Cách quá 1 ngày -> Đứt chuỗi, cày lại
+                                currentStreak = 1;
                             }
-                            // Bắn bản cập nhật lên Supabase đúng tên cột
+
                             sp.from('profiles').update({ 'Streak': currentStreak, 'Ngày cuối': todayStr }).eq('id', user.id).then();
                         }
-                        
-                        // Cập nhật con số lên ngọn lửa trên Topbar
+
                         const streakValEl = document.getElementById('topbarStreakVal');
                         if (streakValEl) streakValEl.textContent = currentStreak;
-                        
+
                         resolve();
                     }).catch(() => resolve());
                 });
             } else {
-                // Khách chưa đăng nhập -> Ngọn lửa về 0
+
                 const streakValEl = document.getElementById('topbarStreakVal');
                 if (streakValEl) streakValEl.textContent = '0';
             }
 
-            // Phần giao diện user cũ giữ nguyên
             document.body.classList.toggle('is-admin', isAdmin);
             const authSec = document.getElementById('authSection');
             if (user) {
@@ -74,7 +68,7 @@ const sb = {
                     ${isAdmin ? '<span class="btn btn-ghost" style="color:var(--txt);background:var(--bg3);padding:8px 18px;border-radius:4px;font-size:13px;border-radius:8px">Admin</span>' : ''}
                     <button class="btn btn-ghost" onclick="handleLogout()" style="padding:8px 18px;font-size:13px">Đăng xuất</button>
                 </div>`;
-                // Sync sidebar
+
                 if (typeof syncSidebarUser === 'function') syncSidebarUser(displayName, profileData?.avatar || null);
             } else {
                 authSec.innerHTML = `<button class="btn btn-ghost" onclick="openLogin()">Đăng nhập</button>`;
@@ -116,7 +110,6 @@ const sb = {
             toast('Đã đăng xuất');
         }
 
-        /* Data */
         function loadWords() {
             sp.auth.getSession().then(async ({ data: { session } }) => {
                 await updateUser(session?.user || null);
@@ -132,7 +125,6 @@ const sb = {
         function saveLocal() { try { localStorage.setItem('kv', JSON.stringify(words)); } catch { } }
         function refresh() { renderTable(); updateTopics(); if (document.getElementById('pane-flash').classList.contains('active')) buildFlash(); if (document.getElementById('pane-write').classList.contains('active')) buildWrite(); if (document.getElementById('pane-type').classList.contains('active')) buildType(); if (document.getElementById('pane-speed').classList.contains('active')) buildSpeed(); if (document.getElementById('pane-listen').classList.contains('active')) buildListen(); }
 
-        /* Tabs */
         function updateSoanHeight() {
             const shell = document.querySelector('.shell');
             const topbar = document.querySelector('.topbar');
@@ -147,30 +139,26 @@ const sb = {
             document.documentElement.style.setProperty('--shell-pt', shellPt + 'px');
         }
 
-        let quizInProgress = false; // lock flag khi đang làm bài
+        let quizInProgress = false;
 
         function switchTab(n) {
     if (quizInProgress && n !== 'quiz') {
         toast('⚠️ Đang làm bài kiểm tra! Hãy nộp hoặc bỏ cuộc trước.');
         return;
     }
-    
-    // 1. Cập nhật trạng thái Active cho các nút tab
+
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
     const tabNames = ['home', 'calendar', 'list', 'flash', 'write', 'type', 'speed', 'listen', 'mc', 'quiz', 'topik', 'chat', 'soan', 'admin', 'music', 'terminal'];
-    document.querySelectorAll('.tab').forEach((t, i) => { 
-        if (tabNames[i] === n) t.classList.add('active'); 
+    document.querySelectorAll('.tab').forEach((t, i) => {
+        if (tabNames[i] === n) t.classList.add('active');
     });
 
-    // 2. Ẩn tất cả các pane và hiện pane được chọn
     document.querySelectorAll('.pane').forEach(p => p.classList.remove('active'));
     const targetPane = document.getElementById('pane-' + n);
     if (targetPane) targetPane.classList.add('active');
-    
-    // 3. Logic riêng cho tab Soạn bài
+
     document.body.classList.toggle('soan-active', n === 'soan');
 
-    // 4. LOGIC TERMINAL (Sửa lỗi hiển thị Admin ngay lập tức)
     if (n === 'terminal') {
         const promptPrefix = document.getElementById('terminalPromptPrefix');
         if (promptPrefix) {
@@ -184,7 +172,6 @@ const sb = {
         }, 100);
     }
 
-    // 5. Khởi tạo lại các tính năng khác
     if (n === 'flash') buildFlash();
     if (n === 'write') buildWrite();
     if (n === 'type') buildType();
@@ -198,26 +185,24 @@ const sb = {
     if (n === 'calendar') renderCalendar();
 }
 
-
         function updateTopics() {
             const topics = [...new Set(words.map(w => w.topic).filter(Boolean))];
-            // Filter dropdown
+
             const sel = document.getElementById('fTopic'), cur = sel.value;
             sel.innerHTML = '<option value="">Tất cả chủ đề</option>' + topics.map(t => `<option value="${esc(t)}" ${t === cur ? 'selected' : ''}>${esc(t)}</option>`).join('');
-            // Datalist for topic inputs
+
             document.getElementById('topicList').innerHTML = topics.map(t => `<option value="${esc(t)}"></option>`).join('');
-            // Write pane topic selector
+
             const ws = document.getElementById('wpTopic');
             if (ws) { const wc = ws.value; ws.innerHTML = '<option value="">Tất cả chủ đề</option>' + topics.map(t => `<option value="${esc(t)}" ${t === wc ? 'selected' : ''}>${esc(t)}</option>`).join(''); }
-            // Type pane topic selector
+
             const ts = document.getElementById('tpTopic');
             if (ts) { const tc = ts.value; ts.innerHTML = '<option value="">Tất cả chủ đề</option>' + topics.map(t => `<option value="${esc(t)}" ${t === tc ? 'selected' : ''}>${esc(t)}</option>`).join(''); }
-            // Listen pane topic selector
+
             const ls = document.getElementById('lpTopic');
             if (ls) { const lc = ls.value; ls.innerHTML = '<option value="">Tất cả chủ đề</option>' + topics.map(t => `<option value="${esc(t)}" ${t === lc ? 'selected' : ''}>${esc(t)}</option>`).join(''); }
         }
 
-        /* ── Writing practice ── */
         function buildWrite() {
             const wrap = document.getElementById('wpWrap');
             if (!words.length) { wrap.innerHTML = '<div class="empty-state">Chưa có từ vựng.</div>'; return; }
@@ -244,7 +229,7 @@ const sb = {
                 </select>
             </div>
             <div class="wp-card" id="wpCard">
-                
+
                 <div class="wp-prompt" id="wpPrompt"></div>
                 <div class="wp-prompt-sub" id="wpPromptSub"></div>
                 <div class="wp-canvas-row">
@@ -293,7 +278,7 @@ const sb = {
                     .sort(() => Math.random() - .5);
             }
 
-            let answered = false; // track if current word answered correctly
+            let answered = false;
 
             function setNextVisible(visible, skipped = false) {
                 const btn = document.getElementById('wpNextBtn');
@@ -315,14 +300,14 @@ const sb = {
                 if (!pool.length) {
                     document.getElementById('wpPrompt').textContent = 'Không có từ phù hợp.';
                     document.getElementById('wpProg').textContent = '';
-                    // Hide canvas + buttons when no words
+
                     card.querySelector('.wp-canvas-row').style.display = 'none';
                     document.getElementById('wpResult').className = 'wp-result hidden';
                     document.getElementById('wpAns').classList.add('hidden');
                     document.getElementById('wpAnsSub').classList.add('hidden');
                     return;
                 }
-                // Show canvas + buttons
+
                 card.querySelector('.wp-canvas-row').style.display = '';
 
                 answered = false;
@@ -360,7 +345,6 @@ const sb = {
                 wpClear();
             }
 
-            // Canvas drawing — must be set up BEFORE first render()
             const canvas = document.getElementById('wpCanvas');
             const hint = document.getElementById('wpHint');
             function resizeCanvas() {
@@ -385,7 +369,7 @@ const sb = {
                 clearTimeout(autoRecognizeTimer);
                 if (!strokes.length) return;
                 strokes.pop();
-                // Redraw all remaining strokes
+
                 const ctx = canvas.getContext('2d');
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -404,7 +388,7 @@ const sb = {
                 const r = document.getElementById('wpResult');
                 if (r) r.className = 'wp-result hidden';
                 const p = document.getElementById('wpPreview'); if (p) p.textContent = '';
-                if (strokes.length) { clearTimeout(autoRecognizeTimer); autoRecognizeTimer = setTimeout(() => wpPreview(), 10); } //2937
+                if (strokes.length) { clearTimeout(autoRecognizeTimer); autoRecognizeTimer = setTimeout(() => wpPreview(), 10); }
             };
 
             window.wpRestart = () => { pool = getPool(); idx = 0; render(); };
@@ -428,7 +412,6 @@ const sb = {
                 const previewEl = document.getElementById('wpPreview');
                 if (!previewEl) return;
 
-                // 1. Browser Handwriting API
                 if (navigator.createHandwritingRecognizer) {
                     try {
                         const mode = document.getElementById('wpMode').value;
@@ -446,7 +429,6 @@ const sb = {
                     } catch (e) {}
                 }
 
-                // 2. Google Input Tools
                 try {
                     const mode = document.getElementById('wpMode').value;
                     const itc = mode === 'kor-viet' ? 'vi-t-i0-handwrit' : 'ko-t-i0-handwrit';
@@ -502,7 +484,6 @@ const sb = {
                     }
                 }
 
-                // 1. Try Browser API first (if available and reliable)
                 if (navigator.createHandwritingRecognizer) {
                     try {
                         const mode = document.getElementById('wpMode').value;
@@ -523,7 +504,6 @@ const sb = {
                     } catch (e) { console.warn('Browser Recognition failed, trying Google API...', e); }
                 }
 
-                // 2. Try Google Input Tools API
                 try {
                     const mode = document.getElementById('wpMode').value;
                     const itc = mode === 'kor-viet' ? 'vi-t-i0-handwrit' : 'ko-t-i0-handwrit';
@@ -532,7 +512,7 @@ const sb = {
                     const ink = strokes.map(stroke => [
                         stroke.map(p => Math.round(p.x / devicePixelRatio)),
                         stroke.map(p => Math.round(p.y / devicePixelRatio)),
-                        stroke.map(p => p.t - startTime) // Use relative time
+                        stroke.map(p => p.t - startTime)
                     ]);
 
                     const box = canvas.getBoundingClientRect();
@@ -554,7 +534,6 @@ const sb = {
 
                     if (!r.ok) throw new Error('API Error: ' + r.status);
                     const data = await r.json();
-                    // console.log('Handwriting API Data:', data);
 
                     if (data[0] !== 'SUCCESS') throw new Error(`Google recognition failed (${data[0]})`);
 
@@ -613,7 +592,7 @@ const sb = {
                 currentStroke = [];
                 if (strokes.length && !answered) {
                     clearTimeout(autoRecognizeTimer);
-                    autoRecognizeTimer = setTimeout(() => wpPreview(), 10); //2937
+                    autoRecognizeTimer = setTimeout(() => wpPreview(), 10);
                 }
             }
 
@@ -622,18 +601,15 @@ const sb = {
             canvas.addEventListener('pointerup', stopDraw);
             canvas.addEventListener('pointerleave', stopDraw);
 
-            // Now safe to render
             pool = getPool();
             render();
         }
 
-        /* ── Typing practice ── */
         function buildType() {
             const wrap = document.getElementById('tpWrap');
             if (!words.length) { wrap.innerHTML = '<div class="empty-state">Chưa có từ vựng.</div>'; return; }
             const topics = [...new Set(words.map(w => w.topic).filter(Boolean))];
 
-            // QWERTY → Jamo mapping (same as search)
             const q2j = {
                 'q':'ㅂ','w':'ㅈ','e':'ㄷ','r':'ㄱ','t':'ㅅ','y':'ㅛ','u':'ㅕ','i':'ㅑ','o':'ㅐ','p':'ㅔ',
                 'a':'ㅁ','s':'ㄴ','d':'ㅇ','f':'ㄹ','g':'ㅎ','h':'ㅗ','j':'ㅓ','k':'ㅏ','l':'ㅣ',
@@ -765,15 +741,14 @@ const sb = {
                 input.className = 'tp-input';
                 input.disabled = false;
                 input.placeholder = isKoreanMode() ? '한국어로 입력하세요...' : 'Gõ câu trả lời...';
-                updateHintRow(''); // hiện ô gợi ý ngay với dấu ?
+                updateHintRow('');
                 setTimeout(() => input.focus(), 50);
             }
 
-            // Live input handling
             const tpInput = document.getElementById('tpInput');
 
             tpInput.addEventListener('input', () => {
-                // cập nhật gợi ý chuyển Hangul live
+
                 if (isKoreanMode()) {
                     const raw = tpInput.value;
                     const keyHint = document.getElementById('tpKeyboardHint');
@@ -871,12 +846,10 @@ const sb = {
             render();
         }
 
-        /* ── Speed Typing practice ── */
         function buildSpeed() {
             const wrap = document.getElementById('speedWrap');
             if (!words.length) { wrap.innerHTML = '<div class="empty-state">Chưa có từ vựng.</div>'; return; }
 
-            // QWERTY → Jamo mapping
             const q2j = {
                 'q':'ㅂ','w':'ㅈ','e':'ㄷ','r':'ㄱ','t':'ㅅ','y':'ㅛ','u':'ㅕ','i':'ㅑ','o':'ㅐ','p':'ㅔ',
                 'a':'ㅁ','s':'ㄴ','d':'ㅇ','f':'ㄹ','g':'ㅎ','h':'ㅗ','j':'ㅓ','k':'ㅏ','l':'ㅣ',
@@ -967,14 +940,12 @@ const sb = {
             let started = false, finished = false;
             let correctChars = 0, totalTyped = 0, wordsCompleted = 0;
             let timerLeft = 60, timerInterval = null;
-            let currentMode = 'korean'; // 'korean' | 'viet'
-            let liveInput = ''; // raw QWERTY buffer for Korean mode
+            let currentMode = 'korean';
+            let liveInput = '';
 
-            // --- THÊM VÀO KHU VỰC KHAI BÁO BIẾN ---
             let isSurvivalMode = false;
-            let elapsedSeconds = 0; // Đếm thời gian trôi qua thực tế để tính CPM cho chuẩn
+            let elapsedSeconds = 0;
 
-            // Hàm tạo hiệu ứng +2s / -1s bay lơ lửng
             function showFloatingTime(text, type) {
                 const timerWrap = document.getElementById('sTimer').parentNode;
                 timerWrap.style.position = 'relative';
@@ -991,8 +962,7 @@ const sb = {
                 floatEl.style.opacity = '1';
                 floatEl.style.transform = 'translateY(0) scale(1)';
                 timerWrap.appendChild(floatEl);
-                
-                // Kích hoạt bay lên
+
                 setTimeout(() => {
                     floatEl.style.opacity = '0';
                     floatEl.style.transform = 'translateY(-25px) scale(1.2)';
@@ -1000,26 +970,23 @@ const sb = {
                 setTimeout(() => floatEl.remove(), 600);
             }
 
-            // ==== Extract single word/syllable ====
             function extractWord(w) {
-                // Hàm dọn dẹp ký tự đặc biệt: thay thế ngoặc, chấm, phẩy... bằng khoảng trắng
+
                 const cleanText = (text) => (text || '').replace(/[()\[\]{}.,!?;:"'“”‘’~]/g, ' ').trim();
 
                 if (currentMode === 'korean') {
-                    // Korean word: làm sạch trước rồi mới tách theo khoảng trắng
+
                     const parts = cleanText(w.korean).split(/\s+/).filter(Boolean);
                     if (!parts.length) return null;
                     return parts[Math.floor(Math.random() * parts.length)];
                 } else {
-                    // Vietnamese meaning: tách theo dấu phẩy trước để lấy cụm nghĩa
+
                     const meaning = (w.meaning || '').trim();
                     const commaParts = meaning.split(',').filter(Boolean);
-                    
-                    // Chọn ngẫu nhiên 1 cụm nghĩa, sau đó làm sạch ký tự đặc biệt
+
                     const chosenRaw = commaParts[Math.floor(Math.random() * commaParts.length)] || meaning;
                     const chosenClean = cleanText(chosenRaw);
-                    
-                    // Tách cụm nghĩa thành các từ đơn và chọn 1 từ
+
                     const spaceParts = chosenClean.split(/\s+/).filter(Boolean);
                     if (spaceParts.length > 1) return spaceParts[Math.floor(Math.random() * spaceParts.length)];
                     return chosenClean;
@@ -1035,7 +1002,7 @@ const sb = {
                     if (word && word.length >= 1) result.push(word);
                     if (result.length >= 50) break;
                 }
-                // ensure minimum 10
+
                 if (result.length < 5) return null;
                 return result;
             }
@@ -1048,10 +1015,10 @@ const sb = {
                     const chars = [...word];
                     let html = '';
                     if (wi < wordIdx) {
-                        // completed word
+
                         html = chars.map(ch => `<span class="s-ch done">${esc(ch)}</span>`).join('');
                     } else if (wi === wordIdx) {
-                        // current word
+
                         const typedChars = [...liveInput];
                         html = chars.map((ch, ci) => {
                             if (ci < typedChars.length) {
@@ -1063,7 +1030,7 @@ const sb = {
                                 return `<span class="s-ch">${esc(ch)}</span>`;
                             }
                         }).join('');
-                        // if typed more than word length show excess in red
+
                         if (typedChars.length > chars.length) {
                             html += typedChars.slice(chars.length).map(ch => `<span class="s-ch wrong">${esc(ch)}</span>`).join('');
                         }
@@ -1073,7 +1040,6 @@ const sb = {
                     return `<span class="s-word">${html}</span>`;
                 }).join('<span class="s-dot">·</span>');
 
-                // Scroll current word into view
                 requestAnimationFrame(() => {
                     const cursor = area.querySelector('.cursor');
                     if (cursor) {
@@ -1085,18 +1051,6 @@ const sb = {
                     }
                 });
             }
-
-            // function updateMetrics() {
-            //     const wpm = timerLeft < 60 ? Math.round((correctChars / 5) / ((60 - timerLeft) / 60)) : 0;
-            //     const acc = totalTyped > 0 ? Math.round((correctChars / totalTyped) * 100) : 100;
-            //     const score = Math.round(wpm * (acc / 100));
-            //     const wpmEl = document.getElementById('sWpm');
-            //     const accEl = document.getElementById('sAcc');
-            //     const scoreEl = document.getElementById('sScore');
-            //     if (wpmEl) wpmEl.textContent = isFinite(wpm) ? wpm : 0;
-            //     if (accEl) accEl.textContent = acc + '%';
-            //     if (scoreEl) scoreEl.textContent = isFinite(score) ? score : 0;
-            // }
 
             function updateHintBar() {
                 const bar = document.getElementById('speedHintBar');
@@ -1121,7 +1075,7 @@ const sb = {
                 if (timerInterval) return;
                 timerInterval = setInterval(() => {
                     timerLeft--;
-                    elapsedSeconds++; // Tăng thời gian thực tế
+                    elapsedSeconds++;
                     const timerEl = document.getElementById('sTimer');
                     if (timerEl) {
                         timerEl.textContent = timerLeft;
@@ -1129,61 +1083,32 @@ const sb = {
                         else timerEl.classList.remove('danger');
                     }
                     updateMetrics();
-                    
+
                     if (timerLeft <= 0) {
-                        // Kêu chuông "tạch" khi hết giờ nếu ông chủ thích
+
                         finishRound();
                     }
                 }, 1000);
             }
 
-            // function finishRound() {
-            //     finished = true;
-            //     clearInterval(timerInterval);
-            //     timerInterval = null;
-
-            //     const wpm = timerLeft < 60 ? Math.round((correctChars / 5) / ((60 - timerLeft + (timerLeft > 0 ? 0 : 0)) / 60)) : 0;
-            //     const elapsed = Math.max(1, 60 - timerLeft);
-            //     const finalWpm = Math.round((correctChars / 5) / (elapsed / 60));
-            //     const acc = totalTyped > 0 ? Math.round((correctChars / totalTyped) * 100) : 100;
-            //     const score = Math.round(finalWpm * (acc / 100));
-
-            //     const arena = document.getElementById('speedArena');
-            //     const metrics = document.getElementById('speedMetrics');
-            //     const result = document.getElementById('speedResult');
-            //     const inp = document.getElementById('speedInput');
-            //     if (arena) arena.style.display = 'none';
-            //     if (metrics) metrics.style.display = 'none';
-            //     if (inp) inp.blur();
-
-            //     document.getElementById('rWpm').textContent = isFinite(finalWpm) ? finalWpm : 0;
-            //     document.getElementById('rAcc').textContent = acc + '%';
-            //     document.getElementById('rWords').textContent = wordsCompleted;
-            //     document.getElementById('rScore').textContent = isFinite(score) ? score : 0;
-
-            //     if (result) result.style.display = 'flex';
-            // }
-
-            // Thêm hàm rã chữ Hàn ra thành từng âm vị (Jamo) để đếm đúng số phím vật lý
             function getStrokeCount(str) {
                 if (!str) return 0;
-                // Nếu là tiếng Hàn, tháo tung chữ ra (VD: "한" -> "ㅎ","ㅏ","ㄴ" -> 3 phím)
+
                 if (currentMode === 'korean' && window.Hangul) {
-                    return Hangul.d(str).length; 
+                    return Hangul.d(str).length;
                 }
-                return str.length; // Tiếng Việt thì đếm bình thường
+                return str.length;
             }
 
-            // Ghi đè hàm updateMetrics để tính toán thời gian thực
             function updateMetrics() {
-                // Tính luôn cả các chữ đang gõ dở dang trên ô input
+
                 let liveCorrect = 0, liveTotal = 0;
                 if (started && liveInput) {
                     const expected = pool[wordIdx] || '';
                     const typedArr = [...liveInput];
                     const expArr = [...expected];
                     const maxLen = Math.max(typedArr.length, expArr.length);
-                    
+
                     for (let i = 0; i < maxLen; i++) {
                         const tChar = typedArr[i] || '';
                         const eChar = expArr[i] || '';
@@ -1197,24 +1122,20 @@ const sb = {
                 const totalC = correctChars + liveCorrect;
                 const totalT = totalTyped + liveTotal;
 
-                // Tính CPM thay vì WPM (Bỏ chia 5)
-                // Tính thời gian dựa trên giây thực tế đã trôi qua
                 const elapsed = Math.max(1, elapsedSeconds);
-                const cpm = Math.round(totalC / (elapsed / 60)); 
+                const cpm = Math.round(totalC / (elapsed / 60));
                 const acc = totalT > 0 ? Math.round((totalC / totalT) * 100) : 100;
-                
-                // Tớ chia 5 lại ở phần tính Score để điểm của ông chủ không bị bơm lên gấp 5 lần so với cũ nha
+
                 const score = Math.round((cpm / 5) * (acc / 100));
 
                 const wpmEl = document.getElementById('sWpm');
                 const accEl = document.getElementById('sAcc');
                 const scoreEl = document.getElementById('sScore');
-                if (wpmEl) wpmEl.textContent = isFinite(cpm) ? cpm : 0; // Vẫn chèn vào sWpm nhưng giá trị là cpm
+                if (wpmEl) wpmEl.textContent = isFinite(cpm) ? cpm : 0;
                 if (accEl) accEl.textContent = acc + '%';
                 if (scoreEl) scoreEl.textContent = isFinite(score) ? score : 0;
             }
 
-            // Ghi đè hàm kết thúc game để gom nốt mấy chữ gõ dở
             function finishRound() {
                 finished = true;
                 clearInterval(timerInterval);
@@ -1238,8 +1159,6 @@ const sb = {
                 const finalCorrect = correctChars + liveCorrect;
                 const finalTotal = totalTyped + liveTotal;
 
-                // Tính CPM chung cuộc
-                // Tính thời gian dựa trên giây thực tế đã trôi qua
                 const elapsed = Math.max(1, elapsedSeconds);
                 const finalCpm = Math.round(finalCorrect / (elapsed / 60));
                 const acc = finalTotal > 0 ? Math.round((finalCorrect / finalTotal) * 100) : 100;
@@ -1253,7 +1172,7 @@ const sb = {
                 if (metrics) metrics.style.display = 'none';
                 if (inp) inp.blur();
 
-                document.getElementById('rWpm').textContent = isFinite(finalCpm) ? finalCpm : 0; // Trả về CPM
+                document.getElementById('rWpm').textContent = isFinite(finalCpm) ? finalCpm : 0;
                 document.getElementById('rAcc').textContent = acc + '%';
                 document.getElementById('rWords').textContent = wordsCompleted;
                 document.getElementById('rScore').textContent = isFinite(score) ? score : 0;
@@ -1281,14 +1200,13 @@ const sb = {
                 charIdx = 0;
                 liveInput = '';
 
-                // Nhận diện chế độ chơi để cài thời gian gốc
                 isSurvivalMode = document.getElementById('speedGameMode')?.value === 'survival';
                 timerLeft = isSurvivalMode ? 15 : 60;
 
                 const timerEl = document.getElementById('sTimer');
-                if (timerEl) { 
-                    timerEl.textContent = timerLeft; 
-                    timerEl.classList.remove('danger'); 
+                if (timerEl) {
+                    timerEl.textContent = timerLeft;
+                    timerEl.classList.remove('danger');
                 }
 
                 const arena = document.getElementById('speedArena');
@@ -1312,7 +1230,6 @@ const sb = {
                 if (inp) { inp.value = ''; setTimeout(() => inp.focus(), 50); }
             };
 
-            // Input handler
             const inp = document.getElementById('speedInput');
 
             inp.addEventListener('focus', () => {
@@ -1325,7 +1242,6 @@ const sb = {
             inp.addEventListener('keydown', e => {
                 if (finished) return;
 
-                // Tab: convert QWERTY → Hangul
                 if (e.key === 'Tab' && currentMode === 'korean') {
                     e.preventDefault();
                     if (window.Hangul && /[a-zA-Z]/.test(liveInput)) {
@@ -1340,12 +1256,9 @@ const sb = {
                     return;
                 }
 
-                // Restart shortcut
                 if (e.key === 'Escape') { e.preventDefault(); speedRestart(); return; }
             });
 
-            // Ghi đè hàm submitWord
-            // Ghi đè hàm nộp chữ để cộng/trừ giờ
             function submitWord(typed) {
                 if (!typed) return;
                 if (!started) { started = true; startTimer(); }
@@ -1354,7 +1267,7 @@ const sb = {
                 const typedArr = [...typed];
                 const expArr = [...expected];
                 const charsToCompare = Math.max(typedArr.length, expArr.length);
-                
+
                 for (let i = 0; i < charsToCompare; i++) {
                     const tChar = typedArr[i] || '';
                     const eChar = expArr[i] || '';
@@ -1364,16 +1277,15 @@ const sb = {
                     }
                 }
 
-                // KIỂM TRA ĐÚNG/SAI VÀ PHẠT GIỜ ⏳
                 if (typed === expected) {
                     wordsCompleted++;
                     if (isSurvivalMode) {
-                        timerLeft += 2; // Gõ đúng +2s
+                        timerLeft += 2;
                         showFloatingTime('+2s', 'correct');
                     }
                 } else {
                     if (isSurvivalMode) {
-                        timerLeft = Math.max(0, timerLeft - 1); // Gõ sai -1s
+                        timerLeft = Math.max(0, timerLeft - 1);
                         showFloatingTime('-1s', 'wrong');
                         if (timerLeft === 0) {
                             finishRound();
@@ -1396,7 +1308,6 @@ const sb = {
                 if (finished) return;
                 const val = inp.value;
 
-                // Space anywhere in value = word submission
                 if (val.includes(' ')) {
                     const typed = val.replace(/\s+/g, '').trim();
                     inp.value = typed;
@@ -1412,17 +1323,14 @@ const sb = {
                 updateMetrics();
             });
 
-            // Click arena to focus input
             document.getElementById('speedArena').addEventListener('click', () => {
                 if (!finished) inp.focus();
             });
 
-            // Keyboard shortcut Tab for restart when not focused on input
             document.getElementById('speedWrap').addEventListener('keydown', e => {
                 if (e.key === 'Escape') speedRestart();
             });
 
-            // Initial build
             pool = buildPool() || [];
             if (!pool.length) {
                 document.getElementById('speedTextArea').innerHTML = '<span style="color:var(--txt3)">Không có từ vựng.</span>';
@@ -1433,13 +1341,12 @@ const sb = {
             setTimeout(() => inp.focus(), 80);
         }
 
-        /* ── Listening practice ── */
         function buildListen() {
             const wrap = document.getElementById('lpWrap');
             if (!words.length) { wrap.innerHTML = '<div class="empty-state">Chưa có từ vựng.</div>'; return; }
 
             const topics = [...new Set(words.map(w => w.topic).filter(Boolean))];
-            let lpSpeed = 1.0; // playback rate
+            let lpSpeed = 1.0;
 
             wrap.innerHTML = `
             <div class="wp-toolbar">
@@ -1551,7 +1458,6 @@ const sb = {
                 const keyHint = document.getElementById('lpKeyboardHint');
                 const playBtn = document.getElementById('lpPlayBtn');
 
-                // Always speak Korean; answer depends on mode
                 if (mode === 'kor-write-kor') {
                     ans.textContent = w.korean;
                     ansSub.textContent = (w.romanize ? `[${w.romanize}] ` : '') + (w.meaning || '');
@@ -1577,7 +1483,7 @@ const sb = {
                 playBtn.className = 'lp-play-btn';
                 playBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg> Nghe từ`;
                 updateHintRow('');
-                // auto-play khi sang từ mới
+
                 setTimeout(() => { lpSpeak(); input.focus(); }, 300);
             }
 
@@ -1649,7 +1555,7 @@ const sb = {
             function lpCheck() {
                 if (answered) return;
                 const typed = lpInput.value.trim();
-                if (!typed) { lpSpeak(); return; } // Nếu chưa gõ gì, phát lại âm thanh
+                if (!typed) { lpSpeak(); return; }
                 const expected = document.getElementById('lpAns').textContent.trim();
                 const norm = s => s.toLowerCase().replace(/\(.*?\)/g, '').replace(/\[.*?\]/g, '').replace(/\s+/g, ' ').trim();
                 const expectedParts = expected.split(',').map(s => norm(s));
@@ -1745,7 +1651,7 @@ const sb = {
             clearTimeout(sTimer);
             if (!hasVal) { closeDrop(); closeForm(); renderTable(); return; }
             sTimer = setTimeout(() => updateDrop(), 100);
-            renderTable(); // bảng lọc theo search real-time
+            renderTable();
         }
 
         function updateDrop() {
@@ -1831,7 +1737,6 @@ const sb = {
             if (!e.target.closest('#searchPanel')) closeDrop();
         });
 
-        /* Dup check */
         function checkDup(kor) {
             const w = document.getElementById('dupWarn');
             const ex = words.filter(x => x.korean === kor);
@@ -1859,7 +1764,6 @@ const sb = {
             return res.toLowerCase().trim();
         }
 
-        /* Add */
         async function addWord() {
             if (!isAdmin) { toast('Bạn cần quyền Admin để thêm từ'); return; }
             const kor = document.getElementById('searchKor').value.trim();
@@ -1899,7 +1803,7 @@ const sb = {
                 } catch (e) {
                     console.error('Lỗi khi thêm:', e);
                     toast('Lỗi Supabase: ' + (e.message || ''));
-                    // We don't save to local array if it's a DB error, to reflect true state
+
                     document.getElementById('btnAdd').disabled = false;
                     return;
                 }
@@ -1921,7 +1825,7 @@ const sb = {
                 } catch (e) {
                     console.error('Lỗi khi xóa:', e);
                     toast('Lỗi Supabase: ' + (e.message || ''));
-                    return; // Ngừng tiếp tục nếu xóa lỗi trên CSDL
+                    return;
                 }
             }
             words = words.filter(w => w.id !== id);
@@ -1929,7 +1833,6 @@ const sb = {
             refresh(); toast('Đã xóa');
         }
 
-        /* Edit */
         function editWord(id) {
             const w = words.find(x => x.id === id);
             if (!w) return;
@@ -1975,7 +1878,7 @@ const sb = {
                 } catch (e) {
                     console.error('Lỗi cập nhật:', e);
                     toast('Lỗi Supabase: ' + (e.message || ''));
-                    return; // Ngừng tiếp tục nếu lỗi CSDL
+                    return;
                 }
             } else {
                 const idx = words.findIndex(w => String(w.id) === String(id));
@@ -1987,19 +1890,17 @@ const sb = {
             refresh();
         }
 
-        /* Table */
         function renderTable() {
             const kor = document.getElementById('searchKor').value.trim().toLowerCase();
             const mean = document.getElementById('iMean').value.trim().toLowerCase();
             const type = document.getElementById('iType').value;
-            // const t = document.getElementById('fType').value;
+
             const tp = document.getElementById('fTopic').value;
             const sort = document.getElementById('fSort').value;
             let list = words.filter(w =>
                 (!kor || w.korean?.toLowerCase().includes(kor) || w.romanize?.toLowerCase().includes(kor)) &&
                 (!mean || w.meaning?.toLowerCase().includes(mean)) &&
-                (!type || w.type === type)/* &&
-                (!t || w.type === t)*/ && (!tp || w.topic === tp)
+                (!type || w.type === type) && (!tp || w.topic === tp)
             );
             if (sort === 'kor_asc') list.sort((a, b) => (a.korean || '').localeCompare(b.korean || ''));
             else if (sort === 'kor_desc') list.sort((a, b) => (b.korean || '').localeCompare(a.korean || ''));
@@ -2014,7 +1915,7 @@ const sb = {
       <td><span class="badge b-${esc(w.type || '기타')}">${esc(w.type || '기타')}</span></td>
       <td>${esc(w.meaning)}</td>
       <td style="font-size:12px;color:var(--txt2)">${esc(w.romanize || '')}</td>
-      <td style="font-size:12px;color:var(--txt2)">${esc(w.example || '')}${w.example_meaning ? `<div class="ex-viet">${esc(w.example_meaning)}</div>` : ''}</td> 
+      <td style="font-size:12px;color:var(--txt2)">${esc(w.example || '')}${w.example_meaning ? `<div class="ex-viet">${esc(w.example_meaning)}</div>` : ''}</td>
       <td style="font-size:12px;color:var(--txt3)">${esc(w.topic || '')}</td>
       <td class="admin-only" style="white-space:nowrap">
         <button class="btn-edit" onclick="editWord(${w.id})" title="Chỉnh sửa">✎</button>
@@ -2023,16 +1924,13 @@ const sb = {
     </tr>`).join('');
         }
 
-        /* Flashcard */
         function buildFlash() {
             const wrap = document.getElementById('fcWrap');
             if (!words.length) { wrap.innerHTML = '<div class="empty-state">Chưa có từ vựng.</div>'; return; }
 
-            // Collect unique topics
             const allTopics = [...new Set(words.map(w => w.topic).filter(Boolean))].sort();
 
-            // Filter mode: 'type' or 'topic'
-            let filterMode = 'type'; // 'type' = lọc theo từ loại, 'topic' = lọc theo chủ đề
+            let filterMode = 'type';
             let selType = '';
             let selTopic = '';
             let pool = [...words].sort(() => Math.random() - .5);
@@ -2104,7 +2002,7 @@ const sb = {
                 window.fcTopicFilter = () => { selTopic = document.getElementById('fcTopic').value; applyFilter(); render(); };
                 window.fcSetMode = mode => {
                     filterMode = mode;
-                    // When switching mode, reset to "all" of the OTHER dimension
+
                     if (mode === 'type') { selTopic = ''; }
                     else { selType = ''; }
                     applyFilter();
@@ -2115,7 +2013,6 @@ const sb = {
             render();
         }
 
-        /* Modal */
         function showModal(title, body, meanings, btns) {
             document.getElementById('mTitle').innerHTML = title;
             document.getElementById('mBody').innerHTML = body;
@@ -2129,7 +2026,6 @@ const sb = {
         function closeModal() { document.getElementById('modal').classList.remove('show'); }
         document.getElementById('modal').addEventListener('click', e => { if (e.target === document.getElementById('modal')) closeModal(); });
 
-        /* Export */
         function exportCSV() {
             if (!words.length) { toast('Chưa có dữ liệu'); return; }
             const h = ['Tiếng Hàn', 'Từ loại', 'Nghĩa tiếng Việt', 'Phiên âm', 'Câu ví dụ', 'Nghĩa câu ví dụ', 'Chủ đề'];
@@ -2139,16 +2035,10 @@ const sb = {
             a.download = 'tu_vung_tieng_han.xlsx'; a.click(); toast('Đã xuất Excel');
         }
 
-        /* Utils */
         function esc(s) { if (!s) return ''; return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
         function escA(s) { return esc(s).replace(/'/g, '&#39;'); }
         function toast(msg, ms = 2500) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), ms); }
 
-        /* ═══════════════════════════════════
-           TRẮC NGHIỆM 4 ĐÁP ÁN (Multiple Choice)
-           ═══════════════════════════════════ */
-
-        // Tất cả state MC là flat global — không closure, không object wrapper
         let MC_answered = false;
         let MC_choices  = [];
         let MC_correct  = null;
@@ -2277,7 +2167,7 @@ const sb = {
                 </div>
                 ${MC_streak >= 3 ? `<div class="mc-streak">🔥 Chuỗi ${MC_streak} câu đúng!</div>` : ''}
             </div>`;
-            // Focus vào mcWrap để phím 1-4 hoạt động ngay
+
             requestAnimationFrame(() => {
                 const wrap = document.getElementById('mcWrap');
                 if (wrap) wrap.focus();
@@ -2369,9 +2259,6 @@ const sb = {
             mcRender();
         }
 
-        /* ═══════════════════════════════════
-           QUIZ
-           ═══════════════════════════════════ */
         let quizzes = [];
 
         async function loadQuizzes() {
@@ -2390,8 +2277,8 @@ const sb = {
                 wrap.innerHTML = '<div class="empty-state">Chưa có bài kiểm tra nào. Admin hãy tạo bài!</div>';
                 return;
             }
-            // Load attempt counts for current user
-            let attemptCounts = {}; // quizId -> count
+
+            let attemptCounts = {};
             if (currentUser) {
                 try {
                     const { data } = await sp.from('quiz_results')
@@ -2451,7 +2338,6 @@ const sb = {
             const quiz = quizzes.find(q => q.id === quizId);
             if (!quiz) return;
 
-            // Check attempt limit
             if (quiz.max_attempts > 0 && currentUser) {
                 try {
                     const { count } = await sp.from('quiz_results')
@@ -2474,7 +2360,7 @@ const sb = {
 
             const wrap = document.getElementById('quizWrap');
             let idx = 0;
-            const results = []; // {word, correct, recognized}
+            const results = [];
             let answered = false;
             let quizStrokes = [], quizCurrentStroke = [], quizDrawing = false;
             let quizAutoTimer = null;
@@ -2576,12 +2462,11 @@ const sb = {
                     </div>
                 </div>`;
 
-                // Store answer
                 wrap._answer = answer;
                 wrap._answerSub = answerSub;
 
                 if (isWriteMode()) {
-                // ── Canvas setup ──
+
                 const canvas = document.getElementById('qzCanvas');
                 const hint = document.getElementById('qzHint');
                 quizStrokes = []; quizCurrentStroke = []; quizDrawing = false;
@@ -2634,7 +2519,7 @@ const sb = {
                 };
 
                 } else {
-                // ── Text input setup (type + listen) ──
+
                 const q2j = {
                     'q':'ㅂ','w':'ㅈ','e':'ㄷ','r':'ㄱ','t':'ㅅ','y':'ㅛ','u':'ㅕ','i':'ㅑ','o':'ㅐ','p':'ㅔ',
                     'a':'ㅁ','s':'ㄴ','d':'ㅇ','f':'ㄹ','g':'ㅎ','h':'ㅗ','j':'ㅓ','k':'ㅏ','l':'ㅣ',
@@ -2705,7 +2590,7 @@ const sb = {
 
                 if (isListenMode()) setTimeout(() => qzSpeak(), 300);
                 setTimeout(() => inp.focus(), 50);
-                } // end else
+                }
                 window.qzReveal = () => {
                     document.getElementById('qzAns').textContent = wrap._answer;
                     document.getElementById('qzAnsSub').textContent = wrap._answerSub;
@@ -2760,11 +2645,10 @@ const sb = {
                             document.getElementById('qzNextBtn').style.display = '';
                             document.getElementById('qzNextBtn').className = 'wp-icon-btn wp-icon-btn--skip';
                         }
-                        // Hide left buttons
+
                         wrap.querySelector('.wp-btns').style.visibility = 'hidden';
                     }
 
-                    // Try browser API
                     if (navigator.createHandwritingRecognizer) {
                         try {
                             const lang = quiz.mode === 'kor-viet' ? 'vi' : 'ko';
@@ -2775,7 +2659,7 @@ const sb = {
                             if (res?.length) { await handleRecognized(res[0].text.trim()); return; }
                         } catch(e) {}
                     }
-                    // Try Google
+
                     try {
                         const itc = quiz.mode === 'kor-viet' ? 'vi-t-i0-handwrit' : 'ko-t-i0-handwrit';
                         const t0 = quizStrokes[0][0].t;
@@ -2807,16 +2691,15 @@ const sb = {
                 window.qzForfeit = () => {
                     if (!confirm('Bỏ cuộc? Điểm sẽ là 0/'+pool.length+', kể cả câu đúng trước đó.')) return;
                     if (isListenMode()) window.speechSynthesis.cancel();
-                    // Fill remaining questions not yet answered
+
                     for (let i = results.length; i < pool.length; i++) {
                         results.push({ word: pool[i], correct: false, recognized: '(bỏ cuộc)' });
                     }
-                    // Zero out ALL results including previously correct ones
+
                     for (let i = 0; i < results.length; i++) results[i].correct = false;
                     renderQuizSummary();
                 };
 
-                // ── Type/Listen check ──
                 window.qzTypeCheck = () => {
                     if (answered) return;
                     const inp = document.getElementById('qzTypeInput');
@@ -2852,7 +2735,7 @@ const sb = {
                     document.getElementById('qzRevealBtn').style.display = 'none';
                 };
 
-            } // end renderQuizDoing
+            }
 
             async function renderQuizSummary() {
                 quizInProgress = false;
@@ -2879,7 +2762,7 @@ const sb = {
                         </div>
                     </div>
                 </div>`;
-                // Save result to Supabase
+
                 if (currentUser) {
                     try {
                         await sp.from('quiz_results').insert([{
@@ -2898,21 +2781,18 @@ const sb = {
             quizInProgress = true;
         }
 
-        /* ═══════════════════════════════════
-           ADMIN
-           ═══════════════════════════════════ */
         async function buildAdmin() {
             if (!isAdmin) { document.getElementById('adminWrap').innerHTML = '<div class="empty-state">Bạn không có quyền truy cập.</div>'; return; }
             const wrap = document.getElementById('adminWrap');
             wrap.innerHTML = '<div class="empty-state">Đang tải...</div>';
             await loadQuizzes();
-            // Load results
+
             let allResults = [];
             try {
                 const { data } = await sp.from('quiz_results').select('*').order('created_at', { ascending: false }).limit(200);
                 allResults = data || [];
             } catch(e) {}
-            // Load student accounts (role = student)
+
             let students = [];
             try {
                 const { data, error } = await sp.from('profiles').select('id, role, display_name');
@@ -2933,7 +2813,6 @@ const sb = {
         function renderAdmin(allResults, students = []) {
             const wrap = document.getElementById('adminWrap');
 
-            // Build completion map: quizId -> Set of user_ids that attempted
             const completionMap = {};
             allResults.forEach(r => {
                 if (!completionMap[r.quiz_id]) completionMap[r.quiz_id] = {};
@@ -3035,7 +2914,6 @@ const sb = {
 
             renderPicker();
 
-            // Store for use in renderCompletionTable
             window._adminStudents = students;
             window._adminCompletionMap = completionMap;
             window._adminAllResults = allResults;
@@ -3054,7 +2932,7 @@ const sb = {
             const completionMap = window._adminCompletionMap || {};
             const quizData = completionMap[quizId] || {};
 
-            const studentSet = new Map(); // id -> student
+            const studentSet = new Map();
             students.forEach(s => studentSet.set(s.id, s));
 
             const allStudents = [...studentSet.values()].sort((a,b) => (a.email || a.full_name || '').localeCompare(b.email || b.full_name || ''));
@@ -3162,7 +3040,6 @@ const sb = {
 
         loadWords();
 
-        // ── Deep link & share ──
         window.shareQuiz = (id, title) => {
             const url = `${location.origin}${location.pathname}?kiemtra=${id}`;
             if (navigator.clipboard) {
@@ -3172,7 +3049,6 @@ const sb = {
             }
         };
 
-        // Handle URL params after data loads
         async function handleUrlParams() {
             const p = new URLSearchParams(location.search);
             const mode = p.get('mode');
@@ -3184,34 +3060,33 @@ const sb = {
                 'danhsach': 'list', 'flashcard': 'flash', 'flash': 'flash',
                 'luyenviet': 'write', 'write': 'write',
                 'luyentu': 'type', 'type': 'type',
-                'tocdogo': 'speed', 'speed': 'speed', // <-- Bổ sung dòng này
+                'tocdogo': 'speed', 'speed': 'speed',
                 'luyennghe': 'listen', 'listen': 'listen',
                 'tracnghiem': 'mc', 'mc': 'mc',
                 'kiemtra': 'quiz', 'quiz': 'quiz',
-                'topik': 'topik', // <-- Bổ sung dòng này
+                'topik': 'topik',
                 'soan': 'soan', 'admin': 'admin',
                 'chat': 'chat',
                 'nhac': 'music',
             };
 
             if (kiemtra) {
-                // Sync sidebar active state
+
                 document.querySelectorAll('.sidebar-item').forEach(i => {
                     i.classList.toggle('active', i.dataset.label === 'Kiểm tra');
                 });
-                // Switch pane trực tiếp, KHÔNG gọi switchTab (tránh buildQuiz chạy và render đè)
+
                 document.querySelectorAll('.pane').forEach(p => p.classList.remove('active'));
                 document.getElementById('pane-quiz').classList.add('active');
 
-                // Load quizzes và nhảy thẳng vô bài
                 await loadQuizzes();
                 const found = quizzes.find(q => q.id === kiemtra);
                 if (!found) { toast('Không tìm thấy bài kiểm tra này'); buildQuiz(); return; }
-                // Nếu cần đăng nhập
+
                 if (found.max_attempts > 0 && !currentUser) {
                     toast('Vui lòng đăng nhập để làm bài kiểm tra này');
                     openLogin();
-                    // Sau khi đăng nhập xong thì auto start
+
                     const unsub = sp.auth.onAuthStateChange((_e, session) => {
                         if (session?.user) { unsub.data?.subscription?.unsubscribe(); startQuiz(kiemtra); }
                     });
@@ -3228,12 +3103,11 @@ const sb = {
             }
         }
 
-        // Chờ auth + words load xong rồi mới xử lý URL
         async function waitAndHandleUrl() {
             if (!new URLSearchParams(location.search).get('kiemtra') && !new URLSearchParams(location.search).get('mode')) return;
-            // Chờ tối đa 3s cho words load
+
             for (let i = 0; i < 30; i++) {
-                if (words.length > 0 || i > 10) break; // sau 1s thì cứ chạy dù words chưa có
+                if (words.length > 0 || i > 10) break;
                 await new Promise(r => setTimeout(r, 100));
             }
             await handleUrlParams();
@@ -3241,7 +3115,6 @@ const sb = {
 
         waitAndHandleUrl();
 
-        // ═══════════════ SOẠN BÀI ═══════════════
         (function() {
             const SK = 'soanLessons_local';
             let sLessons = [], sActiveId = null, sSaveTimer = null;
@@ -3253,7 +3126,6 @@ const sb = {
                 other:  { label: '📝 Khác', cls: 'soan-tag-other' },
             };
 
-            // ── Storage helpers: Supabase nếu đăng nhập, localStorage nếu không ──
             function sUseSupabase() { return !!(currentUser); }
 
             async function sLoadFromDB() {
@@ -3264,7 +3136,7 @@ const sb = {
                         .order('date', { ascending: false });
                     if (!error && data) { sLessons = data; return; }
                 }
-                // fallback localStorage
+
                 try { sLessons = JSON.parse(localStorage.getItem(SK) || '[]'); } catch { sLessons = []; }
             }
 
@@ -3274,7 +3146,7 @@ const sb = {
                     const { data, error } = await sp.from('lessons').insert([row]).select().single();
                     if (!error && data) { lesson.id = data.id; return data; }
                 }
-                // localStorage fallback
+
                 const local = JSON.parse(localStorage.getItem(SK) || '[]');
                 local.unshift(lesson);
                 localStorage.setItem(SK, JSON.stringify(local));
@@ -3292,12 +3164,11 @@ const sb = {
                 if (idx !== -1) { Object.assign(local[idx], fields); localStorage.setItem(SK, JSON.stringify(local)); }
             }
 
-            // ── Init ──
             window.soanInit = async function() {
                 await sLoadFromDB();
                 sRenderList();
                 sUpdateClock();
-                // resizable right-panel divider
+
                 const dh = document.getElementById('soanDividerH');
                 if (dh && !dh._bound) {
                     dh._bound = true;
@@ -3324,7 +3195,6 @@ const sb = {
                 }
             };
 
-            // ── Modal ──
             window.soanOpenModal = function() {
                 document.getElementById('soanNewDate').value = new Date().toISOString().split('T')[0];
                 document.getElementById('soanNewName').value = '';
@@ -3335,12 +3205,10 @@ const sb = {
             window.soanCloseModal = function() { document.getElementById('soanModal').classList.remove('open'); };
             document.addEventListener('keydown', e => { if (e.key === 'Escape') window.soanCloseModal(); });
 
-            // ── Add lesson ──
             window.soanAddLesson = async function() {
                 const name = document.getElementById('soanNewName').value.trim();
                 if (!name) { document.getElementById('soanNewName').focus(); return; }
-                
-                // Gom dữ liệu để lưu lên Supabase (chỉ truyền cột name, không truyền title)
+
                 const lesson = {
                     name: name,
                     date: document.getElementById('soanNewDate').value || new Date().toISOString().split('T')[0],
@@ -3349,20 +3217,17 @@ const sb = {
                     done: false,
                     content: ''
                 };
-                
+
                 soanCloseModal();
-                
-                // Lưu vào DB
+
                 const saved = await sInsertDB(lesson);
                 lesson.id = saved.id;
-                
-                // Cập nhật giao diện
+
                 sLessons.unshift(lesson);
                 sRenderList();
                 sOpenLesson(lesson.id);
             };
 
-            // ── Toggle done ──
             window.soanToggleDone = async function(id) {
                 const l = sLessons.find(x => x.id === id);
                 if (!l) return;
@@ -3376,12 +3241,10 @@ const sb = {
                 if (sActiveId) soanToggleDone(sActiveId);
             };
 
-            // ── Delete active lesson ──
             window.soanDeleteActiveLesson = async function() {
                 if (!sActiveId) return;
                 if (!confirm('Bạn có chắc chắn muốn xóa bài soạn này không?')) return;
 
-                // Xóa trên Database (nếu đã đăng nhập) hoặc LocalStorage
                 if (sUseSupabase()) {
                     try {
                         const { error } = await sp.from('lessons').delete().eq('id', sActiveId).eq('user_id', currentUser.id);
@@ -3397,22 +3260,19 @@ const sb = {
                     localStorage.setItem(SK, JSON.stringify(local));
                 }
 
-                // Xóa khỏi danh sách hiện tại
                 sLessons = sLessons.filter(x => x.id !== sActiveId);
                 sActiveId = null;
 
-                // Trả UI về trạng thái trống (chưa chọn bài nào)
                 document.getElementById('soanEmptyEditor').style.display = '';
                 document.getElementById('soanEditor').innerHTML = '';
                 document.getElementById('soanEditorTitle').value = '';
                 document.getElementById('soanWordCount').textContent = '0 từ';
                 document.getElementById('soanCharCount').textContent = '0 ký tự';
-                
+
                 sRenderList();
                 toast('Đã xóa bài soạn!');
             };
 
-            // ── Open lesson ──
             function sOpenLesson(id) {
                 sActiveId = id;
                 const l = sLessons.find(x => x.id === id);
@@ -3424,13 +3284,12 @@ const sb = {
                 document.getElementById('soanDoneBtn').classList.toggle('active', !!l.done);
                 sRenderList();
                 soanCountWords();
-                // Hiển thị từ vựng của bài
+
                 soanRenderVocabPanel(l.title || l.name);
                 editor.focus();
             }
             window.soanOpenLesson = sOpenLesson;
 
-            // ── Auto-save content ──
             async function sSaveContent(id) {
                 const l = sLessons.find(x => x.id === id);
                 if (!l) return;
@@ -3454,7 +3313,6 @@ const sb = {
                 }, 1500);
             };
 
-            // ── Word count & gutter ──
             window.soanCountWords = function() {
                 const title = document.getElementById('soanEditorTitle').value;
                 const body = document.getElementById('soanEditor').innerText || '';
@@ -3482,10 +3340,8 @@ document.getElementById('soanEditor').addEventListener('keydown', function(e) {
         }
         const lineText = node ? node.innerText || node.textContent : "";
 
-        // 1. Kiểm tra danh sách số (1., a., I.)
         const matchNum = lineText.match(/^((?:\s*(?:[0-9]+|[a-zA-Z]|[IVXLCDMivxlcdm]+)[\.\)]\s*)*\s*(?:[0-9]+|[a-zA-Z]|[IVXLCDMivxlcdm]+)[\.\)]\s+)/);
-        
-        // 2. Kiểm tra gạch đầu dòng (•, -, *)
+
         const matchBullet = lineText.match(/^(\s*[•\-\*]\s+)/);
 
         if (matchNum) {
@@ -3510,8 +3366,7 @@ document.getElementById('soanEditor').addEventListener('keydown', function(e) {
                 const editor = document.getElementById('soanEditor');
                 const gutter = document.getElementById('soanLineNumbers');
                 if (!gutter || !editor) return;
-                // Count block children — contenteditable wraps each line in a <div>.
-                // Empty lines = <div><br></div>, so children.length is always accurate.
+
                 const count = Math.max(1, editor.children.length);
                 if (gutter._lastCount === count) return;
                 gutter._lastCount = count;
@@ -3525,7 +3380,6 @@ document.getElementById('soanEditor').addEventListener('keydown', function(e) {
                 document.getElementById('soanGutter').scrollTop = this.scrollTop;
             });
 
-            // ── Render list ──
             function sFormatDate(d) {
                 const dt = new Date(d + 'T00:00:00'), today = new Date();
                 today.setHours(0,0,0,0);
@@ -3580,7 +3434,6 @@ document.getElementById('soanEditor').addEventListener('keydown', function(e) {
                 });
             }
 
-            // Reload lessons khi auth thay đổi (đăng nhập / đăng xuất)
             sp.auth.onAuthStateChange(async (_event, session) => {
                 if (document.getElementById('pane-soan').classList.contains('active')) {
                     sActiveId = null;
@@ -3592,19 +3445,16 @@ document.getElementById('soanEditor').addEventListener('keydown', function(e) {
                 }
             });
 
-            // ── Resize: update height ──
             window.addEventListener('resize', function() {
-                // CSS flex handles height automatically
+
             });
 
-            // ── Clock ──
             function sUpdateClock() {
                 const el = document.getElementById('soanCurrentTime');
                 if (el) el.textContent = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
             }
             setInterval(sUpdateClock, 30000);
 
-            // ── Manual save ──
             window.soanManualSave = async function() {
                 if (!sActiveId) return;
                 await sSaveContent(sActiveId);
@@ -3614,7 +3464,6 @@ document.getElementById('soanEditor').addEventListener('keydown', function(e) {
                 setTimeout(() => { btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i>'; btn.style.color = ''; }, 1800);
             };
 
-            // Ctrl+S to save
             document.addEventListener('keydown', function(e) {
                 if ((e.ctrlKey || e.metaKey) && e.key === 's') {
                     const pane = document.getElementById('pane-soan');
@@ -3625,7 +3474,6 @@ document.getElementById('soanEditor').addEventListener('keydown', function(e) {
                 }
             });
 
-            // ── Gemini ──
             let geminiLastQuery = '';
 
             window.soanAskAI = function() {
@@ -3682,7 +3530,6 @@ document.getElementById('soanEditor').addEventListener('keydown', function(e) {
                 btn.disabled = false;
             };
 
-            // ── Render vocab list vào cột trái ──
             window.soanRenderVocabPanel = function(topic) {
                 const t = (topic || document.getElementById('soanEditorTitle').value || '').trim();
                 const list = document.getElementById('soanVocabList');
@@ -3704,7 +3551,6 @@ document.getElementById('soanEditor').addEventListener('keydown', function(e) {
                     : '<div style="padding:14px 12px;font-size:12px;color:var(--txt3);text-align:center">Chưa có từ vựng.</div>';
             };
 
-            // Left panel resizer (kéo dọc giữa lesson list và vocab)
             (function() {
                 const div = document.getElementById('soanLeftDividerH');
                 if (!div) return;
@@ -3749,7 +3595,6 @@ document.getElementById('soanEditor').addEventListener('keydown', function(e) {
                 if (document.activeElement === document.getElementById('soanEditor')) soanUpdateToolbar();
             });
 
-            // Close popup when clicking background
             document.getElementById('geminiPopupBg').addEventListener('click', function(e) {
                 if (e.target === this) this.style.display = 'none';
             });
@@ -3759,7 +3604,6 @@ document.getElementById('soanEditor').addEventListener('keydown', function(e) {
             });
         })();
 
-        /* --- SOAN RESIZER LOGIC --- */
 (function() {
     function initResizer(resizerId, getPanel, setSize, minSize, getOtherPanel, minOtherSize) {
         const resizer = document.getElementById(resizerId);
@@ -3796,7 +3640,6 @@ document.getElementById('soanEditor').addEventListener('keydown', function(e) {
         });
     }
 
-    // Resizer 1: kéo left panel
     initResizer(
         'soanResizer1',
         () => document.getElementById('soanLeft'),
@@ -3804,7 +3647,6 @@ document.getElementById('soanEditor').addEventListener('keydown', function(e) {
         140
     );
 
-    // Resizer 2: kéo right panel (kéo ngược)
     initResizer(
         'soanResizer2',
         () => document.getElementById('soanRight'),
@@ -3812,11 +3654,10 @@ document.getElementById('soanEditor').addEventListener('keydown', function(e) {
         160
     );
 
-    // Resizer 2 kéo ngược chiều (dx âm thì right to lên)
     (function() {
         const resizer = document.getElementById('soanResizer2');
         if (!resizer) return;
-        // Override: right panel kéo ngược
+
         let dragging = false, startX = 0, startSize = 0;
         resizer.onmousedown = null;
         resizer.addEventListener('mousedown', function(e) {
@@ -3910,8 +3751,7 @@ window.soanAddBullet = function() {
     const lines = textBefore.split('\n');
     const currentLine = lines[lines.length - 1];
 
-    // Kiểm tra xem dòng trước đó có dùng dấu chấm tròn (•) hoặc gạch ngang (-) không
-    let bullet = "• "; 
+    let bullet = "• ";
     for (let i = lines.length - 1; i >= 0; i--) {
         const m = lines[i].match(/^(\s*[•\-\*]\s+)/);
         if (m) { bullet = m[1]; break; }
@@ -3922,9 +3762,8 @@ window.soanAddBullet = function() {
     soanCountWords();
 };
 
-/* --- HELPER FUNCTIONS --- */
 function sGetRawText(html) {
-    // Chuyển đổi HTML sang văn bản thuần túy và xử lý xuống dòng
+
     let res = html.replace(/<br\s*\/?>/gi, '\n').replace(/<\/div>\s*<div[^>]*>/gi, '\n').replace(/<[^>]+>/g, '');
     const txt = document.createElement('textarea');
     txt.innerHTML = res;
@@ -3936,25 +3775,10 @@ function sGetTextBeforeCursor() {
     const sel = window.getSelection();
     if (!sel || !sel.rangeCount) return '';
     const range = sel.getRangeAt(0).cloneRange();
-    range.setStart(editor, 0); // Lấy toàn bộ nội dung từ đầu đến vị trí con trỏ hiện tại
+    range.setStart(editor, 0);
     return sGetRawText(range.cloneContents().textContent || range.toString());
 }
-/* ══════════════════════════════════════════════════
-   TOPIK GRID — Luyện viết theo lưới thi TOPIK
-   Luật:
-   - Mỗi âm tiết Hangul = 1 ô (사랑해 → 사|랑|해)
-   - Số: 2 chữ số 1 ô; số lẻ cuối: 1 ô
-   - Dấu câu: 1 ô riêng
-   - Sau ! và ? cách 1 ô trống; dấu khác không cách
-   - Lùi 1 ô đầu đoạn (bắt đầu hàng mới)
-   - Không để ô trống đầu dòng (trừ indent đầu đoạn)
-   - Nếu âm tiết cuối vừa đủ ô cuối hàng mà tiếp theo là dấu
-     → viết chung dấu vào ô đó
-   - Mỗi 100 ô: highlight
-   - 1 hàng = 20 ô
-══════════════════════════════════════════════════ */
 
-/* ── TOPIK History (localStorage) ── */
 const TOPIK_HISTORY_KEY = 'topikHistory_v1';
 const TOPIK_HISTORY_MAX = 30;
 
@@ -3972,7 +3796,7 @@ function topikSaveToHistory(text, title) {
         saved_at: new Date().toISOString(),
         char_count: text.length
     });
-    // Giới hạn số lượng
+
     const trimmed = filtered.slice(0, TOPIK_HISTORY_MAX);
     localStorage.setItem(TOPIK_HISTORY_KEY, JSON.stringify(trimmed));
 }
@@ -4044,7 +3868,6 @@ function topikRenderHistory() {
     }).join('');
 }
 
-/* ── TOPIK Realtime Render ── */
 let _topikRealtimeTimer = null;
 function topikRealtimeRender() {
     clearTimeout(_topikRealtimeTimer);
@@ -4063,7 +3886,6 @@ function topikInit() {
     topikRenderHistory();
 }
 
-// Expose tất cả hàm topik ra global
 window.topikInit              = topikInit;
 window.topikRender            = topikRender;
 window.topikRenderGrid        = topikRenderGrid;
@@ -4075,10 +3897,6 @@ window.topikDeleteHistoryItem = topikDeleteHistoryItem;
 window.topikLoadHistoryItem   = topikLoadHistoryItem;
 window.topikSaveGrid          = topikSaveGrid;
 
-// Lưu nội dung lưới hiện tại vào localStorage (hỗ trợ cả 2 chế độ)
-
-
-// Lưu nội dung lưới hiện tại vào localStorage (hỗ trợ cả 2 chế độ)
 function topikSaveGrid() {
     const resultEl = document.getElementById('topikResult');
     if (!resultEl || resultEl.style.display === 'none') {
@@ -4120,17 +3938,6 @@ function topikPrint() {
     window.print();
 }
 
-/**
- * Tokenize text thành mảng token theo luật TOPIK.
- * Token types:
- *   'syllable'    — 1 âm tiết Hangul → 1 ô
- *   'num'         — chuỗi số đã chia cặp → 1 ô
- *   'latin'       — 1 ký tự Latin → 1 ô
- *   'punct'       — dấu câu thường → 1 ô
- *   'punct_space' — dấu ! ? → 1 ô + 1 ô trống sau
- *   'indent'      — lùi đầu đoạn
- *   'para_end'    — kết thúc đoạn (fill dòng)
- */
 function topikTokenize(text) {
     const PUNCT = /[.,!?:;…"'"'「」『』()《》【】—–·]/;
     const paragraphs = text.split(/\n+/);
@@ -4147,7 +3954,6 @@ function topikTokenize(text) {
         while (i < para.length) {
             const ch = para[i];
 
-            // Khoảng trắng → chỉ thêm ô cách nếu trước đó là từ/số (không phải dấu câu)
             if (/\s/.test(ch)) {
                 if (lastWasContent) {
                     tokens.push({ type: 'space' });
@@ -4157,7 +3963,6 @@ function topikTokenize(text) {
                 continue;
             }
 
-            // Số → gom rồi tách cặp
             if (/\d/.test(ch)) {
                 let num = '';
                 while (i < para.length && /\d/.test(para[i])) { num += para[i++]; }
@@ -4168,20 +3973,18 @@ function topikTokenize(text) {
                 continue;
             }
 
-            // Dấu câu — không có ô cách trước dấu, xóa ô cách vừa thêm nếu có
             if (PUNCT.test(ch)) {
-                // Nếu token vừa thêm là 'space' thì xóa đi (không cách trước dấu)
+
                 if (tokens.length && tokens[tokens.length - 1].type === 'space') {
                     tokens.pop();
                 }
                 const ptype = (ch === '!' || ch === '?') ? 'punct_space' : 'punct';
                 tokens.push({ type: ptype, text: ch });
-                lastWasContent = false; // sau dấu câu KHÔNG thêm space nữa (kể cả . ,)
+                lastWasContent = false;
                 i++;
                 continue;
             }
 
-            // Âm tiết Hangul (U+AC00–U+D7A3) hoặc Jamo → mỗi char 1 token
             if (/[\uAC00-\uD7A3\u1100-\u11FF\u3130-\u318F]/.test(ch)) {
                 tokens.push({ type: 'syllable', text: ch });
                 lastWasContent = true;
@@ -4189,7 +3992,6 @@ function topikTokenize(text) {
                 continue;
             }
 
-            // Chữ Latinh → gom 2 chữ 1 ô theo chuẩn TOPIK
             if (/[a-zA-Z]/.test(ch)) {
                 let latinStr = '';
                 while (i < para.length && /[a-zA-Z]/.test(para[i])) { latinStr += para[i++]; }
@@ -4200,27 +4002,17 @@ function topikTokenize(text) {
                 continue;
             }
 
-            // Ký tự khác → mỗi char 1 ô
             tokens.push({ type: 'other', text: ch });
             lastWasContent = true;
             i++;
         }
 
-        // Luôn push para_end cho mọi đoạn...
-
-        // Luôn push para_end cho mọi đoạn (kể cả đoạn cuối)
-        // để layout fill đủ hàng cuối một cách tường minh,
-        // thay vì phụ thuộc vào vòng fill backup ở cuối topikLayout.
         tokens.push({ type: 'para_end' });
     }
 
     return tokens;
 }
 
-/**
- * Layout tokens vào lưới 20 ô/hàng.
- * Trả về mảng rows, mỗi row là mảng 20 cell { text, blank, milestone, absIdx }.
- */
 function topikLayout(tokens) {
     const COLS = 20;
     const cells = [];
@@ -4235,10 +4027,6 @@ function topikLayout(tokens) {
         });
     }
 
-    // nextCol(): vị trí (1-indexed) của ô SẮP được điền tiếp theo.
-    // cellCount là số ô đã điền → ô tiếp theo ở vị trí (cellCount % COLS) + 1.
-    // Khi cellCount % COLS === 0 tức đang ở đầu hàng mới → ô tiếp theo là cột 1.
-    // → isLastCol đúng khi (cellCount % COLS) === COLS - 1  (0-indexed: ô thứ 19 trong hàng)
     function nextCol() { return (cellCount % COLS) + 1; }
 
     const CONTENT_TYPES = new Set(['syllable', 'num', 'latin', 'punct', 'punct_space']);
@@ -4246,56 +4034,44 @@ function topikLayout(tokens) {
     for (let ti = 0; ti < tokens.length; ti++) {
         const tok = tokens[ti];
 
-        // ── Đầu đoạn: fill hàng hiện tại rồi thêm ô indent ──
         if (tok.type === 'indent') {
             if (cellCount === 0) {
-                // Đoạn đầu tiên: thêm ô blank giống các đoạn khác
+
                 addCell('', { blank: true });
                 continue;
             }
-            // Đoạn tiếp theo: fill nốt hàng hiện tại rồi thêm ô thụt lùi
+
             if (cellCount % COLS !== 0) {
                 while (cellCount % COLS !== 0) addCell('');
             }
-            addCell('', { blank: true }); // ô lùi đầu đoạn
+            addCell('', { blank: true });
             continue;
         }
 
-        // ── Kết thúc đoạn: fill nốt hàng ──
         if (tok.type === 'para_end') {
             while (cellCount % COLS !== 0) addCell('');
             continue;
         }
 
-        // ── Ô cách giữa các từ (space) ──
         if (tok.type === 'space') {
-            // Không thêm ô trống nếu đang đứng ở đầu hàng (ô 0 hoặc vừa bắt đầu hàng mới)
-            // cellCount % COLS === 0 nghĩa là vừa điền xong ô cuối hàng trước → đầu hàng mới
+
             if (cellCount % COLS !== 0) {
                 addCell('', { blank: true });
-                // Nếu vừa thêm xong mà lại rơi đúng đầu hàng mới thì xóa ô trống đó đi
-                // if (cellCount % COLS === 0) {
-                //     cells.pop();
-                //     cellCount--;
-                // }
+
             }
             continue;
         }
 
-        // ── Token nội dung ──
         if (CONTENT_TYPES.has(tok.type)) {
-            // isLastCol: ô SẮP điền có phải ô cuối hàng (cột 20) không?
-            // nextCol() = (cellCount % COLS) + 1; khi = 20 → đây là ô cuối hàng.
+
             const isLastCol = (cellCount % COLS) === (COLS - 1);
             const nextTok = tokens[ti + 1];
 
-            // Nếu ô này là ô cuối hàng VÀ token tiếp theo là dấu câu
-            // → viết chung dấu vào ô này
             if (isLastCol && nextTok && (nextTok.type === 'punct' || nextTok.type === 'punct_space')) {
                 addCell(tok.text + nextTok.text);
                 const wasSpace = nextTok.type === 'punct_space';
                 ti++;
-                if (wasSpace) { /* đầu hàng mới rồi, không thêm ô trống */ }
+                if (wasSpace) {  }
             } else {
                 addCell(tok.text);
                 if (tok.type === 'punct_space') {
@@ -4312,42 +4088,13 @@ function topikLayout(tokens) {
         }
     }
 
-    // Fill hàng cuối
     while (cellCount % COLS !== 0) addCell('');
 
-    // ── Post-process: không để từ bị tách cuối hàng ──
-    // Nếu ô cuối hàng có nội dung VÀ ô đầu hàng sau cũng có nội dung (space bị nuốt)
-    // → đẩy ô cuối xuống đầu hàng sau, fill ô cuối = trống
-    // for (let i = COLS - 1; i < cells.length - COLS; i += COLS) {
-    //     const lastCell = cells[i];
-    //     const firstNextCell = cells[i + 1];
-    //     if (lastCell.text && !lastCell.blank && firstNextCell.text && !firstNextCell.blank) {
-    //         // Dịch chuyển: fill ô cuối hàng = trống, chèn nội dung vào đầu hàng sau
-    //         // nhưng đầu hàng sau đã có nội dung → cần shift toàn bộ hàng sau sang phải 1 ô
-    //         const movedText = lastCell.text;
-    //         lastCell.text = '';
-    //         // Shift hàng tiếp theo sang phải 1, chèn movedText vào đầu
-    //         const rowStart = i + 1;
-    //         const rowEnd = i + COLS; // exclusive
-    //         // Ô cuối hàng sau sẽ bị đẩy ra → chỉ shift nếu ô cuối hàng sau trống
-    //         if (!cells[rowEnd - 1].text) {
-    //             for (let j = rowEnd - 1; j > rowStart; j--) {
-    //                 cells[j].text  = cells[j - 1].text;
-    //                 cells[j].blank = cells[j - 1].blank;
-    //             }
-    //             cells[rowStart].text  = movedText;
-    //             cells[rowStart].blank = false;
-    //         }
-    //     }
-    // }
-
-    // Chunk thành hàng 20 ô
     const rows = [];
     for (let i = 0; i < cells.length; i += COLS) {
         rows.push(cells.slice(i, i + COLS));
     }
 
-    // Đánh dấu milestone: hàng nào chứa ô thứ 100, 200, 300,... → highlight cạnh dưới hàng đó
     const milestoneRows = new Set();
     for (let i = 99; i < cells.length; i += 100) {
         milestoneRows.add(Math.floor(i / COLS));
@@ -4408,9 +4155,6 @@ function topikRender() {
     document.getElementById('topikGridContainer').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
-/* ══════════════════════════════════════
-   POMODORO LOGIC
-══════════════════════════════════════ */
 const pomoModes = {
     work: 25 * 60,
     shortBreak: 5 * 60,
@@ -4426,12 +4170,11 @@ window.togglePomodoro = function() {
 };
 
 window.setPomoMode = function(mode, btn) {
-    // Cập nhật giao diện nút Tab
+
     document.querySelectorAll('.pomo-tab').forEach(t => t.classList.remove('active'));
     if(btn) btn.classList.add('active');
     else document.querySelector(`.pomo-tab[onclick*="${mode}"]`).classList.add('active');
 
-    // Reset lại logic đồng hồ theo chế độ mới
     currentPomoMode = mode;
     pomoTimeLeft = pomoModes[currentPomoMode];
     clearInterval(pomoInterval);
@@ -4444,14 +4187,12 @@ window.updatePomoDisplay = function() {
     let m = Math.floor(pomoTimeLeft / 60);
     let s = pomoTimeLeft % 60;
     const timeString = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-    
-    // Cập nhật số to trong bảng
+
     document.getElementById('pomoTimerDisplay').textContent = timeString;
 
-    // Cập nhật ra ngoài nút bong bóng mini
     const floatingBtn = document.querySelector('.floating-pomo-btn');
     if (floatingBtn) {
-        // Chỉ hiện số khi đang chạy cho gọn, hoặc ông chủ có thể bỏ câu điều kiện if để lúc nào nó cũng hiện
+
         if (isPomoRunning) {
             floatingBtn.innerHTML = `🍅 ${timeString}`;
         } else {
@@ -4459,7 +4200,6 @@ window.updatePomoDisplay = function() {
         }
     }
 
-    // Hiển thị thời gian đếm ngược lên Tab trình duyệt
     if (isPomoRunning) {
         document.title = `[${timeString}] HanVocab`;
     } else {
@@ -4469,27 +4209,24 @@ window.updatePomoDisplay = function() {
 
 window.togglePomoTimer = function() {
     if (isPomoRunning) {
-        // Nếu đang chạy thì Tạm dừng
+
         clearInterval(pomoInterval);
         isPomoRunning = false;
     } else {
-        // Bắt đầu đếm ngược
+
         isPomoRunning = true;
         pomoInterval = setInterval(() => {
             pomoTimeLeft--;
             updatePomoDisplay();
 
-            // Xử lý khi hết giờ
             if (pomoTimeLeft <= 0) {
                 clearInterval(pomoInterval);
                 isPomoRunning = false;
                 updatePomoBtnState();
                 updatePomoDisplay();
-                
-                // Kêu chuông bíp bíp
+
                 playPomoAlarm();
-                
-                // Hiện thông báo (Dùng setTimeout để chuông kêu trước khi Alert block luồng trình duyệt)
+
                 setTimeout(() => {
                     alert("Hết giờ rồi ông chủ ơi 🫪! Thay đổi chế độ học/nghỉ ngơi đi nào.");
                 }, 100);
@@ -4518,23 +4255,20 @@ window.updatePomoBtnState = function() {
     }
 };
 
-// Hàm tạo âm thanh tít tít báo hiệu hết giờ không cần file mp3 (dùng Web Audio API)
 window.playPomoAlarm = function() {
     try {
         const ctx = new (window.AudioContext || window.webkitAudioContext)();
-        
-        // Tạo tiếng Bíp 1
+
         const osc1 = ctx.createOscillator();
         osc1.type = 'sine';
-        osc1.frequency.setValueAtTime(800, ctx.currentTime); // Tần số âm thanh
+        osc1.frequency.setValueAtTime(800, ctx.currentTime);
         osc1.connect(ctx.destination);
         osc1.start();
-        osc1.stop(ctx.currentTime + 0.3); // Kêu 0.3s
-        
-        // Tạo tiếng Bíp 2 sau đó 0.4s
+        osc1.stop(ctx.currentTime + 0.3);
+
         const osc2 = ctx.createOscillator();
         osc2.type = 'sine';
-        osc2.frequency.setValueAtTime(800, ctx.currentTime + 0.4); 
+        osc2.frequency.setValueAtTime(800, ctx.currentTime + 0.4);
         osc2.connect(ctx.destination);
         osc2.start(ctx.currentTime + 0.4);
         osc2.stop(ctx.currentTime + 0.7);
@@ -4544,37 +4278,28 @@ window.playPomoAlarm = function() {
     }
 };
 
-// Khởi động giao diện ban đầu lúc mới load trang
 updatePomoDisplay();
 
-/* ══════════════════════════════════════
-   TRANG CHỦ - QUẢN LÝ TIỆN ÍCH TRONG WEB
-══════════════════════════════════════ */
 window.openInternalTool = function(tabName, modeValue) {
-    // 1. Cập nhật thanh địa chỉ URL theo dạng ?mode=... (không reload web)
+
     const url = new URL(window.location);
     url.searchParams.set('mode', modeValue);
     window.history.pushState({}, '', url);
 
-    // 2. Kích hoạt tính năng
     switchTab(tabName);
-    
-    // 3. Quét và cập nhật lại vệt sáng (active) trên menu thanh bên
+
     document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
     const sidebarBtn = document.querySelector(`.sidebar-item[onclick*="'${tabName}'"]`);
     if (sidebarBtn) sidebarBtn.classList.add('active');
 };
 
-/* ══════════════════════════════════════
-   DRAG & DROP POMODORO (HÚT CẠNH + ĐỔI HƯỚNG BUNG)
-══════════════════════════════════════ */
 const pomoWrapper = document.getElementById('pomoWrapper');
 const pomoHeader = document.querySelector('.pomo-header');
 const pomoBtn = document.querySelector('.floating-pomo-btn');
 
 let isDragging = false;
-let hasMoved = false; 
-let isBtnTarget = false; 
+let hasMoved = false;
+let isBtnTarget = false;
 let startX, startY;
 let wrapperInitX, wrapperInitY;
 
@@ -4590,7 +4315,7 @@ document.addEventListener('mouseup', onDragEnd);
 document.addEventListener('touchend', onDragEnd);
 
 function startDrag(e, isBtn) {
-    if (e.target.tagName === 'BUTTON' && !isBtn) return; 
+    if (e.target.tagName === 'BUTTON' && !isBtn) return;
 
     isDragging = true;
     hasMoved = false;
@@ -4623,7 +4348,7 @@ function onDragMove(e) {
 
     if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
         hasMoved = true;
-        if (e.type.includes('touch')) e.preventDefault(); 
+        if (e.type.includes('touch')) e.preventDefault();
         pomoWrapper.style.left = (wrapperInitX + dx) + 'px';
         pomoWrapper.style.top = (wrapperInitY + dy) + 'px';
     }
@@ -4632,10 +4357,10 @@ function onDragMove(e) {
 function onDragEnd() {
     if (!isDragging) return;
     isDragging = false;
-    
+
     if (isBtnTarget && !hasMoved) {
         togglePomodoro();
-        return; 
+        return;
     }
 
     if (hasMoved) {
@@ -4644,83 +4369,71 @@ function onDragEnd() {
         const screenH = window.innerHeight;
         const PADDING = 24;
 
-        // 1. Chống lọt ra ngoài mép dọc
         let targetY = rect.top;
-        const maxY = screenH - rect.height - PADDING; 
-        targetY = Math.max(PADDING, Math.min(targetY, maxY)); 
+        const maxY = screenH - rect.height - PADDING;
+        targetY = Math.max(PADDING, Math.min(targetY, maxY));
 
-        // 2. Hút nam châm ngang + Quyết định hướng lề
         let targetX;
-        const centerX = rect.left + (rect.width / 2); 
+        const centerX = rect.left + (rect.width / 2);
 
         if (centerX < screenW / 2) {
-            targetX = PADDING; // Hút mép trái
+            targetX = PADDING;
             pomoWrapper.classList.add('align-left');
             pomoWrapper.classList.remove('align-right');
         } else {
-            targetX = screenW - rect.width - PADDING; // Hút mép phải
+            targetX = screenW - rect.width - PADDING;
             pomoWrapper.classList.add('align-right');
             pomoWrapper.classList.remove('align-left');
         }
 
-        // 3. Quyết định hướng bung dọc (Tùy theo nửa trên/dưới)
         const centerY = targetY + (rect.height / 2);
         if (centerY < screenH / 2) {
-            pomoWrapper.classList.add('valign-top'); // Ở trên -> Bung xuống
+            pomoWrapper.classList.add('valign-top');
             pomoWrapper.classList.remove('valign-bottom');
         } else {
-            pomoWrapper.classList.add('valign-bottom'); // Ở dưới -> Bung lên
+            pomoWrapper.classList.add('valign-bottom');
             pomoWrapper.classList.remove('valign-top');
         }
 
-        // 4. Bật trượt mượt
         pomoWrapper.style.transition = 'left 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), top 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)';
         pomoWrapper.style.left = targetX + 'px';
         pomoWrapper.style.top = targetY + 'px';
     }
 }
 
-/* ══════════════════════════════════════
-   CÀI ĐẶT THANH BÊN (SETTINGS) MỚI
-══════════════════════════════════════ */
 let sidebarPrefs = JSON.parse(localStorage.getItem('hanvocab_sidebar_prefs')) || {};
 
 function initSidebarSettings() {
     const listEl = document.getElementById('sidebarSettingsList');
     const sidebarItems = document.querySelectorAll('.sidebar-nav .sidebar-item');
-    
+
     if (!listEl) return;
     let html = '';
-    
+
     sidebarItems.forEach((item, index) => {
         const label = item.getAttribute('data-label');
-        if (!label) return; 
+        if (!label) return;
 
-        // 1. NGÓ LƠ NÚT ADMIN: Không cho hiện trong bảng Cài đặt
-        if (label === 'Admin') return; 
+        if (label === 'Admin') return;
 
         const itemId = 'sidebar_item_nav_' + index;
-        item.id = itemId; 
+        item.id = itemId;
 
-        // 2. NHỮNG NÚT "BẤT TỬ": Bắt buộc phải hiện, không cho phép tắt
         const isAlwaysVisible = (label === 'Trang chủ' || label === 'Danh sách');
 
-        // Mặc định bật nếu người dùng chưa tắt (và không phải nút bất tử)
-        const isVisible = isAlwaysVisible ? true : (sidebarPrefs[label] !== false); 
-        
-        // Gán trạng thái ẩn/hiện lúc load web
+        const isVisible = isAlwaysVisible ? true : (sidebarPrefs[label] !== false);
+
         item.style.display = isVisible ? 'flex' : 'none';
 
-        // 3. TẠO GIAO DIỆN CHECKBOX
         if (isAlwaysVisible) {
-            // Nút bất tử: Checkbox bị khóa cứng (disabled), mờ đi cho đẹp
+
             html += `
             <label class="settings-item" style="opacity: 0.6; cursor: not-allowed;" title="Tính năng gốc, không thể tắt">
                 <span>${esc(label)}</span>
                 <input type="checkbox" checked disabled style="cursor: not-allowed;" />
             </label>`;
         } else {
-            // Nút bình thường: Cho phép tắt/bật thoải mái
+
             html += `
             <label class="settings-item">
                 <span>${esc(label)}</span>
@@ -4728,16 +4441,15 @@ function initSidebarSettings() {
             </label>`;
         }
     });
-    
+
     listEl.innerHTML = html;
 }
 
 window.toggleSidebarItem = function(label, itemId, isVisible) {
-    // Lưu vào LocalStorage
+
     sidebarPrefs[label] = isVisible;
     localStorage.setItem('hanvocab_sidebar_prefs', JSON.stringify(sidebarPrefs));
-    
-    // Gán lại giao diện
+
     const item = document.getElementById(itemId);
     if (item) {
         item.style.display = isVisible ? 'flex' : 'none';
@@ -4748,28 +4460,21 @@ window.toggleSettingsMenu = function(e) {
     e.stopPropagation();
     const popup = document.getElementById('settingsMenuPopup');
     const overlay = document.getElementById('navMenuOverlay');
-    
-    // Đóng cái menu gốc nếu nó đang lỡ mở
+
     document.getElementById('navMenuPopup').classList.remove('open');
-    
+
     const isOpen = popup.classList.toggle('open');
     overlay.classList.toggle('open', isOpen);
 };
 
-// Khởi chạy vòng quét sau khi web load xong
 setTimeout(initSidebarSettings, 300);
 
-/* ══════════════════════════════════════
-   CALENDAR (LỊCH TỰ CODE - SERVER & LOCAL)
-══════════════════════════════════════ */
 let calCurrentDate = new Date();
 let selectedCalDate = null;
 
-// Lưu trữ 2 luồng dữ liệu riêng biệt
-let calEvents = JSON.parse(localStorage.getItem('hanvocab_cal_events')) || {}; // Lịch cá nhân
-let globalCalEvents = []; // Lịch chung Server (Supabase)
+let calEvents = JSON.parse(localStorage.getItem('hanvocab_cal_events')) || {};
+let globalCalEvents = [];
 
-// ── TẢI LỊCH TỪ SERVER ──
 async function loadGlobalCalendar() {
     if (!sp) return;
     try {
@@ -4780,46 +4485,43 @@ async function loadGlobalCalendar() {
         }
         if (data) {
             globalCalEvents = data;
-            // Nếu đang mở tab Lịch thì vẽ lại luôn
+
             if (document.getElementById('pane-calendar')?.classList.contains('active')) {
                 renderCalendar();
             }
-            // 🚨 THÊM DÒNG NÀY: Ép Topbar cập nhật ngay sau khi Server đổ dữ liệu về!
+
             if (typeof updateTopbarDateAndEvents === 'function') {
                 updateTopbarDateAndEvents();
             }
         }
     } catch (e) { console.error(e); }
 }
-// Chạy hàm tải lịch ngay khi load web (đợi 1s cho an toàn)
+
 setTimeout(loadGlobalCalendar, 1000);
 
-
 /////
-// ── VẼ LỊCH ──
+
 window.renderCalendar = function() {
     const year = calCurrentDate.getFullYear();
     const month = calCurrentDate.getMonth();
     const lbl = document.getElementById('calMonthYear');
     if (lbl) lbl.textContent = `Tháng ${month + 1}, ${year}`;
-    
+
     const firstDay = new Date(year, month, 1).getDay();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
     const daysContainer = document.getElementById('calDays');
     if (!daysContainer) return;
     daysContainer.innerHTML = '';
-    
+
     const today = new Date();
     for (let i = 0; i < firstDay; i++) daysContainer.innerHTML += `<div class="cal-day empty"></div>`;
-    
+
     for (let i = 1; i <= daysInMonth; i++) {
         const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
         const isToday = (i === today.getDate() && month === today.getMonth() && year === today.getFullYear());
-        
-        // Lọc sự kiện Server (Có tính lặp năm - Cắt "YYYY-" đi để so sánh "MM-DD")
+
         const dayEventsGlobal = globalCalEvents.filter(e => e.date === dateKey || (e.is_yearly && e.date.substring(5) === dateKey.substring(5)));
-        
-        // Lọc sự kiện Local (Có tính lặp năm)
+
         const dayEventsLocal = [];
         Object.keys(calEvents).forEach(dKey => {
             calEvents[dKey].forEach(ev => {
@@ -4829,21 +4531,19 @@ window.renderCalendar = function() {
                 }
             });
         });
-        
-        // 1. Render lịch Server (Màu & Icon tùy chỉnh)
+
         let eventsHtml = dayEventsGlobal.map(ev => {
             const iconHtml = ev.icon ? `<span class="material-icons" style="font-size:11px; margin-right:3px; vertical-align:middle;">${esc(ev.icon)}</span>` : '';
             const bgColor = ev.color || '#1a56db';
             return `<div class="cal-event" style="background: ${bgColor};" title="[Chung] ${escA(ev.content)}">${iconHtml}${ev.period ? `<span style="opacity:0.8; margin-right:3px;">${esc(ev.period)}</span> ` : ''}${esc(ev.content)}</div>`;
         }).join('');
-        
-        // 2. Render lịch Cá nhân
+
         eventsHtml += dayEventsLocal.map(ev => {
             if (typeof ev === 'string') return `<div class="cal-event">${esc(ev)}</div>`;
             const iconHtml = ev.is_yearly ? `<span class="material-icons" style="font-size:11px; margin-right:3px; vertical-align:middle;">event_repeat</span>` : '';
             return `<div class="cal-event" title="[Cá nhân] ${escA(ev.content)}">${iconHtml}<span style="color:#ffb8b8;">${esc(ev.period)}</span> ${esc(ev.content)}</div>`;
         }).join('');
-        
+
         daysContainer.innerHTML += `
             <div class="cal-day ${isToday ? 'today' : ''}" onclick="openCalModal('${dateKey}')">
                 <div class="cal-day-num">${i}</div>
@@ -4853,34 +4553,31 @@ window.renderCalendar = function() {
     }
 };
 
-// ── HIỂN THỊ DANH SÁCH ──
 window.renderCalEventList = function() {
     const listEl = document.getElementById('calEventListContent');
-    
-    // Lọc sự kiện Server
+
     const dayEventsGlobal = globalCalEvents.filter(e => e.date === selectedCalDate || (e.is_yearly && e.date.substring(5) === selectedCalDate.substring(5)));
-    
-    // Lọc sự kiện Local kèm index gốc để xóa cho chuẩn xác
+
     const dayEventsLocal = [];
     Object.keys(calEvents).forEach(dKey => {
         calEvents[dKey].forEach((ev, idx) => {
             const isYearly = typeof ev === 'object' && ev.is_yearly;
             if (dKey === selectedCalDate || (isYearly && dKey.substring(5) === selectedCalDate.substring(5))) {
                 let evObj = typeof ev === 'string' ? { content: ev } : { ...ev };
-                evObj._origKey = dKey; // Chìa khóa để tìm về quá khứ xóa
+                evObj._origKey = dKey;
                 evObj._origIdx = idx;
                 dayEventsLocal.push(evObj);
             }
         });
     });
-    
+
     if (dayEventsLocal.length === 0 && dayEventsGlobal.length === 0) {
         listEl.innerHTML = '<div style="text-align:center; padding: 24px; font-size: 13px; color: var(--txt3);">🫪 Trống trơn! Không có sự kiện nào.</div>';
         return;
     }
-    
+
     let html = '';
-    
+
     dayEventsGlobal.forEach(ev => {
         const iconHtml = ev.icon ? `<span class="material-icons" style="font-size:14px; vertical-align:middle; color:${ev.color};">${esc(ev.icon)}</span> ` : '';
         const repeatBadge = ev.is_yearly ? `<span style="background:#e0e7ff; color:#4338ca; padding:2px 6px; border-radius:4px; font-size:9px; margin-left:6px;">HÀNG NĂM</span>` : '';
@@ -4893,7 +4590,7 @@ window.renderCalEventList = function() {
             ${ev.homework ? `<div class="cal-detail-row"><strong>Bài tập:</strong> ${esc(ev.homework)}</div>` : ''}
         </div>`;
     });
-    
+
     dayEventsLocal.forEach(ev => {
         const repeatBadge = ev.is_yearly ? `<span style="background:#fce7f3; color:#4f46e5; padding:2px 6px; border-radius:4px; font-size:9px; margin-left:6px;">HÀNG NĂM</span>` : '';
         html += `
@@ -4905,26 +4602,24 @@ window.renderCalEventList = function() {
             ${ev.homework ? `<div class="cal-detail-row"><strong>Bài tập:</strong> ${esc(ev.homework)}</div>` : ''}
         </div>`;
     });
-    
+
     listEl.innerHTML = html;
 };
 
-// ── LƯU & XÓA ──
 window.showCalAddForm = function() {
     document.getElementById('calEventListView').style.display = 'none';
     document.getElementById('calEventAddView').style.display = 'block';
     document.getElementById('calModalTitle').innerHTML = isAdmin ? 'Thêm lịch <span style="color:#1a56db;">[SERVER]</span>' : 'Thêm lịch <span style="color:#6b7280;">[CÁ NHÂN]</span>';
-    
+
     document.getElementById('calEvPeriod').value = '';
     document.getElementById('calEvContent').value = '';
     document.getElementById('calEvHomework').value = '';
     document.getElementById('calEvYearly').checked = false;
-    
-    // Hiện khung tùy chỉnh cho Admin
+
     document.getElementById('calAdminOptions').style.display = isAdmin ? 'block' : 'none';
     document.getElementById('calEvColor').value = '#1a56db';
     document.getElementById('calEvIcon').value = '';
-    
+
     setTimeout(() => document.getElementById('calEvPeriod').focus(), 50);
 };
 
@@ -4933,9 +4628,9 @@ window.saveCalEvent = async function() {
     const content = document.getElementById('calEvContent').value.trim();
     const homework = document.getElementById('calEvHomework').value.trim();
     const is_yearly = document.getElementById('calEvYearly').checked;
-    
+
     if (!period && !content) { toast('Gõ nhẹ cái Tiết học hoặc Nội dung nha!'); return; }
-    
+
     if (isAdmin) {
         const color = document.getElementById('calEvColor').value || '#1a56db';
         const icon = document.getElementById('calEvIcon').value.trim();
@@ -4952,7 +4647,7 @@ window.saveCalEvent = async function() {
         localStorage.setItem('hanvocab_cal_events', JSON.stringify(calEvents));
         toast('Đã lưu lịch cá nhân!');
     }
-    
+
     renderCalendar();
     hideCalAddForm();
     renderCalEventList();
@@ -4960,7 +4655,7 @@ window.saveCalEvent = async function() {
 
 window.deleteCalEvent = async function(idOrOrigKey, isGlobal, origIdx) {
     if (!confirm('Chắc chắn muốn xóa lịch này?')) return;
-    
+
     if (isGlobal) {
         if (!isAdmin) { toast('Chỉ Admin mới xóa được lịch chung!'); return; }
         try {
@@ -4975,7 +4670,7 @@ window.deleteCalEvent = async function(idOrOrigKey, isGlobal, origIdx) {
         localStorage.setItem('hanvocab_cal_events', JSON.stringify(calEvents));
         toast('Đã xóa lịch cá nhân!');
     }
-    
+
     renderCalendar();
     renderCalEventList();
 };
@@ -4983,12 +4678,11 @@ window.deleteCalEvent = async function(idOrOrigKey, isGlobal, origIdx) {
 window.calPrevMonth = function() { calCurrentDate.setMonth(calCurrentDate.getMonth() - 1); renderCalendar(); };
 window.calNextMonth = function() { calCurrentDate.setMonth(calCurrentDate.getMonth() + 1); renderCalendar(); };
 
-// ── QUẢN LÝ MODAL ──
 window.openCalModal = function(dateKey) {
     selectedCalDate = dateKey;
     const [y, m, d] = dateKey.split('-');
     document.getElementById('calEventDateLbl').textContent = `Thứ ${new Date(y, m-1, d).getDay() === 0 ? 'Chủ nhật' : new Date(y, m-1, d).getDay() + 1}, ngày ${d}/${m}/${y}`;
-    
+
     renderCalEventList();
     document.getElementById('calEventListView').style.display = 'block';
     document.getElementById('calEventAddView').style.display = 'none';
@@ -4997,14 +4691,12 @@ window.openCalModal = function(dateKey) {
 };
 window.closeCalModal = function() { document.getElementById('calEventModal').classList.remove('show'); };
 
-
-// ── FORM ACTIONS ──
 window.showCalAddForm = function() {
     document.getElementById('calEventListView').style.display = 'none';
     document.getElementById('calEventAddView').style.display = 'block';
-    // Đổi tiêu đề dựa theo role
+
     document.getElementById('calModalTitle').innerHTML = isAdmin ? 'Thêm lịch <span style="color:#1a56db;">[SERVER]</span>' : 'Thêm lịch <span style="color:#6b7280;">[CÁ NHÂN]</span>';
-    
+
     document.getElementById('calEvPeriod').value = '';
     document.getElementById('calEvContent').value = '';
     document.getElementById('calEvHomework').value = '';
@@ -5017,10 +4709,6 @@ window.hideCalAddForm = function() {
     document.getElementById('calModalTitle').textContent = 'Lịch trình ngày';
 };
 
-/* ══════════════════════════════════════
-   TOPBAR WIDGETS (CLOCK, WEATHER, SEARCH)
-══════════════════════════════════════ */
-// 1. Đồng hồ
 function updateTopbarClock() {
     const now = new Date();
     const clockEl = document.getElementById('topbarClock');
@@ -5029,50 +4717,44 @@ function updateTopbarClock() {
 setInterval(updateTopbarClock, 1000);
 updateTopbarClock();
 
-// 2. Thời tiết Suwon (Sử dụng Open-Meteo API miễn phí, không cần key)
 async function fetchWeather() {
     try {
-        // Tọa độ Suwon: Lat 37.2636, Lon 127.0286
+
         const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=37.2636&longitude=127.0286&current_weather=true');
         const data = await res.json();
         if (data && data.current_weather) {
             const temp = Math.round(data.current_weather.temperature);
             const code = data.current_weather.weathercode;
-            let icon = '⛅'; // Default
-            if (code === 0) icon = '☀️'; // Nắng
-            else if (code >= 1 && code <= 3) icon = '⛅'; // Có mây
-            else if (code >= 51 && code <= 67) icon = '🌧️'; // Mưa
-            else if (code >= 71 && code <= 77) icon = '❄️'; // Tuyết
-            else if (code >= 95) icon = '🌩️'; // Bão
-            
+            let icon = '⛅';
+            if (code === 0) icon = '☀️';
+            else if (code >= 1 && code <= 3) icon = '⛅';
+            else if (code >= 51 && code <= 67) icon = '🌧️';
+            else if (code >= 71 && code <= 77) icon = '❄️';
+            else if (code >= 95) icon = '🌩️';
+
             const tempEl = document.getElementById('topbarTemp');
             if (tempEl) tempEl.textContent = `${icon} ${temp}°C`;
         }
     } catch(e) { console.log('Không lấy được thời tiết:', e); }
 }
 fetchWeather();
-setInterval(fetchWeather, 30 * 60 * 1000); // Tự cập nhật mỗi 30 phút
+setInterval(fetchWeather, 30 * 60 * 1000);
 
-// 3. Tra từ nhanh toàn cục
 window.doGlobalSearch = function(val) {
     if (!val.trim()) return;
-    
-    // Đá người dùng về tab Danh sách
+
     openInternalTool('list', 'danhsach');
-    
-    // Bắn chữ xuống thanh search chính và kích hoạt bộ lọc
+
     const mainSearch = document.getElementById('searchKor');
     if (mainSearch) {
         mainSearch.value = val;
         mainSearch.focus();
-        onSearch(); // Kích hoạt lọc bảng ngay lập tức
+        onSearch();
     }
-    
-    // Xóa trắng ô search topbar cho đẹp
+
     document.getElementById('globalSearchInp').value = '';
 };
 
-// 4. Ngày và Ticker Sự kiện hôm nay
 let topbarEventsList = [];
 let topbarEventTickerTimer = null;
 let currentEventIdx = 0;
@@ -5084,7 +4766,6 @@ window.updateTopbarDateAndEvents = function() {
     const dateEl = document.getElementById('topbarDate');
     if(dateEl) dateEl.textContent = dateStr;
 
-    // Lấy Key ngày chuẩn hôm nay
     const y = now.getFullYear();
     const m = String(now.getMonth() + 1).padStart(2, '0');
     const d = String(now.getDate()).padStart(2, '0');
@@ -5093,16 +4774,14 @@ window.updateTopbarDateAndEvents = function() {
 
     let todaysEvents = [];
 
-    // Hàm thông minh tự động ghép Tiết học + Nội dung
     const formatEventText = (ev) => {
         if (typeof ev === 'string') return ev;
         let txt = '';
-        if (ev.period) txt += `[${ev.period}] `; // Đóng ngoặc vuông cái tiết học cho ngầu
+        if (ev.period) txt += `[${ev.period}] `;
         if (ev.content) txt += ev.content;
         return txt.trim() || 'Sự kiện không tên';
     };
-    
-    // Moi sự kiện từ Server
+
     if (typeof globalCalEvents !== 'undefined') {
         globalCalEvents.forEach(ev => {
             if (ev.date === dateKey || (ev.is_yearly && ev.date.substring(5) === mmdd)) {
@@ -5110,8 +4789,7 @@ window.updateTopbarDateAndEvents = function() {
             }
         });
     }
-    
-    // Moi sự kiện từ Local (Cá nhân)
+
     if (typeof calEvents !== 'undefined') {
         Object.keys(calEvents).forEach(dKey => {
             calEvents[dKey].forEach(ev => {
@@ -5123,7 +4801,6 @@ window.updateTopbarDateAndEvents = function() {
         });
     }
 
-    // Chốt danh sách sự kiện
     topbarEventsList = todaysEvents.length ? todaysEvents : ['Trống lịch! Chơi game thôi 🫪'];
     startEventTicker();
 };
@@ -5135,28 +4812,25 @@ window.startEventTicker = function() {
 
     currentEventIdx = 0;
     textEl.textContent = topbarEventsList[currentEventIdx];
-    textEl.classList.remove('ticker-in', 'ticker-out'); // Gỡ hiệu ứng nếu có
+    textEl.classList.remove('ticker-in', 'ticker-out');
 
-    // Nếu có từ 2 sự kiện trở lên thì mới quay vòng
     if (topbarEventsList.length > 1) {
         topbarEventTickerTimer = setInterval(() => {
             textEl.classList.remove('ticker-in');
             textEl.classList.add('ticker-out');
-            
+
             setTimeout(() => {
                 currentEventIdx = (currentEventIdx + 1) % topbarEventsList.length;
                 textEl.textContent = topbarEventsList[currentEventIdx];
                 textEl.classList.remove('ticker-out');
                 textEl.classList.add('ticker-in');
-            }, 400); 
-        }, 3500); 
+            }, 400);
+        }, 3500);
     }
 };
 
-// Cập nhật sau 1.5s lúc load web để đảm bảo Supabase đã đổ dữ liệu về
-setTimeout(updateTopbarDateAndEvents, 1500); 
+setTimeout(updateTopbarDateAndEvents, 1500);
 
-// Gắn sự kiện để hễ thêm/xóa lịch là Topbar tự động cập nhật ngay lập tức
 const originalSaveCalEvent2937 = window.saveCalEvent;
 if(originalSaveCalEvent2937) {
     window.saveCalEvent = async function() {
@@ -5172,12 +4846,34 @@ if(originalDeleteCalEvent2937) {
     };
 }
 
-// ===================================================================
-// 1. KHAI BÁO BIẾN HỆ THỐNG CHO TERMINAL (Đã giấu sạch 100% Key) 🫪
-// ===================================================================
+function pushNotification(tieuDe, noiDung) {
+    if (!("Notification" in window)) {
+        console.warn("Trình duyệt không hỗ trợ thông báo! 🫪");
+        return;
+    }
+    const taoThongBao = () => {
+        const thongBao = new Notification(tieuDe, {
+            body: noiDung,
+            icon: "https://cdn-icons-png.flaticon.com/512/3119/3119338.png",
+            vibrate: [100, 50, 100],
+        });
+        thongBao.onclick = function() {
+            window.focus();
+            this.close();
+        };
+    };
+    if (Notification.permission === "granted") {
+        taoThongBao();
+    } else if (Notification.permission !== "denied") {
+        Notification.requestPermission().then((permission) => {
+            if (permission === "granted") taoThongBao();
+        });
+    }
+}
+
 let commandHistory = [];
 let historyIndex = -1;
-const USER_COMMANDS = ['help', 'clear', 'exit', 'list', 'ai', 'groq'];
+const USER_COMMANDS = ['help', 'clear', 'exit', 'list', 'ai', 'groq', 'test-tb'];
 const ADMIN_COMMANDS = ['add', 'delete'];
 
 let isWaitingForConfirm = false;
@@ -5185,18 +4881,16 @@ let pendingAddData = null;
 let isWaitingForDelete = false;
 let deleteCandidates = [];
 
-// Gemini (ĐÃ XÓA KEY KHỎI FRONTEND CHO AN TOÀN)
 let isAiMode = false;
 let aiChatHistory = [];
 
-// Groq (ĐÃ XÓA KEY KHỎI FRONTEND CHO AN TOÀN)
 let isGroqMode = false;
 let groqChatHistory = [];
 
 function printTerminalError(msg, body, inputEl) {
     const errorLine = document.createElement('div');
     errorLine.className = 'terminal-line';
-    errorLine.style.color = '#ff5f56'; 
+    errorLine.style.color = '#ff5f56';
     errorLine.textContent = msg;
     body.insertBefore(errorLine, inputEl);
 }
@@ -5208,15 +4902,12 @@ function printHelp(body, inputEl) {
     }
     const line = document.createElement('div');
     line.className = 'terminal-line';
-    line.style.color = '#ffbd2e'; 
+    line.style.color = '#ffbd2e';
     line.style.whiteSpace = 'pre';
     line.textContent = helpMsg;
     body.insertBefore(line, inputEl);
 }
 
-// ===================================================================
-// 4. LẮNG NGHE SỰ KIỆN BÀN PHÍM TRONG TERMINAL
-// ===================================================================
 document.getElementById('terminalInput')?.addEventListener('keydown', function(e) {
     const body = document.getElementById('terminalBody');
     const inputField = this;
@@ -5229,7 +4920,7 @@ document.getElementById('terminalInput')?.addEventListener('keydown', function(e
             else if (historyIndex > 0) historyIndex--;
             this.value = commandHistory[historyIndex];
         }
-    } 
+    }
     else if (e.key === 'ArrowDown') {
         e.preventDefault();
         if (!isWaitingForConfirm && !isWaitingForDelete && !isAiMode && !isGroqMode && historyIndex !== -1) {
@@ -5251,10 +4942,9 @@ document.getElementById('terminalInput')?.addEventListener('keydown', function(e
         }
         historyIndex = -1;
 
-        // 🧠 CHẾ ĐỘ GROQ (SIÊU TỐC) ⚡
         if (isGroqMode) {
             const ans = input.toLowerCase();
-            
+
             if (ans === 'exit' || ans === 'quit') {
                 isGroqMode = false;
                 const resLine = document.createElement('div');
@@ -5262,7 +4952,7 @@ document.getElementById('terminalInput')?.addEventListener('keydown', function(e
                 resLine.style.color = '#f97316';
                 resLine.textContent = `[Groq] Đã ngắt kết nối siêu tốc. Trở về Terminal hệ thống. 🫪`;
                 body.insertBefore(resLine, inputField.parentElement);
-                
+
                 document.getElementById('terminalPromptPrefix').textContent = (isAdmin ? 'admin' : 'user') + '@hanvocab:~' + (isAdmin ? '#' : '$') + ' ';
                 this.value = "";
                 body.scrollTop = body.scrollHeight;
@@ -5282,7 +4972,7 @@ document.getElementById('terminalInput')?.addEventListener('keydown', function(e
             loadingLine.style.fontStyle = 'italic';
             loadingLine.textContent = 'Groq đang bay tới server... ⚡';
             body.insertBefore(loadingLine, inputField.parentElement);
-            
+
             this.value = "";
             this.disabled = true;
             body.scrollTop = body.scrollHeight;
@@ -5298,10 +4988,10 @@ document.getElementById('terminalInput')?.addEventListener('keydown', function(e
             .then(data => {
                 loadingLine.remove();
                 if (data.error) throw new Error(data.error.message || data.error);
-                
+
                 const endTime = performance.now();
                 const timeTaken = ((endTime - startTime) / 1000).toFixed(2);
-                
+
                 const reply = data.choices[0].message.content;
                 groqChatHistory.push({ role: "assistant", content: reply });
 
@@ -5331,7 +5021,7 @@ document.getElementById('terminalInput')?.addEventListener('keydown', function(e
                             body.scrollTop = body.scrollHeight;
                         }
                         i++;
-                        setTimeout(typeWriterTerminal, isTag ? 0 : 8); 
+                        setTimeout(typeWriterTerminal, isTag ? 0 : 8);
                     } else {
                         inputField.disabled = false;
                         inputField.focus();
@@ -5347,13 +5037,12 @@ document.getElementById('terminalInput')?.addEventListener('keydown', function(e
                 inputField.focus();
             });
 
-            return; 
+            return;
         }
 
-        // 🧠 CHẾ ĐỘ GEMINI ĐÃ DÙNG API NỘI BỘ VERCEL 🫪
         if (isAiMode) {
             const ans = input.toLowerCase();
-            
+
             if (ans === 'exit' || ans === 'quit') {
                 isAiMode = false;
                 const resLine = document.createElement('div');
@@ -5361,7 +5050,7 @@ document.getElementById('terminalInput')?.addEventListener('keydown', function(e
                 resLine.style.color = '#ffbd2e';
                 resLine.textContent = `[Gemini] Đã ngắt kết nối AI. Trở về Terminal hệ thống. 🫪`;
                 body.insertBefore(resLine, inputField.parentElement);
-                
+
                 document.getElementById('terminalPromptPrefix').textContent = (isAdmin ? 'admin' : 'user') + '@hanvocab:~' + (isAdmin ? '#' : '$') + ' ';
                 this.value = "";
                 body.scrollTop = body.scrollHeight;
@@ -5381,12 +5070,11 @@ document.getElementById('terminalInput')?.addEventListener('keydown', function(e
             loadingLine.style.fontStyle = 'italic';
             loadingLine.textContent = 'Gemini đang gõ... ⏳';
             body.insertBefore(loadingLine, inputField.parentElement);
-            
+
             this.value = "";
-            this.disabled = true; 
+            this.disabled = true;
             body.scrollTop = body.scrollHeight;
 
-            // 🟢 ĐÃ SỬA CHỖ NÀY: GỌI VÀO API NỘI BỘ, KHÔNG TRUYỀN KEY 🫪
             fetch("/api/chat-gemini", {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -5396,7 +5084,7 @@ document.getElementById('terminalInput')?.addEventListener('keydown', function(e
             .then(data => {
                 loadingLine.remove();
                 if (data.error) throw new Error(data.error.message || data.error);
-                
+
                 const reply = data.candidates[0].content.parts[0].text;
                 aiChatHistory.push({ role: "model", parts: [{ text: reply }] });
 
@@ -5434,16 +5122,15 @@ document.getElementById('terminalInput')?.addEventListener('keydown', function(e
             })
             .catch(err => {
                 loadingLine.remove();
-                aiChatHistory.pop(); 
+                aiChatHistory.pop();
                 printTerminalError(`[Lỗi Gemini] ${err.message} 🫪`, body, inputField.parentElement);
                 inputField.disabled = false;
                 inputField.focus();
             });
 
-            return; 
+            return;
         }
 
-        // LỆNH HỆ THỐNG BÌNH THƯỜNG
         const userLine = document.createElement('div');
         userLine.className = 'terminal-line';
         if (isWaitingForConfirm) {
@@ -5451,7 +5138,7 @@ document.getElementById('terminalInput')?.addEventListener('keydown', function(e
         } else if (isWaitingForDelete) {
             userLine.innerHTML = `<span class="terminal-prompt">delete></span> ${esc(input)}`;
         } else {
-            const promptSymbol = isAdmin ? '#' : '$'; 
+            const promptSymbol = isAdmin ? '#' : '$';
             const userType = isAdmin ? 'admin' : 'user';
             userLine.innerHTML = `<span class="terminal-prompt">${userType}@hanvocab:~${promptSymbol}</span> ${esc(input)}`;
         }
@@ -5459,17 +5146,17 @@ document.getElementById('terminalInput')?.addEventListener('keydown', function(e
 
         if (isWaitingForConfirm) {
             const ans = input.toLowerCase();
-            if (ans === 'y' || ans === 'yes' || ans === '') { 
-                doAdd({ 
-                    kor: pendingAddData.word, type: pendingAddData.class, mean: pendingAddData.mean, 
-                    rom: typeof romanize === 'function' ? romanize(pendingAddData.word) : '', 
-                    ex: '', exm: '', topic: 'Terminal' 
+            if (ans === 'y' || ans === 'yes' || ans === '') {
+                doAdd({
+                    kor: pendingAddData.word, type: pendingAddData.class, mean: pendingAddData.mean,
+                    rom: typeof romanize === 'function' ? romanize(pendingAddData.word) : '',
+                    ex: '', exm: '', topic: 'Terminal'
                 });
-                
+
                 const resLine = document.createElement('div');
                 resLine.className = 'terminal-line';
                 resLine.style.color = '#27c93f';
-                resLine.textContent = pendingAddData.isNewMeaning 
+                resLine.textContent = pendingAddData.isNewMeaning
                     ? `[OK] Đã thêm nghĩa mới "${pendingAddData.mean}" cho từ "${pendingAddData.word}" nha ông chủ! 🫪`
                     : `[OK] Đã thêm thành công từ "${pendingAddData.word}" nha ông chủ! 🫪`;
                 body.insertBefore(resLine, this.parentElement);
@@ -5483,7 +5170,7 @@ document.getElementById('terminalInput')?.addEventListener('keydown', function(e
             isWaitingForConfirm = false;
             pendingAddData = null;
             document.getElementById('terminalPromptPrefix').textContent = (isAdmin ? 'admin' : 'user') + '@hanvocab:~' + (isAdmin ? '#' : '$') + ' ';
-        } 
+        }
         else if (isWaitingForDelete) {
             const ans = input.toLowerCase();
             if (ans === 'c' || ans === 'cancel' || ans === 'n') {
@@ -5494,11 +5181,11 @@ document.getElementById('terminalInput')?.addEventListener('keydown', function(e
                     printTerminalError(`Số không hợp lệ! Nhập lại từ 1 đến ${deleteCandidates.length}, hoặc gõ 'c' để thoát nha ông chủ.`, body, this.parentElement);
                     this.value = "";
                     body.scrollTop = body.scrollHeight;
-                    return; 
+                    return;
                 }
 
                 const targetWord = deleteCandidates[idx];
-                
+
                 if (typeof sb !== 'undefined' && sb) {
                     sp.from('korean_vocab').delete().eq('id', targetWord.id).then(({error}) => {
                         if (!error) { words = words.filter(w => w.id !== targetWord.id); refresh(); }
@@ -5522,7 +5209,7 @@ document.getElementById('terminalInput')?.addEventListener('keydown', function(e
         else {
             const args = input.split(' ');
             const command = args[0].toLowerCase();
-            
+
             const isUserCmd = USER_COMMANDS.includes(command);
             const isAdminCmd = ADMIN_COMMANDS.includes(command);
 
@@ -5535,6 +5222,16 @@ document.getElementById('terminalInput')?.addEventListener('keydown', function(e
                 lines.forEach(line => line.remove());
             } else if (command === 'help') {
                 printHelp(body, this.parentElement);
+
+            } else if (command === 'test-tb') {
+                const resLine = document.createElement('div');
+                resLine.className = 'terminal-line';
+                resLine.style.color = '#27c93f';
+                resLine.textContent = `[OK] Đang bắn thông báo hệ thống... Nhìn góc màn hình nha ông chủ! 🫪`;
+                body.insertBefore(resLine, this.parentElement);
+
+                pushNotification("Nhắc nhở từ Terminal 2937 🚀", "Nay ông chủ code nhiều rồi, nhớ uống nước nha 🫪!");
+
             } else if (command === 'groq') {
                 isGroqMode = true;
                 const welcomeLine = document.createElement('div');
@@ -5542,9 +5239,9 @@ document.getElementById('terminalInput')?.addEventListener('keydown', function(e
                 welcomeLine.style.color = '#f97316';
                 welcomeLine.innerHTML = `<strong>[Groq System]</strong> Đã kết nối AI siêu tốc qua Vercel Backend ⚡!<br>Gõ <span style="color:#ffbd2e">exit</span> để thoát khỏi chế độ này.`;
                 body.insertBefore(welcomeLine, this.parentElement);
-                
+
                 document.getElementById('terminalPromptPrefix').innerHTML = '<span style="color: #fbd38d;">you@groq:~$</span> ';
-                
+
                 if (groqChatHistory.length === 0) {
                     groqChatHistory.push({
                         role: "system",
@@ -5559,12 +5256,12 @@ document.getElementById('terminalInput')?.addEventListener('keydown', function(e
                 isAiMode = true;
                 const welcomeLine = document.createElement('div');
                 welcomeLine.className = 'terminal-line';
-                welcomeLine.style.color = '#a78bfa'; 
+                welcomeLine.style.color = '#a78bfa';
                 welcomeLine.innerHTML = `<strong>[Gemini System]</strong> Đã kết nối AI qua Vercel Backend 🫪!<br>Tớ ở đây sẵn sàng trả lời mọi thứ. Gõ <span style="color:#ffbd2e">exit</span> để thoát khỏi chế độ này.`;
                 body.insertBefore(welcomeLine, this.parentElement);
-                
+
                 document.getElementById('terminalPromptPrefix').innerHTML = '<span style="color: #a78bfa;">you@gemini:~$</span> ';
-                
+
                 if (aiChatHistory.length === 0) {
                     aiChatHistory.push({
                         role: "user",
@@ -5604,7 +5301,7 @@ document.getElementById('terminalInput')?.addEventListener('keydown', function(e
                 }
             } else if (command === 'delete') {
                 deleteCandidates = words.filter(w => w.topic === 'Terminal');
-                
+
                 if (deleteCandidates.length === 0) {
                     printTerminalError(`Chưa có từ nào được thêm qua Terminal để xóa đâu nha! 🫪`, body, this.parentElement);
                 } else {
@@ -5621,7 +5318,7 @@ document.getElementById('terminalInput')?.addEventListener('keydown', function(e
                     promptLine.style.whiteSpace = 'pre';
                     promptLine.textContent = promptMsg;
                     body.insertBefore(promptLine, this.parentElement);
-                    
+
                     document.getElementById('terminalPromptPrefix').textContent = 'delete> ';
                 }
             } else if (command === 'add') {
@@ -5629,7 +5326,7 @@ document.getElementById('terminalInput')?.addEventListener('keydown', function(e
                 const regex = /(word|mean|class)\s+(.+?)(?=\s+(?:word|mean|class)\b|$)/gi;
                 let match;
                 let parsed = { word: '', mean: '', class: '기타' };
-                
+
                 while ((match = regex.exec(payloadStr)) !== null) {
                     const key = match[1].toLowerCase();
                     const val = match[2].trim();
@@ -5651,24 +5348,24 @@ document.getElementById('terminalInput')?.addEventListener('keydown', function(e
                 } else {
                     const existing = words.filter(w => w.korean === parsed.word);
                     const sameMean = existing.some(w => norm(w.meaning) === norm(parsed.mean));
-                    
+
                     if (sameMean) {
                         printTerminalError(`[WARN] Từ "${parsed.word}" với nghĩa "${parsed.mean}" đã có sẵn trong từ điển rồi ông chủ ơi! 🫪`, body, this.parentElement);
                     } else {
                         isWaitingForConfirm = true;
                         parsed.isNewMeaning = existing.length > 0;
                         pendingAddData = parsed;
-                        
+
                         const promptLine = document.createElement('div');
                         promptLine.className = 'terminal-line';
                         promptLine.style.color = '#85B7EB';
-                        
+
                         if (parsed.isNewMeaning) {
                             promptLine.innerText = `Từ "${parsed.word}" đã tồn tại với nghĩa:\n${existing.map(w => '• ' + w.meaning).join('\n')}\n\nÔng chủ có muốn thêm nghĩa mới "${parsed.mean}" không 🫪? [Y/n]`;
                         } else {
                             promptLine.innerText = `Ông chủ có chắc muốn thêm từ mới này không 🫪?\n🇰🇷 Từ: ${parsed.word}\n🏷️ Loại: ${parsed.class}\n🇻🇳 Nghĩa: ${parsed.mean}\n\n[Y/n]`;
                         }
-                        
+
                         body.insertBefore(promptLine, this.parentElement);
                         document.getElementById('terminalPromptPrefix').textContent = '> ';
                     }
@@ -5680,3 +5377,24 @@ document.getElementById('terminalInput')?.addEventListener('keydown', function(e
         body.scrollTop = body.scrollHeight;
     }
 });
+
+function caiDatNhacDiNgu() {
+    const bayGio = new Date();
+
+    const mốc12hKhuya = new Date(bayGio.getFullYear(), bayGio.getMonth(), bayGio.getDate() + 1, 0, 0, 0);
+
+    const thoiGianCho = mốc12hKhuya.getTime() - bayGio.getTime();
+
+    console.log(`Đã lên lịch nhắc đi ngủ sau ${Math.round(thoiGianCho / 1000 / 60)} phút nữa 🫪`);
+
+    setTimeout(() => {
+        pushNotification("Khuya rồi ông chủ ơi! 🫪", "Đúng 12h đêm rồi, tắt máy tính đi ngủ giữ gìn sức khỏe nha!");
+
+        setInterval(() => {
+            pushNotification("Khuya rồi ông chủ ơi! 🫪", "Đúng 12h đêm rồi, tắt máy tính đi ngủ giữ gìn sức khỏe nha!");
+        }, 24 * 60 * 60 * 1000);
+
+    }, thoiGianCho);
+}
+
+caiDatNhacDiNgu();

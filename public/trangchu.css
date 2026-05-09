@@ -79,8 +79,6 @@
             margin-left: 8px;
         }
 
-
-
         .tabs {
             display: flex;
             gap: 2px;
@@ -159,7 +157,7 @@
             background: var(--bg2);
         }
 
-        /* Search panel */
+        
         .search-panel {
             background: var(--bg);
             border: 0.5px solid var(--bdr);
@@ -214,7 +212,7 @@
             display: block;
         }
 
-        /* Dropdown */
+        
         .drop {
             display: none;
             border-top: 0.5px solid var(--bdr);
@@ -281,7 +279,7 @@
             display: block;
         }
 
-        /* Form add */
+        
         .add-form {
             display: none;
             border-top: 0.5px solid var(--bdr);
@@ -353,7 +351,7 @@
             border-color: var(--txt2);
         }
 
-        /* Filter */
+        
         .filter-bar {
             display: flex;
             gap: 8px;
@@ -372,7 +370,7 @@
             outline: none;
         }
 
-        /* Table */
+        
         .tbl-wrap {
             background: var(--bg);
             border: 0.5px solid var(--bdr);
@@ -485,7 +483,7 @@
             background: #E6F1FB;
         }
 
-        /* Edit Modal */
+        
         .edit-modal-bg {
             position: fixed;
             inset: 0;
@@ -570,7 +568,7 @@
             color: var(--txt2)
         }
 
-        /* Flashcard */
+        
         .fc-wrap {
             display: flex;
             flex-direction: column;
@@ -707,7 +705,7 @@
             color: var(--txt2);
         }
 
-        /* Modal */
+        
         .modal-bg {
             position: fixed;
             inset: 0;
@@ -790,12 +788,12 @@
 
         @media(max-width:620px) {
 
-            /* Shell */
+            
             .shell {
                 padding: 12px 10px 100px;
             }
 
-            /* Topbar */
+            
             .topbar {
                 flex-wrap: wrap;
                 gap: 8px;
@@ -810,7 +808,7 @@
                 display: none;
             }
 
-            /* Tabs: scrollable horizontal strip */
+            
             .tabs {
                 display: flex;
                 gap: 0;
@@ -846,7 +844,7 @@
                 margin-top: 12px;
             }
 
-            /* Forms */
+            
             .form-row1 {
                 grid-template-columns: 1fr 1fr;
             }
@@ -867,7 +865,7 @@
                 display: none;
             }
 
-            /* Table */
+            
             th:nth-child(4),
             td:nth-child(4),
             th:nth-child(5),
@@ -877,7 +875,7 @@
                 display: none;
             }
 
-            /* Filter bar */
+            
             .filter-bar {
                 gap: 6px;
             }
@@ -888,7 +886,7 @@
             }
         }
 
-        /* ── Writing practice ── */
+        
         .wp-wrap {
             display: flex;
             flex-direction: column;
@@ -1121,7 +1119,7 @@
             font-weight: 400;
         }
 
-        /* Short screen optimization */
+        
         @media (max-height: 700px) {
             .wp-prompt {
                 font-size: 28px;
@@ -1141,7 +1139,7 @@
             }
         }
 
-        /* Auth & Admin */
+        
         .auth-btns {
             display: flex;
             gap: 8px;
@@ -1165,7 +1163,7 @@
             display: block !important;
         }
 
-        /* Admin tab (pane) visibility controlled by switchTab only */
+        
         body.is-admin .pane.admin-only.active {
             display: block !important;
         }
@@ -1225,7 +1223,7 @@
             text-decoration: underline;
         }
 
-        /* ── Quiz ── */
+        
         .quiz-list {
             display: flex;
             flex-direction: column;
@@ -1428,7 +1426,7 @@
             }
         }
 
-        /* ── Typing practice ── */
+        
         .tp-input-wrap {
             display: flex;
             flex-direction: column;
@@ -1519,7 +1517,7 @@
             text-align: center;
         }
 
-        /* ── Listening practice ── */
+        
         .lp-play-btn {
             display: inline-flex;
             align-items: center;
@@ -1581,7 +1579,7 @@
             color: var(--txt2);
         }
 
-        /* ── Trắc nghiệm (Multiple Choice) ── */
+        
         .mc-wrap {
             display: flex;
             flex-direction: column;
@@ -1799,7 +1797,7 @@
             justify-content: center;
         }
 
-        /* Summary */
+        
         .mc-summary {
             background: var(--bg);
             border: 0.5px solid var(--bdr);
@@ -1903,7 +1901,7 @@
             margin-top: 1px;
         }
 
-        /* ── End CSS ── */
+        
         .admin-section {
             background: var(--bg);
             border: 0.5px solid var(--bdr);
@@ -2027,8 +2025,8 @@
             border-bottom: none;
         }
 
-        /* ── SOẠN BÀI ── */
-        /* Khi tab soạn bài active: shell chiếm toàn màn hình, bỏ padding thừa */
+        
+        
         body.soan-active .shell {
             padding: 0 !important;
             display: flex;
@@ -2084,7 +2082,7 @@
             background: var(--txt3);
         }
 
-        /* LEFT */
+        
         .soan-left {
             width: 240px;
             flex-shrink: 0;
@@ -2261,7 +2259,7 @@
             color: var(--txt2);
         }
 
-        /* MIDDLE */
+        
         .soan-mid {
             flex: 1;
             min-width: 0;
@@ -2531,7 +2529,7 @@
             z-index: 5;
         }
 
-        /* LEFT VOCAB SECTION */
+        
         .soan-left-vocab {
             display: flex;
             flex-direction: column;
@@ -2650,7 +2648,7 @@
             flex-shrink: 0;
         }
 
-        /* AI panel */
+        
         .soan-ai-panel {
             position: absolute;
             bottom: 0;
@@ -2705,7 +2703,7 @@
             white-space: pre-wrap;
         }
 
-        /* RIGHT */
+        
         .soan-right {
             width: 280px;
             flex-shrink: 0;
@@ -2769,7 +2767,7 @@
             background: var(--txt3);
         }
 
-        /* Modal */
+        
         .soan-modal-bg {
             position: absolute;
             inset: 0;
@@ -2848,7 +2846,7 @@
             justify-content: flex-end;
         }
 
-        /* Shared buttons */
+        
         .soan-icon-btn {
             width: 28px;
             height: 28px;
@@ -2918,7 +2916,7 @@
 
         @media (max-width: 620px) {
 
-            /* Soạn bài: ẩn hoàn toàn trên mobile */
+            
             .tab-soan-hide {
                 display: none !important;
             }
@@ -2954,12 +2952,7 @@
             margin-right: 0;
             vertical-align: middle;
         }
-/* ═══════════════════════════════════════════════
-   NHAI TOPIK LAYOUT OVERRIDE
-   Sidebar + Grid Background + Topbar redesign
-═══════════════════════════════════════════════ */
 
-/* --- Reset body & root layout --- */
 html, body {
   height: 100%;
   overflow: hidden;
@@ -2972,7 +2965,6 @@ body {
   font-family: 'Segoe UI', -apple-system, 'Helvetica Neue', Arial, sans-serif;
 }
 
-/* Grid dot background on main area */
 .main-area {
   flex: 1;
   display: flex;
@@ -2988,7 +2980,6 @@ body {
   background: transparent;
 }
 
-/* ── Global topbar ── */
 .global-topbar {
   height: 52px;
   background: rgba(255,255,255,0.75);
@@ -3036,7 +3027,6 @@ body {
   gap: 8px;
 }
 
-/* ── Sidebar ── */
 .sidebar {
   width: 200px;
   flex-shrink: 0;
@@ -3174,34 +3164,28 @@ body {
   text-overflow: ellipsis;
 }
 
-/* ── Shell override: remove old centering ── */
 .shell {
   max-width: none !important;
   margin: 0 !important;
   padding: 10px !important;
 }
 
-/* ── Tabs as sidebar nav (hide old horizontal tabs) ── */
 .tabs {
   display: none !important;
 }
 
-/* ── Old topbar: hide, replaced by global-topbar + sidebar ── */
 .topbar {
   display: none !important;
 }
 
-/* ── Pane backgrounds: transparent so grid shows ── */
 .pane {
   background: transparent;
 }
 
-/* ── Scrollbar styling ── */
 .main-content::-webkit-scrollbar { width: 6px; }
 .main-content::-webkit-scrollbar-track { background: transparent; }
 .main-content::-webkit-scrollbar-thumb { background: #c5c9dc; border-radius: 3px; }
 
-/* ── Dark mode adjustments ── */
 @media (prefers-color-scheme: dark) {
   body { background: #111318; }
   .global-topbar { background: rgba(26,28,36,0.75); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-color: rgba(255,255,255,.07); }
@@ -3218,7 +3202,6 @@ body {
   .main-content { background: transparent; }
 }
 
-/* ── Responsive: collapse sidebar on mobile ── */
 @media (max-width: 768px) {
   .sidebar { display: none; }
   html, body { overflow: auto; }
@@ -3226,11 +3209,6 @@ body {
   .shell { padding: 12px 12px 80px !important; }
 }
 
-/* ═══════════════════════════════════════════════
-   SIDEBAR COLLAPSE + USER POPUP UPDATE
-═══════════════════════════════════════════════ */
-
-/* Toggle button in topbar */
 .sidebar-toggle-btn {
   display: flex;
   align-items: center;
@@ -3253,10 +3231,8 @@ body {
   font-size: 20px;
 }
 
-/* Topbar: only logo + toggle, no right section */
 .global-topbar .topbar-right { display: none !important; }
 
-/* ── Collapsed sidebar ── */
 .sidebar {
   transition: width .22s cubic-bezier(.4,0,.2,1);
   overflow: hidden;
@@ -3287,7 +3263,7 @@ body {
 .sidebar.collapsed .sidebar-icon {
   margin: 0;
 }
-/* Tooltip on collapsed items */
+
 .sidebar.collapsed .sidebar-item {
   position: relative;
 }
@@ -3313,7 +3289,6 @@ body {
   opacity: 1;
 }
 
-/* ── User popup menu ── */
 .sidebar-user {
   cursor: pointer;
   position: relative;
@@ -3370,7 +3345,6 @@ body {
   padding-bottom: 4px;
 }
 
-/* Dark mode popup */
 @media (prefers-color-scheme: dark) {
   .sidebar-user-popup { background: #1e2030; border-color: rgba(255,255,255,.1); box-shadow: 0 8px 24px rgba(0,0,0,.4); }
   .popup-item { color: #d1d5db; }
@@ -3379,7 +3353,6 @@ body {
   .sidebar-toggle-btn:hover { background: #262830; color: #f3f4f6; }
 }
 
-/* Adjust topbar when sidebar collapsed */
 .sidebar.collapsed ~ .main-content { flex: 1; }
 
 .popup-divider {
@@ -3390,9 +3363,6 @@ body {
 @media (prefers-color-scheme: dark) {
   .popup-divider { background: rgba(255,255,255,.07); }
 }
-/* ══════════════════════════════════════════════════
-   TOPIK GRID STYLES
-══════════════════════════════════════════════════ */
 
 .topik-wrap {
   max-width: 960px;
@@ -3470,7 +3440,6 @@ body {
   font-weight: 700;
 }
 
-/* Grid container */
 .topik-grid-container {
   background: #fff;
   border-radius: var(--rl);
@@ -3552,7 +3521,6 @@ body {
   }
 }
 
-/* Blank / indent cell */
 .topik-cell--blank {
   background: #f3f4f6;
 }
@@ -3563,12 +3531,10 @@ body {
   }
 }
 
-/* Empty (unfilled) cell */
 .topik-cell--empty {
   background: transparent;
 }
 
-/* Milestone row — highlight cạnh dưới hàng chứa ô 100, 200,... */
 .topik-row--milestone {
   border-bottom: 3px solid #2563eb !important;
 }
@@ -3579,7 +3545,6 @@ body {
   }
 }
 
-/* Print styles */
 @media print {
   body > *:not(.main-area) { display: none !important; }
   .global-topbar { display: none !important; }
@@ -3593,7 +3558,6 @@ body {
   .topik-row-num { font-size: 9px; }
 }
 
-/* ── TOPIK AI Button */
 .topik-ai-btn {
   background: linear-gradient(135deg, #6366f1, #8b5cf6);
   color: #fff !important;
@@ -3607,7 +3571,6 @@ body {
   transform: translateY(-1px);
 }
 
-/* ── TOPIK AI Popup Modal */
 .topik-ai-modal {
   background: var(--bg);
   border-radius: var(--rl);
@@ -3660,8 +3623,6 @@ body {
   overflow-y: auto;
 }
 
-
-/* ── TOPIK AI Modal — fields */
 .topik-ai-modal-body { display: flex; flex-direction: column; gap: 18px; }
 
 .tai-field { display: flex; flex-direction: column; gap: 7px; }
@@ -3705,7 +3666,6 @@ body {
 }
 .tai-textarea:focus { border-color: #6366f1; }
 
-/* Chip group */
 .tai-chip-group { display: flex; flex-wrap: wrap; gap: 7px; }
 
 .tai-chip {
@@ -3727,7 +3687,6 @@ body {
   font-weight: 600;
 }
 
-/* Range slider */
 .tai-range {
   width: 100%;
   accent-color: #6366f1;
@@ -3741,7 +3700,6 @@ body {
   margin-top: -2px;
 }
 
-/* ── TOPIK AI Submit button */
 .tai-submit-btn {
   width: 100%;
   padding: 11px;
@@ -3762,9 +3720,6 @@ body {
 .tai-submit-btn:hover { opacity: 0.88; transform: translateY(-1px); }
 .tai-submit-btn:active { transform: none; opacity: 1; }
 
-/* ══════════════════════════════════════
-   SPEED TYPING PANEL
-══════════════════════════════════════ */
 .speed-wrap {
     max-width: 860px;
     margin: 0 auto;
@@ -3774,7 +3729,6 @@ body {
     gap: 0;
 }
 
-/* Toolbar */
 .speed-toolbar {
     display: flex;
     align-items: center;
@@ -3849,7 +3803,6 @@ body {
     color: var(--txt);
 }
 
-/* Metrics Bar */
 .speed-metrics {
     display: flex;
     align-items: center;
@@ -3916,7 +3869,6 @@ body {
     margin: 0 4px;
 }
 
-/* Hint bar */
 .speed-hint-bar {
     font-size: 12px;
     color: var(--txt3);
@@ -3926,7 +3878,6 @@ body {
     transition: all .2s;
 }
 
-/* Arena */
 .speed-arena {
     background: var(--bg);
     border: 0.5px solid var(--bdr);
@@ -3943,7 +3894,6 @@ body {
     box-shadow: 0 0 0 3px rgba(29, 158, 117, .08);
 }
 
-/* Text display area */
 .speed-text-area {
     font-size: 26px;
     line-height: 1.8;
@@ -3953,7 +3903,7 @@ body {
     overflow: hidden;
     max-height: 200px;
     overflow-y: auto;
-    /* word-break: break-all; */
+    
     overflow-wrap: break-word;
     user-select: none;
     position: relative;
@@ -3961,7 +3911,6 @@ body {
 
 .speed-text-area::-webkit-scrollbar { display: none; }
 
-/* Word and char spans */
 .s-word {
     display: inline-block;
     white-space: nowrap;
@@ -3994,7 +3943,6 @@ body {
     text-decoration-color: #c0392b;
 }
 
-/* Blinking cursor */
 .s-ch.cursor {
     position: relative;
     color: var(--txt);
@@ -4017,7 +3965,6 @@ body {
     50%, 100% { opacity: 0; }
 }
 
-/* Hidden input (the typing target) */
 .speed-input {
     position: absolute;
     bottom: 0;
@@ -4032,7 +3979,6 @@ body {
     outline: none;
 }
 
-/* Result screen */
 .speed-result {
     display: none;
     flex-direction: column;
@@ -4086,7 +4032,6 @@ body {
     text-transform: uppercase;
 }
 
-/* Dark mode overrides */
 @media (prefers-color-scheme: dark) {
     .speed-mode-btn.active {
         color: #1a1a18;
@@ -4096,7 +4041,6 @@ body {
     }
 }
 
-/* Responsive */
 @media (max-width: 620px) {
     .speed-text-area {
         font-size: 20px;
@@ -4115,7 +4059,6 @@ body {
     }
 }
 
-/* ══ NAV MENU BUTTON & POPUP ══ */
 .nav-menu-btn {
     display: flex;
     align-items: center;
@@ -4139,7 +4082,6 @@ body {
     font-size: 22px;
 }
 
-/* Overlay */
 .nav-menu-overlay {
     display: none;
     position: fixed;
@@ -4150,9 +4092,6 @@ body {
     display: block;
 }
 
-/* ══════════════════════════════════════
-   SETTINGS POPUP LIST
-══════════════════════════════════════ */
 .settings-list {
     display: flex;
     flex-direction: column;
@@ -4183,10 +4122,9 @@ body {
     width: 16px;
     height: 16px;
     cursor: pointer;
-    accent-color: var(--accent, #4f7cff); /* Dùng màu xanh đồng bộ của web */
+    accent-color: var(--accent, #4f7cff); 
 }
 
-/* Popup */
 .nav-menu-popup {
     position: fixed;
     top: 52px;
@@ -4253,7 +4191,6 @@ body {
     color: var(--accent, #4f7cff);
 }
 
-/* ── Topik Realtime toggle ── */
 .topik-realtime-btn {
     position: relative;
     transition: background 0.15s, color 0.15s, border-color 0.15s;
@@ -4290,7 +4227,6 @@ body {
     border-color: #b6d99a;
 }
 
-/* ── Topik History ── */
 .topik-history-section {
     margin-top: 16px;
     border: 0.5px solid var(--bdr2);
@@ -4359,13 +4295,6 @@ body {
     color: var(--txt3);
 }
 
-
-
-
-
-
-
-/* Ô đang preview âm tiết IME chưa hoàn chỉnh */
 .topik-cell--preview {
     color: #2563eb;
     opacity: 0.6;
@@ -4375,7 +4304,6 @@ body {
     .topik-cell--preview { color: #93c5fd; }
 }
 
-/* ── TOPIK title input ── */
 .topik-title-input {
     width: 100%;
     background: var(--bg2);
@@ -4393,7 +4321,6 @@ body {
 .topik-title-input:focus { border-color: var(--accent); }
 .topik-title-input::placeholder { color: var(--txt3); font-weight: 400; }
 
-/* ── TOPIK history item title ── */
 .topik-history-item-title {
     font-size: 13px;
     font-weight: 700;
@@ -4403,22 +4330,19 @@ body {
 
 .chat-iframe {
     width: 100%;
-    height: calc(100vh - 120px); /* Tự động dãn full chiều cao trừ đi phần topbar */
+    height: calc(100vh - 120px); 
     border: 0.5px solid var(--bdr);
     border-radius: var(--rl);
     background: var(--bg);
     display: block;
 }
 
-/* ══════════════════════════════════════
-   POMODORO FLOATING WIDGET (NEO VỊ TRÍ)
-══════════════════════════════════════ */
 .pomo-wrapper {
     position: fixed;
     bottom: 24px;
     left: 24px;
     height: 56px;
-    width: max-content; /* Ôm trọn đúng trái cà chua */
+    width: max-content; 
     z-index: 1000;
 }
 
@@ -4449,7 +4373,7 @@ body {
 }
 
 .floating-pomo-container {
-    position: absolute; /* Lơ lửng bám theo trái cà */
+    position: absolute; 
     width: 290px;
     background: var(--bg3);
     border: 1px solid var(--bdr2);
@@ -4463,14 +4387,12 @@ body {
 }
 .floating-pomo-container.open { display: flex; }
 
-/* 🧠 ĐÓNG VAI TRÒ ĐIỀU HƯỚNG BUNG BẢNG */
-/* Góc Trái -> Căn lề trái */
 .pomo-wrapper.align-left .floating-pomo-container { left: 0; right: auto; }
-/* Góc Phải -> Căn lề phải */
+
 .pomo-wrapper.align-right .floating-pomo-container { right: 0; left: auto; }
-/* Nửa trên màn hình -> Bung xuống dưới */
+
 .pomo-wrapper.valign-top .floating-pomo-container { top: calc(100% + 12px); bottom: auto; }
-/* Nửa dưới màn hình -> Bung lên trên */
+
 .pomo-wrapper.valign-bottom .floating-pomo-container { bottom: calc(100% + 12px); top: auto; }
 
 .pomo-header {
@@ -4483,7 +4405,6 @@ body {
     transform: scale(1.05); 
     box-shadow: 0 6px 16px rgba(255, 107, 107, 0.5);
 }
-
 
 .floating-pomo-container.open { display: flex; }
 
@@ -4499,13 +4420,12 @@ body {
     box-shadow: 0 6px 16px rgba(255, 107, 107, 0.5);
 }
 
-/* Thêm con trỏ kéo thả cho thanh tiêu đề */
 .pomo-header {
-    cursor: grab; /* Hiện biểu tượng bàn tay */
-    user-select: none; /* Tránh bôi đen chữ khi đang kéo */
+    cursor: grab; 
+    user-select: none; 
 }
 .pomo-header:active {
-    cursor: grabbing; /* Nắm bàn tay lại khi click */
+    cursor: grabbing; 
 }
 
 .floating-pomo-container.open { display: flex; }
@@ -4563,7 +4483,7 @@ body {
     font-size: 56px;
     font-weight: 800;
     color: var(--txt);
-    font-variant-numeric: tabular-nums; /* Canh số không bị nhảy kích thước */
+    font-variant-numeric: tabular-nums; 
     letter-spacing: -0.02em;
     line-height: 1;
 }
@@ -4605,9 +4525,6 @@ body {
 }
 .pomo-icon-btn:hover { background: var(--bdr); color: var(--txt); }
 
-/* ══════════════════════════════════════
-   HOME GRID DASHBOARD
-══════════════════════════════════════ */
 .home-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
@@ -4659,9 +4576,6 @@ body {
     text-overflow: ellipsis;
 }
 
-/* ══════════════════════════════════════
-   CALENDAR (LỊCH TỰ CODE)
-══════════════════════════════════════ */
 .cal-wrap {
     max-width: none;
     margin: 0 auto;
@@ -4780,9 +4694,6 @@ body {
     font-weight: 600; color: var(--txt3); display: inline-block; width: 68px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em;
 }
 
-/* ══════════════════════════════════════
-   TOPBAR EVENT TICKER ANIMATION
-══════════════════════════════════════ */
 @keyframes tickerOut {
     0% { transform: translateY(0); opacity: 1; }
     100% { transform: translateY(-120%); opacity: 0; }
@@ -4798,7 +4709,6 @@ body {
     animation: tickerIn 0.4s forwards cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Giao diện Terminal của ông chủ */
 .terminal-container {
     background: #1e1e1e;
     border-radius: 8px;
@@ -4838,14 +4748,14 @@ body {
     font-size: 13px;
     flex: 1;
     text-align: center;
-    margin-right: 45px; /* Cân bằng với phần dot */
+    margin-right: 45px; 
 }
 
 .terminal-body {
     padding: 15px;
     flex: 1;
     overflow-y: auto;
-    color: #00ff00; /* Màu xanh lá hacker */
+    color: #00ff00; 
     font-size: 14px;
     line-height: 1.5;
 }
@@ -4862,7 +4772,7 @@ body {
 }
 
 .terminal-prompt {
-    color: #569cd6; /* Màu xanh dương username */
+    color: #569cd6; 
     white-space: nowrap;
 }
 
@@ -4876,7 +4786,6 @@ body {
     flex: 1;
 }
 
-/* Thanh cuộn cho Terminal */
 .terminal-body::-webkit-scrollbar {
     width: 6px;
 }
@@ -4885,21 +4794,16 @@ body {
     border-radius: 3px;
 }
 
-/* ====== FIX SIDEBAR TRÀN MÀN HÌNH & HR XỊN XÒ 🫪 ====== */
-
-/* Chặn không cho toàn bộ thanh bên bị cuộn, chỉ cuộn phần tab bên trong */
 .sidebar {
     overflow: hidden !important; 
 }
 
-/* Cho danh sách tab cuộn được và tự động lấp đầy khoảng trống */
 .sidebar-nav {
     flex: 1;
     overflow-y: auto;
-    padding-bottom: 15px; /* Thêm đệm đáy cho thoáng */
+    padding-bottom: 15px; 
 }
 
-/* Custom thanh cuộn nhỏ nhắn đáng yêu */
 .sidebar-nav::-webkit-scrollbar {
     width: 4px;
 }
@@ -4911,19 +4815,16 @@ body {
     border-radius: 4px;
 }
 
-/* Vẽ lại đường hr xịn xò mượt mà */
 .sidebar-nav hr {
     border: none;
     height: 1px;
     background: linear-gradient(90deg, transparent, rgba(0,0,0,0.15), transparent);
     margin: 12px 10px;
-    flex-shrink: 0; /* Giữ đường kẻ không bị bóp xẹp khi danh sách quá dài */
+    flex-shrink: 0; 
 }
 
-/* Cho hr bắt sáng nhẹ lên xíu khi ông chủ dùng Dark Mode */
 @media (prefers-color-scheme: dark) {
     .sidebar-nav hr {
         background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
     }
 }
-/* ==================================================== */

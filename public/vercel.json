@@ -11,7 +11,7 @@
   ],
 
   "rewrites": [
-    { "source": "/", "destination": "/trangchu.html" },
+    { "source": "/", "destination": "/trangchu.html?mode=home" },
     { "source": "/(.*)", "destination": "/trangchu.html" }
   ],
 
