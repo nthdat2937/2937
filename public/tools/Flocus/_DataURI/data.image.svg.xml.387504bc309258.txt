@@ -1,0 +1,1 @@
+<svg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28' fill='none'><path d='M5 22.6777L22.6777 5.00007L23.3848 5.70717L5.70711 23.3848L5 22.6777Z' fill='#4A4A4A'/></svg>

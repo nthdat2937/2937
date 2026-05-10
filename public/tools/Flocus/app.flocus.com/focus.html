@@ -1,0 +1,353 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <!-- base href giúp resolve đúng path asset/favicon khi serve qua Live Server -->
+  <base href="./">
+  <title>Flocus</title>
+  <meta name="description"
+    content="Step into your personalized dashboard for focus and ambience, right in your browser.">
+  <meta name="robots" content="noindex">
+  <meta name="og:image" content="assets/apple-touch-startup-image-2732x2048.png">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16x16.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="48x48" href="assets/favicon-48x48.png">
+  <link rel="manifest" href="assets/manifest.webmanifest">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#7432FF">
+  <meta name="application-name" content="Flocus">
+  <link rel="apple-touch-icon" sizes="57x57" href="assets/apple-touch-icon-57x57.png">
+  <link rel="apple-touch-icon" sizes="60x60" href="assets/apple-touch-icon-60x60.png">
+  <link rel="apple-touch-icon" sizes="72x72" href="assets/apple-touch-icon-72x72.png">
+  <link rel="apple-touch-icon" sizes="76x76" href="assets/apple-touch-icon-76x76.png">
+  <link rel="apple-touch-icon" sizes="114x114" href="assets/apple-touch-icon-114x114.png">
+  <link rel="apple-touch-icon" sizes="120x120" href="assets/apple-touch-icon-120x120.png">
+  <link rel="apple-touch-icon" sizes="144x144" href="assets/apple-touch-icon-144x144.png">
+  <link rel="apple-touch-icon" sizes="152x152" href="assets/apple-touch-icon-152x152.png">
+  <link rel="apple-touch-icon" sizes="167x167" href="assets/apple-touch-icon-167x167.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon-180x180.png">
+  <link rel="apple-touch-icon" sizes="1024x1024" href="assets/apple-touch-icon-1024x1024.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Flocus">
+  <!-- Apple startup images (giữ nguyên) -->
+  <link rel="apple-touch-startup-image"
+    media="(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="assets/apple-touch-startup-image-640x1136.png">
+  <link rel="apple-touch-startup-image"
+    media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="assets/apple-touch-startup-image-750x1334.png">
+  <link rel="apple-touch-startup-image"
+    media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="assets/apple-touch-startup-image-1125x2436.png">
+  <link rel="apple-touch-startup-image"
+    media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="assets/apple-touch-startup-image-1170x2532.png">
+  <link rel="apple-touch-startup-image"
+    media="(device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="assets/apple-touch-startup-image-2048x2732.png">
+  <meta name="msapplication-TileColor" content="#fff">
+  <meta name="msapplication-TileImage" content="assets/mstile-144x144.png">
+  <meta name="msapplication-config" content="assets/browserconfig.xml">
+
+  <!-- ── Supabase SDK ── -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+
+  <!-- ── Flocus scripts gốc ── -->
+  <script defer="defer" src="runtime.d1033bf3.js"></script>
+  <script defer="defer" src="vendors.07fe75f8.js"></script>
+  <script defer="defer" src="main.2ae721bb.js"></script>
+  <link href="vendors.a14ad465.css" rel="stylesheet">
+  <link href="main.a3de894d.css" rel="stylesheet">
+
+  <script>
+    // ── Intercept fetch/XHR/Image/Audio để:
+    //    1. Chặn CORS tới accounts.flocus.com → trả noop JSON
+    //    2. Rebase resource hash URLs từ /resources/ (webpack absolute)
+    //       → đúng thư mục tương đối với trang này
+    (function () {
+      // Base path của trang: vd. "http://127.0.0.1:5500/2937/.../app.flocus.com/"
+      var BASE_PATH = (function () {
+        var h = window.location.href.split('?')[0];
+        return h.substring(0, h.lastIndexOf('/') + 1);
+      })();
+
+      var HASH_RE = /^([a-f0-9]{20,})\.(jpg|mp4|mp3|png|svg|woff2?)$/i;
+
+      // Lấy chuỗi URL từ bất kỳ dạng input nào (string / URL object / Request)
+      function extractUrl(input) {
+        if (!input) return '';
+        if (typeof input === 'string') return input;
+        try { if (input instanceof URL) return input.href; } catch (e) { }
+        try { if (typeof input.url === 'string') return input.url; } catch (e) { }
+        return String(input);
+      }
+
+      function fixResourceUrl(url) {
+        if (!url || typeof url !== 'string') return url;
+
+        // Trường hợp webpack public path = "/" tạo URL tuyệt đối từ gốc:
+        // vd. "/resources/images/themes/abc.jpg" → BASE_PATH + "resources/images/themes/abc.jpg"
+        if (/^\/resources\/(images|sounds|fonts)\//i.test(url)) {
+          var fixed1 = BASE_PATH + url.slice(1);
+          console.log("Loading resource: ", fixed1, " (Original: " + url + ")");
+          return fixed1; // bỏ dấu / đầu, nối BASE_PATH
+        }
+
+        // Nếu đã đúng đường dẫn đầy đủ → giữ nguyên
+        if (url.includes('resources/images/') || url.includes('resources/sounds/')) {
+          console.log("Loading resource: ", url, " (Original: " + url + ")");
+          return url;
+        }
+
+        // File hash flat (vd. "abc123.jpg" hoặc "resources/abc123.jpg")
+        var file = url.split('?')[0].split('/').pop();
+        if (!HASH_RE.test(file)) return url;
+        var ext = file.split('.').pop().toLowerCase();
+        if (ext === 'mp3') {
+          var fixed2 = BASE_PATH + 'resources/sounds/alerts/' + file;
+          console.log("Loading resource: ", fixed2, " (Original: " + url + ")");
+          return fixed2;
+        }
+        if (ext === 'mp4' || ext === 'jpg' || ext === 'png') {
+          var fixed3 = BASE_PATH + 'resources/images/themes/' + file;
+          console.log("Loading resource: ", fixed3, " (Original: " + url + ")");
+          return fixed3;
+        }
+        return url;
+      }
+
+      // --- Intercept XMLHttpRequest ---
+      var _XHROpen = XMLHttpRequest.prototype.open;
+      var _XHRSend = XMLHttpRequest.prototype.send;
+      XMLHttpRequest.prototype.open = function (method, url) {
+        var urlStr = extractUrl(url);
+        if (urlStr && urlStr.includes('accounts.flocus.com')) {
+          this._flocusNoop = true;
+          var resObj = {};
+          if (urlStr.includes('/settings')) {
+            resObj = {
+              id: "local_mock",
+              updated_at: new Date().toISOString(),
+              options: "{}"
+            };
+          } else {
+            resObj = {
+              status: 1, token: 'local',
+              user: { subd: true, email: '', first_name: '', last_name: '', tz: 'UTC' },
+              settings: {}, data: [], streaks: 0
+            };
+          }
+          arguments[1] = 'data:application/json,' + encodeURIComponent(JSON.stringify(resObj));
+        }
+        return _XHROpen.apply(this, arguments);
+      };
+
+      // --- Intercept fetch ---
+      var _fetch = window.fetch;
+      window.fetch = function (input, init) {
+        var url = extractUrl(input);
+        if (url && url.includes('accounts.flocus.com')) {
+          var resObj = { status: 1, data: [], streaks: 0, settings: {}, stats: {}, tasks: [] };
+          if (url.includes('/tasks')) {
+            resObj = []; // getTasks expects an array
+          } else if (url.includes('/streak')) {
+            resObj = { status: "success", streak: { current_streak: 1, max_streak: 1, valid_until: new Date(Date.now() + 86400000).toISOString() } };
+          } else if (url.includes('/stats')) {
+            resObj = {
+              computed_at: Date.now(),
+              dates: {},
+              today: { pomodoro: 0, countdown: 0, stopwatch: 0, taskEta: 0, sessions: 0, shortBreak: 0, longBreak: 0, tasks: 0 },
+              yesterday: { pomodoro: 0, countdown: 0, stopwatch: 0, taskEta: 0, sessions: 0, shortBreak: 0, longBreak: 0, tasks: 0 },
+              sums: {
+                week: { focus: 0, sessions: 0, breaks: 0, tasks: 0 },
+                lastWeek: { focus: 0, sessions: 0, breaks: 0, tasks: 0 },
+                month: { focus: 0, sessions: 0, breaks: 0, tasks: 0 }
+              }
+            };
+          }
+          return Promise.resolve(new Response(
+            JSON.stringify(resObj),
+            { status: 200, headers: { 'Content-Type': 'application/json' } }
+          ));
+        }
+        var fixed = fixResourceUrl(url);
+        if (fixed !== url) {
+          input = fixed; // dùng string URL đã fix
+        }
+        return _fetch.call(this, input, init);
+      };
+
+      // --- Repair corrupted localStorage (from previous undefined options parsing) ---
+      try {
+        var ht = localStorage.getItem('flocus_homeTheme_settings');
+        if (ht) {
+          var p = JSON.parse(ht);
+          if (!p.homeTheme) {
+            p.homeTheme = 'gradient|Flare';
+            localStorage.setItem('flocus_homeTheme_settings', JSON.stringify(p));
+          }
+        }
+      } catch(e) {}
+
+
+      // --- Intercept Image.src ---
+      var _imgDesc = Object.getOwnPropertyDescriptor(HTMLImageElement.prototype, 'src');
+      if (_imgDesc && _imgDesc.set) {
+        Object.defineProperty(HTMLImageElement.prototype, 'src', {
+          set: function (val) { _imgDesc.set.call(this, fixResourceUrl(val)); },
+          get: _imgDesc.get,
+          configurable: true
+        });
+      }
+
+      // --- Intercept Media.src (Video & Audio) ---
+      var _mediaDesc = Object.getOwnPropertyDescriptor(HTMLMediaElement.prototype, 'src');
+      if (_mediaDesc && _mediaDesc.set) {
+        Object.defineProperty(HTMLMediaElement.prototype, 'src', {
+          set: function (val) { _mediaDesc.set.call(this, fixResourceUrl(val)); },
+          get: _mediaDesc.get,
+          configurable: true
+        });
+      }
+    })();
+  </script>
+</head>
+
+<body>
+  <script>
+    (function () {
+      var SB_URL = 'https://ktqdzlhvdkerjajffgfi.supabase.co';
+      var SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt0cWR6bGh2ZGtlcmphamZmZ2ZpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc2OTgxNTMsImV4cCI6MjA4MzI3NDE1M30.6xz0SVuj6x72VcLZyJpVtNMMWSmyOEtGhmKiVMu46xI';
+      var _sb = supabase.createClient(SB_URL, SB_KEY);
+
+      function setFlocusCookies(token) {
+        var exp = new Date();
+        exp.setTime(exp.getTime() + 18144e5);
+        var s = 'expires=' + exp.toUTCString();
+        document.cookie = 'gfAccountToken=' + token + ';' + s + ';path=/';
+        document.cookie = 'gfAccountStatus=subd;' + s + ';path=/';
+      }
+
+      function toFlocusUser(sbUser, profile) {
+        var displayName = (profile && profile.display_name)
+          || (sbUser.user_metadata && sbUser.user_metadata.full_name)
+          || sbUser.email;
+        var parts = displayName.split(' ');
+        return {
+          id: sbUser.id,
+          email: sbUser.email,
+          first_name: parts[0] || displayName,
+          last_name: parts.slice(1).join(' ') || '',
+          subd: true,
+          tz: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
+          billingLink: null,
+          display_name: displayName,
+          avatar: (profile && profile.avatar) || null,
+          role: (profile && profile.role) || 'user'
+        };
+      }
+
+      function injectFlocusLogin(sbUser, profile) {
+        var fUser = toFlocusUser(sbUser, profile);
+        window.localStorage.setItem('gfUserAccount', JSON.stringify(fUser));
+        setFlocusCookies(sbUser.id);
+
+        var acct = window.Flocus && window.Flocus.accounts;
+        if (acct) {
+          acct.settings.token = sbUser.id;
+          acct.settings.subd = true;
+          if (typeof acct.postLoginUserSetup === 'function') acct.postLoginUserSetup(fUser);
+          document.body.classList.add('flocus-is-plus');
+        }
+        document.body.dispatchEvent(new CustomEvent('FlocusLoggedIn', { detail: { user: fUser } }));
+      }
+
+      function patchFlocusAccounts() {
+        var acct = window.Flocus && window.Flocus.accounts;
+        if (!acct) { setTimeout(patchFlocusAccounts, 100); return; }
+
+        // Auth → Supabase
+        acct.logUserIn = function (email, password) {
+          if (!email || !password) return;
+          _sb.auth.signInWithPassword({ email: email, password: password }).then(function (res) {
+            if (res.error) {
+              document.body.dispatchEvent(new CustomEvent('FlocusLoginError', { detail: { error: res.error } }));
+              return;
+            }
+            var sbUser = res.data.session.user;
+            _sb.from('profiles').select('display_name, avatar, role').eq('id', sbUser.id).single()
+              .then(function (p) { injectFlocusLogin(sbUser, p.data || null); });
+          });
+        };
+
+        // Plus unlock
+        acct.getUserPermissions = function () {
+          document.body.classList.add('flocus-is-plus');
+          return 'plus';
+        };
+
+        // Stub các API calls về accounts.flocus.com
+        acct.refreshUserLogin = function () { };
+        acct.getProductSettings = function () { };
+        acct.createProductSettings = function () { };
+        acct.getStats = function () { };
+        acct.getTasks = function () { };
+        acct.updateTasks = function () { };
+        acct.streakIncrement = function () { };
+
+        // Logout → sign out Supabase
+        var _origLogout = acct.logUserOut.bind(acct);
+        acct.logUserOut = function () {
+          _sb.auth.signOut();
+          _origLogout();
+        };
+
+        acct.settings.subd = true;
+        document.body.classList.add('flocus-is-plus');
+      }
+
+      function tryAutoLogin() {
+        _sb.auth.getSession().then(function (r) {
+          var session = r.data && r.data.session;
+          if (!session) return;
+          var sbUser = session.user;
+          _sb.from('profiles').select('display_name, avatar, role').eq('id', sbUser.id).single()
+            .then(function (p) {
+              var fUser = toFlocusUser(sbUser, p.data || null);
+              window.localStorage.setItem('gfUserAccount', JSON.stringify(fUser));
+              setFlocusCookies(sbUser.id);
+              waitAndInject(sbUser, p.data || null);
+            });
+        });
+      }
+
+      function waitAndInject(sbUser, profile) {
+        var acct = window.Flocus && window.Flocus.accounts;
+        if (acct && typeof acct.postLoginUserSetup === 'function') {
+          injectFlocusLogin(sbUser, profile);
+        } else {
+          setTimeout(function () { waitAndInject(sbUser, profile); }, 150);
+        }
+      }
+
+      _sb.auth.onAuthStateChange(function (_e, session) {
+        if (_e === 'SIGNED_OUT') {
+          window.localStorage.removeItem('gfUserAccount');
+          document.cookie = 'gfAccountToken=; Max-Age=-99999999; path=/';
+          document.cookie = 'gfAccountStatus=; Max-Age=-99999999; path=/';
+        }
+      });
+
+      tryAutoLogin();
+      patchFlocusAccounts();
+    })();
+  </script>
+
+  <!-- Cloudflare beacon đã bị xóa (bị adblock chặn gây lỗi ERR_BLOCKED_BY_CLIENT) -->
+</body>
+
+</html>

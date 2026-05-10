@@ -1,0 +1,1 @@
+<svg width='17' height='10' viewBox='0 0 17 10' fill='none' xmlns='http://www.w3.org/2000/svg'><path d='M8.5 10L0 1.51943L1.52292 0L8.5 6.99647L15.4771 0.0353357L17 1.55477L8.5 10Z' fill='#54595E'/></svg>
