@@ -4330,7 +4330,7 @@ body {
 
 .chat-iframe {
     width: 100%;
-    height: calc(100vh - 120px); 
+    height: calc(100vh - 80px); 
     border: 0.5px solid var(--bdr);
     border-radius: var(--rl);
     background: var(--bg);
