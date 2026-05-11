@@ -234,6 +234,10 @@
             <span class="sidebar-icon material-icons">music_note</span>
             <span>Nhạc</span>
         </button>
+        <button class="sidebar-item" data-label="Web của tôi" onclick="sidebarSwitch('focus', this)">
+            <span class="sidebar-icon material-icons">timer</span>
+            <span>Focus</span>
+        </button>
       </div>
 
       <div class="sidebar-footer">
@@ -844,6 +848,12 @@
     </iframe>
 </div>
 
+<div id="pane-focus" class="pane">
+    <iframe src="tools/timer/focus.html"
+            class="chat-iframe"
+            title="Focus">
+    </iframe>
+</div>
         
         <div id="pane-admin" class="pane admin-only">
             <div id="adminWrap"><div class="empty-state">Đang tải...</div></div>

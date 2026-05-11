@@ -5,7 +5,7 @@
   <meta charset="utf-8">
   <!-- base href giúp resolve đúng path asset/favicon khi serve qua Live Server -->
   <base href="./">
-  <title>Flocus</title>
+  <title>focus</title>
   <meta name="description"
     content="Step into your personalized dashboard for focus and ambience, right in your browser.">
   <meta name="robots" content="noindex">
@@ -18,7 +18,7 @@
   <link rel="manifest" href="assets/manifest.webmanifest">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="theme-color" content="#7432FF">
-  <meta name="application-name" content="Flocus">
+  <meta name="application-name" content="Focus">
   <link rel="apple-touch-icon" sizes="57x57" href="assets/apple-touch-icon-57x57.png">
   <link rel="apple-touch-icon" sizes="60x60" href="assets/apple-touch-icon-60x60.png">
   <link rel="apple-touch-icon" sizes="72x72" href="assets/apple-touch-icon-72x72.png">
@@ -32,7 +32,7 @@
   <link rel="apple-touch-icon" sizes="1024x1024" href="assets/apple-touch-icon-1024x1024.png">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Flocus">
+  <meta name="apple-mobile-web-app-title" content="Focus">
   <!-- Apple startup images (giữ nguyên) -->
   <link rel="apple-touch-startup-image"
     media="(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
@@ -56,7 +56,7 @@
   <!-- ── Supabase SDK ── -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 
-  <!-- ── Flocus scripts gốc ── -->
+  <!-- ── Focus scripts gốc ── -->
   <script defer="defer" src="runtime.d1033bf3.js"></script>
   <script defer="defer" src="vendors.07fe75f8.js"></script>
   <script defer="defer" src="main.2ae721bb.js"></script>
@@ -92,13 +92,25 @@
         // Trường hợp webpack public path = "/" tạo URL tuyệt đối từ gốc:
         // vd. "/resources/images/themes/abc.jpg" → BASE_PATH + "resources/images/themes/abc.jpg"
         if (/^\/resources\/(images|sounds|fonts)\//i.test(url)) {
+          if (url.includes('/sounds/')) {
+            var fixedS = 'https://app.flocus.com' + url;
+            console.log("Loading remote sound: ", fixedS);
+            return fixedS;
+          }
           var fixed1 = BASE_PATH + url.slice(1);
           console.log("Loading resource: ", fixed1, " (Original: " + url + ")");
           return fixed1; // bỏ dấu / đầu, nối BASE_PATH
         }
 
         // Nếu đã đúng đường dẫn đầy đủ → giữ nguyên
-        if (url.includes('resources/images/') || url.includes('resources/sounds/')) {
+        if (url.includes('resources/sounds/')) {
+          var idx = url.indexOf('resources/sounds/');
+          var fixedS2 = 'https://app.flocus.com/' + url.substring(idx);
+          console.log("Loading remote sound: ", fixedS2);
+          return fixedS2;
+        }
+
+        if (url.includes('resources/images/')) {
           console.log("Loading resource: ", url, " (Original: " + url + ")");
           return url;
         }
@@ -108,8 +120,8 @@
         if (!HASH_RE.test(file)) return url;
         var ext = file.split('.').pop().toLowerCase();
         if (ext === 'mp3') {
-          var fixed2 = BASE_PATH + 'resources/sounds/alerts/' + file;
-          console.log("Loading resource: ", fixed2, " (Original: " + url + ")");
+          var fixed2 = 'https://app.flocus.com/resources/sounds/alerts/' + file;
+          console.log("Loading remote sound: ", fixed2, " (Original: " + url + ")");
           return fixed2;
         }
         if (ext === 'mp4' || ext === 'jpg' || ext === 'png') {
@@ -213,6 +225,16 @@
           configurable: true
         });
       }
+
+      // --- Intercept Audio constructor ---
+      var _Audio = window.Audio;
+      window.Audio = function (url) {
+        if (url) {
+          return new _Audio(fixResourceUrl(url));
+        }
+        return new _Audio();
+      };
+      window.Audio.prototype = _Audio.prototype;
     })();
   </script>
 </head>
@@ -224,7 +246,7 @@
       var SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt0cWR6bGh2ZGtlcmphamZmZ2ZpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc2OTgxNTMsImV4cCI6MjA4MzI3NDE1M30.6xz0SVuj6x72VcLZyJpVtNMMWSmyOEtGhmKiVMu46xI';
       var _sb = supabase.createClient(SB_URL, SB_KEY);
 
-      function setFlocusCookies(token) {
+      function setFocusCookies(token) {
         var exp = new Date();
         exp.setTime(exp.getTime() + 18144e5);
         var s = 'expires=' + exp.toUTCString();
@@ -232,7 +254,7 @@
         document.cookie = 'gfAccountStatus=subd;' + s + ';path=/';
       }
 
-      function toFlocusUser(sbUser, profile) {
+      function toFocusUser(sbUser, profile) {
         var displayName = (profile && profile.display_name)
           || (sbUser.user_metadata && sbUser.user_metadata.full_name)
           || sbUser.email;
@@ -251,36 +273,36 @@
         };
       }
 
-      function injectFlocusLogin(sbUser, profile) {
-        var fUser = toFlocusUser(sbUser, profile);
+      function injectFocusLogin(sbUser, profile) {
+        var fUser = toFocusUser(sbUser, profile);
         window.localStorage.setItem('gfUserAccount', JSON.stringify(fUser));
-        setFlocusCookies(sbUser.id);
+        setFocusCookies(sbUser.id);
 
-        var acct = window.Flocus && window.Flocus.accounts;
+        var acct = window.Focus && window.Focus.accounts;
         if (acct) {
           acct.settings.token = sbUser.id;
           acct.settings.subd = true;
           if (typeof acct.postLoginUserSetup === 'function') acct.postLoginUserSetup(fUser);
           document.body.classList.add('flocus-is-plus');
         }
-        document.body.dispatchEvent(new CustomEvent('FlocusLoggedIn', { detail: { user: fUser } }));
+        document.body.dispatchEvent(new CustomEvent('FocusLoggedIn', { detail: { user: fUser } }));
       }
 
-      function patchFlocusAccounts() {
-        var acct = window.Flocus && window.Flocus.accounts;
-        if (!acct) { setTimeout(patchFlocusAccounts, 100); return; }
+      function patchFocusAccounts() {
+        var acct = window.Focus && window.Focus.accounts;
+        if (!acct) { setTimeout(patchFocusAccounts, 100); return; }
 
         // Auth → Supabase
         acct.logUserIn = function (email, password) {
           if (!email || !password) return;
           _sb.auth.signInWithPassword({ email: email, password: password }).then(function (res) {
             if (res.error) {
-              document.body.dispatchEvent(new CustomEvent('FlocusLoginError', { detail: { error: res.error } }));
+              document.body.dispatchEvent(new CustomEvent('FocusLoginError', { detail: { error: res.error } }));
               return;
             }
             var sbUser = res.data.session.user;
             _sb.from('profiles').select('display_name, avatar, role').eq('id', sbUser.id).single()
-              .then(function (p) { injectFlocusLogin(sbUser, p.data || null); });
+              .then(function (p) { injectFocusLogin(sbUser, p.data || null); });
           });
         };
 
@@ -317,18 +339,18 @@
           var sbUser = session.user;
           _sb.from('profiles').select('display_name, avatar, role').eq('id', sbUser.id).single()
             .then(function (p) {
-              var fUser = toFlocusUser(sbUser, p.data || null);
+              var fUser = toFocusUser(sbUser, p.data || null);
               window.localStorage.setItem('gfUserAccount', JSON.stringify(fUser));
-              setFlocusCookies(sbUser.id);
+              setFocusCookies(sbUser.id);
               waitAndInject(sbUser, p.data || null);
             });
         });
       }
 
       function waitAndInject(sbUser, profile) {
-        var acct = window.Flocus && window.Flocus.accounts;
+        var acct = window.Focus && window.Focus.accounts;
         if (acct && typeof acct.postLoginUserSetup === 'function') {
-          injectFlocusLogin(sbUser, profile);
+          injectFocusLogin(sbUser, profile);
         } else {
           setTimeout(function () { waitAndInject(sbUser, profile); }, 150);
         }
@@ -343,7 +365,7 @@
       });
 
       tryAutoLogin();
-      patchFlocusAccounts();
+      patchFocusAccounts();
     })();
   </script>
 
