@@ -1,3 +1,44 @@
+/* Import phông chữ Nunito bo tròn siêu dễ thương */
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
+
+:root {
+    /* Tông màu nền trong suốt để làm hiệu ứng kính (Glassmorphism) */
+    --bg: rgba(255, 255, 255, 0.65);
+    --bg2: rgba(255, 255, 255, 0.45);
+    --bg3: rgba(253, 246, 248, 0.3); /* Ánh hồng nhẹ */
+    
+    /* Màu chữ mềm mại, không dùng đen tuyền */
+    --txt: #2c3e50;
+    --txt2: #546e7a;
+    --txt3: #8395a7;
+    
+    /* Viền hồng pastel mềm mại */
+    --bdr: rgba(255, 182, 193, 0.4); 
+    --bdr2: rgba(255, 182, 193, 0.7);
+    
+    /* Bo góc tròn trịa hơn */
+    --r: 16px;
+    --rl: 24px;
+    
+    /* Màu chủ đạo (Accent): Hồng Sakura */
+    --accent: #ff8fb3; 
+}
+
+/* Giao diện Dark mode tĩnh mịch, huyền ảo như bầu trời đêm anime */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg: rgba(26, 28, 41, 0.65);
+        --bg2: rgba(35, 38, 58, 0.55);
+        --bg3: rgba(15, 17, 26, 0.4);
+        --txt: #f8f9fa;
+        --txt2: #d1d8e0;
+        --txt3: #a5b1c2;
+        --bdr: rgba(162, 155, 254, 0.2);
+        --bdr2: rgba(162, 155, 254, 0.4);
+        --accent: #a29bfe; /* Tím nhạt anime */
+    }
+}
+
 *,
 *::before,
         *::after {
@@ -117,6 +158,7 @@
         body.soan-active #pane-soan.active {
             display: flex;
             flex-direction: column;
+            backdrop-filter: blur(16px) saturate(120%) !important;
         }
 
         .btn {
@@ -4828,4 +4870,148 @@ body {
     .sidebar-nav hr {
         background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
     }
+}
+
+/* =========================================
+   GIAO DIỆN ANIME KÍNH MỜ - TỚ THÊM VÀO NÈ 🫪 
+   ========================================= */
+
+body {
+    font-family: 'Nunito', -apple-system, sans-serif !important;
+    /* Hình nền bầu trời anime, ông chủ có thể thay link đổi cảnh nhé */
+    background: url('https://cdn.wallpapersafari.com/9/81/yaqGvs.jpg') no-repeat center center fixed !important;
+    background-size: cover !important;
+}
+
+/* Làm mờ thanh menu trên và sidebar bên trái */
+.global-topbar, .sidebar {
+    background: var(--bg) !important;
+    backdrop-filter: blur(16px) saturate(120%) !important;
+    -webkit-backdrop-filter: blur(16px) saturate(120%) !important;
+    border-color: var(--bdr) !important;
+}
+
+/* Làm mờ và đổ bóng hồng cho các khối nội dung (như thẻ home, bảng từ vựng...) */
+.home-card, .wp-card, .mc-card, .cal-wrap, .search-panel, .tbl-wrap, .admin-section {
+    background: var(--bg) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    border: 1px solid var(--bdr2) !important;
+    box-shadow: 0 8px 32px rgba(255, 182, 193, 0.15) !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* Hiệu ứng nảy lên khi di chuột vào thẻ ở Trang chủ */
+.home-card:hover {
+    transform: translateY(-5px) scale(1.02) !important;
+    box-shadow: 0 12px 40px rgba(255, 143, 179, 0.25) !important;
+    border-color: var(--accent) !important;
+}
+
+/* Làm cho mấy cái icon trong thẻ Trang chủ cute hơn */
+.home-card .material-icons {
+    color: var(--accent) !important;
+    background: var(--bg2) !important;
+    border-radius: 16px !important;
+}
+
+/* =========================================
+   BỘ VIỀN TRUYỆN TRANH / ANIME CHO TOÀN WEB 🫪
+   ========================================= */
+
+/* 1. Định nghĩa lại màu viền cho nổi bật và thon gọn hơn */
+:root {
+    --anime-border: 1.5px solid #ff8fb3; /* Viền hồng Sakura ngọt ngào ở chế độ sáng */
+    --anime-radius: 14px; /* Bo góc tròn trịa chuẩn phong cách anime */
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --anime-border: 1.5px solid #a29bfe; /* Viền tím nhạt huyền ảo ở chế độ tối */
+    }
+}
+
+/* 2. Tạo viền cho các Thanh điều hướng chính */
+.global-topbar {
+    border-bottom: var(--anime-border) !important;
+}
+.sidebar {
+    border-right: var(--anime-border) !important;
+}
+
+/* 3. Tạo viền cho TẤT CẢ các thẻ, hộp nội dung, bảng biểu và ô tìm kiếm */
+.home-card, 
+.wp-card, 
+.mc-card, 
+.cal-wrap, 
+.search-panel, 
+.tbl-wrap, 
+.admin-section, 
+.quiz-card, 
+.quiz-summary, 
+.floating-pomo-container, 
+.topik-controls, 
+.topik-grid-container,
+.edit-modal,
+.modal {
+    border: var(--anime-border) !important;
+    border-radius: var(--anime-radius) !important;
+}
+
+/* 4. Tạo viền cho các ô Nhập liệu (Inputs, Select, Textarea) cho đồng bộ */
+.search-input,
+.fg input, 
+.fg select, 
+.soan-vocab-bar input, 
+.soan-vocab-bar select, 
+.soan-left-vocab-inp, 
+.soan-left-vocab-sel, 
+.topik-textarea, 
+.tai-input, 
+.tai-textarea, 
+.tp-input,
+.auth-form input {
+    border: var(--anime-border) !important;
+    border-radius: 10px !important; /* Bo góc nhỏ hơn một chút cho vừa vặn */
+}
+
+/* 5. Tạo viền cho các Nút bấm (Buttons) tương tác */
+.btn, 
+.soan-vocab-add-btn, 
+.soan-btn-primary, 
+.soan-btn-ghost, 
+.tai-submit-btn, 
+.pomo-btn, 
+.floating-pomo-btn,
+.speed-mode-toggle {
+    border: var(--anime-border) !important;
+}
+
+/* 6. Tạo viền riêng cho các khu vực trong Giao diện Soạn thảo (Editor) */
+.soan-left {
+    border-right: var(--anime-border) !important;
+}
+.soan-right {
+    border-left: var(--anime-border) !important;
+}
+.soan-editor-header, 
+.soan-toolbar, 
+.soan-vocab-bar, 
+.soan-left-vocab-add, 
+.soan-panel-header {
+    border-bottom: var(--anime-border) !important;
+}
+.soan-gutter {
+    border-right: var(--anime-border) !important;
+}
+.soan-left-vocab-item {
+    border-bottom: var(--anime-border) !important;
+}
+
+/* 7. Viền cho các ô vuông trong bảng tra từ và các ngày trong Lịch */
+table, th, td {
+    border-bottom: var(--anime-border) !important;
+}
+.cal-day:not(.empty) {
+    border: var(--anime-border) !important;
 }

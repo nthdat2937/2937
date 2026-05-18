@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Remix Hot Trending</title>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* CSS Reset cơ bản */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #0c1a1f; /* Màu nền tối xanh cyan */
+            color: #daffde; /* Màu chữ sáng */
+            font-family: 'Montserrat', sans-serif; /* Font chữ chính */
+            overflow: hidden; /* Ẩn thanh cuộn */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        /* Lớp nền lưới neon-cyan */
+        body::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background-image: 
+                linear-gradient(rgba(182, 240, 246, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(182, 240, 246, 0.05) 1px, transparent 1px);
+            background-size: 30px 30px; /* Kích thước ô lưới */
+            transform: perspective(500px) rotateX(60deg) translateY(-20px);
+            z-index: 0;
+        }
+
+        .container {
+            width: 1100px;
+            max-width: 90%;
+            height: 600px;
+            background: rgba(12, 26, 31, 0.85); /* Nền mờ cho nội dung */
+            border-radius: 15px;
+            padding: 30px 40px;
+            position: relative;
+            z-index: 1;
+            box-shadow: 0 0 30px rgba(182, 240, 246, 0.2); /* Đổ bóng nhẹ */
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        /* Header */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .logo-1967 {
+            width: 80px;
+        }
+
+        .titles {
+            text-align: right;
+        }
+
+        .main-title {
+            font-size: 56px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: #b6f0f6; /* Màu cyan phát sáng */
+            text-shadow: 0 0 10px rgba(182, 240, 246, 0.7);
+            line-height: 1;
+        }
+
+        .sub-title {
+            font-family: 'Dancing Script', cursive; /* Font chữ viết tay */
+            font-size: 52px;
+            color: #ffffff;
+            margin-top: -15px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Phần nội dung chính */
+        .content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-grow: 1;
+            margin: 15px 0;
+        }
+
+        /* Cột bên trái: Ảnh phát sáng */
+        .left-photo {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .photo-frame {
+            position: relative;
+            width: 380px;
+            height: 380px;
+        }
+
+        .photo-frame img {
+            width: 100%;
+            height: 100%;
+            border-radius: 15px;
+            object-fit: cover; /* Giữ tỷ lệ ảnh */
+            border: 2px solid #b6f0f6;
+            box-shadow: 0 0 20px rgba(182, 240, 246, 0.7), inset 0 0 10px rgba(182, 240, 246, 0.3);
+        }
+
+        .photo-caption {
+            position: absolute;
+            bottom: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 16px;
+            letter-spacing: 5px;
+            color: #b6f0f6;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
+        }
+
+        /* Cột bên phải: Playlist */
+        .right-playlist {
+            flex: 1.2;
+            padding-left: 50px;
+        }
+
+        .tracklist-header {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 25px;
+            color: #b6f0f6;
+        }
+
+        .tracklist {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .track-item {
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .track-number {
+            font-size: 18px;
+            font-weight: 700;
+            color: #b6f0f6;
+            width: 30px;
+            text-align: right;
+            margin-right: 20px;
+            margin-top: 2px;
+        }
+
+        .track-details {
+            flex-grow: 1;
+        }
+
+        .track-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 3px;
+        }
+
+        .artist-name {
+            font-size: 14px;
+            color: #a0c4c9;
+            font-style: italic;
+        }
+
+        /* Footer */
+        footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 16px;
+            color: #b6f0f6;
+            letter-spacing: 1.5px;
+        }
+
+        .small-icon {
+            width: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <img src="https://via.placeholder.com/120x80.png?text=1967" alt="Logo 1967" class="logo-1967">
+            <div class="titles">
+                <div class="main-title">Remix Hot Trending</div>
+                <div class="sub-title">Tik Tok</div>
+            </div>
+        </header>
+
+        <main class="content">
+            <div class="left-photo">
+                <div class="photo-frame">
+                    <img src="avatar.jpg" alt="Photo">
+                    <div class="photo-caption">1 9 6 7 COFFEE</div>
+                </div>
+            </div>
+
+            <div class="right-playlist">
+                <div class="tracklist-header">⭐ Tracklist</div>
+                <ul class="tracklist">
+                    <li class="track-item">
+                        <div class="track-number">1</div>
+                        <div class="track-details">
+                            <div class="track-title">Có Công Mài "Sắc"</div>
+                            <div class="artist-name">Ngô Lan Hương</div>
+                        </div>
+                    </li>
+                    <li class="track-item">
+                        <div class="track-number">2</div>
+                        <div class="track-details">
+                            <div class="track-title">Mashup Yêu Từ Đâu Mà Ra</div>
+                            <div class="artist-name">Lil Z Poet</div>
+                        </div>
+                    </li>
+                    <li class="track-item">
+                        <div class="track-number">3</div>
+                        <div class="track-details">
+                            <div class="track-title">id 072019</div>
+                            <div class="artist-name">W/n ft. 267</div>
+                        </div>
+                    </li>
+                    <li class="track-item">
+                        <div class="track-number">4</div>
+                        <div class="track-details">
+                            <div class="track-title">Cầu Mong Cho Em</div>
+                            <div class="artist-name">Hiya</div>
+                        </div>
+                    </li>
+                    <li class="track-item">
+                        <div class="track-number">5</div>
+                        <div class="track-details">
+                            <div class="track-title">Người Em Cố Đô</div>
+                            <div class="artist-name">Rum x Đaa x Toann</div>
+                        </div>
+                    </li>
+                    <li class="track-item">
+                        <div class="track-number">6</div>
+                        <div class="track-details">
+                            <div class="track-title">Chắc Do Còn Thương</div>
+                            <div class="artist-name">Bùi Công Việt ft. Lê Gia Quân x Vĩnh Đăng</div>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </main>
+
+        <footer>
+            <img src="https://via.placeholder.com/30x30.png?text=Icon" alt="Small Icon" class="small-icon">
+            <div class="viral-text"><b>VIRAL</b> TRACK REMIX 2026</div>
+            <img src="https://via.placeholder.com/40x30.png?text=1967" alt="Logo Small" class="logo-small">
+        </footer>
+    </div>
+</body>
+</html>
