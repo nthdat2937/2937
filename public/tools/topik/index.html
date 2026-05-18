@@ -1,0 +1,1218 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TOPIK I 시험 시스템 - 2937</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&family=Noto+Serif+KR:wght@400;500;600;700&display=swap');
+
+    :root {
+      --bg: #f5f3ee;
+      --paper: #ffffff;
+      --ink: #111111;
+      --accent: #1a3a5c;
+      --border: #d8d3cc;
+      --highlight: #f0f0f0;
+      --shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      min-height: 100vh;
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    /* ── NAV BAR ── */
+    .topbar {
+      background: var(--accent);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 32px;
+      height: 56px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .topbar-brand {
+      font-family: 'Noto Serif KR', serif;
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .topbar-nav {
+      display: flex;
+      gap: 4px;
+    }
+
+    .nav-btn {
+      background: transparent;
+      border: none;
+      color: rgba(255, 255, 255, 0.75);
+      padding: 8px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-family: 'Noto Sans KR', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+
+    .nav-btn:hover,
+    .nav-btn.active {
+      background: rgba(255, 255, 255, 0.18);
+      color: white;
+    }
+
+    .page {
+      display: none;
+    }
+
+    .page.active {
+      display: block;
+    }
+
+    /* ── EXAM LAYOUT (PAPER STYLE) ── */
+    .exam-layout {
+      max-width: 800px;
+      margin: 40px auto;
+      background: var(--paper);
+      padding: 60px 60px 80px 60px;
+      /* Thêm padding dưới cho số trang */
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      font-family: 'Batang', 'Noto Serif KR', serif;
+      /* Ép font có chân giống sách in */
+      color: #000;
+      position: relative;
+    }
+
+    .exam-title-wrapper {
+      text-align: center;
+      margin-bottom: 50px;
+    }
+
+    .exam-title-pill {
+      display: inline-block;
+      background: #e2e4e6;
+      border: 1.5px solid #000;
+      border-radius: 50px;
+      padding: 10px 50px;
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+      /* Hiệu ứng viền kép */
+    }
+
+    .selector-box {
+      background: #fdfdfd;
+      border: 1px dashed var(--border);
+      padding: 15px;
+      border-radius: 6px;
+      margin-bottom: 30px;
+      display: flex;
+      gap: 15px;
+      align-items: center;
+      font-family: 'Noto Sans KR', sans-serif;
+    }
+
+    /* Câu hướng dẫn giống hệt đề in */
+    .print-instruction {
+      font-size: 16px;
+      font-weight: 600;
+      margin: 30px 0 20px 0;
+      color: #000;
+      padding-left: 10px;
+    }
+
+    /* Khung Ví dụ */
+    .example-fieldset {
+      border: 1px solid #777;
+      padding: 20px 25px 15px 25px;
+      margin: 15px 15px 40px 15px;
+    }
+
+    .example-legend {
+      text-align: center;
+      padding: 0 10px;
+      font-size: 15px;
+      color: #555;
+      letter-spacing: 1px;
+    }
+
+    .example-dialogue {
+      font-size: 15px;
+      line-height: 2;
+      margin-bottom: 15px;
+    }
+
+    .example-dialogue span {
+      font-weight: 600;
+      margin-right: 8px;
+    }
+
+    /* Questions */
+    .print-question-item {
+      margin-bottom: 40px;
+      padding: 0 15px;
+    }
+
+    .print-q-top {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      font-size: 16px;
+      margin-bottom: 16px;
+    }
+
+    .print-q-num {
+      font-size: 16px;
+      font-weight: bold;
+    }
+
+    .print-q-score {
+      font-size: 15px;
+      color: #000;
+    }
+
+    .print-q-text {
+      font-size: 15px;
+    }
+
+    /* Choices */
+    .print-choices-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px 40px;
+      padding-left: 30px;
+    }
+
+    .print-choice-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: none;
+      border: none;
+      font-family: 'Batang', 'Noto Serif KR', serif;
+      font-size: 15px;
+      text-align: left;
+      cursor: pointer;
+      padding: 4px;
+      color: #000;
+    }
+
+    .print-choice-btn:hover {
+      background: rgba(0, 0, 0, 0.03);
+    }
+
+    .print-choice-btn.selected {
+      font-weight: 700;
+    }
+
+    .exam-footer-print {
+      margin-top: 50px;
+      border-top: 2px dashed #ccc;
+      padding-top: 30px;
+      text-align: center;
+      font-family: 'Noto Sans KR', sans-serif;
+    }
+
+    .submit-btn {
+      background: var(--ink);
+      color: white;
+      border: none;
+      padding: 12px 40px;
+      border-radius: 4px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .submit-btn:hover {
+      background: #333;
+    }
+
+    /* Cục số trang xám xám dưới đáy */
+    .page-number-pill {
+      position: absolute;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #ccc;
+      color: #000;
+      font-family: 'Noto Sans KR', sans-serif;
+      font-weight: 900;
+      font-size: 15px;
+      padding: 4px 25px;
+      border-radius: 20px;
+    }
+
+    /* Audio Progress Bar */
+    .audio-player-container {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      background: #fdfdfd;
+      border: 1px solid var(--border);
+      padding: 12px 20px;
+      border-radius: 6px;
+      margin-bottom: 25px;
+      font-family: 'Noto Sans KR', sans-serif;
+    }
+
+    .audio-play-btn {
+      background: #e74c3c;
+      color: white;
+      border: none;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+
+    .audio-play-btn:hover {
+      background: #c0392b;
+    }
+
+    .audio-progress-wrapper {
+      flex: 1;
+      height: 8px;
+      background: #e2e4e6;
+      border-radius: 4px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .audio-progress-bar {
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 0%;
+      background: #1a3a5c;
+      transition: width 0.3s ease;
+    }
+
+    /* ── MANAGE LAYOUT (MODERN STYLE) ── */
+    .manage-layout {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 32px 24px;
+      display: grid;
+      grid-template-columns: 1fr 450px;
+      gap: 24px;
+      align-items: start;
+      font-family: 'Noto Sans KR', sans-serif;
+    }
+
+    .panel {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+
+    .panel-header {
+      background: var(--accent);
+      color: white;
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .panel-header h3 {
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .panel-header .badge {
+      margin-left: auto;
+      background: rgba(255, 255, 255, 0.2);
+      padding: 2px 10px;
+      border-radius: 10px;
+      font-size: 11px;
+    }
+
+    .panel-body {
+      padding: 20px;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: #666;
+      margin-bottom: 6px;
+    }
+
+    .form-input,
+    .form-select,
+    .form-textarea {
+      width: 100%;
+      padding: 9px 12px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 13.5px;
+    }
+
+    .form-textarea {
+      resize: vertical;
+      min-height: 60px;
+    }
+
+    .choices-input {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .choice-input-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .add-btn {
+      width: 100%;
+      padding: 11px;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 4px;
+    }
+
+    .q-list {
+      max-height: 600px;
+      overflow-y: auto;
+    }
+
+    .q-list-item {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      gap: 10px;
+      font-size: 13px;
+    }
+
+    .q-li-main {
+      flex: 1;
+    }
+
+    .q-li-tag {
+      display: inline-block;
+      background: #eef2f7;
+      color: var(--accent);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: bold;
+      margin-bottom: 4px;
+    }
+
+    .q-li-choices {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2px 8px;
+      margin-top: 6px;
+    }
+
+    .q-li-choice {
+      font-size: 11.5px;
+      color: #888;
+    }
+
+    .q-li-choice.correct {
+      color: #1a6b3a;
+      font-weight: 600;
+    }
+
+    .icon-btn {
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      background: white;
+      cursor: pointer;
+    }
+
+    .empty-state {
+      padding: 40px 20px;
+      text-align: center;
+      color: #888;
+    }
+
+    /* Utilities */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #111;
+      color: white;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-size: 13px;
+      transform: translateY(80px);
+      opacity: 0;
+      transition: all 0.3s;
+      z-index: 999;
+    }
+
+    .toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    .toast.success {
+      background: #1a6b3a;
+    }
+
+    .toast.error {
+      background: #c0392b;
+    }
+
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-overlay.open {
+      display: flex;
+    }
+
+    .modal {
+      background: white;
+      border-radius: 12px;
+      padding: 36px;
+      max-width: 440px;
+      width: 90%;
+      text-align: center;
+    }
+
+    .score-big {
+      font-size: 52px;
+      font-weight: 700;
+      color: var(--accent);
+      margin: 16px 0;
+    }
+
+    .modal-close {
+      padding: 10px 28px;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="topbar">
+    <div class="topbar-brand">TOPIK I 시험 시스템 (2937)</div>
+    <div class="topbar-nav">
+      <button class="nav-btn active" onclick="showPage('exam-random')">🎲 Luyện ngẫu nhiên</button>
+      <button class="nav-btn" onclick="showPage('manage-random')">⚙️ QL Ngẫu nhiên</button>
+    </div>
+  </div>
+
+  <div id="page-exam-random" class="page active">
+    <div class="exam-layout">
+      <div class="exam-title-wrapper">
+        <div class="exam-title-pill">TOPIK I 듣기 (1번 ~ 30번)</div>
+      </div>
+
+      <div class="audio-player-container" id="audio-player-ui" style="display: none;">
+        <button class="audio-play-btn" id="audio-toggle-btn" onclick="toggleAudio()" title="Dừng / Phát lại">⏹</button>
+        <div class="audio-progress-wrapper">
+          <div class="audio-progress-bar" id="audio-progress"></div>
+        </div>
+      </div>
+
+      <div id="container-exam-random">
+      </div>
+
+      <div class="exam-footer-print">
+        <p style="margin-bottom: 15px; color: #666;">답변 완료: <strong id="random-answered-count">0</strong> / <strong
+            id="random-total-count">0</strong></p>
+        <button class="submit-btn" onclick="submitExam('random')">답안 제출</button>
+      </div>
+
+      <div class="page-number-pill">1</div>
+    </div>
+  </div>
+
+
+
+  <div id="page-manage-random" class="page">
+
+    <!-- ── SECTION EXAMPLES MANAGER ── -->
+    <div class="manage-layout" style="padding-bottom: 0;">
+      <div class="panel">
+        <div class="panel-header" style="background: #5c3d8a;">
+          <h3>📌 Thêm Ví Dụ (보기) Theo Phần</h3>
+        </div>
+        <div class="panel-body">
+          <div class="form-group">
+            <label class="form-label">Chọn Phần</label>
+            <select id="me-section" class="form-select">
+              <option value="1">Phần 1 [1~4]: 맞는 대답 고르기</option>
+              <option value="2">Phần 2 [5~6]: 이어지는 말 고르기</option>
+              <option value="3">Phần 3 [7~10]: 여기는 어디입니까</option>
+              <option value="4">Phần 4 [11~14]: 무엇에 대해 말하고 있습니까</option>
+              <option value="5">Phần 5 [15~16]: 알맞은 그림 고르기</option>
+              <option value="6">Phần 6 [17~21]: 대화 내용과 같은 것 고르기</option>
+              <option value="7">Phần 7 [22~24]: 여자의 중심 생각 고르기</option>
+              <option value="8">Phần 8 [25~26]: 물음에 답하십시오 1</option>
+              <option value="9">Phần 9 [27~28]: 물음에 답하십시오 2</option>
+              <option value="10">Phần 10 [29~30]: 물음에 답하십시오 3</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Nội dung hội thoại (보기 text)</label>
+            <textarea id="me-example-text" class="form-textarea" placeholder="가: 학생이에요?&#10;나: _____________________"
+              rows="3"></textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label">4 Đáp án của ví dụ (tick vào đáp án đúng)</label>
+            <div class="choices-input">
+              <div class="choice-input-row"><input type="radio" name="me-correct" value="0"> <span>①</span><input
+                  type="text" id="me-c0" class="form-input" placeholder="Đáp án 1"></div>
+              <div class="choice-input-row"><input type="radio" name="me-correct" value="1"> <span>②</span><input
+                  type="text" id="me-c1" class="form-input" placeholder="Đáp án 2"></div>
+              <div class="choice-input-row"><input type="radio" name="me-correct" value="2"> <span>③</span><input
+                  type="text" id="me-c2" class="form-input" placeholder="Đáp án 3"></div>
+              <div class="choice-input-row"><input type="radio" name="me-correct" value="3"> <span>④</span><input
+                  type="text" id="me-c3" class="form-input" placeholder="Đáp án 4"></div>
+            </div>
+          </div>
+          <button class="add-btn" style="background:#5c3d8a;" onclick="saveSectionExample()">💾 Lưu Ví Dụ Phần
+            Này</button>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-header" style="background: #5c3d8a;">
+          <h3>📋 Danh Sách Ví Dụ Theo Phần</h3>
+        </div>
+        <div class="q-list" id="list-section-examples"></div>
+      </div>
+    </div>
+
+    <!-- ── QUESTION MANAGER ── -->
+    <div class="manage-layout">
+      <div class="panel">
+        <div class="panel-header">
+          <h3>➕ Thêm câu hỏi Luyện Ngẫu Nhiên</h3>
+        </div>
+        <div class="panel-body">
+          <div class="form-group">
+            <label class="form-label">Chọn Phần (Section)</label>
+            <select id="mr-section" class="form-select">
+              <option value="1">Phần 1 [1~4]: 맞는 대답 고르기</option>
+              <option value="2">Phần 2 [5~6]: 이어지는 말 고르기</option>
+              <option value="3">Phần 3 [7~10]: 여기는 어디입니까</option>
+              <option value="4">Phần 4 [11~14]: 무엇에 대해 말하고 있습니까</option>
+              <option value="5">Phần 5 [15~16]: 알맞은 그림 고르기</option>
+              <option value="6">Phần 6 [17~21]: 대화 내용과 같은 것 고르기</option>
+              <option value="7">Phần 7 [22~24]: 여자의 중심 생각 고르기</option>
+              <option value="8">Phần 8 [25~26]: 물음에 답하십시오 1</option>
+              <option value="9">Phần 9 [27~28]: 물음에 답하십시오 2</option>
+              <option value="10">Phần 10 [29~30]: 물음에 답하십시오 3</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Điểm số (배점)</label>
+            <select id="mr-score" class="form-select">
+              <option value="3">3점</option>
+              <option value="4" selected>4점</option>
+              <option value="5">5점</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Nội dung câu hỏi (Nhập [audio] câu nghe [q] câu hỏi nếu cần lọc âm thanh)</label>
+            <textarea id="mr-text" class="form-textarea" placeholder="Ví dụ: [audio] 안녕하세요. [q] 맞는 대답을 고르십시오."
+              rows="3"></textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Các Lựa Chọn (보기)</label>
+            <div class="choices-input">
+              <div class="choice-input-row">
+                <input type="radio" name="mr-correct" value="0" class="correct-radio"> <span>①</span>
+                <input type="text" id="mr-c0" class="form-input" placeholder="Đáp án 1">
+              </div>
+              <div class="choice-input-row">
+                <input type="radio" name="mr-correct" value="1" class="correct-radio"> <span>②</span>
+                <input type="text" id="mr-c1" class="form-input" placeholder="Đáp án 2">
+              </div>
+              <div class="choice-input-row">
+                <input type="radio" name="mr-correct" value="2" class="correct-radio"> <span>③</span>
+                <input type="text" id="mr-c2" class="form-input" placeholder="Đáp án 3">
+              </div>
+              <div class="choice-input-row">
+                <input type="radio" name="mr-correct" value="3" class="correct-radio"> <span>④</span>
+                <input type="text" id="mr-c3" class="form-input" placeholder="Đáp án 4">
+              </div>
+            </div>
+          </div>
+          <button class="add-btn" onclick="addQuestion()">✓ Thêm Vào Ngân Hàng Ngẫu Nhiên</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <h3>📚 DS Câu Hỏi Ngẫu Nhiên</h3>
+          <span class="badge" id="mr-count-badge">0 câu</span>
+        </div>
+        <div class="q-list" id="list-manage-random"></div>
+      </div>
+    </div>
+  </div>
+
+
+
+  <div class="modal-overlay" id="result-modal">
+    <div class="modal">
+      <h3>시험 결과 (Kết Quả)</h3>
+      <div class="score-big" id="modal-score">0<span style="font-size:24px; color:#999">/100</span></div>
+      <p id="modal-detail" style="margin-bottom:20px; color:#666">잘 하셨습니다!</p>
+      <button class="modal-close" onclick="closeModal()">확인 (Đóng)</button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    // ==========================================
+    // SUPABASE CONFIG
+    // ==========================================
+    const SUPABASE_URL = 'https://ktqdzlhvdkerjajffgfi.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt0cWR6bGh2ZGtlcmphamZmZ2ZpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc2OTgxNTMsImV4cCI6MjA4MzI3NDE1M30.6xz0SVuj6x72VcLZyJpVtNMMWSmyOEtGhmKiVMu46xI';
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    let globalQuestions = [];
+    let userAnswers = {};
+    let currentlyRenderedQuestions = [];
+    let isPlayingAll = false;
+    let currentAudioIndex = 0;
+
+    const charNormal = ['①', '②', '③', '④'];
+    const charSelected = ['❶', '❷', '❸', '❹'];
+
+    // Chuẩn hướng dẫn 10 phần TOPIK I
+    const sectionInstructions = {
+      1: "※ [1~4] 다음을 듣고 〈보기〉와 같이 물음에 맞는 대답을 고르십시오.",
+      2: "※ [5~6] 다음을 듣고 〈보기〉와 같이 이어지는 말을 고르십시오.",
+      3: "※ [7~10] 여기는 어디입니까? 〈보기〉와 같이 알맞은 것을 고르십시오.",
+      4: "※ [11~14] 다음은 무엇에 대해 말하고 있습니까? 〈보기〉와 같이 알맞은 것을 고르십시오.",
+      5: "※ [15~16] 다음을 듣고 가장 알맞은 그림을 고르십시오. (각 4점)",
+      6: "※ [17~21] 다음을 듣고 〈보기〉와 같이 대화 내용과 같은 것을 고르십시오. (각 3점)",
+      7: "※ [22~24] 다음을 듣고 여자의 중심 생각을 고르십시오. (각 3점)",
+      8: "※ [25~26] 다음을 듣고 물음에 답하십시오.",
+      9: "※ [27~28] 다음을 듣고 물음에 답하십시오.",
+      10: "※ [29~30] 다음을 듣고 물음에 답하십시오."
+    };
+
+    async function loadQuestions() {
+      try {
+        showToast('Supabase에서 불러오는 중...', '');
+        const { data, error } = await supabaseClient.from('questions').select('*').is('exam_session', null);
+        if (error) throw error;
+        globalQuestions = data;
+
+        renderRandomExam();
+        renderManageRandomList();
+
+        showToast(`✅ Loaded ${globalQuestions.length} câu hỏi — Bắt đầu phát âm thanh...`, 'success');
+        // Tự động phát sau 1 giây để giao diện render xong
+        setTimeout(() => playCurrentVisibleAudio(), 1000);
+      } catch (e) {
+        showToast('❌ Lỗi kết nối Supabase: ' + e.message, 'error');
+      }
+    }
+
+    function showPage(page) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById('page-' + page).classList.add('active');
+
+      const buttons = document.querySelectorAll('.nav-btn');
+      if (page === 'exam-random') buttons[0].classList.add('active');
+      if (page === 'manage-random') buttons[1].classList.add('active');
+
+      if (isPlayingAll) { window.speechSynthesis.cancel(); isPlayingAll = false; }
+    }
+
+
+
+    // ==========================================
+    // RENDER: EXAM RANDOM
+    // ==========================================
+    function renderRandomExam() {
+      const container = document.getElementById('container-exam-random');
+      userAnswers = {};
+
+      let pool = globalQuestions.filter(q => !q.exam_session);
+      if (pool.length === 0) {
+        container.innerHTML = `<div class="empty-state"><p>Chưa có câu hỏi ngẫu nhiên nào. Vui lòng sang tab Quản lý để tạo.</p></div>`;
+        updateProgress('random', 0);
+        return;
+      }
+
+      let shuffled = pool.sort(() => 0.5 - Math.random());
+      let filtered = shuffled.slice(0, 10);
+      filtered.sort((a, b) => a.section - b.section);
+      currentlyRenderedQuestions = filtered;
+      currentAudioIndex = 0;
+
+      let html = '';
+      const shownExampleForSection = new Set();
+      filtered.forEach((q, index) => {
+        let showInstruction = (index === 0 || q.section !== filtered[index - 1].section);
+        if (showInstruction && sectionInstructions[q.section]) {
+          html += `<div class="print-instruction">${sectionInstructions[q.section]}</div>`;
+        }
+
+        // Lấy ví dụ từ sectionExamples (localStorage), chỉ hiện 1 lần đầu mỗi phần
+        let exampleHtml = '';
+        if (sectionExamples[q.section] && !shownExampleForSection.has(q.section)) {
+          shownExampleForSection.add(q.section);
+          const ex = sectionExamples[q.section];
+          const exText = typeof ex === 'string' ? ex : ex.text;
+          const exChoices = (typeof ex === 'object' && ex.choices) ? ex.choices : [];
+          const choicesHtml = exChoices.length ? `
+        <div class="print-choices-grid" style="margin-top:10px;">
+          ${exChoices.map((c, i) => {
+            const isCorrect = (ex.correct !== undefined && ex.correct === i);
+            return `<span style="font-size:14px; ${isCorrect ? 'font-weight:700;' : ''}">${isCorrect ? charSelected[i] : charNormal[i]} ${c}</span>`;
+          }).join('')}
+        </div>` : '';
+          exampleHtml = `
+      <fieldset class="example-fieldset">
+        <legend class="example-legend">〈보  기〉</legend>
+        ${exText ? `<div class="example-dialogue" style="white-space: pre-line;">${exText}</div>` : ''}
+        ${choicesHtml}
+      </fieldset>`;
+        }
+
+        let displayText = cleanQuestionText(q.text);
+
+        html += `
+    ${exampleHtml}
+    <div class="print-question-item" id="qi-${q.id}">
+      <div class="print-q-top">
+        <span class="print-q-num">${index + 1}.</span>
+        <span class="print-q-score">(${q.score}점)</span>
+        ${displayText ? `<div class="print-q-text">${displayText}</div>` : ''}
+      </div>
+      <div class="print-choices-grid">
+        ${q.choices.map((c, i) => `
+          <button class="print-choice-btn" id="cb-${q.id}-${i}" onclick="selectAnswer(${q.id}, ${i}, 'random')">
+            <span class="c-char" id="cchar-${q.id}-${i}">${charNormal[i]}</span> ${c}
+          </button>
+        `).join('')}
+      </div>
+    </div>`;
+      });
+
+      container.innerHTML = html;
+      updateProgress('random', filtered.length);
+    }
+
+
+
+    function cleanQuestionText(text) {
+      let display = text || '';
+      if (display.includes('[audio]')) {
+        if (display.includes('[q]')) {
+          display = display.split('[q]')[1].trim();
+        } else {
+          display = '';
+        }
+      } else if (display.includes('[q]')) {
+        display = display.replace('[q]', '').trim();
+      }
+      return display;
+    }
+
+    function selectAnswer(qId, choiceIdx, type) {
+      userAnswers[qId] = choiceIdx;
+      const parent = document.getElementById(`qi-${qId}`);
+      if (parent) {
+        for (let i = 0; i < 4; i++) {
+          const btn = parent.querySelector(`#cb-${qId}-${i}`);
+          const char = parent.querySelector(`#cchar-${qId}-${i}`);
+          if (btn && char) {
+            btn.classList.remove('selected');
+            char.textContent = charNormal[i];
+          }
+        }
+        const selBtn = parent.querySelector(`#cb-${qId}-${choiceIdx}`);
+        const selChar = parent.querySelector(`#cchar-${qId}-${choiceIdx}`);
+        if (selBtn && selChar) {
+          selBtn.classList.add('selected');
+          selChar.textContent = charSelected[choiceIdx];
+        }
+      }
+      document.getElementById(`${type}-answered-count`).textContent = Object.keys(userAnswers).length;
+    }
+
+    function updateProgress(type, total) {
+      document.getElementById(`${type}-answered-count`).textContent = Object.keys(userAnswers).length;
+      document.getElementById(`${type}-total-count`).textContent = total;
+    }
+
+    function toggleAudio() {
+      const btn = document.getElementById('audio-toggle-btn');
+      if (isPlayingAll) {
+        window.speechSynthesis.cancel();
+        isPlayingAll = false;
+        showToast('⏸ Đã tạm dừng phát âm thanh!', 'info');
+        btn.textContent = '▶▶';
+        btn.style.background = '#1a6b3a';
+      } else {
+        if (currentAudioIndex >= currentlyRenderedQuestions.length) {
+          currentAudioIndex = 0;
+        }
+        playCurrentVisibleAudio();
+      }
+    }
+
+    async function playCurrentVisibleAudio() {
+      if (currentlyRenderedQuestions.length === 0) return;
+
+      isPlayingAll = true;
+      showToast('🔊 Bắt đầu phát âm thanh...', 'success');
+      window.speechSynthesis.cancel();
+
+      const progressUi = document.getElementById('audio-player-ui');
+      const progressBar = document.getElementById('audio-progress');
+      const btn = document.getElementById('audio-toggle-btn');
+      progressUi.style.display = 'flex';
+      if (currentAudioIndex === 0) progressBar.style.width = '0%';
+      btn.textContent = '⏹';
+      btn.style.background = '#e74c3c';
+
+      const totalQs = currentlyRenderedQuestions.length;
+
+      const speakText = (text) => {
+        return new Promise((resolve) => {
+          if (!isPlayingAll) return resolve();
+          const utterance = new SpeechSynthesisUtterance(text);
+          utterance.lang = 'ko-KR';
+          utterance.rate = 0.62;
+          utterance.onend = resolve;
+          utterance.onerror = resolve;
+          window.speechSynthesis.speak(utterance);
+        });
+      };
+
+      for (let idx = currentAudioIndex; idx < totalQs; idx++) {
+        currentAudioIndex = idx;
+        if (!isPlayingAll) break;
+        const q = currentlyRenderedQuestions[idx];
+        progressBar.style.width = `${(idx / totalQs) * 100}%`;
+
+        // Đọc hướng dẫn & ví dụ của phần nếu là câu đầu tiên của phần đó
+        let isFirstOfSection = (idx === 0 || q.section !== currentlyRenderedQuestions[idx - 1].section);
+        if (isFirstOfSection) {
+          if (sectionInstructions[q.section]) {
+            let instText = sectionInstructions[q.section].replace(/※ \[[0-9~]+\] /, '');
+            await speakText(instText);
+            if (!isPlayingAll) break;
+            await new Promise(r => setTimeout(r, 1500));
+          }
+          if (sectionExamples[q.section]) {
+            const ex = sectionExamples[q.section];
+            const exText = typeof ex === 'string' ? ex : ex.text;
+            if (exText && exText.trim() !== '') {
+              let cleanExText = exText.replace(/_+/g, ' ').trim();
+              await speakText("보기. " + cleanExText);
+              if (!isPlayingAll) break;
+              await new Promise(r => setTimeout(r, 2000));
+            }
+          }
+        }
+
+        let textToRead = q.text || '';
+        if (textToRead.includes('[audio]')) {
+          let audioPart = textToRead.split('[audio]')[1];
+          if (audioPart.includes('[q]')) audioPart = audioPart.split('[q]')[0];
+          textToRead = audioPart.replace(/_+/g, ' ').trim();
+        } else {
+          textToRead = textToRead.replace('[q]', '').replace(/_+/g, ' ').trim();
+        }
+
+        if (textToRead) {
+          const prefix = `${idx + 1}번. `;
+          // Đếm số câu bằng cách đếm dấu kết thúc câu (. ? ! 요 습니다 etc.)
+          const sentenceCount = (textToRead.match(/[.?!。]/g) || []).length;
+          const hasRepeatPrefix = sentenceCount > 2;
+
+          await speakText(prefix + textToRead);
+          if (!isPlayingAll) break;
+
+          progressBar.style.width = `${((idx + 0.5) / totalQs) * 100}%`;
+          await new Promise(r => setTimeout(r, 1500));
+
+          await speakText((hasRepeatPrefix ? '다시 들으십시오. ' : '') + textToRead);
+          if (!isPlayingAll) break;
+          await new Promise(r => setTimeout(r, 4000));
+        }
+      }
+
+      if (isPlayingAll) {
+        progressBar.style.width = `100%`;
+        showToast('✅ Đã hoàn thành phát âm thanh!', 'success');
+        isPlayingAll = false;
+        currentAudioIndex = totalQs;
+        const btn = document.getElementById('audio-toggle-btn');
+        btn.textContent = '▶';
+        btn.style.background = '#1a6b3a';
+      }
+    }
+
+    function submitExam(type) {
+      if (currentlyRenderedQuestions.length === 0) { showToast('Không có câu hỏi để chấm điểm!', 'error'); return; }
+
+      let correctCount = 0, totalScore = 0, maxScore = 0;
+      currentlyRenderedQuestions.forEach(q => {
+        maxScore += q.score;
+        if (userAnswers[q.id] === q.correct) {
+          correctCount++;
+          totalScore += q.score;
+        }
+      });
+
+      const pct = Math.round((totalScore / maxScore) * 100) || 0;
+      document.getElementById('modal-score').innerHTML = `${pct}<span style="font-size:24px; color:#999">/100</span>`;
+      document.getElementById('modal-detail').textContent = `Đúng ${correctCount}/${currentlyRenderedQuestions.length} câu · Đạt được ${totalScore}/${maxScore} điểm`;
+      document.getElementById('result-modal').classList.add('open');
+    }
+
+    function closeModal() {
+      document.getElementById('result-modal').classList.remove('open');
+    }
+
+    function renderManageRandomList() {
+      const container = document.getElementById('list-manage-random');
+      const randomQs = globalQuestions.filter(q => !q.exam_session).sort((a, b) => a.section - b.section);
+      document.getElementById('mr-count-badge').textContent = randomQs.length + ' câu';
+
+      if (randomQs.length === 0) {
+        container.innerHTML = '<div class="empty-state"><p>Chưa có câu hỏi luyện ngẫu nhiên.</p></div>';
+        return;
+      }
+
+      container.innerHTML = randomQs.map(q => `
+    <div class="q-list-item">
+      <div class="q-li-main">
+        <span class="q-li-tag">Phần ${q.section} (${q.score}đ)</span>
+        <div class="q-li-text">${q.text}</div>
+        <div class="q-li-choices">
+          ${q.choices.map((c, i) => `<div class="q-li-choice ${i === q.correct ? 'correct' : ''}">${charNormal[i]} ${c}</div>`).join('')}
+        </div>
+      </div>
+      <button class="icon-btn" onclick="deleteQuestion(${q.id})" title="Xóa">❌</button>
+    </div>
+  `).join('');
+    }
+
+
+
+    // ==========================================
+    // SECTION EXAMPLES (Supabase)
+    // ==========================================
+    let sectionExamples = {};
+
+    async function loadSectionExamples() {
+      try {
+        const { data, error } = await supabaseClient.from('section_examples').select('*');
+        if (error) throw error;
+        sectionExamples = {};
+        data.forEach(row => {
+          sectionExamples[row.section] = { text: row.text, choices: row.choices, correct: row.correct };
+        });
+        renderSectionExamplesList();
+      } catch (e) {
+        showToast('❌ Lỗi tải ví dụ: ' + e.message, 'error');
+      }
+    }
+
+    async function saveSectionExample() {
+      const section = parseInt(document.getElementById('me-section').value);
+      const text = document.getElementById('me-example-text').value.trim();
+      const choices = [0, 1, 2, 3].map(i => document.getElementById('me-c' + i).value.trim());
+      const correctEl = document.querySelector('input[name="me-correct"]:checked');
+      const correct = correctEl ? parseInt(correctEl.value) : -1;
+      if (!text && choices.every(c => !c)) { showToast('Vui lòng nhập nội dung hoặc đáp án.', 'error'); return; }
+
+      try {
+        const { error } = await supabaseClient.from('section_examples')
+          .upsert({ section, text, choices, correct }, { onConflict: 'section' });
+        if (error) throw error;
+        sectionExamples[section] = { text, choices, correct };
+        showToast('✅ Đã lưu ví dụ phần ' + section + '!', 'success');
+        document.getElementById('me-example-text').value = '';
+        [0, 1, 2, 3].forEach(i => document.getElementById('me-c' + i).value = '');
+        document.querySelectorAll('input[name="me-correct"]').forEach(r => r.checked = false);
+        renderSectionExamplesList();
+        renderRandomExam();
+      } catch (e) {
+        showToast('❌ Lỗi lưu ví dụ: ' + e.message, 'error');
+      }
+    }
+
+    async function deleteSectionExample(section) {
+      if (!confirm('Xóa ví dụ phần ' + section + '?')) return;
+      try {
+        const { error } = await supabaseClient.from('section_examples').delete().eq('section', section);
+        if (error) throw error;
+        delete sectionExamples[section];
+        showToast('Đã xóa ví dụ phần ' + section, '');
+        renderSectionExamplesList();
+        renderRandomExam();
+      } catch (e) {
+        showToast('❌ Lỗi xóa ví dụ: ' + e.message, 'error');
+      }
+    }
+
+    const sectionShortNames = { 1: 'Phần 1', 2: 'Phần 2', 3: 'Phần 3', 4: 'Phần 4', 5: 'Phần 5', 6: 'Phần 6', 7: 'Phần 7', 8: 'Phần 8', 9: 'Phần 9', 10: 'Phần 10' };
+
+    function renderSectionExamplesList() {
+      const container = document.getElementById('list-section-examples');
+      const entries = Object.entries(sectionExamples).sort((a, b) => parseInt(a[0]) - parseInt(b[0]));
+      if (entries.length === 0) {
+        container.innerHTML = '<div class="empty-state"><p>Chưa có ví dụ nào.</p></div>';
+        return;
+      }
+      container.innerHTML = entries.map(([sec, ex]) => {
+        const exText = typeof ex === 'string' ? ex : ex.text;
+        const exChoices = (typeof ex === 'object' && ex.choices) ? ex.choices : [];
+        const choicesHtml = exChoices.filter(c => c).map((c, i) => {
+          const isCorrect = (typeof ex === 'object' && ex.correct === i);
+          return `<div class="q-li-choice ${isCorrect ? 'correct' : ''}">${isCorrect ? charSelected[i] : charNormal[i]} ${c}</div>`;
+        }).join('');
+        return `
+    <div class="q-list-item">
+      <div class="q-li-main">
+        <span class="q-li-tag" style="background:#f0e6ff; color:#5c3d8a;">${sectionShortNames[sec] || 'Phần ' + sec}</span>
+        ${exText ? `<div style="white-space: pre-line; font-size: 13px; margin-top: 6px; line-height: 1.8;">${exText}</div>` : ''}
+        ${choicesHtml ? `<div class="q-li-choices" style="margin-top:6px;">${choicesHtml}</div>` : ''}
+      </div>
+      <button class="icon-btn" onclick="deleteSectionExample(${sec})" title="Xóa">❌</button>
+    </div>`;
+      }).join('');
+    }
+
+    // ==========================================
+    // ADD QUESTION
+    // ==========================================
+    async function addQuestion() {
+      const section = parseInt(document.getElementById('mr-section').value);
+      const score = parseInt(document.getElementById('mr-score').value);
+      const text = document.getElementById('mr-text').value.trim();
+      const choices = [0, 1, 2, 3].map(i => document.getElementById('mr-c' + i).value.trim());
+      const correctEl = document.querySelector('input[name="mr-correct"]:checked');
+
+      if (choices.some(c => !c)) { showToast('Vui lòng nhập đủ cả 4 phương án lựa chọn.', 'error'); return; }
+      if (!correctEl) { showToast('Vui lòng tick chọn đáp án đúng.', 'error'); return; }
+      if (!text) { showToast('Vui lòng nhập nội dung câu hỏi.', 'error'); return; }
+
+      try {
+        const payload = {
+          section, score, text, choices, correct: parseInt(correctEl.value)
+        };
+
+        const { data, error } = await supabaseClient.from('questions').insert([payload]).select().single();
+        if (error) throw error;
+
+        globalQuestions.push(data);
+        showToast('🎉 Đã lưu câu hỏi thành công!', 'success');
+
+        document.getElementById('mr-text').value = '';
+        [0, 1, 2, 3].forEach(i => document.getElementById('mr-c' + i).value = '');
+        document.querySelectorAll('input[name="mr-correct"]').forEach(r => r.checked = false);
+        renderRandomExam();
+        renderManageRandomList();
+      } catch (e) {
+        showToast('❌ Lỗi lưu dữ liệu: ' + e.message, 'error');
+      }
+    }
+
+    async function deleteQuestion(id) {
+      if (!confirm('Ông chủ có chắc chắn muốn xóa câu hỏi này không ạ? 🫪')) return;
+      try {
+        const { error } = await supabaseClient.from('questions').delete().eq('id', id);
+        if (error) throw error;
+        globalQuestions = globalQuestions.filter(q => q.id !== id);
+        showToast('Đã xóa câu hỏi thành công!', '');
+
+        renderRandomExam();
+        renderManageRandomList();
+      } catch (e) {
+        showToast('❌ Thao tác xóa bị lỗi: ' + e.message, 'error');
+      }
+    }
+
+    let toastTimer;
+    function showToast(msg, type = '') {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.className = 'toast ' + (type === 'success' ? 'success' : type === 'error' ? 'error' : '');
+      t.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => t.classList.remove('show'), 3000);
+    }
+
+    (async () => {
+      await loadSectionExamples();
+      await loadQuestions();
+    })();
+  </script>
+</body>
+
+</html>
