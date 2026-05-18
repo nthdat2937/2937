@@ -196,10 +196,12 @@
     /* Choices */
     .print-choices-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr;
       gap: 14px 40px;
       padding-left: 30px;
     }
+    .print-choices-grid.layout-1 { grid-template-columns: 1fr 1fr 1fr 1fr; }
+    .print-choices-grid.layout-2 { grid-template-columns: 1fr 1fr; }
+    .print-choices-grid.layout-4 { grid-template-columns: 1fr; }
 
     .print-choice-btn {
       display: flex;
@@ -446,10 +448,12 @@
 
     .q-li-choices {
       display: grid;
-      grid-template-columns: 1fr 1fr;
       gap: 2px 8px;
       margin-top: 6px;
     }
+    .q-li-choices.layout-1 { grid-template-columns: 1fr 1fr 1fr 1fr; }
+    .q-li-choices.layout-2 { grid-template-columns: 1fr 1fr; }
+    .q-li-choices.layout-4 { grid-template-columns: 1fr; }
 
     .q-li-choice {
       font-size: 11.5px;
@@ -612,6 +616,14 @@
             </select>
           </div>
           <div class="form-group">
+            <label class="form-label">Kiểu hiển thị đáp án</label>
+            <select id="me-layout" class="form-select">
+              <option value="1">1 dòng (4 đáp án trên cùng 1 dòng)</option>
+              <option value="2" selected>2 dòng (2 trên, 2 dưới)</option>
+              <option value="4">4 dòng (mỗi đáp án 1 dòng)</option>
+            </select>
+          </div>
+          <div class="form-group">
             <label class="form-label">Nội dung hội thoại (보기 text)</label>
             <textarea id="me-example-text" class="form-textarea" placeholder="가: 학생이에요?&#10;나: _____________________"
               rows="3"></textarea>
@@ -669,6 +681,14 @@
               <option value="3">3점</option>
               <option value="4" selected>4점</option>
               <option value="5">5점</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Kiểu hiển thị đáp án</label>
+            <select id="mr-layout" class="form-select">
+              <option value="1">1 dòng (4 đáp án trên cùng 1 dòng)</option>
+              <option value="2" selected>2 dòng (2 trên, 2 dưới)</option>
+              <option value="4">4 dòng (mỗi đáp án 1 dòng)</option>
             </select>
           </div>
           <div class="form-group">
@@ -824,7 +844,7 @@
           const exText = typeof ex === 'string' ? ex : ex.text;
           const exChoices = (typeof ex === 'object' && ex.choices) ? ex.choices : [];
           const choicesHtml = exChoices.length ? `
-        <div class="print-choices-grid" style="margin-top:10px;">
+        <div class="print-choices-grid layout-${ex.layout || 2}" style="margin-top:10px;">
           ${exChoices.map((c, i) => {
             const isCorrect = (ex.correct !== undefined && ex.correct === i);
             return `<span style="font-size:14px; ${isCorrect ? 'font-weight:700;' : ''}">${isCorrect ? charSelected[i] : charNormal[i]} ${c}</span>`;
@@ -838,6 +858,7 @@
       </fieldset>`;
         }
 
+        let layout = q.layout || 2;
         let displayText = cleanQuestionText(q.text);
 
         html += `
@@ -848,7 +869,7 @@
         <span class="print-q-score">(${q.score}점)</span>
         ${displayText ? `<div class="print-q-text">${displayText}</div>` : ''}
       </div>
-      <div class="print-choices-grid">
+      <div class="print-choices-grid layout-${layout}">
         ${q.choices.map((c, i) => `
           <button class="print-choice-btn" id="cb-${q.id}-${i}" onclick="selectAnswer(${q.id}, ${i}, 'random')">
             <span class="c-char" id="cchar-${q.id}-${i}">${charNormal[i]}</span> ${c}
@@ -864,8 +885,15 @@
 
 
 
+    function extractLayout(text) {
+      const match = text?.match(/\[layout:(\d)\]/);
+      return match ? match[1] : '2';
+    }
+
     function cleanQuestionText(text) {
       let display = text || '';
+      display = display.replace(/\[layout:\d\]/g, '').trim();
+
       if (display.includes('[audio]')) {
         if (display.includes('[q]')) {
           display = display.split('[q]')[1].trim();
@@ -978,6 +1006,8 @@
         }
 
         let textToRead = q.text || '';
+        textToRead = textToRead.replace(/\[layout:\d\]/g, '').trim();
+        
         if (textToRead.includes('[audio]')) {
           let audioPart = textToRead.split('[audio]')[1];
           if (audioPart.includes('[q]')) audioPart = audioPart.split('[q]')[0];
@@ -1047,18 +1077,22 @@
         return;
       }
 
-      container.innerHTML = randomQs.map(q => `
+      container.innerHTML = randomQs.map(q => {
+        const layout = q.layout || 2;
+        const textDisplay = cleanQuestionText(q.text);
+        return `
     <div class="q-list-item">
       <div class="q-li-main">
-        <span class="q-li-tag">Phần ${q.section} (${q.score}đ)</span>
-        <div class="q-li-text">${q.text}</div>
-        <div class="q-li-choices">
+        <span class="q-li-tag">Phần ${q.section} (${q.score}đ) - Kiểu ${layout} dòng</span>
+        <div class="q-li-text">${textDisplay}</div>
+        <div class="q-li-choices layout-${layout}">
           ${q.choices.map((c, i) => `<div class="q-li-choice ${i === q.correct ? 'correct' : ''}">${charNormal[i]} ${c}</div>`).join('')}
         </div>
       </div>
       <button class="icon-btn" onclick="deleteQuestion(${q.id})" title="Xóa">❌</button>
     </div>
-  `).join('');
+  `;
+      }).join('');
     }
 
 
@@ -1074,7 +1108,7 @@
         if (error) throw error;
         sectionExamples = {};
         data.forEach(row => {
-          sectionExamples[row.section] = { text: row.text, choices: row.choices, correct: row.correct };
+          sectionExamples[row.section] = { text: row.text, choices: row.choices, correct: row.correct, layout: row.layout };
         });
         renderSectionExamplesList();
       } catch (e) {
@@ -1085,6 +1119,7 @@
     async function saveSectionExample() {
       const section = parseInt(document.getElementById('me-section').value);
       const text = document.getElementById('me-example-text').value.trim();
+      const layout = parseInt(document.getElementById('me-layout').value);
       const choices = [0, 1, 2, 3].map(i => document.getElementById('me-c' + i).value.trim());
       const correctEl = document.querySelector('input[name="me-correct"]:checked');
       const correct = correctEl ? parseInt(correctEl.value) : -1;
@@ -1092,9 +1127,9 @@
 
       try {
         const { error } = await supabaseClient.from('section_examples')
-          .upsert({ section, text, choices, correct }, { onConflict: 'section' });
+          .upsert({ section, text, choices, correct, layout }, { onConflict: 'section' });
         if (error) throw error;
-        sectionExamples[section] = { text, choices, correct };
+        sectionExamples[section] = { text, choices, correct, layout };
         showToast('✅ Đã lưu ví dụ phần ' + section + '!', 'success');
         document.getElementById('me-example-text').value = '';
         [0, 1, 2, 3].forEach(i => document.getElementById('me-c' + i).value = '');
@@ -1139,9 +1174,9 @@
         return `
     <div class="q-list-item">
       <div class="q-li-main">
-        <span class="q-li-tag" style="background:#f0e6ff; color:#5c3d8a;">${sectionShortNames[sec] || 'Phần ' + sec}</span>
+        <span class="q-li-tag" style="background:#f0e6ff; color:#5c3d8a;">${sectionShortNames[sec] || 'Phần ' + sec} - Kiểu ${ex.layout || 2} dòng</span>
         ${exText ? `<div style="white-space: pre-line; font-size: 13px; margin-top: 6px; line-height: 1.8;">${exText}</div>` : ''}
-        ${choicesHtml ? `<div class="q-li-choices" style="margin-top:6px;">${choicesHtml}</div>` : ''}
+        ${choicesHtml ? `<div class="q-li-choices layout-${ex.layout || 2}" style="margin-top:6px;">${choicesHtml}</div>` : ''}
       </div>
       <button class="icon-btn" onclick="deleteSectionExample(${sec})" title="Xóa">❌</button>
     </div>`;
@@ -1155,6 +1190,7 @@
       const section = parseInt(document.getElementById('mr-section').value);
       const score = parseInt(document.getElementById('mr-score').value);
       const text = document.getElementById('mr-text').value.trim();
+      const layout = parseInt(document.getElementById('mr-layout').value);
       const choices = [0, 1, 2, 3].map(i => document.getElementById('mr-c' + i).value.trim());
       const correctEl = document.querySelector('input[name="mr-correct"]:checked');
 
@@ -1164,7 +1200,7 @@
 
       try {
         const payload = {
-          section, score, text, choices, correct: parseInt(correctEl.value)
+          section, score, text, choices, correct: parseInt(correctEl.value), layout
         };
 
         const { data, error } = await supabaseClient.from('questions').insert([payload]).select().single();
