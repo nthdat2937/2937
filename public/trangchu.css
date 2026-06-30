@@ -3430,7 +3430,7 @@ body {
 }
 
 .topik-controls {
-  background: var(--bg);
+  background: rgba(0,0,0,0.75);
   border: 0.5px solid var(--bdr);
   border-radius: var(--rl);
   padding: 16px;
@@ -3792,7 +3792,7 @@ body {
     font-size: 13px;
     font-weight: 500;
     background: transparent;
-    color: var(--txt3);
+    color: white;
     border: none;
     cursor: pointer;
     transition: all .15s;
@@ -3870,7 +3870,7 @@ body {
 .speed-metric-label {
     font-size: 11px;
     font-weight: 600;
-    color: var(--txt3);
+    color: white;
     letter-spacing: .06em;
     text-transform: uppercase;
 }
@@ -3921,7 +3921,7 @@ body {
 }
 
 .speed-arena {
-    background: var(--bg);
+    background: rgba(0,0,0,0.85);
     border: 0.5px solid var(--bdr);
     border-radius: var(--rl);
     padding: 28px 32px 28px;

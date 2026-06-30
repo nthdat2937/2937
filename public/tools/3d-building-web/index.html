@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Virtual Company Building</title>
+    <meta name="description" content="A 3D virtual company building with rooms as sub-websites. Navigate using WASD and mouse.">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="ui-layer">
+        <div id="crosshair"></div>
+        <div id="instructions">
+            <h1 id="main-title">Virtual Company</h1>
+            <p id="sub-title">Nhấp chuột trái để bắt đầu</p>
+            <p class="controls">Di chuyển: <span>W</span> <span>A</span> <span>S</span> <span>D</span> | Tương tác: <span>Chuột Trái</span></p>
+        </div>
+    </div>
+    <script src="/socket.io/socket.io.js"></script>
+    <!-- Import map for Three.js -->
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+    <script type="module" src="main.js"></script>
+</body>
+</html>

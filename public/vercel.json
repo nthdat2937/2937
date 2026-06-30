@@ -7,13 +7,10 @@
     { "source": "/(.*)/index", "destination": "/$1", "permanent": true },
     { "source": "/fb", "destination": "https://facebook.com/nthdat.7", "permanent": false },
     { "source": "/fb", "destination": "https://facebook.com/nthdat.7", "permanent": false },
-    { "source": "index1.html", "destination": "/", "permanent": true}
   ],
 
   "rewrites": [
-    { "source": "/", "destination": "/trangchu.html?mode=home" },
-    { "source": "/(.*)", "destination": "/trangchu.html" }
-  ],
+    { "source": "/", "destination": "/trangchu.html?mode=home" } ],
 
   "headers": [
     {

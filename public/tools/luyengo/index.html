@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr" prefix="og: http://ogp.me/ns#" data-color="system" data-font="open-sans">
+
+<head>
+    <meta charSet="UTF-8" />
+    <script>
+        // Webpack Chunk Cache Buster
+        // Automatically appends a cache-busting timestamp to dynamically loaded Webpack JS chunks
+        // ensuring our offline patches are applied immediately without browser caching issues!
+        (function () {
+            const originalCreateElement = document.createElement;
+            document.createElement = function (tagName, options) {
+                const element = originalCreateElement.call(document, tagName, options);
+                if (tagName && tagName.toLowerCase() === 'script') {
+                    Object.defineProperty(element, 'src', {
+                        get() {
+                            return this.getAttribute('src') || '';
+                        },
+                        set(url) {
+                            if (url && url.includes('/assets/') && !url.includes('?t=')) {
+                                const sep = url.includes('?') ? '&' : '?';
+                                url = url + sep + 't=' + Date.now();
+                            }
+                            this.setAttribute('src', url);
+                        },
+                        configurable: true,
+                        enumerable: true
+                    });
+                }
+                return element;
+            };
+        })();
+
+        // SPA Routing Query Interceptor
+        // Seamlessly redirects React Router virtual paths to clean query parameters (?page=profile),
+        // preventing any ENOTDIR errors on direct loads/refreshes while keeping React Router 100% functional!
+        (function () {
+            // 1. Intercept History pushState/replaceState
+            const originalPushState = window.history.pushState;
+            const originalReplaceState = window.history.replaceState;
+
+            window.history.pushState = function (state, title, url) {
+                if (url && url.includes('/luyengo/index.html/')) {
+                    const route = url.split('/luyengo/index.html/')[1];
+                    url = '/luyengo/index.html?page=' + route;
+                }
+                return originalPushState.call(this, state, title, url);
+            };
+
+            window.history.replaceState = function (state, title, url) {
+                if (url && url.includes('/luyengo/index.html/')) {
+                    const route = url.split('/luyengo/index.html/')[1];
+                    url = '/luyengo/index.html?page=' + route;
+                }
+                return originalReplaceState.call(this, state, title, url);
+            };
+
+            // 2. Define Mock Location for patched React Router
+            window.__MOCK_LOCATION__ = {
+                get pathname() {
+                    try {
+                        const searchVal = window.location.search;
+                        const searchParams = new URLSearchParams(searchVal);
+                        const query = searchParams.get('page');
+                        if (query) {
+                            return '/luyengo/index.html/' + query;
+                        }
+                        const hash = window.location.hash.replace(/^#\/?/, '');
+                        if (hash && (hash === 'profile' || hash === 'account' || hash === 'high-scores' || hash === 'settings')) {
+                            return '/luyengo/index.html/' + hash;
+                        }
+                    } catch (e) { }
+                    return window.location.pathname;
+                },
+                get search() {
+                    try {
+                        const searchVal = window.location.search;
+                        const searchParams = new URLSearchParams(searchVal);
+                        if (searchParams.has('page')) {
+                            return '';
+                        }
+                        return searchVal;
+                    } catch (e) { }
+                    return window.location.search;
+                },
+                get hash() {
+                    return window.location.hash;
+                }
+            };
+        })();
+    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Practice</title>
+    <link href="/luyengo/assets/97004352a40fade3.png" rel="icon" type="image/png" sizes="16x16" />
+    <link href="/luyengo/assets/a4de433bd238eb45.png" rel="icon" type="image/png" sizes="32x32" />
+    <link href="/luyengo/assets/934c99d37fc250c3.png" rel="icon" type="image/png" sizes="96x96" />
+    <link href="https://luyengo/" rel="alternate" hrefLang="en" />
+    <meta property="fb:app_id" content="545353762151265" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://luyengo/" />
+    <meta property="og:site_name" content="keybr.com - Typing lessons" />
+    <meta property="og:title" content="keybr.com - Typing lessons" />
+    <meta property="og:description"
+        content="Teaching the world to type at the speed of thought! Typing lessons that work." />
+    <meta property="og:image" content="https://luyengo/cover.png" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:site" content="@keybrcom" />
+    <meta name="twitter:creator" content="@keybrcom" />
+    <meta name="description" content="Typing practice lessons to improve your speed and accuracy." />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap"
+        rel="stylesheet">
+    <link href="/luyengo/assets/0ea40a1d7aca5dae.css?v=3" rel="stylesheet" />
+    <script id="page-data">
+
+        
+        var __PAGE_DATA__ = {
+            "base": "https://luyengo/",
+            "locale": "en",
+            "user": null,
+            "publicUser": {
+                "id": null,
+                "name": "Significant Bat",
+                "imageUrl": null
+            },
+            "settings": null
+        };
+        try {
+            const savedSettings = localStorage.getItem('__MOCK_SETTINGS__');
+            if (savedSettings) {
+                __PAGE_DATA__.settings = JSON.parse(savedSettings);
+            }
+        } catch (e) { }
+    </script>
+    <script>
+        // Supabase Auth Session Loader
+        // Automatically injects logged-in Supabase Auth user credentials into Keybr's state machine on boot
+        (function () {
+            const savedSession = localStorage.getItem('__SUPABASE_SESSION__');
+            if (savedSession) {
+                try {
+                    const session = JSON.parse(savedSession);
+                    const user = session.user;
+                    if (user) {
+                        const cachedName = localStorage.getItem('__SUPABASE_DISPLAY_NAME__') || user.user_metadata.name || user.email.split('@')[0];
+                        const cachedAvatar = localStorage.getItem('__SUPABASE_AVATAR__') || null;
+                        window.__PAGE_DATA__.user = {
+                            id: user.id,
+                            email: user.email,
+                            name: cachedName,
+                            imageUrl: cachedAvatar,
+                            premium: true,
+                            anonymized: false
+                        };
+                        window.__PAGE_DATA__.publicUser = {
+                            id: user.id,
+                            name: cachedName,
+                            imageUrl: cachedAvatar
+                        };
+
+                        // Fetch real-time display_name and avatar from profiles table in the background
+                        setTimeout(async () => {
+                            if (window.__SUPABASE_CONFIG__) {
+                                try {
+                                    const c = window.__SUPABASE_CONFIG__;
+                                    const response = await fetch(`${c.url}/rest/v1/profiles?id=eq.${user.id}&select=display_name,avatar`, {
+                                        method: 'GET',
+                                        headers: {
+                                            'apikey': c.anonKey,
+                                            'Authorization': `Bearer ${session.access_token}`
+                                        }
+                                    });
+                                    if (response.ok) {
+                                        const rows = await response.json();
+                                        if (rows && rows.length > 0) {
+                                            const newName = rows[0].display_name || cachedName;
+                                            const newAvatar = rows[0].avatar || null;
+                                            let changed = false;
+                                            if (newName !== cachedName) {
+                                                localStorage.setItem('__SUPABASE_DISPLAY_NAME__', newName);
+                                                changed = true;
+                                            }
+                                            if (newAvatar !== cachedAvatar) {
+                                                if (newAvatar) {
+                                                    localStorage.setItem('__SUPABASE_AVATAR__', newAvatar);
+                                                } else {
+                                                    localStorage.removeItem('__SUPABASE_AVATAR__');
+                                                }
+                                                changed = true;
+                                            }
+                                            if (changed) {
+                                                window.__PAGE_DATA__.user.name = newName;
+                                                window.__PAGE_DATA__.user.imageUrl = newAvatar;
+                                                window.__PAGE_DATA__.publicUser.name = newName;
+                                                window.__PAGE_DATA__.publicUser.imageUrl = newAvatar;
+                                                console.log("[Supabase Profiles] Profile details updated - reloading...");
+                                                window.location.reload();
+                                            }
+                                        }
+                                    }
+                                } catch (e) {
+                                    console.error("[Supabase Profiles] Error fetching display_name and avatar:", e);
+                                }
+                            }
+                        }, 50);
+                    }
+                } catch (e) {
+                    console.error("Failed to parse Supabase Auth session:", e);
+                }
+            }
+        })();
+    </script>
+    <script>
+        // Global HTTP Interceptor for Offline / Local Static Mirroring
+        // This prevents 404/405 errors when keybr attempts to contact its own backend endpoints.
+        (function () {
+            function getAccountData() {
+                const savedSession = localStorage.getItem('__SUPABASE_SESSION__');
+                if (savedSession) {
+                    try {
+                        const session = JSON.parse(savedSession);
+                        const user = session.user;
+                        if (user) {
+                            const name = localStorage.getItem('__SUPABASE_DISPLAY_NAME__') || user.user_metadata.name || user.email.split('@')[0];
+                            const avatar = localStorage.getItem('__SUPABASE_AVATAR__') || null;
+                            const userData = {
+                                id: user.id,
+                                email: user.email,
+                                name: name,
+                                imageUrl: avatar,
+                                premium: true,
+                                anonymized: false
+                            };
+                            const publicUserData = {
+                                id: user.id,
+                                name: name,
+                                imageUrl: avatar
+                            };
+                            return JSON.stringify({ user: userData, publicUser: publicUserData });
+                        }
+                    } catch (e) { }
+                }
+                return '{"user":null,"publicUser":{"id":null,"name":"Significant Bat","imageUrl":null}}';
+            }
+
+            async function getSupabaseHighscores() {
+                if (window.__SUPABASE_CONFIG__ && window.__SUPABASE_CONFIG__.url && window.__SUPABASE_CONFIG__.anonKey) {
+                    try {
+                        const c = window.__SUPABASE_CONFIG__;
+                        const response = await fetch(`${c.url}/rest/v1/${c.table}?select=name,l,speed,score,created_at,user_id&order=score.desc&limit=50`, {
+                            method: 'GET',
+                            headers: {
+                                'apikey': c.anonKey,
+                                'Authorization': `Bearer ${c.anonKey}`
+                            }
+                        });
+                        if (response.ok) {
+                            const rows = await response.json();
+
+                            // Collect all unique non-null user_ids from high scores
+                            const userIds = [...new Set(rows.map(r => r.user_id).filter(Boolean))];
+
+                            // Fetch profiles for these users to get their display_name and avatar
+                            const profilesMap = {};
+                            if (userIds.length > 0) {
+                                try {
+                                    // Construct filter e.g., id=in.(id1,id2)
+                                    const idsFilter = `id=in.(${userIds.join(',')})`;
+                                    const profResponse = await fetch(`${c.url}/rest/v1/profiles?${idsFilter}&select=id,display_name,avatar`, {
+                                        method: 'GET',
+                                        headers: {
+                                            'apikey': c.anonKey,
+                                            'Authorization': `Bearer ${c.anonKey}`
+                                        }
+                                    });
+                                    if (profResponse.ok) {
+                                        const profRows = await profResponse.json();
+                                        profRows.forEach(p => {
+                                            profilesMap[p.id] = p;
+                                        });
+                                    }
+                                } catch (pErr) {
+                                    console.error("Failed to fetch profiles for high scores:", pErr);
+                                }
+                            }
+
+                            const mapped = rows.map(r => {
+                                const userId = r.user_id || null;
+                                const profile = userId ? profilesMap[userId] : null;
+                                const displayName = (profile && profile.display_name) || r.name || "Significant Bat";
+                                const avatarUrl = (profile && profile.avatar) || null;
+                                return {
+                                    user: { id: userId, name: displayName, imageUrl: avatarUrl },
+                                    layout: r.l || "us",
+                                    speed: (r.speed || 0) * 5,
+                                    score: r.score || 0,
+                                    date: r.created_at || null
+                                };
+                            });
+                            return JSON.stringify(mapped);
+                        }
+                    } catch (err) {
+                        console.error("Failed to fetch high scores from Supabase:", err);
+                    }
+                }
+                return '[]';
+            }
+
+            async function getSupabasePublicProfile(profileUserId) {
+                if (window.__SUPABASE_CONFIG__ && window.__SUPABASE_CONFIG__.url && window.__SUPABASE_CONFIG__.anonKey) {
+                    try {
+                        const c = window.__SUPABASE_CONFIG__;
+                        const response = await fetch(`${c.url}/rest/v1/profiles?id=eq.${profileUserId}&select=display_name,avatar`, {
+                            method: 'GET',
+                            headers: {
+                                'apikey': c.anonKey,
+                                'Authorization': `Bearer ${c.anonKey}`
+                            }
+                        });
+                        if (response.ok) {
+                            const rows = await response.json();
+                            if (rows && rows.length > 0) {
+                                return JSON.stringify({
+                                    id: profileUserId,
+                                    name: rows[0].display_name || "Significant Bat",
+                                    imageUrl: rows[0].avatar || null
+                                });
+                            }
+                        }
+                    } catch (err) {
+                        console.error("Failed to fetch profile from Supabase:", err);
+                    }
+                }
+                return JSON.stringify({ id: profileUserId, name: "Significant Bat", imageUrl: null });
+            }
+
+            const mocks = {
+                '/_/sync/data': '',
+                '/auth/login/register-email': '{"status":"ok"}',
+                '/auth/logout': '{"status":"ok"}'
+            };
+
+            function fixUrl(url) {
+                if (!url) return url;
+                let urlStr = String(url);
+                if (urlStr.startsWith('assets/')) {
+                    return '/luyengo/' + urlStr;
+                }
+                if (urlStr.startsWith('/assets/')) {
+                    return '/www.keybr.com' + urlStr;
+                }
+                const originPattern = /^(https?:\/\/[^\/]+)\/assets\//;
+                if (originPattern.test(urlStr)) {
+                    return urlStr.replace(originPattern, '$1/luyengo/assets/');
+                }
+                return url;
+            }
+
+            const originalFetch = window.fetch;
+            window.fetch = async function (input, init) {
+                let fixedInput = input;
+                let urlStr = '';
+                if (typeof input === 'string') {
+                    fixedInput = fixUrl(input);
+                    urlStr = fixedInput;
+                } else if (input && typeof input === 'object' && input.url) {
+                    const fixedUrl = fixUrl(input.url);
+                    urlStr = fixedUrl;
+                    try {
+                        fixedInput = new Request(fixedUrl, input);
+                    } catch (e) {
+                        fixedInput = { ...input, url: fixedUrl };
+                    }
+                } else {
+                    urlStr = String(input);
+                }
+                // console.log("[Mock Fetch Request]:", urlStr);
+
+                // Never intercept Supabase auth or external OAuth URLs — let them pass through as real requests
+                if (urlStr.includes('/auth/v1/') || urlStr.includes('accounts.google.com') || urlStr.includes('login.microsoftonline.com')) {
+                    return originalFetch.call(this, fixedInput, init);
+                }
+
+                if (urlStr.includes('.mp3')) {
+                    // console.log("[Mock Fetch Intercepted .mp3]:", urlStr);
+                    return new Response(new Blob([], { type: 'audio/mpeg' }), {
+                        status: 200,
+                        headers: { 'Content-Type': 'audio/mpeg' }
+                    });
+                }
+
+                if (urlStr.includes('/_/sync/settings')) {
+                    // console.log("[Mock Fetch Intercepted settings]:", urlStr);
+                    let bodyText = null;
+                    if (init && init.body) {
+                        try {
+                            bodyText = typeof init.body === 'string' ? init.body : await new Response(init.body).text();
+                        } catch (e) {
+                            console.error("Failed to extract body in fetch:", e);
+                        }
+                    } else if (input && typeof input === 'object' && input.body) {
+                        try {
+                            bodyText = await input.clone().text();
+                        } catch (e) { }
+                    }
+
+                    if (bodyText && bodyText !== "[object Blob]") {
+                        localStorage.setItem('__MOCK_SETTINGS__', bodyText);
+                        if (window.__PAGE_DATA__) {
+                            try {
+                                window.__PAGE_DATA__.settings = JSON.parse(bodyText);
+                            } catch (e) { }
+                        }
+                    }
+
+                    const saved = localStorage.getItem('__MOCK_SETTINGS__') || '{}';
+                    return new Response(saved, {
+                        status: 200,
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+                }
+
+                if (urlStr.includes('/_/high-scores')) {
+                    const data = await getSupabaseHighscores();
+                    return new Response(data, {
+                        status: 200,
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+                }
+                if (urlStr.includes('/_/account')) {
+                    const data = getAccountData();
+                    return new Response(data, {
+                        status: 200,
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+                }
+                if (urlStr.includes('/_/profile/')) {
+                    const match = urlStr.match(/\/_\/profile\/([^\/\?]+)/);
+                    if (match) {
+                        const profileUserId = decodeURIComponent(match[1]);
+                        const data = await getSupabasePublicProfile(profileUserId);
+                        return new Response(data, {
+                            status: 200,
+                            headers: { 'Content-Type': 'application/json' }
+                        });
+                    }
+                }
+                if (urlStr.includes('/auth/logout')) {
+                    localStorage.removeItem('__SUPABASE_SESSION__');
+                    setTimeout(() => window.location.reload(), 100);
+                    return new Response(JSON.stringify({ status: "ok" }), {
+                        status: 200,
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+                }
+                for (const [route, responseText] of Object.entries(mocks)) {
+                    if (urlStr.includes(route)) {
+                        return new Response(responseText, {
+                            status: 200,
+                            headers: { 'Content-Type': 'application/json' }
+                        });
+                    }
+                }
+                if (urlStr.includes('.stats') || (urlStr.includes('/_/sync/data') && this._method === 'GET')) {
+                    // console.log("[Mock Fetch Intercepted .stats/sync-data GET]:", urlStr);
+                    return new Response(new Blob([], { type: 'application/octet-stream' }), {
+                        status: 200,
+                        headers: { 'Content-Type': 'application/octet-stream' }
+                    });
+                }
+                if (urlStr.includes('.data')) {
+                    try {
+                        const response = await originalFetch.call(this, fixedInput, init);
+                        if (!response.ok && response.status === 404) {
+                            const fallbackUrl = fixUrl('assets/fee78dd316db2714.data');
+                            // console.warn("[Mock Fetch Request] 404 for `.data` file, falling back to local English data:", fallbackUrl);
+                            return await originalFetch.call(this, fallbackUrl, init);
+                        }
+                        return response;
+                    } catch (e) {
+                        const fallbackUrl = fixUrl('assets/fee78dd316db2714.data');
+                        // console.error("[Mock Fetch Request] Error loading `.data` file, falling back to local English data:", fallbackUrl, e);
+                        return await originalFetch.call(this, fallbackUrl, init);
+                    }
+                }
+                return originalFetch.call(this, fixedInput, init);
+            };
+
+            const XHR = XMLHttpRequest.prototype;
+            const originalOpen = XHR.open;
+            const originalSend = XHR.send;
+            const originalGetAllResponseHeaders = XHR.getAllResponseHeaders;
+            const originalGetResponseHeader = XHR.getResponseHeader;
+
+            XHR.open = function (method, url) {
+                const fixedUrl = fixUrl(url);
+                this._url = fixedUrl;
+                this._method = method;
+                // console.log("[Mock XHR Open]:", method, url, "->", fixedUrl);
+
+                const args = Array.from(arguments);
+                args[1] = fixedUrl;
+                return originalOpen.apply(this, args);
+            };
+
+            XHR.getAllResponseHeaders = function () {
+                if (this._mockHeaders) {
+                    return this._mockHeaders;
+                }
+                return originalGetAllResponseHeaders.apply(this, arguments);
+            };
+
+            XHR.getResponseHeader = function (name) {
+                if (this._mockHeaders) {
+                    const match = this._mockHeaders.match(new RegExp("^" + name + ":\\s*(.*)$", "im"));
+                    return match ? match[1].trim() : null;
+                }
+                return originalGetResponseHeader.apply(this, arguments);
+            };
+
+            function setMockXHRResponse(xhr, text) {
+                let responseValue;
+                let contentType = 'application/json';
+
+                // Safely cast _url to string and dynamically determine the correct Content-Type
+                if (xhr._url) {
+                    const urlStr = String(xhr._url);
+                    if (urlStr.includes('/_/sync/data') || urlStr.endsWith('.data') || urlStr.endsWith('.stats')) {
+                        contentType = 'application/octet-stream';
+                    } else if (urlStr.endsWith('.mp3')) {
+                        contentType = 'audio/mpeg';
+                    }
+                }
+
+                if (text instanceof Blob) {
+                    responseValue = text;
+                } else if (text instanceof ArrayBuffer) {
+                    responseValue = xhr.responseType === 'blob' ? new Blob([text], { type: contentType }) : text;
+                } else if (xhr.responseType === 'blob') {
+                    responseValue = new Blob([text], { type: contentType });
+                } else if (xhr.responseType === 'json') {
+                    try {
+                        responseValue = JSON.parse(text);
+                    } catch (e) {
+                        responseValue = null;
+                    }
+                } else {
+                    responseValue = text;
+                }
+
+                // Simulate XHR state transitions asynchronously to satisfy the REST library's state-machine:
+                // Phase 1: HEADERS_RECEIVED (2)
+                setTimeout(() => {
+                    Object.defineProperty(xhr, 'status', { writable: true, configurable: true, value: 200 });
+                    Object.defineProperty(xhr, 'statusText', { writable: true, configurable: true, value: 'OK' });
+                    Object.defineProperty(xhr, 'readyState', { writable: true, configurable: true, value: 2 });
+
+                    // Set mocked headers on the instance for prototype overrides
+                    xhr._mockHeaders = "content-type: " + contentType + "";
+
+                    if (typeof xhr.onreadystatechange === 'function') {
+                        xhr.onreadystatechange();
+                    }
+
+                    // Phase 2: LOADING (3)
+                    setTimeout(() => {
+                        Object.defineProperty(xhr, 'readyState', { writable: true, configurable: true, value: 3 });
+                        if (typeof xhr.onreadystatechange === 'function') {
+                            xhr.onreadystatechange();
+                        }
+
+                        // Phase 3: DONE (4)
+                        setTimeout(() => {
+                            let responseTextVal = text;
+                            if (text instanceof Blob || text instanceof ArrayBuffer) {
+                                responseTextVal = "";
+                            }
+                            Object.defineProperty(xhr, 'readyState', { writable: true, configurable: true, value: 4 });
+                            Object.defineProperty(xhr, 'responseText', { writable: true, configurable: true, value: responseTextVal });
+                            Object.defineProperty(xhr, 'response', { writable: true, configurable: true, value: responseValue });
+
+                            if (typeof xhr.onreadystatechange === 'function') {
+                                xhr.onreadystatechange();
+                            }
+                            if (typeof xhr.onload === 'function') {
+                                xhr.onload();
+                            }
+                        }, 1);
+                    }, 1);
+                }, 1);
+            }
+
+            XHR.send = function (body) {
+                const urlStr = String(this._url || '');
+                // console.log("[Mock XHR Send]:", this._method, urlStr);
+
+                if (urlStr.includes('.mp3')) {
+                    // console.log("[Mock XHR Intercepted .mp3]:", urlStr);
+                    setMockXHRResponse(this, new Blob([], { type: 'audio/mpeg' }));
+                    return;
+                }
+
+                if (urlStr.includes('.stats') || (urlStr.includes('/_/sync/data') && this._method === 'GET')) {
+                    // console.log("[Mock XHR Intercepted .stats/sync-data GET]:", urlStr);
+                    setMockXHRResponse(this, new Blob([], { type: 'application/octet-stream' }));
+                    return;
+                }
+
+                if (urlStr.includes('.data')) {
+                    // console.log("[Mock XHR Intercepted .data]:", urlStr);
+                    fetch(urlStr)
+                        .then(response => {
+                            if (response.ok) {
+                                return response.blob();
+                            }
+                            const fallbackUrl = fixUrl('assets/fee78dd316db2714.data');
+                            // console.warn("[Mock XHR Intercepted .data] Failed to load, falling back to local English data:", fallbackUrl);
+                            return fetch(fallbackUrl).then(res => res.blob());
+                        })
+                        .then(blob => {
+                            setMockXHRResponse(this, blob);
+                        })
+                        .catch(err => {
+                            const fallbackUrl = fixUrl('assets/fee78dd316db2714.data');
+                            // console.error("[Mock XHR Intercepted .data] Fetch error, using secondary fallback:", err);
+                            fetch(fallbackUrl)
+                                .then(res => res.blob())
+                                .then(blob => setMockXHRResponse(this, blob));
+                        });
+                    return;
+                }
+
+                if (urlStr.includes('/_/sync/settings')) {
+                    // console.log("[Mock XHR Intercepted settings]:", urlStr, "body type:", typeof body);
+                    if (body) {
+                        if (body instanceof Blob) {
+                            body.text().then(text => {
+                                // console.log("[Mock XHR Read Settings Blob]:", text);
+                                if (text && text !== "[object Blob]") {
+                                    localStorage.setItem('__MOCK_SETTINGS__', text);
+                                    if (window.__PAGE_DATA__) {
+                                        try {
+                                            window.__PAGE_DATA__.settings = JSON.parse(text);
+                                        } catch (e) { }
+                                    }
+                                }
+                            }).catch(err => {
+                                console.error("Error reading settings blob:", err);
+                            });
+                        } else if (typeof body === 'string') {
+                            // console.log("[Mock XHR Read Settings String]:", body);
+                            if (body && body !== "[object Blob]") {
+                                localStorage.setItem('__MOCK_SETTINGS__', body);
+                                if (window.__PAGE_DATA__) {
+                                    try {
+                                        window.__PAGE_DATA__.settings = JSON.parse(body);
+                                    } catch (e) { }
+                                }
+                            }
+                        }
+                    }
+                    const saved = localStorage.getItem('__MOCK_SETTINGS__') || '{}';
+                    setMockXHRResponse(this, saved);
+                    return;
+                }
+
+                if (urlStr.includes('/_/high-scores')) {
+                    getSupabaseHighscores().then(responseText => {
+                        setMockXHRResponse(this, responseText);
+                    });
+                    return;
+                }
+                if (urlStr.includes('/_/account')) {
+                    const responseText = getAccountData();
+                    setMockXHRResponse(this, responseText);
+                    return;
+                }
+                if (urlStr.includes('/_/profile/')) {
+                    const match = urlStr.match(/\/_\/profile\/([^\/\?]+)/);
+                    if (match) {
+                        const profileUserId = decodeURIComponent(match[1]);
+                        getSupabasePublicProfile(profileUserId).then(data => {
+                            setMockXHRResponse(this, data);
+                        });
+                        return;
+                    }
+                }
+                if (urlStr.includes('/auth/logout')) {
+                    localStorage.removeItem('__SUPABASE_SESSION__');
+                    setMockXHRResponse(this, '{"status":"ok"}');
+                    setTimeout(() => window.location.reload(), 100);
+                    return;
+                }
+                for (const [route, responseText] of Object.entries(mocks)) {
+                    if (urlStr.includes(route)) {
+                        setMockXHRResponse(this, responseText);
+                        return;
+                    }
+                }
+                return originalSend.apply(this, arguments);
+            };
+        })();
+    </script>
+    <script>
+        // Supabase Configuration
+        // Paste your own Supabase Project URL, Anon Public Key and Table name here
+        window.__SUPABASE_CONFIG__ = {
+            url: "https://ktqdzlhvdkerjajffgfi.supabase.co",
+            anonKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt0cWR6bGh2ZGtlcmphamZmZ2ZpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc2OTgxNTMsImV4cCI6MjA4MzI3NDE1M30.6xz0SVuj6x72VcLZyJpVtNMMWSmyOEtGhmKiVMu46xI",
+            table: "keybr_history"
+        };
+    </script>
+    <script src="/luyengo/assets/app.js?v=6" defer=""></script>
+    <script src="/luyengo/assets/vendor.js?v=6" defer=""></script>
+    <script src="/luyengo/assets/runtime.js?v=6" defer=""></script>
+    <!--
+    <script>
+        window.dataLayer = window.dataLayer || [];
+
+        function gtag() {
+            dataLayer.push(arguments)
+        };
+        gtag("js", new Date());
+        gtag("config", "G-N8Y718E8TF");
+    </script>
+    <script src="https://www.googletagmanager.com/gtag/js?id=G-N8Y718E8TF" defer=""></script>
+    <script>
+        var freestar = freestar || {};
+        freestar.hitTime = Date.now();
+        freestar.queue = freestar.queue || [];
+        freestar.config = freestar.config || {};
+        freestar.config.enabled_slots = ["keybr_728x90_970x90_ATF", "keybr_160x600_Left"];
+    </script>
+    <script src="assets/8f4f91358dbb8835.js?v=5" defer=""></script>
+    -->
+</head>
+
+<body>
+    <div id="kqbwpAfch2">
+        <div class="pMzF0jWFcI">
+            <div class="zQe53HcMPz">
+                <div class="UMHGirecjL JFld_Dc9K0" style="inline-size:100%"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- OAuth Callback Handler: processes the #access_token= redirect from Google/Supabase -->
+    <div id="google-auth-toast"
+        style="position:fixed;bottom:24px;right:24px;z-index:99998;background:#323232;color:#fff;padding:12px 20px;border-radius:10px;font-size:13px;font-family:'Roboto',sans-serif;box-shadow:0 4px 16px rgba(0,0,0,0.3);opacity:0;transform:translateY(8px);transition:opacity 0.3s,transform 0.3s;pointer-events:none;">
+    </div>
+
+    <script>
+        (function () {
+            const cfg = window.__SUPABASE_CONFIG__;
+            if (!cfg || !cfg.url || !cfg.anonKey) return;
+
+            const SUPABASE_URL = cfg.url;
+            const SUPABASE_ANON_KEY = cfg.anonKey;
+
+            function showToast(msg, duration = 3000) {
+                const t = document.getElementById('google-auth-toast');
+                if (!t) return;
+                t.textContent = msg;
+                t.style.opacity = '1';
+                t.style.transform = 'translateY(0)';
+                setTimeout(() => { t.style.opacity = '0'; t.style.transform = 'translateY(8px)'; }, duration);
+            }
+
+            // Handle OAuth callback: Supabase redirects back with #access_token=...&refresh_token=...
+            async function handleOAuthCallback() {
+                const hash = window.location.hash;
+                if (!hash || !hash.includes('access_token=')) return false;
+
+                const params = new URLSearchParams(hash.replace(/^#/, ''));
+                const access_token = params.get('access_token');
+                const refresh_token = params.get('refresh_token');
+                const expires_in = params.get('expires_in');
+                const token_type = params.get('token_type') || 'bearer';
+
+                if (!access_token) return false;
+
+                showToast('Đang xác thực...', 5000);
+
+                try {
+                    const res = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
+                        headers: {
+                            'apikey': SUPABASE_ANON_KEY,
+                            'Authorization': `Bearer ${access_token}`
+                        }
+                    });
+
+                    if (!res.ok) throw new Error('Failed to fetch user: ' + res.status);
+                    const user = await res.json();
+
+                    const session = {
+                        access_token,
+                        refresh_token,
+                        expires_in: parseInt(expires_in) || 3600,
+                        token_type,
+                        user
+                    };
+                    localStorage.setItem('__SUPABASE_SESSION__', JSON.stringify(session));
+
+                    // Clean hash from URL
+                    window.history.replaceState(null, '', window.location.pathname + window.location.search);
+                    showToast(`Chào mừng, ${user.user_metadata?.name || user.email}! 🎉`, 3000);
+                    setTimeout(() => window.location.reload(), 1200);
+                    return true;
+                } catch (err) {
+                    console.error('[Google Auth] Callback error:', err);
+                    showToast('Đăng nhập thất bại. Thử lại sau.');
+                    window.history.replaceState(null, '', window.location.pathname + window.location.search);
+                    return false;
+                }
+            }
+
+            // Run on DOM ready
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', () => handleOAuthCallback());
+            } else {
+                handleOAuthCallback();
+            }
+        })();
+    </script>
+</body>
+
+</html>
