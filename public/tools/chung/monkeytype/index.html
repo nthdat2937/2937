@@ -3,6 +3,17 @@
 
 <head>
     <script>
+    (function() {
+        var prefixRegex = /^(\/monkeytype|\/tools\/chung\/monkeytype)/;
+        var origPath = window.location.pathname;
+        if (prefixRegex.test(origPath)) {
+            var cleanPath = origPath.replace(prefixRegex, '') || '/';
+            if (!cleanPath.startsWith('/')) cleanPath = '/' + cleanPath;
+            window.history.replaceState(null, '', cleanPath + window.location.search + window.location.hash);
+        }
+    })();
+    </script>
+    <script>
     window.onerror = function(message, source, lineno, colno, error) {
         var el = document.createElement("div");
         el.style.position = "fixed";
