@@ -1191,16 +1191,28 @@ io.on('connection', (socket) => {
     });
 });
 
-// Phục vụ Web tĩnh Monkeytype ở cả 2 đường dẫn (Không dùng redirect để tránh lặp)
+// Phục vụ Web tĩnh Monkeytype
 const monkeytypePath = path.join(__dirname, '../monkeytype');
+
+// Tự động thêm / ở cuối nếu thiếu (tránh lỗi relative path /js/, /languages/)
+app.use((req, res, next) => {
+    if (req.path === '/monkeytype' || req.path === '/tools/chung/monkeytype') {
+        return res.redirect(301, req.path + '/');
+    }
+    next();
+});
 
 app.use('/monkeytype', express.static(monkeytypePath));
 app.use('/tools/chung/monkeytype', express.static(monkeytypePath));
 
-app.use('/monkeytype', (req, res) => {
-    res.sendFile(path.join(monkeytypePath, 'index.html'));
-});
-app.use('/tools/chung/monkeytype', (req, res) => {
+// Fallback các thư mục tài nguyên tĩnh nếu trình duyệt gọi trực tiếp từ root /
+app.use('/js', express.static(path.join(monkeytypePath, 'js')));
+app.use('/css', express.static(path.join(monkeytypePath, 'css')));
+app.use('/languages', express.static(path.join(monkeytypePath, 'languages')));
+app.use('/layouts', express.static(path.join(monkeytypePath, 'layouts')));
+app.use('/webfonts', express.static(path.join(monkeytypePath, 'webfonts')));
+
+app.get(['/monkeytype/*', '/tools/chung/monkeytype/*'], (req, res) => {
     res.sendFile(path.join(monkeytypePath, 'index.html'));
 });
 
