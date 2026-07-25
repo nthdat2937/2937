@@ -179,7 +179,7 @@
                         </div>
                     </div>
 
-                    <div style="display: flex; gap: 8px;">
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
                         <button id="btn-start-game" class="btn-start-game hidden" onclick="startDrawGame()">
                             <span class="material-symbols-outlined" style="font-size:20px;">brush</span>
                             Vẽ & Đoán
@@ -199,6 +199,10 @@
                         <button id="btn-open-uno" class="btn-start-game" onclick="openUnoGame()">
                             <span class="material-symbols-outlined" style="font-size:20px;">style</span>
                             Uno
+                        </button>
+                        <button id="btn-open-monkeytype" class="btn-start-game" onclick="window.open('/monkeytype/', '_blank')" title="Mở Monkeytype Luyện Gõ Phím">
+                            <span class="material-symbols-outlined" style="font-size:20px;">keyboard</span>
+                            Monkeytype
                         </button>
                     </div>
                 </div>
