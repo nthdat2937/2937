@@ -1191,16 +1191,16 @@ io.on('connection', (socket) => {
     });
 });
 
-// Phục vụ Web tĩnh Monkeytype ở cả 2 đường dẫn
+// Phục vụ Web tĩnh Monkeytype ở cả 2 đường dẫn (Không dùng redirect để tránh lặp)
 const monkeytypePath = path.join(__dirname, '../monkeytype');
 
-app.get('/monkeytype', (req, res) => res.redirect('/monkeytype/'));
 app.use('/monkeytype', express.static(monkeytypePath));
-
-app.get('/tools/chung/monkeytype', (req, res) => res.redirect('/tools/chung/monkeytype/'));
 app.use('/tools/chung/monkeytype', express.static(monkeytypePath));
 
-app.get(['/monkeytype/*', '/tools/chung/monkeytype/*'], (req, res) => {
+app.use('/monkeytype', (req, res) => {
+    res.sendFile(path.join(monkeytypePath, 'index.html'));
+});
+app.use('/tools/chung/monkeytype', (req, res) => {
     res.sendFile(path.join(monkeytypePath, 'index.html'));
 });
 
