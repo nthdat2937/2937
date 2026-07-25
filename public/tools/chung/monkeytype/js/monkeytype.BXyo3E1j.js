@@ -17179,7 +17179,7 @@ function kk() {
     })()
 }
 Si([`click`]);
-var Ak = w(`<footer><div class="-m-2 flex justify-between gap-8 transition-opacity"><div class="grid grid-cols-1 justify-items-start xs:grid-cols-2 sm:grid-cols-4 lg:flex"></div><div class="flex flex-col items-end text-right lg:flex-row">`);
+var Ak = w(``);
 
 function jk() {
     return (() => {
