@@ -39698,6 +39698,7 @@ function Eq() {
 function Dq() {
     return O(wq, {})
 }
+var jk = () => null;
 var Oq = {
     footer: () => O(jk, {}),
     aboutpage: () => O(sI, {}),
