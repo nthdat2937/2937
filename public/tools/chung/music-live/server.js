@@ -1191,10 +1191,17 @@ io.on('connection', (socket) => {
     });
 });
 
-// Phục vụ Web tĩnh Monkeytype tại đường dẫn /monkeytype
-app.use('/monkeytype', express.static(path.join(__dirname, '../monkeytype')));
-app.get('/monkeytype/*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../monkeytype/index.html'));
+// Phục vụ Web tĩnh Monkeytype ở cả 2 đường dẫn
+const monkeytypePath = path.join(__dirname, '../monkeytype');
+
+app.get('/monkeytype', (req, res) => res.redirect('/monkeytype/'));
+app.use('/monkeytype', express.static(monkeytypePath));
+
+app.get('/tools/chung/monkeytype', (req, res) => res.redirect('/tools/chung/monkeytype/'));
+app.use('/tools/chung/monkeytype', express.static(monkeytypePath));
+
+app.get(['/monkeytype/*', '/tools/chung/monkeytype/*'], (req, res) => {
+    res.sendFile(path.join(monkeytypePath, 'index.html'));
 });
 
 const PORT = process.env.PORT || 3000;
