@@ -1,0 +1,1204 @@
+const express = require('express');
+const http = require('http');
+const { Server } = require('socket.io');
+const https = require('https');
+const ytSearch = require('yt-search');
+const { createClient } = require('@supabase/supabase-js');
+const path = require('path');
+
+const SUPABASE_URL = 'https://wnioetdrphkdylkoybsu.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_p0VSduH3epzQVUdvAf2kPQ_aoWk_l1T';
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+async function logMusicHistory(videoId, title, addedBy) {
+    try {
+        const { error } = await supabase.from('music_history').insert([{
+            video_id: videoId,
+            title: title,
+            added_by: addedBy,
+            played_at: new Date().toISOString()
+        }]);
+        if (error) {
+            console.error('Supabase Error (music_history):', error.message);
+        } else {
+            console.log('Đã lưu lịch sử bài hát:', title);
+        }
+    } catch (err) {
+        console.error('Supabase Exception:', err.message);
+    }
+}
+
+const app = express();
+const server = http.createServer(app);
+const io = new Server(server);
+
+app.use(express.static('public'));
+
+let playlist = [];
+let currentVideoId = '';
+let currentVideoTitle = 'Chưa có bài hát nào';
+let pinnedMessage = null;
+let loopMode = false;
+let isPlayerIdle = true;
+let lastGlobalVideoEndedTime = 0;
+
+
+let connectedUsers = new Map();
+let drawGame = {
+    active: false, state: 'inactive', drawerId: null, drawerName: '',
+    word: '', scores: {}, timeLeft: 90, timer: null,
+    guessedPlayers: [], canvasHistory: []
+};
+
+let caroGame = {
+    board: Array(15).fill(null).map(() => Array(15).fill(null)),
+    playerX: null, playerO: null,
+    playerXName: '', playerOName: '',
+    turn: 'X', winner: null
+};
+
+let chessGame = {
+    playerW: null, playerB: null, playerWName: '', playerBName: '',
+    fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1', turn: 'w', winner: null
+};
+
+// --- XIANGQI STATE & RULES ---
+function initXiangqiBoard() {
+    const b = Array(10).fill(null).map(() => Array(9).fill(null));
+    b[0] = ['b_r', 'b_h', 'b_e', 'b_a', 'b_k', 'b_a', 'b_e', 'b_h', 'b_r'];
+    b[2][1] = 'b_c'; b[2][7] = 'b_c';
+    b[3][0] = 'b_p'; b[3][2] = 'b_p'; b[3][4] = 'b_p'; b[3][6] = 'b_p'; b[3][8] = 'b_p';
+    b[9] = ['r_r', 'r_h', 'r_e', 'r_a', 'r_k', 'r_a', 'r_e', 'r_h', 'r_r'];
+    b[7][1] = 'r_c'; b[7][7] = 'r_c';
+    b[6][0] = 'r_p'; b[6][2] = 'r_p'; b[6][4] = 'r_p'; b[6][6] = 'r_p'; b[6][8] = 'r_p';
+    return b;
+}
+
+function checkFlyingGeneral(board) {
+    let r_k, b_k;
+    for (let r = 0; r < 10; r++) {
+        for (let c = 0; c < 9; c++) {
+            if (board[r][c] === 'r_k') r_k = { r, c };
+            if (board[r][c] === 'b_k') b_k = { r, c };
+        }
+    }
+    if (r_k && b_k && r_k.c === b_k.c) {
+        let count = 0;
+        for (let r = b_k.r + 1; r < r_k.r; r++) {
+            if (board[r][r_k.c]) count++;
+        }
+        if (count === 0) return true; // invalid state
+    }
+    return false;
+}
+
+function isValidXiangqiMove(board, piece, from, to) {
+    const isRed = piece.startsWith('r_');
+    const type = piece.split('_')[1];
+
+    const dr = to.r - from.r;
+    const dc = to.c - from.c;
+    const absDr = Math.abs(dr);
+    const absDc = Math.abs(dc);
+
+    if (dr === 0 && dc === 0) return false;
+
+    const targetPiece = board[to.r][to.c];
+    if (targetPiece && targetPiece.startsWith(isRed ? 'r_' : 'b_')) return false;
+
+    const countPiecesBetween = () => {
+        if (dr !== 0 && dc !== 0) return -1;
+        let count = 0;
+        if (dr === 0) {
+            const minC = Math.min(from.c, to.c) + 1;
+            const maxC = Math.max(from.c, to.c) - 1;
+            for (let c = minC; c <= maxC; c++) if (board[from.r][c]) count++;
+        } else {
+            const minR = Math.min(from.r, to.r) + 1;
+            const maxR = Math.max(from.r, to.r) - 1;
+            for (let r = minR; r <= maxR; r++) if (board[r][from.c]) count++;
+        }
+        return count;
+    };
+
+    const isRedPalace = (r, c) => r >= 7 && r <= 9 && c >= 3 && c <= 5;
+    const isBlackPalace = (r, c) => r >= 0 && r <= 2 && c >= 3 && c <= 5;
+
+    switch (type) {
+        case 'p':
+            if (isRed) {
+                if (from.r >= 5) return dr === -1 && dc === 0;
+                return (dr === -1 && dc === 0) || (dr === 0 && absDc === 1);
+            } else {
+                if (from.r <= 4) return dr === 1 && dc === 0;
+                return (dr === 1 && dc === 0) || (dr === 0 && absDc === 1);
+            }
+        case 'c':
+            const cBetween = countPiecesBetween();
+            if (cBetween === -1) return false;
+            return targetPiece ? cBetween === 1 : cBetween === 0;
+        case 'r':
+            return countPiecesBetween() === 0;
+        case 'h':
+            if (absDr === 2 && absDc === 1) return !board[from.r + (dr > 0 ? 1 : -1)][from.c];
+            if (absDr === 1 && absDc === 2) return !board[from.r][from.c + (dc > 0 ? 1 : -1)];
+            return false;
+        case 'e':
+            if (absDr !== 2 || absDc !== 2) return false;
+            if (isRed && to.r <= 4) return false;
+            if (!isRed && to.r >= 5) return false;
+            return !board[from.r + dr / 2][from.c + dc / 2];
+        case 'a':
+            if (absDr !== 1 || absDc !== 1) return false;
+            return isRed ? isRedPalace(to.r, to.c) : isBlackPalace(to.r, to.c);
+        case 'k':
+            if (absDr + absDc !== 1) return false;
+            return isRed ? isRedPalace(to.r, to.c) : isBlackPalace(to.r, to.c);
+    }
+    return false;
+}
+
+let xiangqiGame = {
+    playerR: null, playerB: null, playerRName: '', playerBName: '',
+    board: initXiangqiBoard(), turn: 'R', winner: null
+};
+
+// --- UNO STATE ---
+let unoGame = {
+    players: [], deck: [], discardPile: [], turnIndex: 0, direction: 1,
+    active: false, currentColor: '', winner: null
+};
+let unoHands = {}; // socket.id -> array of cards
+
+function initUnoDeck() {
+    let deck = [];
+    for (const color of ['red', 'green', 'blue', 'yellow']) {
+        deck.push({ color, value: '0' });
+        for (let i = 1; i <= 9; i++) { deck.push({ color, value: i.toString() }); deck.push({ color, value: i.toString() }); }
+        deck.push({ color, value: 'skip' }); deck.push({ color, value: 'skip' });
+        deck.push({ color, value: 'reverse' }); deck.push({ color, value: 'reverse' });
+        deck.push({ color, value: '+2' }); deck.push({ color, value: '+2' });
+    }
+    for (let i = 0; i < 4; i++) deck.push({ color: 'black', value: 'wild' });
+    return deck.sort(() => Math.random() - 0.5);
+}
+function nextUnoTurn() {
+    unoGame.turnIndex += unoGame.direction;
+    if (unoGame.turnIndex >= unoGame.players.length) unoGame.turnIndex = 0;
+    if (unoGame.turnIndex < 0) unoGame.turnIndex = unoGame.players.length - 1;
+}
+function drawCardsForPlayer(id, count) {
+    const p = unoGame.players.find(x => x.id === id);
+    if (!p) return;
+    for (let i = 0; i < count; i++) {
+        if (unoGame.deck.length === 0 && unoGame.discardPile.length > 1) {
+            const topCard = unoGame.discardPile.pop();
+            unoGame.deck = unoGame.discardPile.sort(() => Math.random() - 0.5);
+            unoGame.discardPile = [topCard];
+        }
+        if (unoGame.deck.length > 0) {
+            unoHands[id].push(unoGame.deck.shift());
+            p.handCount++;
+        }
+    }
+}
+function getPublicUnoState() {
+    return {
+        players: unoGame.players, turnIndex: unoGame.turnIndex, currentColor: unoGame.currentColor,
+        topDiscard: unoGame.discardPile.length ? unoGame.discardPile[unoGame.discardPile.length - 1] : null,
+        active: unoGame.active, winner: unoGame.winner, deckCount: unoGame.deck.length
+    };
+}
+
+function checkCaroWinner(row, col, player) {
+    const board = caroGame.board;
+    const dirs = [[0, 1], [1, 0], [1, 1], [1, -1]];
+    for (let [dr, dc] of dirs) {
+        let count = 1;
+        for (let i = 1; i <= 4; i++) {
+            const r = row + dr * i, c = col + dc * i;
+            if (r < 0 || r >= 15 || c < 0 || c >= 15 || board[r][c] !== player) break;
+            count++;
+        }
+        for (let i = 1; i <= 4; i++) {
+            const r = row - dr * i, c = col - dc * i;
+            if (r < 0 || r >= 15 || c < 0 || c >= 15 || board[r][c] !== player) break;
+            count++;
+        }
+        if (count >= 5) return true;
+    }
+    return false;
+}
+const DRAW_WORDS = [
+    'con mèo', 'con chó', 'ngôi nhà', 'cái cây', 'mặt trời', 'mặt trăng', 'con cá', 'bông hoa',
+    'xe đạp', 'ô tô', 'máy bay', 'con bướm', 'quả táo', 'cái bàn', 'cái ghế', 'con gà', 'con voi',
+    'con rắn', 'cầu vồng', 'ngôi sao', 'trái tim', 'con ong', 'pizza', 'kem', 'guitar', 'điện thoại',
+    'cái kéo', 'con nhện', 'người tuyết', 'tên lửa', 'cây dừa', 'quả dưa hấu', 'con khỉ', 'con thỏ',
+    'con rùa', 'cái ô', 'đồng hồ', 'cái nón', 'đôi giày', 'con mắt', 'bàn tay', 'ngọn núi',
+    'con sông', 'cái cầu', 'chiếc thuyền', 'xe buýt', 'xe lửa', 'robot', 'khủng long', 'siêu nhân',
+    'cái ly', 'cái chìa khóa', 'bóng đèn', 'cái quạt', 'cây bút', 'cuốn sách', 'cái bánh', 'con ếch',
+    'con cua', 'con sứa', 'cá heo', 'chim cánh cụt', 'con gấu', 'hoa hướng dương', 'cây nấm', 'quả chuối'
+];
+function getRandomWord() { return DRAW_WORDS[Math.floor(Math.random() * DRAW_WORDS.length)]; }
+function generateHint(word) {
+    return word.split(' ').map(w => w.split('').map(() => '_').join(' ')).join('   ');
+}
+function getDrawUserList() {
+    const users = [];
+    connectedUsers.forEach((u, id) => users.push({ id, name: u.name, nameColor: u.nameColor }));
+    return users;
+}
+function endDrawRound() {
+    if (drawGame.timer) { clearInterval(drawGame.timer); drawGame.timer = null; }
+    drawGame.state = 'waiting';
+    io.emit('drawRoundEnd', { word: drawGame.word, scores: drawGame.scores });
+    setTimeout(() => {
+        if (drawGame.active) io.emit('drawWaitingForDrawer', { users: getDrawUserList(), scores: drawGame.scores });
+    }, 3000);
+}
+
+// Mẹ mày tính ăn cắp pass của tao à?
+const ADMIN_PASSWORD = 'Dat-la.ai?123';
+
+function getYoutubeInfo(videoId) {
+    return new Promise((resolve) => {
+        https.get(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`, (res) => {
+            let data = '';
+            res.on('data', chunk => data += chunk);
+            res.on('end', () => {
+                try {
+                    const parsed = JSON.parse(data);
+                    resolve({ id: videoId, title: parsed.title, thumbnail: parsed.thumbnail_url || `https://img.youtube.com/vi/${videoId}/hqdefault.jpg` });
+                } catch {
+                    resolve({ id: videoId, title: 'Video ' + videoId, thumbnail: `https://img.youtube.com/vi/${videoId}/hqdefault.jpg` });
+                }
+            });
+        }).on('error', () => resolve({ id: videoId, title: 'Video ' + videoId, thumbnail: `https://img.youtube.com/vi/${videoId}/hqdefault.jpg` }));
+    });
+}
+
+const GROQ_API_KEY = process.env.GROQ_API_KEY || '';
+
+async function quickWebSearch(query) {
+    try {
+        const currentYear = new Date().getFullYear();
+        const lowerQuery = query.toLowerCase();
+
+        const needsYear = lowerQuery.includes('mới') || lowerQuery.includes('gần đây') || lowerQuery.includes('hiện tại');
+        const searchQuery = (!query.includes(currentYear.toString()) && needsYear) ? query + ' ' + currentYear : query;
+
+        const res = await fetch('https://html.duckduckgo.com/html/?q=' + encodeURIComponent(searchQuery), {
+            headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' }
+        });
+        const html = await res.text();
+        const regex = /<a class="result__snippet[^>]*>(.*?)<\/a>/gs;
+        let match;
+        let results = [];
+        let count = 0;
+        while ((match = regex.exec(html)) !== null && count < 4) {
+            results.push("- " + match[1].replace(/<[^>]+>/g, '').replace(/&quot;/g, '"').replace(/&amp;/g, '&').replace(/&gt;/g, '>').replace(/&lt;/g, '<'));
+            count++;
+        }
+        return results.join('\n');
+    } catch (e) {
+        return '';
+    }
+}
+
+async function callGroqAI(query, userName) {
+    try {
+
+        const webContext = await quickWebSearch(query);
+        const currentDate = new Date().toLocaleDateString('vi-VN');
+        const sysPrompt = `Bạn là trợ lý AI âm nhạc siêu việt. Hôm nay: ${currentDate}. Người hỏi: ${userName}.
+Nhiệm vụ: Trả lời ngắn gọn, thân thiện (dưới 100 từ).
+Luật lệ:
+1. Nếu yêu cầu gợi ý bài hát của ca sĩ/chủ đề: PHẢI liệt kê những bài hát HAY NHẤT, HOT NHẤT và NỔI TIẾNG NHẤT của họ.
+2. Tuyệt đối KHÔNG BỊA TÊN bài hát. Phải khớp đúng 100% tên bài hát với ca sĩ ngoài đời thực.
+3. Nếu là tin tức mới, dùng "Kết quả web". Nếu gợi ý nhạc, cứ tự tin dùng kiến thức nội bộ để chọn bài hay nhất, không bị phụ thuộc vào web nếu web trả về kết quả rác.
+
+Kết quả tìm kiếm web:
+${webContext}`;
+
+        const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${GROQ_API_KEY}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                model: 'llama-3.3-70b-versatile',
+                messages: [
+                    { role: 'system', content: sysPrompt },
+                    { role: 'user', content: query }
+                ],
+                max_tokens: 1024,
+                temperature: 0.7
+            })
+        });
+
+        const data = await response.json();
+        if (data.choices && data.choices.length > 0) {
+            let aiMsg = data.choices[0].message.content;
+            if (!aiMsg || aiMsg.trim() === '') {
+                aiMsg = '*(AI đã suy nghĩ quá lâu và quên mất câu trả lời)* 😅';
+            }
+
+            io.emit('newMessage', {
+                id: 'ai-' + Date.now(),
+                senderId: 'ai-bot',
+                name: 'AI Assistant 🤖',
+                nameColor: '#10a37f',
+                text: aiMsg,
+                role: 'system'
+            });
+        } else {
+            console.error('Groq AI Error:', data);
+            io.emit('newMessage', {
+                id: 'ai-err-' + Date.now(),
+                senderId: 'ai-bot',
+                name: 'AI Assistant 🤖',
+                nameColor: '#ff6b6b',
+                text: 'Xin lỗi, AI đang gặp lỗi hoặc tên model không hỗ trợ! (' + (data.error?.message || 'Lỗi không xác định') + ')',
+                role: 'system'
+            });
+        }
+    } catch (err) {
+        console.error('Groq API catch error:', err);
+    }
+}
+
+io.on('connection', (socket) => {
+    console.log('🔌 Một kết nối mới: ' + socket.id);
+    io.emit('viewersUpdate', io.engine.clientsCount);
+
+    socket.on('joinRoom', (data) => {
+        const { name, isAdmin, password, nameColor } = data;
+        const username = name.trim() || 'Người dùng ẩn danh';
+
+        if (isAdmin) {
+            let isValid = false;
+            let adminLabel = 'Admin';
+
+            // Sao mày tìm tới đây chi vậy, thích stalk không?
+            if (username.toLowerCase() === 'nthdat') {
+                if (password === ADMIN_PASSWORD) isValid = true;
+                adminLabel = 'Admin Chính';
+            } else {
+                if (password === '16082009' || /^[0-9]{8}$/.test(password)) isValid = true;
+                adminLabel = 'Doo';
+            }
+
+            if (isValid) {
+                socket.username = username + ` 😎`;
+                socket.role = 'admin';
+                socket.nameColor = nameColor || '#fbbc04';
+                connectedUsers.set(socket.id, { name: socket.username, role: 'admin', nameColor: socket.nameColor });
+                socket.emit('authResult', { success: true, role: 'admin', currentVideoId, currentVideoTitle, playlist, pinnedMessage, loopMode, drawGame: drawGame.active ? { active: true, state: drawGame.state, scores: drawGame.scores } : null, caroGame, chessGame, xiangqiGame, unoPublicState: getPublicUnoState() });
+                io.emit('newMessage', { id: 'sys-' + Date.now(), name: 'Hệ thống 🤖', text: `👑 Admin [${socket.username}] đã lên sàn điều khiển nhạc!`, role: 'system' });
+                io.emit('activeUsersList', getDrawUserList());
+            } else {
+                socket.emit('authResult', { success: false, message: 'Sai mật khẩu hoặc ngày sinh rồi ông chủ ơi! ❌' });
+            }
+        } else {
+            socket.username = username;
+            socket.role = 'member';
+            socket.nameColor = nameColor || '#aaaaaa';
+            connectedUsers.set(socket.id, { name: socket.username, role: 'member', nameColor: socket.nameColor });
+            socket.emit('authResult', { success: true, role: 'member', currentVideoId, currentVideoTitle, playlist, pinnedMessage, loopMode, drawGame: drawGame.active ? { active: true, state: drawGame.state, scores: drawGame.scores } : null, caroGame, chessGame, xiangqiGame, unoPublicState: getPublicUnoState() });
+            io.emit('newMessage', { id: 'sys-' + Date.now(), name: 'Hệ thống 🤖', text: `👋 Chào mừng [${socket.username}] đã tham gia phòng nhạc!`, role: 'system' });
+            io.emit('activeUsersList', getDrawUserList());
+        }
+        if (drawGame.active) io.emit('drawUsersUpdate', getDrawUserList());
+    });
+
+
+    socket.on('sendMessage', async (msg) => {
+        const msgId = Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+        const senderName = socket.username || 'Ẩn danh';
+        const senderRole = socket.role || 'member';
+        const senderColor = socket.nameColor || '#aaaaaa';
+
+
+        if (typeof msg === 'object' && msg.type === 'gif' && msg.gifUrl) {
+            io.emit('newMessage', {
+                id: msgId,
+                senderId: socket.id,
+                name: senderName,
+                nameColor: senderColor,
+                text: '[GIF]',
+                gifUrl: msg.gifUrl,
+                role: senderRole
+            });
+            return;
+        }
+
+
+        let textMsg = typeof msg === 'string' ? msg : (msg.type === 'text' ? msg.text : '');
+        let replyTo = typeof msg === 'object' && msg.replyTo ? msg.replyTo : null;
+
+        if (textMsg && textMsg.trim() !== '') {
+
+            if (drawGame.active && drawGame.state === 'playing' && socket.id !== drawGame.drawerId && !drawGame.guessedPlayers.includes(socket.id)) {
+                const guess = textMsg.trim().toLowerCase();
+                if (guess === drawGame.word.toLowerCase()) {
+                    drawGame.guessedPlayers.push(socket.id);
+                    const pts = Math.max(10, Math.ceil(drawGame.timeLeft / 90 * 100));
+                    if (!drawGame.scores[socket.id]) drawGame.scores[socket.id] = { name: senderName, score: 0, nameColor: senderColor };
+                    drawGame.scores[socket.id].score += pts;
+                    if (!drawGame.scores[drawGame.drawerId]) {
+                        const dr = connectedUsers.get(drawGame.drawerId);
+                        drawGame.scores[drawGame.drawerId] = { name: dr?.name || '', score: 0, nameColor: dr?.nameColor || '#aaa' };
+                    }
+                    drawGame.scores[drawGame.drawerId].score += 25;
+                    io.emit('newMessage', { id: 'draw-' + Date.now(), name: 'Trò chơi 🎨', text: `🎉 ${senderName} đã đoán đúng! (+${pts} điểm)`, role: 'system' });
+                    io.emit('drawScoreUpdate', drawGame.scores);
+                    const playersCanGuess = Array.from(connectedUsers.keys()).filter(id => id !== drawGame.drawerId);
+                    if (drawGame.guessedPlayers.length >= playersCanGuess.length) setTimeout(() => endDrawRound(), 2000);
+                    return;
+                }
+            }
+
+            const textLower = textMsg.trim().toLowerCase();
+
+            if (textLower.startsWith('/') && !textLower.startsWith('/ai')) {
+                if (socket.role !== 'admin') {
+                    socket.emit('newMessage', {
+                        id: 'sys-' + Date.now(),
+                        name: 'Hệ thống ❌',
+                        text: `Lệnh **${textLower.split(' ')[0]}** chỉ dành cho Quản trị viên!`,
+                        role: 'system'
+                    });
+                    return;
+                }
+            }
+
+            io.emit('newMessage', {
+                id: msgId, senderId: socket.id, name: senderName,
+                nameColor: senderColor, text: textMsg, role: senderRole,
+                replyTo: replyTo
+            });
+
+            if (textLower === '/skip') {
+                if (playlist.length > 0) {
+                    const nextSong = playlist.shift();
+                    currentVideoId = nextSong.id;
+                    currentVideoTitle = nextSong.title;
+                    io.emit('changeVideo', { id: currentVideoId, title: currentVideoTitle });
+                    io.emit('updatePlaylist', playlist);
+                    io.emit('newMessage', {
+                        id: 'sys-' + Date.now(),
+                        name: 'Hệ thống 🎵',
+                        text: `⏭️ **${senderName}** đã chuyển bài. Đang phát: **${currentVideoTitle}**`,
+                        role: 'system'
+                    });
+                    isPlayerIdle = false;
+                    logMusicHistory(currentVideoId, currentVideoTitle, nextSong.addedBy || 'Người dùng');
+                } else {
+                    currentVideoId = '';
+                    currentVideoTitle = 'Chưa có bài hát nào';
+                    isPlayerIdle = true;
+                    io.emit('stopVideo');
+                    io.emit('newMessage', {
+                        id: 'sys-' + Date.now(),
+                        name: 'Hệ thống 🎵',
+                        text: `⏭️ **${senderName}** đã chuyển bài. Đã hết danh sách phát.`,
+                        role: 'system'
+                    });
+                }
+                return;
+            }
+
+            if (textLower === '/repeat') {
+                loopMode = !loopMode;
+                io.emit('loopModeUpdate', loopMode);
+                io.emit('newMessage', {
+                    id: 'sys-' + Date.now(),
+                    name: 'Hệ thống 🎵',
+                    text: `🔁 **${senderName}** đã ${loopMode ? 'BẬT' : 'TẮT'} chế độ lặp lại.`,
+                    role: 'system'
+                });
+                return;
+            }
+
+            if (textLower.startsWith('/move ')) {
+                const args = textLower.substring(6).trim().split(/\s+/);
+                if (args.length === 2) {
+                    const idx1 = parseInt(args[0]) - 1;
+                    const idx2 = parseInt(args[1]) - 1;
+                    if (!isNaN(idx1) && !isNaN(idx2) && idx1 >= 0 && idx2 >= 0 && idx1 < playlist.length && idx2 < playlist.length) {
+                        const temp = playlist[idx1];
+                        playlist[idx1] = playlist[idx2];
+                        playlist[idx2] = temp;
+                        io.emit('updatePlaylist', playlist);
+                        io.emit('newMessage', {
+                            id: 'sys-' + Date.now(),
+                            name: 'Hệ thống 🎵',
+                            text: `🔄 **${senderName}** đã đổi vị trí bài số ${idx1 + 1} và ${idx2 + 1}.`,
+                            role: 'system'
+                        });
+                    } else {
+                        socket.emit('newMessage', {
+                            id: 'sys-' + Date.now(),
+                            name: 'Hệ thống 🎵',
+                            text: `❌ Số thứ tự không hợp lệ. Vui lòng nhập từ 1 đến ${playlist.length}.`,
+                            role: 'system'
+                        });
+                    }
+                } else {
+                    socket.emit('newMessage', {
+                        id: 'sys-' + Date.now(),
+                        name: 'Hệ thống 🎵',
+                        text: `❌ Cú pháp sai. Hãy dùng: /move <số 1> <số 2> (ví dụ: /move 1 3)`,
+                        role: 'system'
+                    });
+                }
+                return;
+            }
+
+            if (textLower.startsWith('/remove ')) {
+                const idxStr = textLower.substring(8).trim();
+                const idx = parseInt(idxStr) - 1;
+                if (!isNaN(idx) && idx >= 0 && idx < playlist.length) {
+                    const removed = playlist.splice(idx, 1)[0];
+                    io.emit('updatePlaylist', playlist);
+                    io.emit('newMessage', {
+                        id: 'sys-' + Date.now(),
+                        name: 'Hệ thống 🎵',
+                        text: `🗑️ **${senderName}** đã xóa bài **${removed.title}** khỏi danh sách chờ.`,
+                        role: 'system'
+                    });
+                } else {
+                    socket.emit('newMessage', {
+                        id: 'sys-' + Date.now(),
+                        name: 'Hệ thống 🎵',
+                        text: `❌ Số thứ tự không hợp lệ. Vui lòng nhập từ 1 đến ${playlist.length}.`,
+                        role: 'system'
+                    });
+                }
+                return;
+            }
+
+            if (textLower.startsWith('/add ')) {
+                const query = textMsg.trim().substring(5).trim();
+                if (query) {
+                    try {
+                        let videoId = query;
+                        if (!/^[a-zA-Z0-9_-]{11}$/.test(videoId)) {
+                            const r = await ytSearch(videoId);
+                            if (r && r.videos.length > 0) {
+                                videoId = r.videos[0].videoId;
+                            } else {
+                                throw new Error('Not found');
+                            }
+                        }
+
+                        const info = await getYoutubeInfo(videoId);
+                        info.addedBy = senderName;
+                        info.addedByColor = senderColor;
+                        playlist.push(info);
+                        io.emit('updatePlaylist', playlist);
+                        io.emit('newMessage', {
+                            id: 'sys-' + Date.now(),
+                            name: 'Hệ thống 🎵',
+                            text: `✅ Đã thêm **${info.title}** vào danh sách chờ.`,
+                            role: 'system'
+                        });
+
+                        if (isPlayerIdle) {
+                            const nextSong = playlist.shift();
+                            currentVideoId = nextSong.id;
+                            currentVideoTitle = nextSong.title;
+                            io.emit('changeVideo', { id: currentVideoId, title: currentVideoTitle });
+                            io.emit('updatePlaylist', playlist);
+                            isPlayerIdle = false;
+                            logMusicHistory(currentVideoId, currentVideoTitle, nextSong.addedBy || 'Groq AI');
+                        }
+                    } catch (err) {
+                        socket.emit('newMessage', {
+                            id: 'sys-' + Date.now(),
+                            name: 'Hệ thống ❌',
+                            text: `Không tìm thấy bài hát "${query}".`,
+                            role: 'system'
+                        });
+                    }
+                }
+                return;
+            }
+
+            if (textMsg.trim().toLowerCase().startsWith('/ai ')) {
+                const query = textMsg.trim().substring(4).trim();
+                if (query) callGroqAI(query, senderName);
+            }
+        }
+    });
+
+
+
+    socket.on('adminPinMessage', (msgObj) => {
+        if (socket.role === 'admin') {
+            pinnedMessage = msgObj;
+            io.emit('updatePinnedMessage', pinnedMessage);
+        }
+    });
+
+    socket.on('adminUnpinMessage', () => {
+        if (socket.role === 'admin') {
+            pinnedMessage = null;
+            io.emit('updatePinnedMessage', null);
+        }
+    });
+
+    socket.on('adminDeleteMessage', (msgId) => {
+        if (socket.role === 'admin') {
+            io.emit('messageDeleted', msgId);
+        }
+    });
+
+
+    socket.on('requestSync', () => {
+        socket.broadcast.emit('memberRequestSync');
+    });
+
+    socket.on('addSong', async (inputData, callback) => {
+        let videoId = inputData.trim();
+        let success = false;
+        try {
+            if (!/^[a-zA-Z0-9_-]{11}$/.test(videoId)) {
+                const r = await ytSearch(videoId);
+                if (r && r.videos.length > 0) {
+                    videoId = r.videos[0].videoId;
+                }
+            }
+
+
+            if (videoId === currentVideoId || playlist.some(song => song.id === videoId)) {
+                if (typeof callback === 'function') {
+                    callback({ success: false, message: 'Bài hát đã có trong hàng đợi hoặc đang phát!' });
+                }
+                return;
+            }
+
+            const info = await getYoutubeInfo(videoId);
+            info.addedBy = socket.username || 'Ẩn danh';
+            info.addedByColor = socket.nameColor || '#aaaaaa';
+            playlist.push(info);
+            io.emit('updatePlaylist', playlist);
+
+            if (isPlayerIdle) {
+                const nextSong = playlist.shift();
+                currentVideoId = nextSong.id;
+                currentVideoTitle = nextSong.title;
+                io.emit('changeVideo', { id: currentVideoId, title: currentVideoTitle });
+                io.emit('updatePlaylist', playlist);
+                isPlayerIdle = false;
+                logMusicHistory(currentVideoId, currentVideoTitle, nextSong.addedBy || 'Người dùng');
+            }
+
+            success = true;
+        } catch (err) {
+            console.error('Lỗi khi thêm bài hát:', err);
+        }
+        if (typeof callback === 'function') {
+            callback({ success });
+        }
+    });
+
+    socket.on('adminReorderPlaylist', (newPlaylist) => {
+        if (socket.role === 'admin') {
+            playlist = newPlaylist;
+            io.emit('updatePlaylist', playlist);
+        }
+    });
+
+    socket.on('adminRemoveSong', (index) => {
+        if (socket.role === 'admin') {
+            playlist.splice(index, 1);
+            io.emit('updatePlaylist', playlist);
+        }
+    });
+
+    socket.on('adminNextSong', () => {
+        if (socket.role === 'admin') {
+            if (playlist.length > 0) {
+                const nextSong = playlist.shift();
+                currentVideoId = nextSong.id;
+                currentVideoTitle = nextSong.title;
+                io.emit('changeVideo', { id: currentVideoId, title: currentVideoTitle });
+                io.emit('updatePlaylist', playlist);
+                isPlayerIdle = false;
+                logMusicHistory(currentVideoId, currentVideoTitle, nextSong.addedBy || 'Admin');
+            } else {
+                currentVideoId = '';
+                currentVideoTitle = 'Chưa có bài hát nào';
+                isPlayerIdle = true;
+                io.emit('stopVideo');
+                isPlayerIdle = true;
+            }
+        }
+    });
+
+
+    socket.on('adminToggleLoop', () => {
+        if (socket.role === 'admin') {
+            loopMode = !loopMode;
+            io.emit('loopModeUpdate', loopMode);
+        }
+    });
+
+
+    socket.on('videoEnded', (clientVideoId) => {
+        if (socket.role === 'admin') {
+
+            if (clientVideoId && clientVideoId !== currentVideoId) return;
+
+
+            const now = Date.now();
+            if (now - lastGlobalVideoEndedTime < 3000) return;
+            lastGlobalVideoEndedTime = now;
+
+            if (loopMode) {
+
+                io.emit('changeVideo', { id: currentVideoId, title: currentVideoTitle });
+                isPlayerIdle = false;
+            } else if (playlist.length > 0) {
+
+                const nextSong = playlist.shift();
+                currentVideoId = nextSong.id;
+                currentVideoTitle = nextSong.title;
+                io.emit('changeVideo', { id: currentVideoId, title: currentVideoTitle });
+                io.emit('updatePlaylist', playlist);
+                isPlayerIdle = false;
+                logMusicHistory(currentVideoId, currentVideoTitle, nextSong.addedBy || 'Hệ thống');
+            } else {
+                isPlayerIdle = true;
+            }
+        }
+    });
+
+    socket.on('adminPlay', (time) => { if (socket.role === 'admin') socket.broadcast.emit('memberPlay', time); });
+    socket.on('adminPause', () => { if (socket.role === 'admin') socket.broadcast.emit('memberPause'); });
+
+
+    socket.on('adminStartDrawGame', () => {
+        if (socket.role !== 'admin') return;
+        drawGame.active = true; drawGame.state = 'waiting'; drawGame.scores = {}; drawGame.canvasHistory = [];
+        io.emit('drawGameStarted', { users: getDrawUserList(), scores: {} });
+    });
+    function startDrawRound(drawerId) {
+        if (!connectedUsers.has(drawerId)) return;
+        const user = connectedUsers.get(drawerId);
+        drawGame.state = 'playing'; drawGame.drawerId = drawerId; drawGame.drawerName = user.name;
+        drawGame.word = getRandomWord(); drawGame.timeLeft = 90; drawGame.guessedPlayers = []; drawGame.canvasHistory = [];
+        if (drawGame.timer) clearInterval(drawGame.timer);
+        drawGame.timer = setInterval(() => { drawGame.timeLeft--; io.emit('drawTimerUpdate', drawGame.timeLeft); if (drawGame.timeLeft <= 0) endDrawRound(); }, 1000);
+        io.emit('drawRoundStart', { drawerId, drawerName: user.name, hint: generateHint(drawGame.word), timeLeft: 90 });
+
+        setTimeout(() => {
+            io.to(drawerId).emit('drawYourWord', drawGame.word);
+        }, 100);
+    }
+
+    socket.on('adminPickDrawer', (drawerId) => {
+        if (socket.role !== 'admin') return;
+        startDrawRound(drawerId);
+    });
+
+    socket.on('adminRandomPickDrawer', () => {
+        if (socket.role !== 'admin') return;
+        const users = Array.from(connectedUsers.keys());
+        if (users.length === 0) return;
+        const winnerId = users[Math.floor(Math.random() * users.length)];
+
+        io.emit('drawRandomPickAnimation', { winnerId, users: getDrawUserList() });
+
+        setTimeout(() => {
+            startDrawRound(winnerId);
+        }, 3000);
+    });
+    socket.on('drawStroke', (data) => { if (socket.id === drawGame.drawerId) { drawGame.canvasHistory.push(data); socket.broadcast.emit('drawStroke', data); } });
+    socket.on('drawClear', () => { if (socket.id === drawGame.drawerId) { drawGame.canvasHistory = []; socket.broadcast.emit('drawClear'); } });
+    socket.on('adminEndDrawGame', () => {
+        if (socket.role !== 'admin') return;
+        if (drawGame.timer) { clearInterval(drawGame.timer); drawGame.timer = null; }
+        drawGame.active = false; drawGame.state = 'inactive';
+        io.emit('drawGameEnded');
+    });
+    socket.on('skipWord', () => {
+        if (drawGame.state !== 'playing') return;
+        if (socket.id !== drawGame.drawerId) return;
+        drawGame.word = getRandomWord(); drawGame.canvasHistory = []; drawGame.guessedPlayers = []; drawGame.timeLeft = 90;
+        io.to(drawGame.drawerId).emit('drawYourWord', drawGame.word);
+        io.emit('drawNewWord', { hint: generateHint(drawGame.word), timeLeft: 90 });
+        io.emit('drawClear');
+    });
+    socket.on('requestCanvasHistory', () => {
+        if (drawGame.canvasHistory.length > 0) socket.emit('drawCanvasHistory', drawGame.canvasHistory);
+    });
+
+
+    socket.on('caroChallenge', (targetId) => {
+        if (!connectedUsers.has(targetId) || targetId === socket.id) return;
+        if (caroGame.playerX || caroGame.playerO) return;
+
+        io.to(targetId).emit('caroChallengeReceived', {
+            challengerId: socket.id,
+            challengerName: socket.username
+        });
+        socket.emit('newMessage', { id: 'sys-' + Date.now(), name: 'Hệ thống 🤖', text: `Đã gửi lời thách đấu Cờ Caro đến **${connectedUsers.get(targetId).name}**. Đang chờ phản hồi...`, role: 'system' });
+    });
+
+    socket.on('caroChallengeRespond', ({ challengerId, accept }) => {
+        if (!connectedUsers.has(challengerId)) {
+            socket.emit('newMessage', { id: 'sys-' + Date.now(), name: 'Hệ thống 🤖', text: 'Người thách đấu đã rời phòng!', role: 'system' });
+            return;
+        }
+
+        if (accept) {
+            if (caroGame.playerX || caroGame.playerO) {
+                socket.emit('newMessage', { id: 'sys-' + Date.now(), name: 'Hệ thống 🤖', text: 'Bàn cờ hiện đã có người chơi!', role: 'system' });
+                return;
+            }
+
+            const challengerX = Math.random() < 0.5;
+            const challengerName = connectedUsers.get(challengerId).name;
+
+            if (challengerX) {
+                caroGame.playerX = challengerId;
+                caroGame.playerXName = challengerName;
+                caroGame.playerO = socket.id;
+                caroGame.playerOName = socket.username;
+            } else {
+                caroGame.playerO = challengerId;
+                caroGame.playerOName = challengerName;
+                caroGame.playerX = socket.id;
+                caroGame.playerXName = socket.username;
+            }
+            caroGame.board = Array(15).fill(null).map(() => Array(15).fill(null));
+            caroGame.turn = 'X';
+            caroGame.winner = null;
+
+            io.emit('caroUpdate', caroGame);
+            io.emit('newMessage', { id: 'sys-' + Date.now(), name: 'Cờ Caro ❌⭕', text: `⚔️ **${socket.username}** đã chấp nhận thách đấu của **${challengerName}**! Ván cờ bắt đầu!`, role: 'system' });
+        } else {
+            io.to(challengerId).emit('newMessage', { id: 'sys-' + Date.now(), name: 'Cờ Caro ❌⭕', text: `❌ **${socket.username}** đã từ chối lời thách đấu cờ caro của bạn!`, role: 'system' });
+        }
+    });
+
+    socket.on('caroLeave', () => {
+        if (caroGame.playerX === socket.id) { caroGame.playerX = null; caroGame.playerXName = ''; }
+        if (caroGame.playerO === socket.id) { caroGame.playerO = null; caroGame.playerOName = ''; }
+        if (!caroGame.playerX && !caroGame.playerO) {
+            caroGame.board = Array(15).fill(null).map(() => Array(15).fill(null));
+            caroGame.turn = 'X';
+            caroGame.winner = null;
+        }
+        io.emit('caroUpdate', caroGame);
+    });
+
+    socket.on('caroMove', ({ row, col }) => {
+        if (caroGame.winner) return;
+        if (row < 0 || row >= 15 || col < 0 || col >= 15) return;
+        if (caroGame.board[row][col] !== null) return;
+
+        let playerSide = null;
+        if (socket.id === caroGame.playerX) playerSide = 'X';
+        if (socket.id === caroGame.playerO) playerSide = 'O';
+
+        if (!playerSide || playerSide !== caroGame.turn) return;
+
+        caroGame.board[row][col] = playerSide;
+        if (checkCaroWinner(row, col, playerSide)) {
+            caroGame.winner = playerSide;
+            io.emit('newMessage', { id: 'sys-' + Date.now(), name: 'Cờ Caro ❌⭕', text: `🎉 Người chơi **${playerSide === 'X' ? caroGame.playerXName : caroGame.playerOName} (${playerSide})** đã thắng ván Caro!`, role: 'system' });
+        } else {
+            caroGame.turn = caroGame.turn === 'X' ? 'O' : 'X';
+        }
+        io.emit('caroUpdate', caroGame);
+    });
+
+
+    socket.on('chessChallenge', (targetId) => {
+        if (!connectedUsers.has(targetId) || targetId === socket.id) return;
+        if (chessGame.playerW || chessGame.playerB) return;
+
+        io.to(targetId).emit('chessChallengeReceived', {
+            challengerId: socket.id,
+            challengerName: socket.username
+        });
+        socket.emit('newMessage', { id: 'sys-' + Date.now(), name: 'Hệ thống 🤖', text: `Đã gửi lời thách đấu Cờ Vua đến **${connectedUsers.get(targetId).name}**. Đang chờ phản hồi...`, role: 'system' });
+    });
+
+    socket.on('chessChallengeRespond', ({ challengerId, accept }) => {
+        if (!connectedUsers.has(challengerId)) {
+            socket.emit('newMessage', { id: 'sys-' + Date.now(), name: 'Hệ thống 🤖', text: 'Người thách đấu đã rời phòng!', role: 'system' });
+            return;
+        }
+
+        if (accept) {
+            if (chessGame.playerW || chessGame.playerB) {
+                socket.emit('newMessage', { id: 'sys-' + Date.now(), name: 'Hệ thống 🤖', text: 'Bàn cờ hiện đã có người chơi!', role: 'system' });
+                return;
+            }
+
+            const challengerW = Math.random() < 0.5;
+            const challengerName = connectedUsers.get(challengerId).name;
+
+            if (challengerW) {
+                chessGame.playerW = challengerId;
+                chessGame.playerWName = challengerName;
+                chessGame.playerB = socket.id;
+                chessGame.playerBName = socket.username;
+            } else {
+                chessGame.playerB = challengerId;
+                chessGame.playerBName = challengerName;
+                chessGame.playerW = socket.id;
+                chessGame.playerWName = socket.username;
+            }
+            chessGame.fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+            chessGame.winner = null;
+
+            io.emit('chessUpdate', chessGame);
+            io.emit('newMessage', { id: 'sys-' + Date.now(), name: 'Cờ Vua ♔♛', text: `⚔️ **${socket.username}** đã chấp nhận thách đấu của **${challengerName}**! Ván cờ bắt đầu!`, role: 'system' });
+        } else {
+            io.to(challengerId).emit('newMessage', { id: 'sys-' + Date.now(), name: 'Cờ Vua ♔♛', text: `❌ **${socket.username}** đã từ chối lời thách đấu cờ vua của bạn!`, role: 'system' });
+        }
+    });
+
+    socket.on('chessLeave', () => {
+        if (chessGame.playerW === socket.id) { chessGame.playerW = null; chessGame.playerWName = ''; }
+        if (chessGame.playerB === socket.id) { chessGame.playerB = null; chessGame.playerBName = ''; }
+        if (!chessGame.playerW && !chessGame.playerB) {
+            chessGame.fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+            chessGame.winner = null;
+        }
+        io.emit('chessUpdate', chessGame);
+    });
+
+    socket.on('chessMove', ({ fen, winner }) => {
+        if (chessGame.winner) return;
+        let playerSide = null;
+        if (socket.id === chessGame.playerW) playerSide = 'w';
+        if (socket.id === chessGame.playerB) playerSide = 'b';
+        if (!playerSide) return;
+
+        chessGame.fen = fen;
+        if (winner) {
+            chessGame.winner = winner;
+            let msg = '';
+            if (winner === 'd') msg = 'Cờ hòa! 🤝';
+            else msg = `🎉 Người chơi **${winner === 'w' ? chessGame.playerWName : chessGame.playerBName} (${winner === 'w' ? 'Trắng' : 'Đen'})** đã chiến thắng ván Cờ Vua!`;
+            io.emit('newMessage', { id: 'sys-' + Date.now(), name: 'Cờ Vua ♔♛', text: msg, role: 'system' });
+        }
+        io.emit('chessUpdate', chessGame);
+    });
+
+    socket.on('xiangqiChallenge', (targetId) => {
+        if (!connectedUsers.has(targetId) || targetId === socket.id) return;
+        io.to(targetId).emit('xiangqiChallengeReceived', {
+            challengerId: socket.id,
+            challengerName: socket.username
+        });
+        socket.emit('newMessage', { id: 'sys-' + Date.now(), name: 'Hệ thống 🤖', text: `Đã gửi lời thách đấu Cờ Tướng đến **${connectedUsers.get(targetId).name}**. Đang chờ phản hồi...`, role: 'system' });
+    });
+
+    socket.on('xiangqiChallengeRespond', ({ challengerId, accept }) => {
+        if (!connectedUsers.has(challengerId)) return;
+        if (accept) {
+            xiangqiGame.playerR = challengerId;
+            xiangqiGame.playerRName = connectedUsers.get(challengerId).name;
+            xiangqiGame.playerB = socket.id;
+            xiangqiGame.playerBName = socket.username;
+            xiangqiGame.board = initXiangqiBoard();
+            xiangqiGame.turn = 'R';
+            xiangqiGame.winner = null;
+            io.emit('xiangqiUpdate', xiangqiGame);
+            io.emit('newMessage', { id: 'sys-' + Date.now(), name: 'Cờ Tướng 🀄', text: `⚔️ **${socket.username}** đã chấp nhận thách đấu của **${connectedUsers.get(challengerId).name}**!`, role: 'system' });
+        } else {
+            io.to(challengerId).emit('newMessage', { id: 'sys-' + Date.now(), name: 'Cờ Tướng 🀄', text: `❌ **${socket.username}** đã từ chối lời thách đấu Cờ Tướng của bạn!`, role: 'system' });
+        }
+    });
+
+    socket.on('xiangqiMove', ({ from, to }) => {
+        if (!xiangqiGame.playerR || !xiangqiGame.playerB || xiangqiGame.winner) return;
+        const isRed = xiangqiGame.playerR === socket.id;
+        const isBlack = xiangqiGame.playerB === socket.id;
+        if (!isRed && !isBlack) return;
+        if ((isRed && xiangqiGame.turn !== 'R') || (isBlack && xiangqiGame.turn !== 'B')) return;
+
+        const piece = xiangqiGame.board[from.r][from.c];
+        if (!piece || (isRed && !piece.startsWith('r_')) || (isBlack && !piece.startsWith('b_'))) return;
+
+        if (!isValidXiangqiMove(xiangqiGame.board, piece, from, to)) return;
+
+        const targetPiece = xiangqiGame.board[to.r][to.c];
+
+        // Check flying general
+        const tempBoard = xiangqiGame.board.map(row => [...row]);
+        tempBoard[to.r][to.c] = piece;
+        tempBoard[from.r][from.c] = null;
+        if (checkFlyingGeneral(tempBoard)) return;
+
+        if (targetPiece === 'r_k') xiangqiGame.winner = 'B';
+        else if (targetPiece === 'b_k') xiangqiGame.winner = 'R';
+
+        xiangqiGame.board[to.r][to.c] = piece;
+        xiangqiGame.board[from.r][from.c] = null;
+        xiangqiGame.turn = xiangqiGame.turn === 'R' ? 'B' : 'R';
+        io.emit('xiangqiUpdate', xiangqiGame);
+    });
+
+    socket.on('xiangqiLeave', () => {
+        if (xiangqiGame.playerR === socket.id || xiangqiGame.playerB === socket.id) {
+            xiangqiGame.playerR = null; xiangqiGame.playerB = null;
+            xiangqiGame.winner = null;
+            xiangqiGame.board = initXiangqiBoard();
+            io.emit('xiangqiUpdate', xiangqiGame);
+            io.emit('newMessage', { id: 'sys-' + Date.now(), name: 'Cờ Tướng 🀄', text: `🏃 **${socket.username}** đã rời bàn Cờ Tướng.`, role: 'system' });
+        }
+    });
+
+    socket.on('unoJoin', () => {
+        if (unoGame.active) return;
+        if (!unoGame.players.find(p => p.id === socket.id)) {
+            unoGame.players.push({ id: socket.id, name: socket.username, handCount: 0 });
+            unoHands[socket.id] = [];
+            io.emit('unoUpdate', getPublicUnoState());
+            io.emit('newMessage', { id: 'sys-' + Date.now(), name: 'UNO 🃏', text: `🎮 **${socket.username}** đã tham gia bàn UNO.`, role: 'system' });
+        }
+    });
+
+    socket.on('unoStart', () => {
+        if (unoGame.active || unoGame.players.length < 2) return;
+        unoGame.active = true;
+        unoGame.deck = initUnoDeck();
+        unoGame.discardPile = [];
+        unoGame.turnIndex = 0;
+        unoGame.direction = 1;
+        unoGame.winner = null;
+
+        unoGame.players.forEach(p => {
+            unoHands[p.id] = unoGame.deck.splice(0, 7);
+            p.handCount = 7;
+        });
+
+        let firstCard = unoGame.deck.shift();
+        while (firstCard.color === 'black') {
+            unoGame.deck.push(firstCard);
+            firstCard = unoGame.deck.shift();
+        }
+        unoGame.discardPile.push(firstCard);
+        unoGame.currentColor = firstCard.color;
+
+        unoGame.players.forEach(p => io.to(p.id).emit('unoHand', unoHands[p.id]));
+        io.emit('unoUpdate', getPublicUnoState());
+        io.emit('newMessage', { id: 'sys-' + Date.now(), name: 'UNO 🃏', text: `🚀 Ván UNO đã được bắt đầu!`, role: 'system' });
+    });
+
+    socket.on('unoPlayCard', (cardIndex) => {
+        if (!unoGame.active || unoGame.winner) return;
+        const p = unoGame.players[unoGame.turnIndex];
+        if (p.id !== socket.id) return;
+        const hand = unoHands[socket.id];
+        const card = hand[cardIndex];
+        if (!card) return;
+        const topCard = unoGame.discardPile[unoGame.discardPile.length - 1];
+
+        if (card.color !== 'black' && card.color !== unoGame.currentColor && card.value !== topCard.value) return;
+
+        hand.splice(cardIndex, 1);
+        unoGame.discardPile.push(card);
+        unoGame.currentColor = card.color === 'black' ? ['red', 'green', 'blue', 'yellow'][Math.floor(Math.random() * 4)] : card.color;
+        p.handCount = hand.length;
+
+        if (hand.length === 0) {
+            unoGame.winner = socket.username;
+            unoGame.active = false;
+        } else {
+            if (card.value === 'reverse') unoGame.direction *= -1;
+            nextUnoTurn();
+            if (card.value === 'skip') nextUnoTurn();
+            if (card.value === '+2') {
+                drawCardsForPlayer(unoGame.players[unoGame.turnIndex].id, 2);
+                nextUnoTurn();
+            }
+        }
+        io.to(socket.id).emit('unoHand', hand);
+        io.emit('unoUpdate', getPublicUnoState());
+    });
+
+    socket.on('unoDraw', () => {
+        if (!unoGame.active || unoGame.winner) return;
+        if (unoGame.players[unoGame.turnIndex].id !== socket.id) return;
+        drawCardsForPlayer(socket.id, 1);
+        io.to(socket.id).emit('unoHand', unoHands[socket.id]);
+        io.emit('unoUpdate', getPublicUnoState());
+    });
+
+    socket.on('unoPass', () => {
+        if (!unoGame.active || unoGame.winner) return;
+        if (unoGame.players[unoGame.turnIndex].id !== socket.id) return;
+        nextUnoTurn();
+        io.emit('unoUpdate', getPublicUnoState());
+    });
+
+    socket.on('disconnect', () => {
+        connectedUsers.delete(socket.id);
+        io.emit('activeUsersList', getDrawUserList());
+        io.emit('viewersUpdate', io.engine.clientsCount);
+        if (drawGame.active && socket.id === drawGame.drawerId && drawGame.state === 'playing') {
+            io.emit('newMessage', { id: 'sys-' + Date.now(), name: 'Trò chơi 🎨', text: `😢 Người vẽ đã rời phòng! Kết thúc lượt.`, role: 'system' });
+            endDrawRound();
+        }
+        if (drawGame.active) io.emit('drawUsersUpdate', getDrawUserList());
+        if (socket.username) {
+            io.emit('newMessage', { id: 'sys-' + Date.now(), name: 'Hệ thống 🤖', text: `🏃‍♂️ [${socket.username}] đã rời phòng.`, role: 'system' });
+        }
+
+        if (caroGame.playerX === socket.id || caroGame.playerO === socket.id) {
+            if (caroGame.playerX === socket.id) { caroGame.playerX = null; caroGame.playerXName = ''; }
+            if (caroGame.playerO === socket.id) { caroGame.playerO = null; caroGame.playerOName = ''; }
+            if (!caroGame.playerX && !caroGame.playerO) {
+                caroGame.board = Array(15).fill(null).map(() => Array(15).fill(null));
+                caroGame.turn = 'X';
+                caroGame.winner = null;
+            }
+            io.emit('caroUpdate', caroGame);
+        }
+
+        if (chessGame.playerW === socket.id || chessGame.playerB === socket.id) {
+            if (chessGame.playerW === socket.id) { chessGame.playerW = null; chessGame.playerWName = ''; }
+            if (chessGame.playerB === socket.id) { chessGame.playerB = null; chessGame.playerBName = ''; }
+            if (!chessGame.playerW && !chessGame.playerB) {
+                chessGame.fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+                chessGame.winner = null;
+            }
+            io.emit('chessUpdate', chessGame);
+        }
+        if (xiangqiGame.playerR === socket.id || xiangqiGame.playerB === socket.id) {
+            xiangqiGame.playerR = null; xiangqiGame.playerB = null;
+            xiangqiGame.winner = null;
+            xiangqiGame.board = initXiangqiBoard();
+            io.emit('xiangqiUpdate', xiangqiGame);
+        }
+
+        const unoPlayerIdx = unoGame.players.findIndex(p => p.id === socket.id);
+        if (unoPlayerIdx !== -1) {
+            unoGame.players.splice(unoPlayerIdx, 1);
+            if (unoGame.players.length < 2) unoGame.active = false;
+            io.emit('unoUpdate', getPublicUnoState());
+        }
+    });
+});
+
+// Phục vụ Web tĩnh Monkeytype tại đường dẫn /monkeytype
+app.use('/monkeytype', express.static(path.join(__dirname, '../monkeytype')));
+app.get('/monkeytype/*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../monkeytype/index.html'));
+});
+
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => {
+    console.log(`🚀 Server chạy tại port ${PORT}`);
+});
+

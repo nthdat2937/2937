@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
+    <title>2937.ML</title>
+    <!-- Display font for headings/logo (character), body relies on the
+         native system font stack instead of loading Inter for everything -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+
+    <div id="login-section" class="login-overlay">
+        <div class="login-card">
+            <h2>Tham gia luồng trực tiếp</h2>
+            <p id="login-prompt">Chọn vai trò của bạn để tham gia</p>
+
+            <div id="role-buttons-wrapper" style="display: flex; gap: 12px; margin-bottom: 16px;">
+                <button type="button" class="login-btn" style="flex: 1; background: rgba(255,255,255,0.1);"
+                    onclick="selectRole('user')">
+                    Thành viên
+                </button>
+                <button type="button" class="login-btn" style="flex: 1;" onclick="selectRole('admin')">
+                    Quản trị viên
+                </button>
+            </div>
+
+            <div id="admin-list-wrapper" class="hidden"
+                style="margin-bottom: 16px; background: rgba(0,0,0,0.2); border-radius: 8px; padding: 12px;">
+                <p style="margin-bottom: 12px; font-size: 13px; color: var(--text-muted);">Chọn quyền quản trị:</p>
+                <div style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: center;">
+                    <button type="button" class="action-btn" style="padding: 8px 12px; font-size: 13px;"
+                        onclick="selectAdmin('nthdat')">nthdat</button>
+                    <button type="button" class="action-btn" style="padding: 8px 12px; font-size: 13px;"
+                        onclick="selectAdmin('Doo')">Doo</button>
+                </div>
+            </div>
+
+            <div id="user-details-wrapper" class="hidden">
+                <input type="text" id="username-input" class="login-input" style="margin-bottom: 16px;"
+                    placeholder="Tên hiển thị..." onkeypress="if(event.key === 'Enter') joinRoom()" required>
+
+                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+                    <label style="font-size: 14px; color: var(--text-muted); white-space: nowrap;">Màu tên:</label>
+                    <div style="display: flex; gap: 6px; flex-wrap: wrap; flex: 1;">
+                        <input type="color" id="name-color-input" value="#3ea6ff"
+                            style="width: 36px; height: 36px; border: none; border-radius: 8px; cursor: pointer; background: transparent; padding: 0;">
+                        <button type="button" onclick="document.getElementById('name-color-input').value='#3ea6ff'"
+                            style="width: 28px; height: 28px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; background: #3ea6ff;"
+                            title="Xanh dương"></button>
+                        <button type="button" onclick="document.getElementById('name-color-input').value='#ff6b6b'"
+                            style="width: 28px; height: 28px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; background: #ff6b6b;"
+                            title="Đỏ"></button>
+                        <button type="button" onclick="document.getElementById('name-color-input').value='#51cf66'"
+                            style="width: 28px; height: 28px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; background: #51cf66;"
+                            title="Xanh lá"></button>
+                        <button type="button" onclick="document.getElementById('name-color-input').value='#ffd43b'"
+                            style="width: 28px; height: 28px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; background: #ffd43b;"
+                            title="Vàng"></button>
+                        <button type="button" onclick="document.getElementById('name-color-input').value='#cc5de8'"
+                            style="width: 28px; height: 28px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; background: #cc5de8;"
+                            title="Tím"></button>
+                        <button type="button" onclick="document.getElementById('name-color-input').value='#ff922b'"
+                            style="width: 28px; height: 28px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; background: #ff922b;"
+                            title="Cam"></button>
+                        <button type="button" onclick="document.getElementById('name-color-input').value='#f1f1f1'"
+                            style="width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--border-color); cursor: pointer; background: #f1f1f1;"
+                            title="Trắng"></button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="password-wrapper" class="hidden" style="margin-bottom: 16px;">
+                <input type="password" id="password-input" class="login-input" style="margin-bottom: 0;"
+                    placeholder="Mật khẩu / Ngày sinh..." onkeypress="if(event.key === 'Enter') joinRoom()">
+            </div>
+
+            <button id="join-btn" class="login-btn hidden" onclick="joinRoom()">Tham Gia Ngay</button>
+        </div>
+    </div>
+
+    <div class="navbar">
+        <div style="display:flex; align-items:center; gap: 12px;">
+            <button class="menu-btn hidden" id="menu-btn" onclick="toggleSidebar()" title="Trình đơn"
+                style="background:transparent; border:none; color:var(--text-main); cursor:pointer; padding:6px; border-radius:50%; display:flex; align-items:center; justify-content:center;">
+                <span class="material-symbols-outlined" style="font-size:24px;">menu</span>
+            </button>
+            <div class="logo">2937.ML <span class="live-badge">TRỰC TIẾP</span></div>
+        </div>
+
+        <div class="navbar-search hidden" id="navbar-search">
+            <div class="search-bar-wrapper">
+                <span class="material-symbols-outlined search-icon">search</span>
+                <input type="text" id="song-input" placeholder="Tìm kiếm YouTube hoặc dán link..."
+                    onkeypress="if(event.key === 'Enter') addSong()">
+                <button class="btn-add-search" onclick="addSong()" title="Thêm vào hàng đợi">
+                    <span class="material-symbols-outlined" style="font-size:20px;">add</span>
+                </button>
+            </div>
+        </div>
+
+        <div id="navbar-right" class="navbar-right hidden">
+            <div class="navbar-user">
+                <span class="user-dot"></span>
+                <span id="navbar-username"></span>
+            </div>
+            <button class="logout-btn" onclick="logout()" title="Đăng xuất để đổi tên">
+                <span class="material-symbols-outlined">logout</span>
+            </button>
+        </div>
+    </div>
+
+    <div id="main-room" class="main-layout hidden">
+
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-item active" onclick="showTab('home')" data-tab="home">
+                <span class="material-symbols-outlined">home</span>
+                Trang chủ
+            </div>
+            <div class="sidebar-item" onclick="showTab('history')" data-tab="history">
+                <span class="material-symbols-outlined">history</span>
+                Lịch sử phát
+            </div>
+            <div class="sidebar-item" onclick="showTab('top')" data-tab="top">
+                <span class="material-symbols-outlined">local_fire_department</span>
+                Top nhạc
+            </div>
+        </div>
+
+        <div class="left-column" id="left-column">
+            <div class="video-container" id="player-container">
+                <div id="youtube-player"></div>
+            </div>
+
+            <div class="video-info">
+                <h1 class="video-title" id="welcome-title">Thưởng thức âm nhạc cùng mọi người</h1>
+
+                <div class="channel-info">
+                    <div class="channel-avatar">N</div>
+                    <div class="channel-details">
+                        <div class="channel-name">nthdat <span>• Admin</span></div>
+                        <div class="channel-sub" id="status">Đang kết nối luồng phát...</div>
+                    </div>
+                </div>
+
+                <div class="control-box">
+                    <div class="volume-control" style="display:flex;align-items:center;gap:4px;">
+                        <span id="volume-icon" class="material-symbols-outlined"
+                            style="font-size: 20px; cursor: pointer;" onclick="toggleVideoMute()"
+                            title="Bật/Tắt tiếng video">volume_up</span>
+                        <input type="range" id="volume-slider" min="0" max="100" value="50"
+                            oninput="changeVolume(this.value)">
+                    </div>
+
+                    <div id="song-tools" class="admin-tools">
+                        <button id="btn-next-song" class="btn-next hidden" onclick="nextSong()"
+                            style="display:flex;align-items:center;gap:4px;justify-content:center;">
+                            <span class="material-symbols-outlined" style="font-size:18px;">skip_next</span>
+                            Qua bài
+                        </button>
+                        <button id="btn-loop" class="btn-loop hidden" onclick="toggleLoop()"
+                            title="Bật/Tắt chế độ lặp lại">
+                            <span class="material-symbols-outlined" style="font-size:18px;">repeat</span>
+                            Lặp lại
+                        </button>
+                    </div>
+
+                    <div style="margin-top: 20px;">
+                        <div class="playlist-header">HÀNG ĐỢI PHÁT TIẾP THEO</div>
+                        <div class="playlist-ui" id="playlist-ui">
+                            <div>Chưa có bài nào chờ.</div>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: 8px;">
+                        <button id="btn-start-game" class="btn-start-game hidden" onclick="startDrawGame()">
+                            <span class="material-symbols-outlined" style="font-size:20px;">brush</span>
+                            Vẽ & Đoán
+                        </button>
+                        <button id="btn-open-caro" class="btn-start-game" onclick="openCaroGame()">
+                            <span class="material-symbols-outlined" style="font-size:20px;">grid_4x4</span>
+                            Cờ Caro
+                        </button>
+                        <button id="btn-open-chess" class="btn-start-game" onclick="openChessGame()">
+                            <span class="material-symbols-outlined" style="font-size:20px;">chess</span>
+                            Cờ Vua
+                        </button>
+                        <button id="btn-open-xiangqi" class="btn-start-game" onclick="openXiangqiGame()">
+                            <span class="material-symbols-outlined" style="font-size:20px;">sports_esports</span>
+                            Cờ Tướng
+                        </button>
+                        <button id="btn-open-uno" class="btn-start-game" onclick="openUnoGame()">
+                            <span class="material-symbols-outlined" style="font-size:20px;">style</span>
+                            Uno
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="history-column hidden" id="history-column">
+            <h2 style="margin-bottom: 24px; font-family: var(--font-display); font-size: 24px; font-weight: 700;">Lịch sử phát gần đây</h2>
+            <div id="history-list">
+                <div style="color:var(--text-muted);">Đang tải...</div>
+            </div>
+        </div>
+
+        <div class="history-column hidden" id="top-column">
+            <h2 style="margin-bottom: 24px; font-family: var(--font-display); font-size: 24px; font-weight: 700;">Top nhạc</h2>
+            <div id="top-list">
+                <div style="color:var(--text-muted);">Đang tải...</div>
+            </div>
+        </div>
+
+        <div class="right-column">
+            <div class="chat-header" style="display:flex; justify-content:space-between; align-items:center;">
+                <div class="chat-tabs" style="display:flex; gap: 16px;">
+                    <span id="tab-chat" class="active" onclick="switchRightTab('chat')"
+                        style="cursor:pointer; font-weight:600; color:var(--accent); transition:0.2s;">Chat <span
+                            id="viewer-count"
+                            style="color:var(--text-muted); font-size:13px; margin-left: 4px; font-weight:400;">(<span
+                                class="material-symbols-outlined"
+                                style="font-size:14px; vertical-align:text-bottom;">visibility</span> 1)</span></span>
+                    <span id="tab-lyric" onclick="switchRightTab('lyric')"
+                        style="cursor:pointer; font-weight:500; color:var(--text-muted); transition:0.2s;">Lời bài
+                        hát</span>
+                </div>
+                <div style="display:flex; gap: 8px; align-items: center;">
+                    <button id="sound-btn" class="sync-btn" onclick="toggleSound()" title="Bật/Tắt âm báo tin nhắn"
+                        style="display:flex;align-items:center;justify-content:center;"><span
+                            class="material-symbols-outlined"
+                            style="font-size:18px;">notifications_active</span></button>
+                    <button id="sync-btn" class="sync-btn hidden active" onclick="forceSync()"
+                        style="display:flex;align-items:center;gap:4px;justify-content:center;"><span
+                            class="material-symbols-outlined" style="font-size:18px;">play_arrow</span></button>
+                    <button class="chat-close-btn" onclick="toggleChatBubble()" title="Đóng chat"
+                        style="display:flex;align-items:center;justify-content:center;"><span
+                            class="material-symbols-outlined" style="font-size:20px;">close</span></button>
+                </div>
+            </div>
+
+            <div id="chat-area-container" style="display:flex; flex-direction:column; flex:1; overflow:hidden;">
+                <div id="pinned-message-container" class="hidden"
+                    style="background: rgba(255,255,255,0.05); padding: 10px 16px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; font-size: 13px;">
+                    <div style="display:flex; flex-direction: column; gap: 4px; overflow: hidden;">
+                        <span style="color: var(--accent); font-weight: 500; font-size: 12px;">📌 Ghim bởi <span
+                                id="pin-author">Admin</span></span>
+                        <span id="pin-text"
+                            style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 250px;">Nội
+                            dung ghim</span>
+                    </div>
+                    <button id="unpin-btn" class="hidden"
+                        style="background:transparent; border:none; color:var(--text-muted); cursor:pointer; display:flex; align-items:center; justify-content:center;"
+                        onclick="unpinMessage()"><span class="material-symbols-outlined"
+                            style="font-size: 20px;">close</span></button>
+                </div>
+
+                <div class="chat-messages" id="chat-box-ui">
+
+                </div>
+
+                <div class="chat-input-area" style="position: relative;">
+
+                    <div id="picker-popup" class="picker-overlay hidden">
+                        <div class="picker-tabs">
+                            <button class="picker-tab active" id="tab-emoji" onclick="switchPickerTab('emoji')">😊
+                                Emoji</button>
+                            <button class="picker-tab" id="tab-gif" onclick="switchPickerTab('gif')">GIF</button>
+                        </div>
+                        <div id="emoji-panel" class="emoji-grid">
+
+                        </div>
+                        <div id="gif-panel" class="gif-panel hidden">
+                            <div class="gif-search-bar">
+                                <input type="text" id="gif-search-input" placeholder="Tìm GIF..."
+                                    oninput="debouncedGifSearch()" onkeypress="if(event.key==='Enter') searchGifs()">
+                                <span class="powered-by">Powered by Tenor</span>
+                            </div>
+                            <div class="gif-results" id="gif-results">
+                                <div class="gif-results-loading">Nhập từ khóa để tìm GIF...</div>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div id="gif-suggest-strip" class="gif-suggest-strip"></div>
+
+
+                    <div id="reply-container" class="reply-bar hidden">
+                        <div class="reply-bar-content">
+                            <span class="material-symbols-outlined reply-bar-icon">reply</span>
+                            <div class="reply-bar-info">
+                                <span class="reply-bar-label">Đang trả lời <strong id="reply-author"></strong></span>
+                                <span id="reply-text" class="reply-bar-text"></span>
+                            </div>
+                        </div>
+                        <button class="reply-bar-close" onclick="cancelReply()">
+                            <span class="material-symbols-outlined" style="font-size: 18px;">close</span>
+                        </button>
+                    </div>
+
+                    <div class="chat-input-wrapper">
+                        <button class="picker-btn" id="emoji-toggle-btn" onclick="togglePicker()"
+                            title="Emoji & GIF">😊</button>
+                        <input type="text" id="chat-input" placeholder="Trò chuyện công khai..."
+                            onkeypress="if(event.key === 'Enter') sendChat()" oninput="onChatInputChange()">
+                        <button onclick="sendChat()"
+                            style="display:flex;align-items:center;justify-content:center;padding:0 8px;"><span
+                                class="material-symbols-outlined" style="font-size:20px;">send</span></button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="lyric-area-container" class="hidden"
+                style="display:flex; flex-direction:column; flex:1; overflow:hidden;">
+                <div class="lyric-box" id="lyric-box"
+                    style="flex:1; margin:0; border-radius:0; border:none; max-height:none; background:transparent;">
+                    <div id="lyric-content"></div>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="fab-menu-container" id="mobile-fab-menu">
+            <div class="fab-actions" id="fab-actions">
+                <button id="lyric-bubble-btn" class="fab-menu-btn" onclick="toggleLyricBubble()">
+                    <span class="material-symbols-outlined" style="font-size:24px;">lyrics</span>
+                </button>
+                <button id="chat-bubble-btn" class="fab-menu-btn" onclick="toggleChatBubble()">
+                    <span class="bubble-icon-chat" style="display:flex;align-items:center;justify-content:center;"><span
+                            class="material-symbols-outlined" style="font-size:24px;">chat</span></span>
+                    <span id="chat-badge" class="chat-badge hidden-badge" style="top: -2px; right: -2px;">0</span>
+                </button>
+            </div>
+            <button id="main-fab-toggle" class="fab-toggle-btn" onclick="toggleFabMenu()">
+                <span id="fab-toggle-icon" class="material-symbols-outlined"
+                    style="font-size: 28px; transition: transform 0.3s;">menu</span>
+            </button>
+        </div>
+
+    </div>
+
+
+    <div id="chess-challenge-modal" class="draw-overlay hidden" style="z-index: 1000;">
+        <div class="draw-container challenge-modal-container"
+            style="max-width: 360px; padding: 0; text-align: center; border: 1px solid var(--border-color); background: var(--panel-bg-solid); box-shadow: var(--shadow-elevated); overflow: hidden; border-radius: var(--radius-lg);">
+            <div style="background: rgba(77, 171, 247, 0.1); padding: 40px 24px 24px 24px;">
+                <div style="font-size: 56px; margin-bottom: 16px; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));">⚔️
+                </div>
+                <h3
+                    style="margin-bottom: 8px; color: white; font-family: var(--font-display); font-size: 24px; font-weight: 700;">
+                    THÁCH ĐẤU</h3>
+                <div
+                    style="width: 40px; height: 3px; background: var(--accent); margin: 0 auto 16px auto; border-radius: 2px;">
+                </div>
+                <p style="margin-bottom: 0; color: var(--text-muted); font-size: 16px; line-height: 1.5;">
+                    <strong id="chess-challenger-name"
+                        style="color: white; font-size: 20px; display: block; margin-bottom: 4px;">Ai đó</strong>
+                    đang gửi chiến thư đến bạn!
+                </p>
+            </div>
+            <div style="padding: 24px; display: flex; gap: 12px; justify-content: center;">
+                <button class="challenge-btn decline-btn" onclick="respondChessChallenge(false)">Từ chối</button>
+                <button class="challenge-btn accept-btn" onclick="respondChessChallenge(true)">Tiếp chiêu</button>
+            </div>
+        </div>
+    </div>
+
+
+    <div id="chess-game-overlay" class="draw-overlay hidden">
+        <div class="draw-container" style="max-width: 600px; padding: 24px; position: relative; max-height: 90vh;">
+            <div class="draw-header"
+                style="justify-content: space-between; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 16px;">
+                <div class="draw-header-title" style="display:flex; align-items:center; gap: 8px;">
+                    <span class="material-symbols-outlined" style="color: #fff;">chess</span>
+                    Cờ Vua
+                </div>
+                <button
+                    style="background:rgba(255,255,255,0.1); border:none; color:white; cursor:pointer; width: 32px; height: 32px; border-radius: 50%; display:flex; align-items:center; justify-content:center; transition: background 0.2s;"
+                    onclick="closeChessGame()" onmouseover="this.style.background='rgba(255,255,255,0.2)'"
+                    onmouseout="this.style.background='rgba(255,255,255,0.1)'">
+                    <span class="material-symbols-outlined" style="font-size:20px;">close</span>
+                </button>
+            </div>
+
+            <div id="chess-status"
+                style="margin-bottom: 20px; font-size: 16px; color: var(--text-main); text-align: center; font-weight: 500;">
+                Đang tải bàn cờ...</div>
+            <div style="display: flex; gap: 12px; margin-bottom: 24px; justify-content: center; flex-wrap: wrap; align-items: center;"
+                id="chess-actions">
+                <select id="chess-challenge-target"
+                    style="padding: 10px 16px; border-radius: var(--radius-md); background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; font-family: var(--font-body); outline: none;">
+                    <option value="">-- Chọn đối thủ --</option>
+                </select>
+                <button class="caro-btn" style="color: #000; border-color: var(--accent); background: var(--accent);"
+                    onclick="sendChessChallenge()" id="btn-send-challenge">
+                    ⚔️ Thách đấu
+                </button>
+                <button class="caro-btn hidden" style="border-color: #ff4757; color: #ff4757;" onclick="leaveChess()"
+                    id="btn-leave-chess">Rời bàn / Hủy</button>
+            </div>
+            <div class="caro-board-container hidden" id="chess-board-wrapper">
+                <div id="chess-board"
+                    style="display: grid; grid-template-columns: repeat(8, 40px); grid-template-rows: repeat(8, 40px); gap: 0; margin: 0 auto; width: fit-content; border: 4px solid #553311; border-radius: 4px;">
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div id="caro-challenge-modal" class="draw-overlay hidden" style="z-index: 1000;">
+        <div class="draw-container challenge-modal-container"
+            style="max-width: 360px; padding: 0; text-align: center; border: 1px solid var(--border-color); background: var(--panel-bg-solid); box-shadow: var(--shadow-elevated); overflow: hidden; border-radius: var(--radius-lg);">
+            <div style="background: rgba(77, 171, 247, 0.1); padding: 40px 24px 24px 24px;">
+                <div style="font-size: 56px; margin-bottom: 16px; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));">⭕❌
+                </div>
+                <h3
+                    style="margin-bottom: 8px; color: white; font-family: var(--font-display); font-size: 24px; font-weight: 700;">
+                    THÁCH ĐẤU</h3>
+                <div
+                    style="width: 40px; height: 3px; background: var(--accent); margin: 0 auto 16px auto; border-radius: 2px;">
+                </div>
+                <p style="margin-bottom: 0; color: var(--text-muted); font-size: 16px; line-height: 1.5;">
+                    <strong id="caro-challenger-name"
+                        style="color: white; font-size: 20px; display: block; margin-bottom: 4px;">Ai đó</strong>
+                    đang gửi chiến thư Cờ Caro đến bạn!
+                </p>
+            </div>
+            <div style="padding: 24px; display: flex; gap: 12px; justify-content: center;">
+                <button class="challenge-btn decline-btn" onclick="respondCaroChallenge(false)">Từ chối</button>
+                <button class="challenge-btn accept-btn" onclick="respondCaroChallenge(true)">Tiếp chiêu</button>
+            </div>
+        </div>
+    </div>
+
+
+    <div id="caro-game-overlay" class="draw-overlay hidden">
+        <div class="draw-container" style="max-width: 600px; padding: 24px; position: relative; max-height: 90vh;">
+            <div class="draw-header"
+                style="justify-content: space-between; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 16px;">
+                <div class="draw-header-title" style="display:flex; align-items:center; gap: 8px;">
+                    <span class="material-symbols-outlined" style="color: var(--accent);">grid_4x4</span>
+                    Cờ Caro
+                </div>
+                <button
+                    style="background:rgba(255,255,255,0.1); border:none; color:white; cursor:pointer; width: 32px; height: 32px; border-radius: 50%; display:flex; align-items:center; justify-content:center; transition: background 0.2s;"
+                    onclick="closeCaroGame()" onmouseover="this.style.background='rgba(255,255,255,0.2)'"
+                    onmouseout="this.style.background='rgba(255,255,255,0.1)'">
+                    <span class="material-symbols-outlined" style="font-size:20px;">close</span>
+                </button>
+            </div>
+
+            <div id="caro-status"
+                style="margin-bottom: 20px; font-size: 16px; color: var(--text-main); text-align: center; font-weight: 500;">
+                Đang tải bàn cờ...</div>
+            <div style="display: flex; gap: 12px; margin-bottom: 24px; justify-content: center; flex-wrap: wrap; align-items: center;"
+                id="caro-actions">
+                <select id="caro-challenge-target"
+                    style="padding: 10px 16px; border-radius: var(--radius-md); background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; font-family: var(--font-body); outline: none;">
+                    <option value="">-- Chọn đối thủ --</option>
+                </select>
+                <button class="caro-btn"
+                    style="color: var(--accent); border-color: var(--accent); background: rgba(77,171,247,0.1);"
+                    onclick="sendCaroChallenge()" id="btn-send-caro-challenge">
+                    ⚔️ Thách đấu
+                </button>
+                <button class="caro-btn hidden" style="border-color: #ff4757; color: #ff4757;" onclick="leaveCaro()"
+                    id="btn-leave-caro">Rời bàn / Hủy</button>
+            </div>
+            <div class="caro-board-container hidden" id="caro-board-wrapper">
+                <div id="caro-board"
+                    style="display: grid; grid-template-columns: repeat(15, 32px); grid-template-rows: repeat(15, 32px); gap: 4px; margin: 0 auto; width: fit-content;">
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div id="xiangqi-challenge-modal" class="draw-overlay hidden" style="z-index: 1000;">
+        <div class="draw-container challenge-modal-container"
+            style="max-width: 360px; padding: 0; text-align: center; border: 1px solid var(--border-color); background: var(--panel-bg-solid); box-shadow: var(--shadow-elevated); overflow: hidden; border-radius: var(--radius-lg);">
+            <div style="background: rgba(211, 47, 47, 0.1); padding: 40px 24px 24px 24px;">
+                <div style="font-size: 56px; margin-bottom: 16px; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));">🀄
+                </div>
+                <h3 style="margin-bottom: 8px; color: white; font-family: var(--font-display); font-size: 24px; font-weight: 700;">
+                    THÁCH ĐẤU</h3>
+                <div style="width: 40px; height: 3px; background: #d32f2f; margin: 0 auto 16px auto; border-radius: 2px;">
+                </div>
+                <p style="margin-bottom: 0; color: var(--text-muted); font-size: 16px; line-height: 1.5;">
+                    <strong id="xiangqi-challenger-name" style="color: white; font-size: 20px; display: block; margin-bottom: 4px;">Ai đó</strong>
+                    đang gửi chiến thư Cờ Tướng đến bạn!
+                </p>
+            </div>
+            <div style="padding: 24px; display: flex; gap: 12px; justify-content: center;">
+                <button class="challenge-btn decline-btn" onclick="respondXiangqiChallenge(false)">Từ chối</button>
+                <button class="challenge-btn accept-btn" style="background:#d32f2f;" onclick="respondXiangqiChallenge(true)">Tiếp chiêu</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="xiangqi-game-overlay" class="draw-overlay hidden">
+        <div class="draw-container" style="max-width: 600px; padding: 24px; position: relative; max-height: 90vh; overflow-y: auto;">
+            <div class="draw-header" style="justify-content: space-between; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 16px;">
+                <div class="draw-header-title" style="display:flex; align-items:center; gap: 8px;">
+                    <span class="material-symbols-outlined" style="color: #d32f2f;">sports_esports</span>
+                    Cờ Tướng
+                </div>
+                <button style="background:rgba(255,255,255,0.1); border:none; color:white; cursor:pointer; width: 32px; height: 32px; border-radius: 50%; display:flex; align-items:center; justify-content:center; transition: background 0.2s;"
+                    onclick="closeXiangqiGame()">
+                    <span class="material-symbols-outlined" style="font-size:20px;">close</span>
+                </button>
+            </div>
+
+            <div id="xiangqi-status" style="margin-bottom: 20px; font-size: 16px; color: var(--text-main); text-align: center; font-weight: 500;">
+                Đang tải bàn cờ...</div>
+            <div style="display: flex; gap: 12px; margin-bottom: 24px; justify-content: center; flex-wrap: wrap; align-items: center;"
+                id="xiangqi-actions">
+                <select id="xiangqi-challenge-target" style="padding: 10px 16px; border-radius: var(--radius-md); background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; outline: none;">
+                    <option value="">-- Chọn đối thủ --</option>
+                </select>
+                <button class="caro-btn" style="color: #fff; background: #d32f2f; border-color: #d32f2f;" onclick="sendXiangqiChallenge()" id="btn-send-xiangqi-challenge">
+                    ⚔️ Thách đấu
+                </button>
+                <button class="caro-btn hidden" style="border-color: #ff4757; color: #ff4757;" onclick="leaveXiangqi()" id="btn-leave-xiangqi">Rời bàn / Hủy</button>
+            </div>
+            <div class="caro-board-container hidden" id="xiangqi-board-wrapper">
+                <div id="xiangqi-board" style="display: grid; grid-template-columns: repeat(9, 40px); grid-template-rows: repeat(10, 40px); gap: 0; margin: 0 auto; width: fit-content; border: 2px solid #a67c52; background: #e3c498; position: relative;">
+                    <!-- Grid drawn by JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- UNO MODALS -->
+    <div id="uno-game-overlay" class="draw-overlay hidden">
+        <div class="draw-container" style="max-width: 800px; padding: 24px; position: relative; max-height: 90vh; overflow-y: auto;">
+            <div class="draw-header" style="justify-content: space-between; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 16px;">
+                <div class="draw-header-title" style="display:flex; align-items:center; gap: 8px;">
+                    <span class="material-symbols-outlined" style="color: #fbbc04;">style</span>
+                    UNO Multiplayer
+                </div>
+                <button style="background:rgba(255,255,255,0.1); border:none; color:white; cursor:pointer; width: 32px; height: 32px; border-radius: 50%; display:flex; align-items:center; justify-content:center; transition: background 0.2s;"
+                    onclick="closeUnoGame()">
+                    <span class="material-symbols-outlined" style="font-size:20px;">close</span>
+                </button>
+            </div>
+
+            <div id="uno-lobby" style="text-align: center;">
+                <p>Mọi người đều có thể tham gia ván UNO này!</p>
+                <div id="uno-players-list" style="margin: 20px 0; font-weight: bold; color: var(--accent);">Chưa có ai</div>
+                <button class="caro-btn" style="background: var(--accent); color: #000;" onclick="joinUnoGame()">Tham gia</button>
+                <button class="caro-btn" style="background: #51cf66; color: #000;" onclick="startUnoGame()">Bắt đầu Game</button>
+            </div>
+
+            <div id="uno-board" class="hidden">
+                <div id="uno-status" style="margin-bottom: 20px; font-size: 18px; color: var(--text-main); text-align: center; font-weight: bold;"></div>
+                
+                <div style="display: flex; justify-content: center; gap: 40px; margin-bottom: 40px; align-items: center;">
+                    <div id="uno-deck" onclick="drawUnoCard()" style="width: 80px; height: 120px; background: #222; border: 2px solid white; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: white; font-weight: bold;">
+                        Bốc bài
+                    </div>
+                    <div id="uno-pass" onclick="passUnoTurn()" style="width: 80px; height: 120px; background: #555; border: 2px solid white; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: white; font-weight: bold;">
+                        Bỏ lượt
+                    </div>
+                    <div id="uno-discard" style="width: 80px; height: 120px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 24px; color: white;">
+                        --
+                    </div>
+                </div>
+
+                <div style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
+                    <h4 style="margin-bottom: 12px;">Bài của bạn:</h4>
+                    <div id="uno-hand" style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: center;">
+                        <!-- Cards -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="draw-game-overlay" class="draw-overlay hidden">
+        <div class="draw-container">
+            <div class="draw-header">
+                <div class="draw-header-title">🎨 Vẽ & Đoán</div>
+                <div class="draw-timer" id="draw-timer">--</div>
+                <div style="display:flex;gap:6px;align-items:center;">
+                    <div id="draw-drawer-tools" class="draw-admin-tools hidden">
+                        <button class="draw-admin-btn skip" onclick="skipDrawWord()">🔄 Đổi từ</button>
+                    </div>
+                    <div id="draw-admin-tools-header" class="draw-admin-tools hidden">
+                        <button class="draw-admin-btn end" onclick="endDrawGame()">✕ Kết thúc</button>
+                    </div>
+                </div>
+            </div>
+            <div class="draw-info" id="draw-info">
+                <div>Chờ admin chọn người vẽ...</div>
+            </div>
+            <div id="draw-main-area">
+                <div id="draw-waiting-panel">
+                    <div style="padding:16px 20px; text-align:center; color:var(--text-muted); font-size:14px;">👆 Admin
+                        chọn người vẽ bên dưới</div>
+                    <div id="draw-random-btn-container" class="hidden" style="text-align:center; margin-bottom: 8px;">
+                        <button class="draw-admin-btn skip"
+                            style="font-size:14px; padding:8px 20px; background:rgba(255,212,59,0.15); color:#ffd43b;"
+                            onclick="randomPickDrawer()">🎲 Chọn Ngẫu Nhiên</button>
+                    </div>
+                    <div class="draw-user-list" id="draw-user-list"></div>
+                </div>
+                <div id="draw-random-panel" class="hidden">
+                    <div class="draw-random-picker">
+                        <div>🎲 Đang chọn ngẫu nhiên...</div>
+                        <div id="draw-random-name" class="draw-random-name">---</div>
+                    </div>
+                </div>
+                <div id="draw-canvas-panel" class="hidden">
+                    <div class="draw-canvas-wrap"><canvas id="draw-canvas"></canvas></div>
+                    <div id="draw-tools-bar" class="draw-tools hidden">
+                        <div class="draw-colors" id="draw-colors"></div>
+                        <div class="draw-sizes">
+                            <button class="draw-size-btn" data-size="3" onclick="setDrawSize(3,this)">S</button>
+                            <button class="draw-size-btn active" data-size="6" onclick="setDrawSize(6,this)">M</button>
+                            <button class="draw-size-btn" data-size="12" onclick="setDrawSize(12,this)">L</button>
+                            <button class="draw-size-btn" data-size="20" onclick="setDrawSize(20,this)">XL</button>
+                        </div>
+                        <button class="draw-tool-btn" id="eraser-btn" onclick="toggleEraser()"><span
+                                class="material-symbols-outlined" style="font-size:16px;">ink_eraser</span></button>
+                        <button class="draw-tool-btn" onclick="clearDrawCanvas()"><span
+                                class="material-symbols-outlined" style="font-size:16px;">delete</span> Xóa</button>
+                    </div>
+                </div>
+                <div id="draw-round-result" class="draw-round-result hidden"></div>
+            </div>
+            <div id="draw-guess-area" class="draw-guess-area hidden">
+                <div id="draw-guess-feedback" class="draw-guess-feedback"></div>
+                <div class="draw-guess-wrapper">
+                    <input type="text" id="draw-guess-input" placeholder="Nhập câu trả lời của bạn..."
+                        onkeypress="if(event.key==='Enter') sendDrawGuess()" autocomplete="off">
+                    <button class="draw-guess-btn" onclick="sendDrawGuess()"><span class="material-symbols-outlined"
+                            style="font-size:16px;">send</span> Đoán</button>
+                </div>
+            </div>
+            <div class="draw-scores" id="draw-scores"></div>
+        </div>
+    </div>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+    <script src="https://www.youtube.com/iframe_api"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+    <script src="main.js"></script>
+</body>
+
+</html>

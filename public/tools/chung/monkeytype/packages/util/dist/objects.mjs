@@ -1,0 +1,2 @@
+function t(e){return Object.keys(e)}function n(e){return Object.entries(e)}function T(e){return Object.values(e)}export{n as typedEntries,t as typedKeys,T as typedValues};
+//# sourceMappingURL=objects.mjs.map
