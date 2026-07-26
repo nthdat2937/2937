@@ -28,9 +28,90 @@ async function logMusicHistory(videoId, title, addedBy) {
     }
 }
 
+async function saveMessageToSupabase(msgObj) {
+    if (!supabase) return;
+    if (msgObj.role === 'system') return; // Do not save system notifications
+    try {
+        const { error } = await supabase.from('chat_messages').insert([{
+            id: String(msgObj.id),
+            sender_id: msgObj.senderId ? String(msgObj.senderId) : null,
+            name: msgObj.name || null,
+            name_color: msgObj.nameColor || null,
+            text: msgObj.text || null,
+            type: msgObj.type || 'text',
+            audio_url: msgObj.audioUrl || null,
+            duration: msgObj.duration ? parseFloat(msgObj.duration) : null,
+            gif_url: msgObj.gifUrl || null,
+            file_url: msgObj.fileUrl || null,
+            role: msgObj.role || 'member',
+            reply_to: msgObj.replyTo ? JSON.stringify(msgObj.replyTo) : null,
+            created_at: new Date().toISOString()
+        }]);
+        if (error) {
+            console.error('❌ Supabase Save Chat Error:', error.message, error.details || '');
+        } else {
+            console.log('✅ Đã lưu tin nhắn vào Supabase:', msgObj.text || msgObj.type);
+        }
+    } catch (err) {
+        console.error('❌ Supabase Save Chat Exception:', err.message);
+    }
+}
+
+async function getRecentChatHistory() {
+    if (!supabase) return [];
+    try {
+        const { data, error } = await supabase
+            .from('chat_messages')
+            .select('*')
+            .order('created_at', { ascending: false })
+            .limit(50);
+        if (error) {
+            console.error('❌ Supabase Fetch Chat History Error:', error.message);
+            return [];
+        }
+        if (!data) return [];
+        return data.reverse().map(m => ({
+            id: m.id,
+            senderId: m.sender_id,
+            name: m.name,
+            nameColor: m.name_color,
+            text: m.text,
+            type: m.type,
+            audioUrl: m.audio_url,
+            duration: m.duration,
+            gifUrl: m.gif_url,
+            fileUrl: m.file_url,
+            role: m.role,
+            replyTo: typeof m.reply_to === 'string' ? JSON.parse(m.reply_to) : m.reply_to
+        }));
+    } catch (err) {
+        console.error('❌ Supabase Fetch Chat Exception:', err.message);
+        return [];
+    }
+}
+
+async function deleteMessageFromSupabase(msgId) {
+    if (!supabase) return;
+    try {
+        const { error } = await supabase
+            .from('chat_messages')
+            .delete()
+            .eq('id', String(msgId));
+        if (error) {
+            console.error('❌ Supabase Delete Chat Error:', error.message);
+        } else {
+            console.log('🗑️ Đã xóa tin nhắn khỏi Supabase, id:', msgId);
+        }
+    } catch (err) {
+        console.error('❌ Supabase Delete Exception:', err.message);
+    }
+}
+
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server);
+const io = new Server(server, {
+    maxHttpBufferSize: 50 * 1024 * 1024
+});
 
 app.use(express.static('public'));
 
@@ -372,9 +453,10 @@ io.on('connection', (socket) => {
     console.log('🔌 Một kết nối mới: ' + socket.id);
     io.emit('viewersUpdate', io.engine.clientsCount);
 
-    socket.on('joinRoom', (data) => {
+    socket.on('joinRoom', async (data) => {
         const { name, isAdmin, password, nameColor } = data;
         const username = name.trim() || 'Người dùng ẩn danh';
+        const chatHistory = await getRecentChatHistory();
 
         if (isAdmin) {
             let isValid = false;
@@ -394,7 +476,7 @@ io.on('connection', (socket) => {
                 socket.role = 'admin';
                 socket.nameColor = nameColor || '#fbbc04';
                 connectedUsers.set(socket.id, { name: socket.username, role: 'admin', nameColor: socket.nameColor });
-                socket.emit('authResult', { success: true, role: 'admin', currentVideoId, currentVideoTitle, playlist, pinnedMessage, loopMode, drawGame: drawGame.active ? { active: true, state: drawGame.state, scores: drawGame.scores } : null, caroGame, chessGame, xiangqiGame, unoPublicState: getPublicUnoState() });
+                socket.emit('authResult', { success: true, role: 'admin', currentVideoId, currentVideoTitle, playlist, pinnedMessage, loopMode, drawGame: drawGame.active ? { active: true, state: drawGame.state, scores: drawGame.scores } : null, caroGame, chessGame, xiangqiGame, unoPublicState: getPublicUnoState(), chatHistory });
                 io.emit('newMessage', { id: 'sys-' + Date.now(), name: 'Hệ thống 🤖', text: `👑 Admin [${socket.username}] đã lên sàn điều khiển nhạc!`, role: 'system' });
                 io.emit('activeUsersList', getDrawUserList());
             } else {
@@ -405,7 +487,7 @@ io.on('connection', (socket) => {
             socket.role = 'member';
             socket.nameColor = nameColor || '#aaaaaa';
             connectedUsers.set(socket.id, { name: socket.username, role: 'member', nameColor: socket.nameColor });
-            socket.emit('authResult', { success: true, role: 'member', currentVideoId, currentVideoTitle, playlist, pinnedMessage, loopMode, drawGame: drawGame.active ? { active: true, state: drawGame.state, scores: drawGame.scores } : null, caroGame, chessGame, xiangqiGame, unoPublicState: getPublicUnoState() });
+            socket.emit('authResult', { success: true, role: 'member', currentVideoId, currentVideoTitle, playlist, pinnedMessage, loopMode, drawGame: drawGame.active ? { active: true, state: drawGame.state, scores: drawGame.scores } : null, caroGame, chessGame, xiangqiGame, unoPublicState: getPublicUnoState(), chatHistory });
             io.emit('newMessage', { id: 'sys-' + Date.now(), name: 'Hệ thống 🤖', text: `👋 Chào mừng [${socket.username}] đã tham gia phòng nhạc!`, role: 'system' });
             io.emit('activeUsersList', getDrawUserList());
         }
@@ -418,24 +500,60 @@ io.on('connection', (socket) => {
         const senderName = socket.username || 'Ẩn danh';
         const senderRole = socket.role || 'member';
         const senderColor = socket.nameColor || '#aaaaaa';
-
+        const replyTo = (typeof msg === 'object' && msg.replyTo) ? msg.replyTo : null;
 
         if (typeof msg === 'object' && msg.type === 'gif' && msg.gifUrl) {
-            io.emit('newMessage', {
+            const gifMsgObj = {
                 id: msgId,
                 senderId: socket.id,
                 name: senderName,
                 nameColor: senderColor,
                 text: '[GIF]',
+                type: 'gif',
                 gifUrl: msg.gifUrl,
                 role: senderRole
-            });
+            };
+            io.emit('newMessage', gifMsgObj);
+            saveMessageToSupabase(gifMsgObj);
             return;
         }
 
+        if (typeof msg === 'object' && msg.type === 'voice' && msg.audioUrl) {
+            const voiceMsgObj = {
+                id: msgId,
+                senderId: socket.id,
+                name: senderName,
+                nameColor: senderColor,
+                text: '[Tin nhắn thoại]',
+                type: 'voice',
+                audioUrl: msg.audioUrl,
+                duration: msg.duration || 0,
+                role: senderRole,
+                replyTo: replyTo
+            };
+            io.emit('newMessage', voiceMsgObj);
+            saveMessageToSupabase(voiceMsgObj);
+            return;
+        }
+
+        if (typeof msg === 'object' && (msg.type === 'image' || msg.type === 'video') && msg.fileUrl) {
+            const mediaMsgObj = {
+                id: msgId,
+                senderId: socket.id,
+                name: senderName,
+                nameColor: senderColor,
+                text: msg.type === 'image' ? '[Hình ảnh]' : '[Video]',
+                type: msg.type,
+                fileUrl: msg.fileUrl,
+                role: senderRole,
+                replyTo: replyTo
+            };
+            io.emit('newMessage', mediaMsgObj);
+            saveMessageToSupabase(mediaMsgObj);
+            return;
+        }
 
         let textMsg = typeof msg === 'string' ? msg : (msg.type === 'text' ? msg.text : '');
-        let replyTo = typeof msg === 'object' && msg.replyTo ? msg.replyTo : null;
 
         if (textMsg && textMsg.trim() !== '') {
 
@@ -473,11 +591,13 @@ io.on('connection', (socket) => {
                 }
             }
 
-            io.emit('newMessage', {
+            const textMsgObj = {
                 id: msgId, senderId: socket.id, name: senderName,
                 nameColor: senderColor, text: textMsg, role: senderRole,
-                replyTo: replyTo
-            });
+                replyTo: replyTo, type: 'text'
+            };
+            io.emit('newMessage', textMsgObj);
+            saveMessageToSupabase(textMsgObj);
 
             if (textLower === '/skip') {
                 if (playlist.length > 0) {
@@ -652,6 +772,7 @@ io.on('connection', (socket) => {
     socket.on('adminDeleteMessage', (msgId) => {
         if (socket.role === 'admin') {
             io.emit('messageDeleted', msgId);
+            deleteMessageFromSupabase(msgId);
         }
     });
 
@@ -684,6 +805,12 @@ io.on('connection', (socket) => {
             info.addedByColor = socket.nameColor || '#aaaaaa';
             playlist.push(info);
             io.emit('updatePlaylist', playlist);
+            io.emit('newMessage', {
+                id: 'sys-' + Date.now(),
+                name: 'Hệ thống 🤖',
+                text: `🎵 **${socket.username || 'Thành viên'}** đã thêm bài **${info.title}** vào danh sách chờ!`,
+                role: 'system'
+            });
 
             if (isPlayerIdle) {
                 const nextSong = playlist.shift();

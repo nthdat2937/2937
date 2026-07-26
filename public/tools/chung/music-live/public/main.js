@@ -1,3 +1,23 @@
+// Hide App Splash Loading Screen when fonts/assets are ready
+function hideAppLoader() {
+    const loader = document.getElementById('app-loader-screen');
+    if (loader && !loader.classList.contains('fade-out')) {
+        loader.classList.add('fade-out');
+        setTimeout(() => { if (loader.parentNode) loader.remove(); }, 500);
+    }
+}
+
+if (document.fonts) {
+    document.fonts.ready.then(() => {
+        setTimeout(hideAppLoader, 250);
+    });
+}
+window.addEventListener('load', () => {
+    setTimeout(hideAppLoader, 250);
+});
+// Safety fallback (max 2 seconds)
+setTimeout(hideAppLoader, 1800);
+
 const socket = io();
 socket.on('connect', () => {
     if (myRole) {
@@ -46,7 +66,7 @@ function showTab(tab) {
 
 async function loadHistory() {
     const list = document.getElementById('history-list');
-    list.innerHTML = '<div style="color:var(--text-muted);">Đang tải...</div>';
+    list.innerHTML = '<div style="color:var(--text-muted); padding:12px; text-align:center;">Đang tải lịch sử phát...</div>';
 
     try {
         const supabaseClient = supabase.createClient('https://wnioetdrphkdylkoybsu.supabase.co', 'sb_publishable_p0VSduH3epzQVUdvAf2kPQ_aoWk_l1T');
@@ -59,7 +79,7 @@ async function loadHistory() {
         if (error) throw error;
 
         if (!data || data.length === 0) {
-            list.innerHTML = '<div style="color:var(--text-muted);">Chưa có lịch sử phát nào.</div>';
+            list.innerHTML = '<div style="color:var(--text-muted); padding:12px; text-align:center;">Chưa có lịch sử phát nào.</div>';
             return;
         }
 
@@ -74,42 +94,49 @@ async function loadHistory() {
             }
         }
 
+        const fallbackSvg = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='60' height='40' viewBox='0 0 60 40' fill='%23181824'><rect width='60' height='40' fill='%23181824'/><text x='50%' y='55%' dominant-baseline='middle' text-anchor='middle' fill='%23555' font-size='16'>🎵</text></svg>";
+
         list.innerHTML = groupedData.map(song => {
             const d = new Date(song.played_at);
             const timeStr = d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
             const dateStr = d.toLocaleDateString('vi-VN');
 
             const isStacked = song.count > 1;
-            const imgShadow = isStacked ? '3px 3px 0px rgba(255,255,255,0.2), 6px 6px 0px rgba(255,255,255,0.1)' : '0 2px 4px rgba(0,0,0,0.2)';
-            const badgeHtml = isStacked ? `<div style="position:absolute; top:-6px; right:-6px; background:#e03131; color:white; font-size:10px; font-weight:bold; padding:2px 5px; border-radius:8px; box-shadow: 0 2px 4px rgba(0,0,0,0.3); z-index:2;">x${song.count}</div>` : '';
+            const badgeHtml = isStacked ? `<div class="history-count-badge">x${song.count}</div>` : '';
+            const thumbUrl = `https://img.youtube.com/vi/${song.video_id}/mqdefault.jpg`;
 
             return `
-                        <div class="history-item" style="display:flex; flex-direction:row; justify-content:space-between; align-items:center; gap: 12px; margin-bottom: ${isStacked ? '6px' : '0'};">
-                            <div style="position:relative; flex-shrink:0;">
-                                <img src="https://img.youtube.com/vi/${song.video_id}/mqdefault.jpg" alt="thumbnail" style="width: 56px; height: 42px; object-fit: cover; border-radius: 6px; box-shadow: ${imgShadow};">
-                                ${badgeHtml}
-                            </div>
-                            <div style="flex: 1; min-width:0;">
-                                <div class="history-title" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(song.title)}</div>
-                                <div class="history-meta">
-                                    Thêm bởi: <strong>${escapeHtml(song.added_by)}</strong> • Gần nhất: ${timeStr} ${dateStr}
-                                </div>
-                            </div>
-                            <button class="btn-add-search" style="flex-shrink:0;" onclick="addSongFromHistory('${song.video_id}', this)" title="Thêm vào hàng đợi">
-                                <span class="material-symbols-outlined" style="font-size:20px;">add</span>
-                            </button>
+                <div class="history-item">
+                    <div class="history-thumb-container">
+                        <img src="${thumbUrl}" alt="thumbnail" class="history-thumb-img" onerror="this.onerror=null; this.src='${fallbackSvg}';">
+                        ${badgeHtml}
+                        <div class="history-play-overlay">
+                            <span class="material-symbols-outlined">play_arrow</span>
                         </div>
-                    `;
+                    </div>
+                    <div class="history-info">
+                        <div class="history-title" title="${escapeHtml(song.title)}">${escapeHtml(song.title)}</div>
+                        <div class="history-meta">
+                            <span>Thêm bởi: <strong class="history-meta-user">${escapeHtml(song.added_by)}</strong></span>
+                            <span>•</span>
+                            <span>${timeStr} ${dateStr}</span>
+                        </div>
+                    </div>
+                    <button class="history-add-btn" onclick="addSongFromHistory('${song.video_id}', this)" title="Thêm vào hàng đợi">
+                        <span class="material-symbols-outlined" style="font-size:18px;">add</span>
+                    </button>
+                </div>
+            `;
         }).join('');
     } catch (err) {
         console.error(err);
-        list.innerHTML = '<div style="color:#ff6b6b;">Lỗi tải dữ liệu lịch sử. Xin vui lòng thử lại!</div>';
+        list.innerHTML = '<div style="color:#ff6b6b; padding:12px; text-align:center;">Lỗi tải dữ liệu lịch sử. Xin thử lại sau!</div>';
     }
 }
 
 async function loadTopNhac() {
     const list = document.getElementById('top-list');
-    list.innerHTML = '<div style="color:var(--text-muted);">Đang tải Top nhạc...</div>';
+    list.innerHTML = '<div style="color:var(--text-muted); padding:12px; text-align:center;">Đang tải Top nhạc...</div>';
 
     try {
         const supabaseClient = supabase.createClient('https://ktqdzlhvdkerjajffgfi.supabase.co', 'sb_publishable_1wm-eXETyu07vl61sY4mBQ_xwYZVOCj');
@@ -122,32 +149,47 @@ async function loadTopNhac() {
         if (error) throw error;
 
         if (!data || data.length === 0) {
-            list.innerHTML = '<div style="color:var(--text-muted);">Chưa có bài hát nào trong Top.</div>';
+            list.innerHTML = '<div style="color:var(--text-muted); padding:12px; text-align:center;">Chưa có bài hát nào trong Top.</div>';
             return;
         }
 
+        const fallbackSvg = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='60' height='40' viewBox='0 0 60 40' fill='%23181824'><rect width='60' height='40' fill='%23181824'/><text x='50%' y='55%' dominant-baseline='middle' text-anchor='middle' fill='%23555' font-size='16'>🎵</text></svg>";
+
         list.innerHTML = data.map((song, index) => {
-            const avatarUrl = song.avatar || 'https://via.placeholder.com/120x68?text=No+Image';
+            let avatarUrl = song.avatar;
+            if (!avatarUrl || avatarUrl.includes('placeholder.com')) {
+                avatarUrl = fallbackSvg;
+            }
+
+            const title = song['Tên'] || '';
+            const artist = song['Ca sĩ'] || '';
+            const query = (title + ' ' + artist).trim();
+
             return `
-                        <div class="history-item" style="display:flex; flex-direction:row; justify-content:space-between; align-items:center; gap: 12px; margin-bottom: 8px;">
-                            <div style="position:relative; flex-shrink:0;">
-                                <img src="${escapeHtml(avatarUrl)}" alt="thumbnail" style="width: 56px; height: 42px; object-fit: cover; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
-                            </div>
-                            <div style="flex: 1; min-width:0;">
-                                <div class="history-title" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-size: 15px;">${escapeHtml(song['Tên'])} <span style="font-size: 13px; color: var(--text-muted);">- ${escapeHtml(song['Ca sĩ'] || '')}</span></div>
-                                <div class="history-meta" style="margin-top: 4px;">
-                                    Thêm bởi: <span style="color:#e0e0e0;font-weight:500;">${escapeHtml(song.add_by || 'Unknown')}</span>
-                                </div>
-                            </div>
-                            <button class="btn-add-search" style="flex-shrink:0;" onclick="addSongFromHistory('${escapeHtml(song['Tên'] + ' ' + (song['Ca sĩ'] || ''))}', this)" title="Thêm vào hàng đợi">
-                                <span class="material-symbols-outlined" style="font-size:20px;">add</span>
-                            </button>
+                <div class="history-item">
+                    <div class="history-thumb-container">
+                        <img src="${escapeHtml(avatarUrl)}" alt="thumbnail" class="history-thumb-img" onerror="this.onerror=null; this.src='${fallbackSvg}';">
+                        <div class="history-play-overlay">
+                            <span class="material-symbols-outlined">play_arrow</span>
                         </div>
-                    `;
+                    </div>
+                    <div class="history-info">
+                        <div class="history-title" title="${escapeHtml(title)}">
+                            ${escapeHtml(title)} ${artist ? `<span class="history-artist">- ${escapeHtml(artist)}</span>` : ''}
+                        </div>
+                        <div class="history-meta">
+                            <span>Đóng góp: <strong class="history-meta-user">${escapeHtml(song.add_by || 'Cộng đồng')}</strong></span>
+                        </div>
+                    </div>
+                    <button class="history-add-btn" onclick="addSongFromHistory('${escapeHtml(query)}', this)" title="Thêm vào hàng đợi">
+                        <span class="material-symbols-outlined" style="font-size:18px;">add</span>
+                    </button>
+                </div>
+            `;
         }).join('');
     } catch (err) {
         console.error(err);
-        list.innerHTML = '<div style="color:#ff6b6b;">Lỗi tải Top nhạc: ' + err.message + '</div>';
+        list.innerHTML = '<div style="color:#ff6b6b; padding:12px; text-align:center;">Lỗi tải Top nhạc. Xin thử lại sau!</div>';
     }
 }
 
@@ -163,7 +205,7 @@ function addSongFromHistory(videoId, btn) {
         } else {
             btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:20px;">close</span>';
             btn.style.background = '#ff6b6b';
-            alert(res && res.message ? res.message : "Không tìm thấy bài hát hoặc có lỗi xảy ra!");
+            showToastNotification('⚠️ ' + (res && res.message ? res.message : "Không tìm thấy bài hát hoặc có lỗi xảy ra!"));
         }
         setTimeout(() => {
             btn.innerHTML = originalHtml;
@@ -283,6 +325,14 @@ socket.on('authResult', (res) => {
             document.title = res.currentVideoTitle;
             document.getElementById('welcome-title').innerText = res.currentVideoTitle;
             fetchLyrics(res.currentVideoTitle);
+        }
+
+        if (res.chatHistory && Array.isArray(res.chatHistory)) {
+            res.chatHistory.forEach(msg => {
+                // Trigger newMessage handler internally for history render
+                const listeners = socket.listeners('newMessage');
+                listeners.forEach(fn => fn(msg));
+            });
         }
 
 
@@ -473,22 +523,638 @@ function stringToColor(str) {
     return colors[Math.abs(hash) % colors.length];
 }
 
+// --- VOICE MESSAGE LOGIC ---
+let mediaRecorder = null;
+let audioChunks = [];
+let voiceRecTimerInterval = null;
+let voiceRecSeconds = 0;
+let currentVoiceAudio = null;
+let currentVoiceId = null;
+
+function formatVoiceDuration(sec) {
+    const mins = Math.floor(sec / 60);
+    const remainderSecs = Math.floor(sec % 60);
+    return `${mins.toString().padStart(2, '0')}:${remainderSecs.toString().padStart(2, '0')}`;
+}
+
+async function toggleVoiceRecording() {
+    if (mediaRecorder && mediaRecorder.state === 'recording') {
+        stopAndSendVoiceRecording();
+    } else {
+        await startVoiceRecording();
+    }
+}
+
+let wasMutedBeforeRecording = false;
+
+async function startVoiceRecording() {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        alert('Trình duyệt của bạn không hỗ trợ ghi âm micro!');
+        return;
+    }
+
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+            audio: {
+                echoCancellation: true,   // Khử tiếng vang
+                noiseSuppression: true,   // Lọc tạp âm môi trường
+                autoGainControl: true,    // Cân bằng âm lượng micro tự động
+                sampleRate: 48000,        // Tần số 48kHz chất lượng Studio
+                channelCount: 1
+            }
+        });
+        audioChunks = [];
+
+        // Tự động Mute nhạc để không bị dính tiếng nhạc vào ghi âm
+        if (player && typeof player.isMuted === 'function' && typeof player.mute === 'function') {
+            wasMutedBeforeRecording = player.isMuted();
+            if (!wasMutedBeforeRecording) {
+                player.mute();
+            }
+        }
+        
+        let options = {
+            audioBitsPerSecond: 128000 // 128kbps âm thanh sắc nét Messenger HD
+        };
+        if (typeof MediaRecorder !== 'undefined') {
+            if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
+                options.mimeType = 'audio/webm;codecs=opus';
+            } else if (MediaRecorder.isTypeSupported('audio/ogg;codecs=opus')) {
+                options.mimeType = 'audio/ogg;codecs=opus';
+            } else if (MediaRecorder.isTypeSupported('audio/mp4')) {
+                options.mimeType = 'audio/mp4';
+            }
+        }
+
+        mediaRecorder = new MediaRecorder(stream, options);
+
+        mediaRecorder.ondataavailable = (e) => {
+            if (e.data && e.data.size > 0) {
+                audioChunks.push(e.data);
+            }
+        };
+
+        mediaRecorder.start(100);
+        voiceRecSeconds = 0;
+
+        document.getElementById('voice-rec-timer').innerText = '00:00';
+        document.getElementById('voice-rec-btn').classList.add('recording');
+        document.getElementById('chat-input-wrapper').classList.add('hidden');
+        document.getElementById('voice-recording-bar').classList.remove('hidden');
+
+        if (voiceRecTimerInterval) clearInterval(voiceRecTimerInterval);
+        voiceRecTimerInterval = setInterval(() => {
+            voiceRecSeconds++;
+            document.getElementById('voice-rec-timer').innerText = formatVoiceDuration(voiceRecSeconds);
+            if (voiceRecSeconds >= 120) {
+                stopAndSendVoiceRecording();
+            }
+        }, 1000);
+
+    } catch (err) {
+        console.error('Lỗi khi truy cập Microphone:', err);
+        alert('Không thể mở micro! Vui lòng cho phép quyền sử dụng micro trên trình duyệt.');
+        cleanupVoiceRecordingState();
+    }
+}
+
+function stopAndSendVoiceRecording() {
+    if (!mediaRecorder || mediaRecorder.state !== 'recording') {
+        cleanupVoiceRecordingState();
+        return;
+    }
+
+    const duration = voiceRecSeconds;
+
+    mediaRecorder.onstop = () => {
+        const stream = mediaRecorder.stream;
+        if (stream) {
+            stream.getTracks().forEach(track => track.stop());
+        }
+
+        if (audioChunks.length > 0 && duration > 0) {
+            const mimeType = mediaRecorder.mimeType || 'audio/webm';
+            const audioBlob = new Blob(audioChunks, { type: mimeType });
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                const base64Audio = reader.result;
+                if (currentReply) {
+                    socket.emit('sendMessage', {
+                        type: 'voice',
+                        audioUrl: base64Audio,
+                        duration: duration,
+                        replyTo: currentReply
+                    });
+                    cancelReply();
+                } else {
+                    socket.emit('sendMessage', {
+                        type: 'voice',
+                        audioUrl: base64Audio,
+                        duration: duration
+                    });
+                }
+            };
+            reader.readAsDataURL(audioBlob);
+        } else {
+            alert('Tin nhắn thoại quá ngắn!');
+        }
+
+        cleanupVoiceRecordingState();
+    };
+
+    mediaRecorder.stop();
+}
+
+function cancelVoiceRecording() {
+    if (mediaRecorder && mediaRecorder.state === 'recording') {
+        mediaRecorder.onstop = () => {
+            const stream = mediaRecorder.stream;
+            if (stream) stream.getTracks().forEach(track => track.stop());
+            cleanupVoiceRecordingState();
+        };
+        mediaRecorder.stop();
+    } else {
+        cleanupVoiceRecordingState();
+    }
+}
+
+function cleanupVoiceRecordingState() {
+    if (voiceRecTimerInterval) {
+        clearInterval(voiceRecTimerInterval);
+        voiceRecTimerInterval = null;
+    }
+    voiceRecSeconds = 0;
+    audioChunks = [];
+    mediaRecorder = null;
+
+    // Tự động bật tiếng (unMute) lại trình phát nhạc nếu trước đó nhạc đang phát
+    if (player && typeof player.unMute === 'function') {
+        if (!wasMutedBeforeRecording) {
+            player.unMute();
+        }
+    }
+    wasMutedBeforeRecording = false;
+
+    const voiceBtn = document.getElementById('voice-rec-btn');
+    if (voiceBtn) voiceBtn.classList.remove('recording');
+
+    const inputWrap = document.getElementById('chat-input-wrapper');
+    if (inputWrap) inputWrap.classList.remove('hidden');
+
+    const recBar = document.getElementById('voice-recording-bar');
+    if (recBar) recBar.classList.add('hidden');
+}
+
+function triggerMediaUpload() {
+    const fileInput = document.getElementById('media-file-input');
+    if (fileInput) fileInput.click();
+}
+
+function compressImage(file, maxWidth = 1920, maxHeight = 1080, quality = 0.85) {
+    return new Promise((resolve) => {
+        if (!file.type.startsWith('image/') || file.type.includes('gif')) {
+            return resolve(file);
+        }
+        const img = new Image();
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            img.onload = () => {
+                let width = img.width;
+                let height = img.height;
+
+                if (width > maxWidth || height > maxHeight) {
+                    if (width / height > maxWidth / maxHeight) {
+                        height = Math.round((height * maxWidth) / width);
+                        width = maxWidth;
+                    } else {
+                        width = Math.round((width * maxHeight) / height);
+                        height = maxHeight;
+                    }
+                }
+
+                const canvas = document.createElement('canvas');
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+
+                canvas.toBlob((blob) => {
+                    if (!blob) return resolve(file);
+                    const compressedFile = new File([blob], file.name, {
+                        type: 'image/jpeg',
+                        lastModified: Date.now()
+                    });
+                    resolve(compressedFile);
+                }, 'image/jpeg', quality);
+            };
+            img.onerror = () => resolve(file);
+            img.src = e.target.result;
+        };
+        reader.onerror = () => resolve(file);
+        reader.readAsDataURL(file);
+    });
+}
+
+async function handleMediaFileSelect(event) {
+    const originalFile = event.target.files[0];
+    if (!originalFile) return;
+
+    const mediaBtn = document.getElementById('media-upload-btn');
+    const originalBtnHtml = mediaBtn ? mediaBtn.innerHTML : '';
+    if (mediaBtn) {
+        mediaBtn.innerHTML = '<span class="material-symbols-outlined spin" style="font-size:20px;">sync</span>';
+        mediaBtn.disabled = true;
+    }
+
+    try {
+        const isVideo = originalFile.type.startsWith('video/');
+        const isImage = originalFile.type.startsWith('image/');
+
+        if (!isImage && !isVideo) {
+            alert('Chỉ hỗ trợ gửi file Hình ảnh hoặc Video!');
+            if (mediaBtn) { mediaBtn.innerHTML = originalBtnHtml; mediaBtn.disabled = false; }
+            return;
+        }
+
+        if (originalFile.size > 50 * 1024 * 1024) {
+            alert('Kích thước file quá lớn (tối đa 50MB)!');
+            if (mediaBtn) { mediaBtn.innerHTML = originalBtnHtml; mediaBtn.disabled = false; }
+            return;
+        }
+
+        // Auto compress high resolution images client-side
+        const file = isImage ? await compressImage(originalFile) : originalFile;
+
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${fileExt}`;
+        let publicUrl = '';
+
+        if (typeof supabase !== 'undefined' && supabase.createClient) {
+            try {
+                const supabaseStorage = supabase.createClient('https://wnioetdrphkdylkoybsu.supabase.co', 'sb_publishable_p0VSduH3epzQVUdvAf2kPQ_aoWk_l1T');
+                const { data, error } = await supabaseStorage.storage.from('chat_media').upload(fileName, file, {
+                    cacheControl: '3600',
+                    upsert: false
+                });
+
+                if (!error && data) {
+                    const { data: urlData } = supabaseStorage.storage.from('chat_media').getPublicUrl(fileName);
+                    publicUrl = urlData ? urlData.publicUrl : '';
+                } else {
+                    console.warn('Lỗi Supabase Storage Bucket, chuyển sang chế độ nạp trực tiếp:', error ? error.message : '');
+                }
+            } catch (storageErr) {
+                console.warn('Cơ chế Supabase Storage ngoại lệ:', storageErr.message);
+            }
+        if (!publicUrl) {
+            publicUrl = await new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
+
+        socket.emit('sendMessage', {
+            type: isVideo ? 'video' : 'image',
+            fileUrl: publicUrl,
+            text: isVideo ? '[Video]' : '[Hình ảnh]',
+            replyTo: currentReply
+        });
+
+        if (currentReply) cancelReply();
+
+    } catch (err) {
+        console.error('Lỗi khi xử lý file media:', err);
+        alert('Không thể gửi file này!');
+    } finally {
+        if (mediaBtn) {
+            mediaBtn.innerHTML = originalBtnHtml;
+            mediaBtn.disabled = false;
+        }
+        event.target.value = '';
+    }
+}
+
+let lightboxScale = 1;
+let lightboxTranslateX = 0;
+let lightboxTranslateY = 0;
+let lightboxRotate = 0;
+let lightboxFlipH = 1;
+let lightboxFlipV = 1;
+let isLightboxDragging = false;
+let lightboxStartX = 0;
+let lightboxStartY = 0;
+
+function updateLightboxTransform() {
+    const img = document.getElementById('lightbox-img');
+    if (img) {
+        img.style.transform = `translate(${lightboxTranslateX}px, ${lightboxTranslateY}px) scale(${lightboxScale}) rotate(${lightboxRotate}deg) scaleX(${lightboxFlipH}) scaleY(${lightboxFlipV})`;
+    }
+}
+
+function openImageLightbox(imgSrc) {
+    const modal = document.getElementById('image-lightbox-modal');
+    const img = document.getElementById('lightbox-img');
+    if (modal && img) {
+        img.src = imgSrc;
+        resetLightboxZoom();
+        modal.classList.remove('hidden');
+    }
+}
+
+function closeImageLightbox() {
+    const modal = document.getElementById('image-lightbox-modal');
+    if (modal) {
+        modal.classList.add('hidden');
+        resetLightboxZoom();
+    }
+}
+
+function zoomLightboxImage(delta) {
+    lightboxScale = Math.min(Math.max(0.5, lightboxScale + delta), 5);
+    if (lightboxScale === 1) {
+        lightboxTranslateX = 0;
+        lightboxTranslateY = 0;
+    }
+    updateLightboxTransform();
+}
+
+function rotateLightboxImage(deg) {
+    lightboxRotate = (lightboxRotate + deg) % 360;
+    updateLightboxTransform();
+}
+
+function flipLightboxImage(axis) {
+    if (axis === 'h') {
+        lightboxFlipH = lightboxFlipH === 1 ? -1 : 1;
+    } else if (axis === 'v') {
+        lightboxFlipV = lightboxFlipV === 1 ? -1 : 1;
+    }
+    updateLightboxTransform();
+}
+
+function resetLightboxZoom() {
+    lightboxScale = 1;
+    lightboxTranslateX = 0;
+    lightboxTranslateY = 0;
+    lightboxRotate = 0;
+    lightboxFlipH = 1;
+    lightboxFlipV = 1;
+    updateLightboxTransform();
+}
+
+function handleLightboxWheel(event) {
+    event.preventDefault();
+    const delta = event.deltaY < 0 ? 0.2 : -0.2;
+    zoomLightboxImage(delta);
+}
+
+function toggleLightboxDblClick(event) {
+    event.preventDefault();
+    if (lightboxScale > 1.2) {
+        resetLightboxZoom();
+    } else {
+        lightboxScale = 2.5;
+        updateLightboxTransform();
+    }
+}
+
+function startLightboxDrag(event) {
+    if (event.button !== 0) return; // Only left click
+    event.preventDefault();
+    isLightboxDragging = true;
+    lightboxStartX = event.clientX - lightboxTranslateX;
+    lightboxStartY = event.clientY - lightboxTranslateY;
+
+    const img = document.getElementById('lightbox-img');
+    if (img) img.classList.add('dragging');
+
+    window.addEventListener('mousemove', onLightboxDrag);
+    window.addEventListener('mouseup', stopLightboxDrag);
+}
+
+function onLightboxDrag(event) {
+    if (!isLightboxDragging) return;
+    lightboxTranslateX = event.clientX - lightboxStartX;
+    lightboxTranslateY = event.clientY - lightboxStartY;
+    updateLightboxTransform();
+}
+
+function stopLightboxDrag() {
+    isLightboxDragging = false;
+    const img = document.getElementById('lightbox-img');
+    if (img) img.classList.remove('dragging');
+    window.removeEventListener('mousemove', onLightboxDrag);
+    window.removeEventListener('mouseup', stopLightboxDrag);
+}
+
+let currentVoiceData = null;
+let wasMutedBeforePlayback = false;
+
+function mutePlayerForPlayback() {
+    if (player && typeof player.isMuted === 'function' && typeof player.mute === 'function') {
+        if (currentVoiceAudio && !currentVoiceAudio.paused) {
+            if (!wasMutedBeforePlayback) {
+                wasMutedBeforePlayback = player.isMuted();
+            }
+            if (!player.isMuted()) {
+                player.mute();
+            }
+        }
+    }
+}
+
+function restorePlayerAfterPlayback() {
+    if (player && typeof player.unMute === 'function') {
+        if (!wasMutedBeforePlayback) {
+            player.unMute();
+        }
+    }
+    wasMutedBeforePlayback = false;
+}
+
+function togglePlayVoice(msgId, audioSrc, totalDuration, event) {
+    if (event) event.stopPropagation();
+
+    const playBtn = document.getElementById(`voice-play-btn-${msgId}`);
+    const timeEl = document.getElementById(`voice-duration-${msgId}`);
+    const barsContainer = document.getElementById(`voice-bars-${msgId}`);
+
+    if (currentVoiceId === msgId && currentVoiceAudio) {
+        if (currentVoiceAudio.paused) {
+            currentVoiceAudio.play();
+            mutePlayerForPlayback();
+            if (playBtn) playBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size:18px;">pause</span>';
+        } else {
+            currentVoiceAudio.pause();
+            restorePlayerAfterPlayback();
+            if (playBtn) playBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size:18px;">play_arrow</span>';
+        }
+        return;
+    }
+
+    stopCurrentVoiceAudio();
+
+    currentVoiceId = msgId;
+    currentVoiceData = { msgId, totalDuration };
+    currentVoiceAudio = new Audio(audioSrc);
+
+    if (playBtn) playBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size:18px;">pause</span>';
+
+    currentVoiceAudio.ontimeupdate = () => {
+        if (currentVoiceAudio && currentVoiceAudio.duration) {
+            const currentTime = currentVoiceAudio.currentTime;
+            const duration = currentVoiceAudio.duration;
+            const pct = currentTime / duration;
+
+            if (timeEl) {
+                timeEl.innerText = formatVoiceDuration(currentTime);
+            }
+
+            if (barsContainer) {
+                const bars = barsContainer.querySelectorAll('span');
+                const totalBars = bars.length;
+                const playedCount = Math.round(pct * totalBars);
+                bars.forEach((bar, idx) => {
+                    if (idx < playedCount && pct > 0) {
+                        bar.classList.add('played');
+                    } else {
+                        bar.classList.remove('played');
+                    }
+                });
+            }
+        }
+    };
+
+    currentVoiceAudio.onended = () => {
+        stopCurrentVoiceAudio();
+    };
+
+    currentVoiceAudio.onerror = () => {
+        alert('Không thể phát tin nhắn thoại này!');
+        stopCurrentVoiceAudio();
+    };
+
+    currentVoiceAudio.play().then(() => {
+        mutePlayerForPlayback();
+    }).catch(err => {
+        console.error('Audio play error:', err);
+        stopCurrentVoiceAudio();
+    });
+}
+
+function stopCurrentVoiceAudio() {
+    if (currentVoiceAudio) {
+        currentVoiceAudio.pause();
+        currentVoiceAudio = null;
+    }
+    restorePlayerAfterPlayback();
+
+    if (currentVoiceId && currentVoiceData) {
+        const btn = document.getElementById(`voice-play-btn-${currentVoiceId}`);
+        const timeEl = document.getElementById(`voice-duration-${currentVoiceId}`);
+        const barsContainer = document.getElementById(`voice-bars-${currentVoiceId}`);
+
+        if (btn) btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:18px;">play_arrow</span>';
+        if (timeEl) timeEl.innerText = formatVoiceDuration(currentVoiceData.totalDuration || 0);
+        if (barsContainer) {
+            barsContainer.querySelectorAll('span').forEach(b => b.classList.remove('played'));
+        }
+    }
+    currentVoiceId = null;
+    currentVoiceData = null;
+}
+
+function seekVoiceAudio(msgId, event) {
+    if (currentVoiceId === msgId && currentVoiceAudio && currentVoiceAudio.duration) {
+        const rect = event.currentTarget.getBoundingClientRect();
+        const clickX = event.clientX - rect.left;
+        const pct = Math.max(0, Math.min(1, clickX / rect.width));
+        currentVoiceAudio.currentTime = pct * currentVoiceAudio.duration;
+    }
+}
+
+function showToastNotification(text) {
+    let toastContainer = document.getElementById('toast-container');
+    if (!toastContainer) {
+        toastContainer = document.createElement('div');
+        toastContainer.id = 'toast-container';
+        document.body.appendChild(toastContainer);
+    }
+
+    // Limit max toasts to 3 to avoid screen clutter
+    const activeToasts = toastContainer.querySelectorAll('.toast-notification:not(.hide)');
+    if (activeToasts.length >= 3) {
+        const oldest = activeToasts[0];
+        oldest.classList.add('hide');
+        setTimeout(() => oldest.remove(), 250);
+    }
+
+    const toast = document.createElement('div');
+    toast.className = 'toast-notification';
+
+    let iconHtml = '<span class="material-symbols-outlined" style="color:#4dabf7;">info</span>';
+    const textLower = text.toLowerCase();
+    
+    if (textLower.includes('chuyển bài') || textLower.includes('đang phát') || text.includes('⏭️') || text.includes('▶️')) {
+        iconHtml = '<span class="material-symbols-outlined" style="color:#a9e34b;">skip_next</span>';
+    } else if (textLower.includes('thêm') || textLower.includes('danh sách') || text.includes('➕') || text.includes('🎵')) {
+        iconHtml = '<span class="material-symbols-outlined" style="color:#38d9a9;">queue_music</span>';
+    } else if (textLower.includes('admin') || text.includes('👑')) {
+        iconHtml = '<span class="material-symbols-outlined" style="color:#fbbc04;">workspace_premium</span>';
+    } else if (textLower.includes('rời') || text.includes('🏃')) {
+        iconHtml = '<span class="material-symbols-outlined" style="color:#ff6b6b;">logout</span>';
+    } else if (textLower.includes('tham gia') || text.includes('👋') || textLower.includes('chào mừng')) {
+        iconHtml = '<span class="material-symbols-outlined" style="color:#51cf66;">login</span>';
+    }
+
+    const cleanText = text.replace(/\[(.*?)\]/g, '$1').replace(/\*\*(.*?)\*\*/g, '$1');
+
+    toast.innerHTML = `
+        <div class="toast-icon">${iconHtml}</div>
+        <div class="toast-content">${escapeHtml(cleanText)}</div>
+    `;
+
+    toastContainer.appendChild(toast);
+
+    setTimeout(() => {
+        if (toast.parentNode) {
+            toast.classList.add('hide');
+            setTimeout(() => toast.remove(), 300);
+        }
+    }, 3500);
+}
+
 socket.on('newMessage', (data) => {
-    const chatBox = document.getElementById('chat-box-ui');
     const isSystem = data.role === 'system';
+
+    // Divert ALL system notifications (join/leave/admin/music change/queue/game sys) to toast instead of chat box
+    if (isSystem && data.text) {
+        showToastNotification(data.text);
+        return;
+    }
+
+    const chatBox = document.getElementById('chat-box-ui');
     const isAdminMsg = data.role === 'admin';
-    const isOwn = data.senderId === socket.id && !isSystem;
-    const senderKey = isSystem ? '__system__' : (data.senderId || data.name || '');
+    const cleanDataName = (data.name || '').replace(' 😎', '').trim();
+    const cleanMyName = (myUsername || '').replace(' 😎', '').trim();
+    const isOwn = !isSystem && (data.senderId === socket.id || (cleanMyName && cleanDataName === cleanMyName));
+    const senderKey = isSystem ? '__system__' : (isOwn ? 'own_user' : (data.senderId || data.name || ''));
 
     // Grouping: check if same sender as last message
     const isGrouped = lastChatSenderId === senderKey && !isSystem;
     lastChatSenderId = senderKey;
+
+    const isMediaOnly = Boolean(data.gifUrl || data.type === 'image' || data.type === 'video' || data.fileUrl);
 
     // Build classes
     let msgClass = 'chat-message';
     if (isSystem) msgClass += ' system-msg';
     if (isAdminMsg) msgClass += ' admin-msg';
     if (isOwn) msgClass += ' own-msg';
+    if (isMediaOnly) msgClass += ' media-only-msg';
+    if (data.replyTo) msgClass += ' has-reply';
     if (isGrouped) msgClass += ' grouped';
     if (!isGrouped) msgClass += ' group-first';
 
@@ -504,7 +1170,7 @@ socket.on('newMessage', (data) => {
     let actionsHtml = '';
     if (!isSystem) {
         const safeName = (data.name || '').replace(/'/g, "\\'").replace(/"/g, "&quot;");
-        const safeText = (data.text || '').replace(/'/g, "\\'").replace(/"/g, "&quot;");
+        const safeText = (data.type === 'voice' ? '🎤 [Tin nhắn thoại]' : (data.text || '')).replace(/'/g, "\\'").replace(/"/g, "&quot;");
         let adminBtns = '';
         if (myRole === 'admin') {
             adminBtns = `
@@ -526,8 +1192,40 @@ socket.on('newMessage', (data) => {
 
     // Content
     let contentHtml = '';
-    if (data.gifUrl) {
-        contentHtml = `<img class="chat-gif" src="${escapeHtml(data.gifUrl)}" alt="GIF" loading="lazy" onload="if(${shouldScroll}) { const cb = document.getElementById('chat-box-ui'); cb.scrollTop = cb.scrollHeight; }">`;
+    if (data.type === 'image' || (data.fileUrl && data.type !== 'video')) {
+        contentHtml = `<img class="chat-media-img" src="${escapeHtml(data.fileUrl || data.gifUrl)}" alt="Hình ảnh" loading="lazy" style="max-width:260px; max-height:300px; border-radius:14px; margin-top:4px; display:block; cursor:pointer; object-fit:cover;" onclick="openImageLightbox(this.src)" onload="if(${shouldScroll}) { const cb = document.getElementById('chat-box-ui'); cb.scrollTop = cb.scrollHeight; }">`;
+    } else if (data.type === 'video' || (data.fileUrl && data.type === 'video')) {
+        contentHtml = `<video class="chat-media-video" src="${escapeHtml(data.fileUrl)}" controls style="max-width:260px; max-height:300px; border-radius:14px; margin-top:4px; display:block;" onloadeddata="if(${shouldScroll}) { const cb = document.getElementById('chat-box-ui'); cb.scrollTop = cb.scrollHeight; }"></video>`;
+    } else if (data.gifUrl) {
+        contentHtml = `<img class="chat-gif" src="${escapeHtml(data.gifUrl)}" alt="GIF" loading="lazy" style="cursor:pointer;" onclick="openImageLightbox(this.src)" onload="if(${shouldScroll}) { const cb = document.getElementById('chat-box-ui'); cb.scrollTop = cb.scrollHeight; }">`;
+    } else if (data.type === 'voice' || data.audioUrl) {
+        const durationSec = data.duration || 0;
+        const formattedDur = formatVoiceDuration(durationSec);
+        const safeAudioUrl = escapeHtml(data.audioUrl);
+        contentHtml = `
+            <div class="messenger-voice-player" id="voice-player-${data.id}" data-src="${safeAudioUrl}">
+                <button class="messenger-play-btn" id="voice-play-btn-${data.id}" onclick="togglePlayVoice('${data.id}', '${safeAudioUrl}', ${durationSec}, event)" title="Phát/Tạm dừng">
+                    <span class="material-symbols-outlined" style="font-size:18px;">play_arrow</span>
+                </button>
+                <div class="messenger-voice-waveform" onclick="seekVoiceAudio('${data.id}', event)" title="Bấm để chuyển thời gian">
+                    <div class="messenger-voice-bars" id="voice-bars-${data.id}">
+                        <span style="height: 40%;"></span>
+                        <span style="height: 70%;"></span>
+                        <span style="height: 45%;"></span>
+                        <span style="height: 90%;"></span>
+                        <span style="height: 100%;"></span>
+                        <span style="height: 60%;"></span>
+                        <span style="height: 80%;"></span>
+                        <span style="height: 50%;"></span>
+                        <span style="height: 95%;"></span>
+                        <span style="height: 70%;"></span>
+                        <span style="height: 40%;"></span>
+                        <span style="height: 65%;"></span>
+                    </div>
+                </div>
+                <span class="messenger-voice-time" id="voice-duration-${data.id}">${formattedDur}</span>
+            </div>
+        `;
     } else {
         let safeText = escapeHtml(data.text || '');
         if (isSystem) {
@@ -553,13 +1251,35 @@ socket.on('newMessage', (data) => {
         authorStyle = `style="color: ${escapeHtml(data.nameColor)}"`;
     }
 
-    // Reply quote
+    // Reply quote & Author label text
     let replyHtml = '';
+    let authorTextHtml = finalName;
+
     if (data.replyTo) {
-        const safeReplyName = escapeHtml(data.replyTo.name || '');
+        const cleanSender = (data.name || 'Ẩn danh').replace(' 😎', '').trim();
+        const cleanTarget = (data.replyTo.name || 'Ẩn danh').replace(' 😎', '').trim();
+        const cleanMyName = (myUsername || '').replace(' 😎', '').trim();
+
+        const isSenderMe = isOwn || (cleanMyName && cleanSender.toLowerCase() === cleanMyName.toLowerCase());
+        const isTargetMe = cleanMyName && cleanTarget.toLowerCase() === cleanMyName.toLowerCase();
+        const isSamePerson = cleanSender.toLowerCase() === cleanTarget.toLowerCase();
+
+        const safeSenderDisplay = isSenderMe ? 'Bạn' : escapeHtml(cleanSender);
+        const safeTargetDisplay = isTargetMe ? 'bạn' : escapeHtml(cleanTarget);
         const safeReplyText = escapeHtml(data.replyTo.text || '');
+
+        if (!isSystem) {
+            if (isSamePerson) {
+                authorTextHtml = `<strong>${safeSenderDisplay}</strong> đã phản hồi chính mình`;
+            } else if (isTargetMe) {
+                authorTextHtml = `<strong>${safeSenderDisplay}</strong> đã phản hồi <strong>bạn</strong>`;
+            } else {
+                authorTextHtml = `<strong>${safeSenderDisplay}</strong> đã phản hồi <strong>${safeTargetDisplay}</strong>`;
+            }
+        }
+
         replyHtml = `<div class="chat-reply-quote" onclick="document.getElementById('msg-${data.replyTo.id}')?.scrollIntoView({behavior: 'smooth', block: 'center'})">
-                    <span class="reply-name">${safeReplyName}</span>${safeReplyText}
+                    ${safeReplyText}
                 </div>`;
     }
 
@@ -568,8 +1288,8 @@ socket.on('newMessage', (data) => {
     const avatarColor = data.nameColor || stringToColor(data.name || '');
     const avatarHtml = isSystem ? '' : `<div class="chat-avatar" style="background:${escapeHtml(avatarColor)}">${avatarInitial}</div>`;
 
-    // Author label (above bubble, only for others, not grouped)
-    const authorHtml = isSystem ? '' : `<span class="chat-author" ${authorStyle}>${finalName}</span>`;
+    // Author label (above bubble / reply quote)
+    const authorHtml = isSystem ? '' : `<span class="chat-author" ${authorStyle}>${authorTextHtml}</span>`;
 
     // Build the full message — reply quote sits ABOVE the bubble (Messenger style)
     const msgHtml = `<div class="${msgClass}" id="msg-${data.id}">
@@ -605,17 +1325,17 @@ socket.on('newMessage', (data) => {
 function toggleChatActionsMenu(e) {
     e.stopPropagation();
     const btn = e.currentTarget;
+    const actionsWrap = btn.closest('.chat-actions');
     const menu = btn.parentElement.querySelector('.chat-actions-menu');
-    const wasOpen = menu.classList.contains('open');
+    const wasOpen = menu && menu.classList.contains('open');
+
     // Close all open menus first
-    document.querySelectorAll('.chat-actions-menu.open').forEach(m => {
-        m.classList.remove('open');
-        m.style.top = '';
-        m.style.left = '';
-        m.style.right = '';
-    });
-    if (!wasOpen) {
+    closeChatActionsMenu();
+
+    if (!wasOpen && menu) {
         menu.classList.add('open');
+        if (actionsWrap) actionsWrap.classList.add('active');
+
         // Position using fixed coords from button
         const rect = btn.getBoundingClientRect();
         const isOwn = btn.closest('.chat-message')?.classList.contains('own-msg');
@@ -625,7 +1345,7 @@ function toggleChatActionsMenu(e) {
         if (rect.bottom + menuHeight > window.innerHeight) {
             menu.style.top = (rect.top - menuHeight) + 'px';
         } else {
-            menu.style.top = rect.bottom + 4 + 'px';
+            menu.style.top = (rect.bottom + 4) + 'px';
         }
 
         // Horizontal: align to button edge
@@ -646,11 +1366,14 @@ function closeChatActionsMenu() {
         m.style.left = '';
         m.style.right = '';
     });
+    document.querySelectorAll('.chat-actions.active').forEach(a => {
+        a.classList.remove('active');
+    });
 }
 
 // Close menu when clicking anywhere outside
 document.addEventListener('click', (e) => {
-    if (!e.target.closest('.chat-actions')) {
+    if (!e.target.closest('.chat-actions-menu') && !e.target.closest('.chat-actions-btn')) {
         closeChatActionsMenu();
     }
 });
@@ -764,7 +1487,7 @@ function addSong() {
             if (res && res.success) {
                 input.value = '';
             } else {
-                alert(res && res.message ? res.message : "Không tìm thấy bài hát hoặc có lỗi xảy ra!");
+                showToastNotification('⚠️ ' + (res && res.message ? res.message : "Không tìm thấy bài hát hoặc có lỗi xảy ra!"));
             }
         });
     }
@@ -775,6 +1498,10 @@ socket.on('updatePlaylist', (list) => { updatePlaylistUI(list); });
 socket.on('changeVideo', (data) => {
     const vidId = data.id || data;
     const vidTitle = data.title || 'Trạm Nhạc Live';
+
+    if (vidTitle && vidTitle !== 'Trạm Nhạc Live') {
+        showToastNotification(`▶️ Đang phát: ${vidTitle}`);
+    }
 
     if (player) {
         if (typeof player.loadVideoById === 'function') {

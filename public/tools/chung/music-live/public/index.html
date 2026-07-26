@@ -16,6 +16,15 @@
 </head>
 
 <body>
+    <!-- YouTube-style Minimal Splash Screen -->
+    <div id="app-loader-screen" class="app-loader-screen">
+        <div class="yt-splash-logo">
+            <svg viewBox="0 0 24 24" width="64" height="64" fill="#ff0000">
+                <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+            </svg>
+        </div>
+        <div class="yt-splash-bar"></div>
+    </div>
 
     <div id="login-section" class="login-overlay">
         <div class="login-card">
@@ -310,14 +319,40 @@
                         </button>
                     </div>
 
-                    <div class="chat-input-wrapper">
-                        <button class="picker-btn" id="emoji-toggle-btn" onclick="togglePicker()"
+                    <div class="chat-input-wrapper" id="chat-input-wrapper">
+                        <button class="picker-btn action-icon-btn" id="emoji-toggle-btn" onclick="togglePicker()"
                             title="Emoji & GIF">😊</button>
                         <input type="text" id="chat-input" placeholder="Trò chuyện công khai..."
                             onkeypress="if(event.key === 'Enter') sendChat()" oninput="onChatInputChange()">
-                        <button onclick="sendChat()"
-                            style="display:flex;align-items:center;justify-content:center;padding:0 8px;"><span
-                                class="material-symbols-outlined" style="font-size:20px;">send</span></button>
+                        <button class="picker-btn action-icon-btn media-btn" id="media-upload-btn" onclick="triggerMediaUpload()" title="Gửi hình ảnh hoặc video">
+                            <span class="material-symbols-outlined" style="font-size:20px;">image</span>
+                        </button>
+                        <input type="file" id="media-file-input" accept="image/*,video/*" style="display:none;" onchange="handleMediaFileSelect(event)">
+                        <button class="picker-btn action-icon-btn voice-btn" id="voice-rec-btn" onclick="toggleVoiceRecording()" title="Tin nhắn thoại">
+                            <span class="material-symbols-outlined" style="font-size:20px;">mic</span>
+                        </button>
+                        <button class="picker-btn action-icon-btn send-btn" onclick="sendChat()" title="Gửi tin nhắn">
+                            <span class="material-symbols-outlined" style="font-size:20px;">send</span>
+                        </button>
+                    </div>
+
+                    <!-- Voice Recording Bar Overlay -->
+                    <div id="voice-recording-bar" class="voice-recording-bar hidden">
+                        <div class="voice-rec-left">
+                            <span class="voice-rec-dot"></span>
+                            <span class="voice-rec-timer" id="voice-rec-timer">00:00</span>
+                            <div class="voice-rec-wave">
+                                <span></span><span></span><span></span><span></span><span></span>
+                            </div>
+                        </div>
+                        <div class="voice-rec-right">
+                            <button class="voice-rec-cancel-btn" onclick="cancelVoiceRecording()" title="Hủy ghi âm">
+                                <span class="material-symbols-outlined" style="font-size:18px;">close</span>
+                            </button>
+                            <button class="voice-rec-send-btn" onclick="stopAndSendVoiceRecording()" title="Gửi tin nhắn thoại">
+                                <span class="material-symbols-outlined" style="font-size:18px;">send</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -655,6 +690,23 @@
         </div>
     </div>
 
+
+    <!-- Image Lightbox Modal -->
+    <div id="image-lightbox-modal" class="image-lightbox-modal hidden" onclick="closeImageLightbox()">
+        <div class="lightbox-toolbar" onclick="event.stopPropagation()">
+            <button onclick="zoomLightboxImage(0.25)" title="Phóng to (Cuộn chuột lên)"><span class="material-symbols-outlined" style="font-size:20px;">zoom_in</span></button>
+            <button onclick="zoomLightboxImage(-0.25)" title="Thu nhỏ (Cuộn chuột xuống)"><span class="material-symbols-outlined" style="font-size:20px;">zoom_out</span></button>
+            <button onclick="rotateLightboxImage(-90)" title="Xoay trái 90°"><span class="material-symbols-outlined" style="font-size:20px;">rotate_left</span></button>
+            <button onclick="rotateLightboxImage(90)" title="Xoay phải 90°"><span class="material-symbols-outlined" style="font-size:20px;">rotate_right</span></button>
+            <button onclick="flipLightboxImage('h')" title="Lật ngang"><span class="material-symbols-outlined" style="font-size:20px;">flip</span></button>
+            <button onclick="flipLightboxImage('v')" title="Lật dọc"><span class="material-symbols-outlined" style="font-size:20px; transform: rotate(90deg);">flip</span></button>
+            <button onclick="resetLightboxZoom()" title="Kích thước & Trạng thái ban đầu"><span class="material-symbols-outlined" style="font-size:20px;">restart_alt</span></button>
+            <button class="lightbox-close-btn" onclick="closeImageLightbox()" title="Đóng">&times;</button>
+        </div>
+        <div class="lightbox-content-wrapper" onclick="event.stopPropagation()">
+            <img id="lightbox-img" class="lightbox-img" src="" alt="Phóng to hình ảnh" onwheel="handleLightboxWheel(event)" ondblclick="toggleLightboxDblClick(event)" onmousedown="startLightboxDrag(event)">
+        </div>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="/socket.io/socket.io.js"></script>
