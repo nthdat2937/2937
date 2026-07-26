@@ -20,8 +20,8 @@ setTimeout(hideAppLoader, 1800);
 
 const socket = io();
 socket.on('connect', () => {
-    if (myRole) {
-
+    const savedName = localStorage.getItem('musiclive_username');
+    if (myRole || savedName) {
         joinRoom();
     }
 });
