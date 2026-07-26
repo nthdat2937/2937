@@ -340,7 +340,7 @@
                         <button class="picker-btn action-icon-btn" id="emoji-toggle-btn" onclick="togglePicker()"
                             title="Emoji & GIF">😊</button>
                         <input type="text" id="chat-input" placeholder="Trò chuyện công khai..."
-                            onkeypress="if(event.key === 'Enter') sendChat()" oninput="onChatInputChange()">
+                            onkeydown="if(event.key === 'Enter' && !event.isComposing) { event.preventDefault(); sendChat(); }" oninput="onChatInputChange()">
                         <button class="picker-btn action-icon-btn media-btn" id="media-upload-btn" onclick="triggerMediaUpload()" title="Gửi hình ảnh hoặc video">
                             <span class="material-symbols-outlined" style="font-size:20px;">image</span>
                         </button>
@@ -375,11 +375,15 @@
             </div>
 
             <div id="lyric-area-container" class="hidden"
-                style="display:flex; flex-direction:column; flex:1; overflow:hidden;">
+                style="display:flex; flex-direction:column; flex:1; overflow:hidden; position:relative;">
                 <div class="lyric-box" id="lyric-box"
                     style="flex:1; margin:0; border-radius:0; border:none; max-height:none; background:transparent;">
                     <div id="lyric-content"></div>
                 </div>
+                <button class="lyric-report-btn hidden" id="lyric-report-btn" onclick="switchToNextLyric()" title="Báo lệch lời / Đổi sang bản lyric khác trên LRCLIB">
+                    <span class="material-symbols-outlined" style="font-size:15px;">sync_alt</span>
+                    <span>Báo lệch / Đổi lyric</span>
+                </button>
             </div>
         </div>
 
@@ -645,65 +649,140 @@
     <div id="draw-game-overlay" class="draw-overlay hidden">
         <div class="draw-container">
             <div class="draw-header">
-                <div class="draw-header-title">🎨 Vẽ & Đoán</div>
-                <div class="draw-timer" id="draw-timer">--</div>
-                <div style="display:flex;gap:6px;align-items:center;">
+                <div class="draw-header-title">
+                    <span class="material-symbols-outlined draw-header-icon">palette</span>
+                    <span class="draw-title-text">Vẽ & Đoán</span>
+                    <span class="draw-live-tag">LIVE</span>
+                </div>
+                <div class="draw-timer-badge">
+                    <span class="material-symbols-outlined" style="font-size:16px;">timer</span>
+                    <span class="draw-timer" id="draw-timer">--</span>
+                </div>
+                <div style="display:flex;gap:8px;align-items:center;">
                     <div id="draw-drawer-tools" class="draw-admin-tools hidden">
-                        <button class="draw-admin-btn skip" onclick="skipDrawWord()">🔄 Đổi từ</button>
+                        <button class="draw-admin-btn skip" onclick="skipDrawWord()" title="Đổi từ ngẫu nhiên">
+                            <span class="material-symbols-outlined" style="font-size:16px;">refresh</span>
+                            <span>Đổi từ</span>
+                        </button>
                     </div>
                     <div id="draw-admin-tools-header" class="draw-admin-tools hidden">
-                        <button class="draw-admin-btn end" onclick="endDrawGame()">✕ Kết thúc</button>
+                        <button class="draw-admin-btn end" onclick="endDrawGame()" title="Dừng toàn bộ phòng game">
+                            <span class="material-symbols-outlined" style="font-size:16px;">stop_circle</span>
+                            <span>Dừng game</span>
+                        </button>
                     </div>
+                    <button class="draw-close-btn" onclick="document.getElementById('draw-game-overlay').classList.add('hidden')" title="Thu nhỏ cửa sổ">
+                        <span class="material-symbols-outlined" style="font-size:20px;">expand_more</span>
+                    </button>
                 </div>
             </div>
+
             <div class="draw-info" id="draw-info">
                 <div>Chờ admin chọn người vẽ...</div>
             </div>
+
             <div id="draw-main-area">
                 <div id="draw-waiting-panel">
-                    <div style="padding:16px 20px; text-align:center; color:var(--text-muted); font-size:14px;">👆 Admin
-                        chọn người vẽ bên dưới</div>
-                    <div id="draw-random-btn-container" class="hidden" style="text-align:center; margin-bottom: 8px;">
-                        <button class="draw-admin-btn skip"
-                            style="font-size:14px; padding:8px 20px; background:rgba(255,212,59,0.15); color:#ffd43b;"
-                            onclick="randomPickDrawer()">🎲 Chọn Ngẫu Nhiên</button>
+                    <div class="draw-waiting-header">
+                        <span class="material-symbols-outlined" style="font-size:28px;color:var(--accent);">touch_app</span>
+                        <div>
+                            <div style="font-weight:600;font-size:15px;color:white;">Chọn artist cho lượt tiếp theo</div>
+                            <div style="color:var(--text-muted);font-size:13px;margin-top:2px;">Danh sách thành viên sẵn sàng trong phòng</div>
+                        </div>
+                    </div>
+                    <div id="draw-random-btn-container" class="hidden" style="text-align:center; margin: 12px 0;">
+                        <button class="draw-random-btn" onclick="randomPickDrawer()">
+                            <span class="material-symbols-outlined" style="font-size:18px;">casino</span>
+                            <span>Chọn Ngẫu Nhiên</span>
+                        </button>
                     </div>
                     <div class="draw-user-list" id="draw-user-list"></div>
                 </div>
+
                 <div id="draw-random-panel" class="hidden">
                     <div class="draw-random-picker">
-                        <div>🎲 Đang chọn ngẫu nhiên...</div>
+                        <div class="draw-random-title">
+                            <span class="material-symbols-outlined spin-icon">casino</span>
+                            <span>Đang quay chọn artist...</span>
+                        </div>
                         <div id="draw-random-name" class="draw-random-name">---</div>
                     </div>
                 </div>
+
                 <div id="draw-canvas-panel" class="hidden">
-                    <div class="draw-canvas-wrap"><canvas id="draw-canvas"></canvas></div>
+                    <div class="draw-canvas-wrap" id="draw-canvas-wrap">
+                        <canvas id="draw-canvas"></canvas>
+                        <div class="draw-canvas-watermark">2937 Studio</div>
+                    </div>
+
                     <div id="draw-tools-bar" class="draw-tools hidden">
-                        <div class="draw-colors" id="draw-colors"></div>
-                        <div class="draw-sizes">
-                            <button class="draw-size-btn" data-size="3" onclick="setDrawSize(3,this)">S</button>
-                            <button class="draw-size-btn active" data-size="6" onclick="setDrawSize(6,this)">M</button>
-                            <button class="draw-size-btn" data-size="12" onclick="setDrawSize(12,this)">L</button>
-                            <button class="draw-size-btn" data-size="20" onclick="setDrawSize(20,this)">XL</button>
+                        <div class="draw-palette-container">
+                            <div class="draw-colors" id="draw-colors"></div>
+                            <label class="draw-custom-color-btn" title="Chọn màu tùy chỉnh">
+                                <span class="material-symbols-outlined" style="font-size:16px;">colorize</span>
+                                <input type="color" id="draw-custom-color-input" value="#3ea6ff" onchange="setCustomDrawColor(this.value)">
+                            </label>
                         </div>
-                        <button class="draw-tool-btn" id="eraser-btn" onclick="toggleEraser()"><span
-                                class="material-symbols-outlined" style="font-size:16px;">ink_eraser</span></button>
-                        <button class="draw-tool-btn" onclick="clearDrawCanvas()"><span
-                                class="material-symbols-outlined" style="font-size:16px;">delete</span> Xóa</button>
+
+                        <div class="draw-divider"></div>
+
+                        <div class="draw-sizes" id="draw-sizes-bar">
+                            <button class="draw-size-btn" data-size="3" onclick="setDrawSize(3,this)" title="Nét mảnh (3px)">
+                                <span class="draw-size-dot" style="width:4px;height:4px;"></span>
+                            </button>
+                            <button class="draw-size-btn active" data-size="7" onclick="setDrawSize(7,this)" title="Nét vừa (7px)">
+                                <span class="draw-size-dot" style="width:8px;height:8px;"></span>
+                            </button>
+                            <button class="draw-size-btn" data-size="14" onclick="setDrawSize(14,this)" title="Nét dày (14px)">
+                                <span class="draw-size-dot" style="width:14px;height:14px;"></span>
+                            </button>
+                            <button class="draw-size-btn" data-size="24" onclick="setDrawSize(24,this)" title="Nét lớn (24px)">
+                                <span class="draw-size-dot" style="width:20px;height:20px;"></span>
+                            </button>
+                        </div>
+
+                        <div class="draw-divider"></div>
+
+                        <div class="draw-actions">
+                            <button class="draw-tool-btn" id="eraser-btn" onclick="toggleEraser()" title="Tẩy xóa">
+                                <span class="material-symbols-outlined" style="font-size:18px;">ink_eraser</span>
+                                <span>Tẩy</span>
+                            </button>
+                            <button class="draw-tool-btn" id="grid-toggle-btn" onclick="toggleCanvasGrid()" title="Bật/Tắt lưới chấm vẽ">
+                                <span class="material-symbols-outlined" style="font-size:18px;">grid_on</span>
+                                <span>Lưới</span>
+                            </button>
+                            <button class="draw-tool-btn danger" onclick="clearDrawCanvas()" title="Xóa toàn bộ bản vẽ">
+                                <span class="material-symbols-outlined" style="font-size:18px;">delete_sweep</span>
+                                <span>Xóa</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
+
                 <div id="draw-round-result" class="draw-round-result hidden"></div>
             </div>
+
             <div id="draw-guess-area" class="draw-guess-area hidden">
                 <div id="draw-guess-feedback" class="draw-guess-feedback"></div>
                 <div class="draw-guess-wrapper">
-                    <input type="text" id="draw-guess-input" placeholder="Nhập câu trả lời của bạn..."
+                    <span class="material-symbols-outlined guess-input-icon">help_center</span>
+                    <input type="text" id="draw-guess-input" placeholder="Gõ câu trả lời của bạn ở đây..."
                         onkeypress="if(event.key==='Enter') sendDrawGuess()" autocomplete="off">
-                    <button class="draw-guess-btn" onclick="sendDrawGuess()"><span class="material-symbols-outlined"
-                            style="font-size:16px;">send</span> Đoán</button>
+                    <button class="draw-guess-btn" onclick="sendDrawGuess()">
+                        <span>Đoán</span>
+                        <span class="material-symbols-outlined" style="font-size:16px;">send</span>
+                    </button>
                 </div>
             </div>
-            <div class="draw-scores" id="draw-scores"></div>
+
+            <div class="draw-scores-section">
+                <div class="draw-scores-header">
+                    <span class="material-symbols-outlined" style="font-size:15px;color:var(--accent);">emoji_events</span>
+                    <span>Bảng Xếp Hạng</span>
+                </div>
+                <div class="draw-scores" id="draw-scores"></div>
+            </div>
         </div>
     </div>
 

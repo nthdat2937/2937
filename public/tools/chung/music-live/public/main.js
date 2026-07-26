@@ -328,8 +328,9 @@ socket.on('authResult', (res) => {
         }
 
         if (res.chatHistory && Array.isArray(res.chatHistory)) {
+            document.getElementById('chat-box-ui').innerHTML = '';
+            lastChatSenderId = null;
             res.chatHistory.forEach(msg => {
-                // Trigger newMessage handler internally for history render
                 const listeners = socket.listeners('newMessage');
                 listeners.forEach(fn => fn(msg));
             });
@@ -356,7 +357,7 @@ socket.on('authResult', (res) => {
         document.getElementById('sync-btn').classList.remove('hidden');
 
 
-        if (res.drawGame && res.drawGame.active) {
+        if (res.drawGame && res.drawGame.active && res.drawGame.state === 'playing') {
             document.getElementById('draw-game-overlay').classList.remove('hidden');
             renderDrawScores(res.drawGame.scores || {});
             socket.emit('requestCanvasHistory');
@@ -1129,6 +1130,9 @@ function showToastNotification(text) {
 }
 
 socket.on('newMessage', (data) => {
+    if (!data) return;
+    if (data.id && document.getElementById('msg-' + data.id)) return;
+
     const isSystem = data.role === 'system';
 
     // Divert ALL system notifications (join/leave/admin/music change/queue/game sys) to toast instead of chat box
@@ -1999,46 +2003,68 @@ function updateChatBadge() {
 }
 
 const DRAW_COLORS = [
-    '#000000', '#495057', '#adb5bd', '#ffffff',
-    '#e03131', '#f03e3e', '#e64980', '#c2255c',
-    '#9c36b5', '#6741d9', '#3b5bdb', '#1c7ed6',
-    '#15aabf', '#0ca678', '#2b8a3e', '#5c940d',
-    '#82c91e', '#fcc419', '#ff922b', '#e67700',
-    '#d9480f', '#8b4513'
+    '#000000', '#495057', '#ced4da', '#ffffff',
+    '#ff4757', '#ff7f50', '#ffa502', '#2ed573',
+    '#1e90ff', '#3742fa', '#70a1ff', '#ffb8b8',
+    '#ffdd59', '#7d5fff', '#18dcff', '#8b4513'
 ];
-let drawColor = '#000000', drawSize = 6, isEraser = false, isDrawing = false;
+let drawColor = '#000000', drawSize = 7, isEraser = false, isDrawing = false;
 let drawLastX = 0, drawLastY = 0;
 let amIDrawer = false;
 let drawGameActive = false;
 let drawGuessedCorrectly = false;
+let canvasGridEnabled = true;
 
 
 (function initDrawColors() {
     const container = document.getElementById('draw-colors');
+    if (!container) return;
     container.innerHTML = DRAW_COLORS.map((c, i) =>
-        `<button class="draw-color-btn${i === 0 ? ' active' : ''}" style="background:${c}${c === '#ffffff' ? ';border:1px solid #ccc' : ''}" onclick="setDrawColor('${c}',this)"></button>`
+        `<button class="draw-color-btn${i === 0 ? ' active' : ''}" style="background:${c}${c.toLowerCase() === '#ffffff' ? ';border:1px solid #ddd' : ''}" onclick="setDrawColor('${c}',this)" title="Màu ${c}"></button>`
     ).join('');
 })();
 
 function setDrawColor(c, btn) {
     drawColor = c; isEraser = false;
-    document.getElementById('eraser-btn').classList.remove('active');
+    const eraserBtn = document.getElementById('eraser-btn');
+    if (eraserBtn) eraserBtn.classList.remove('active');
     document.querySelectorAll('.draw-color-btn').forEach(b => b.classList.remove('active'));
     if (btn) btn.classList.add('active');
 }
+
+function setCustomDrawColor(val) {
+    if (!val) return;
+    drawColor = val; isEraser = false;
+    const eraserBtn = document.getElementById('eraser-btn');
+    if (eraserBtn) eraserBtn.classList.remove('active');
+    document.querySelectorAll('.draw-color-btn').forEach(b => b.classList.remove('active'));
+}
+
 function setDrawSize(s, btn) {
-    drawSize = s;
-    document.querySelectorAll('.draw-size-btn').forEach(b => b.classList.remove('active'));
+    drawSize = Number(s);
+    document.querySelectorAll('#draw-sizes-bar .draw-size-btn').forEach(b => b.classList.remove('active'));
     if (btn) btn.classList.add('active');
 }
+
 function toggleEraser() {
     isEraser = !isEraser;
-    document.getElementById('eraser-btn').classList.toggle('active', isEraser);
+    const eraserBtn = document.getElementById('eraser-btn');
+    if (eraserBtn) eraserBtn.classList.toggle('active', isEraser);
+}
+
+function toggleCanvasGrid() {
+    canvasGridEnabled = !canvasGridEnabled;
+    const wrap = document.getElementById('draw-canvas-wrap');
+    const gridBtn = document.getElementById('grid-toggle-btn');
+    if (wrap) wrap.classList.toggle('grid-bg', canvasGridEnabled);
+    if (gridBtn) gridBtn.classList.toggle('active', canvasGridEnabled);
 }
 
 function getDrawCanvas() { return document.getElementById('draw-canvas'); }
+
 function getDrawCtx() {
     const c = getDrawCanvas();
+    if (!c) return null;
     const ctx = c.getContext('2d');
     if (c.width !== c.offsetWidth || c.height !== c.offsetHeight) {
         const imgData = ctx.getImageData(0, 0, c.width, c.height);
@@ -2047,22 +2073,36 @@ function getDrawCtx() {
     }
     return ctx;
 }
+
 function resizeDrawCanvas() {
     const c = getDrawCanvas();
+    if (!c) return;
     c.width = c.offsetWidth; c.height = c.offsetHeight;
     const ctx = c.getContext('2d');
-    ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, c.width, c.height);
+    ctx.clearRect(0, 0, c.width, c.height);
 }
 
 function drawLine(x0, y0, x1, y1, color, size) {
     const ctx = getDrawCtx();
+    if (!ctx) return;
+    const c = getDrawCanvas();
     ctx.beginPath();
-    ctx.moveTo(x0 * getDrawCanvas().width, y0 * getDrawCanvas().height);
-    ctx.lineTo(x1 * getDrawCanvas().width, y1 * getDrawCanvas().height);
-    ctx.strokeStyle = color;
+    ctx.moveTo(x0 * c.width, y0 * c.height);
+    ctx.lineTo(x1 * c.width, y1 * c.height);
+    
+    if (color === 'eraser' || color === '#ffffff' || color === '#fff') {
+        ctx.globalCompositeOperation = 'destination-out';
+        ctx.strokeStyle = 'rgba(0,0,0,1)';
+    } else {
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.strokeStyle = color;
+    }
+    
     ctx.lineWidth = size;
-    ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
     ctx.stroke();
+    ctx.globalCompositeOperation = 'source-over';
 }
 
 function getCanvasPos(e) {
@@ -2077,6 +2117,7 @@ function onDrawStart(e) {
     e.preventDefault(); isDrawing = true;
     const pos = getCanvasPos(e); drawLastX = pos.x; drawLastY = pos.y;
 }
+
 function onDrawMove(e) {
     if (!amIDrawer || !isDrawing) return;
     e.preventDefault();
@@ -2087,40 +2128,80 @@ function onDrawMove(e) {
     socket.emit('drawStroke', { x0: drawLastX, y0: drawLastY, x1: pos.x, y1: pos.y, color: c, size: s });
     drawLastX = pos.x; drawLastY = pos.y;
 }
+
 function onDrawEnd(e) { isDrawing = false; }
 
-
 const dc = getDrawCanvas();
-dc.addEventListener('mousedown', onDrawStart);
-dc.addEventListener('mousemove', onDrawMove);
-dc.addEventListener('mouseup', onDrawEnd);
-dc.addEventListener('mouseleave', onDrawEnd);
-dc.addEventListener('touchstart', onDrawStart, { passive: false });
-dc.addEventListener('touchmove', onDrawMove, { passive: false });
-dc.addEventListener('touchend', onDrawEnd);
+if (dc) {
+    dc.addEventListener('mousedown', onDrawStart);
+    dc.addEventListener('mousemove', onDrawMove);
+    dc.addEventListener('mouseup', onDrawEnd);
+    dc.addEventListener('mouseleave', onDrawEnd);
+    dc.addEventListener('touchstart', onDrawStart, { passive: false });
+    dc.addEventListener('touchmove', onDrawMove, { passive: false });
+    dc.addEventListener('touchend', onDrawEnd);
+}
 
 function clearDrawCanvas() {
     resizeDrawCanvas();
     socket.emit('drawClear');
 }
 
-function startDrawGame() { socket.emit('adminStartDrawGame'); }
+function startDrawGame() { 
+    document.getElementById('draw-game-overlay').classList.remove('hidden');
+    if (myRole === 'admin') socket.emit('adminStartDrawGame'); 
+}
 function endDrawGame() { socket.emit('adminEndDrawGame'); }
 function skipDrawWord() { socket.emit('skipWord'); }
 function pickDrawer(id) { socket.emit('adminPickDrawer', id); }
 function randomPickDrawer() { socket.emit('adminRandomPickDrawer'); }
 
+function formatWordHintHtml(hint) {
+    if (!hint) return '';
+    const words = hint.split('   ');
+    return '<div class="draw-word-display">' + words.map(w => {
+        const letters = w.split(' ');
+        return letters.map(l => {
+            if (l === '_') return '<span class="draw-word-tile blank">_</span>';
+            return `<span class="draw-word-tile revealed">${escapeHtml(l)}</span>`;
+        }).join('');
+    }).join('<span class="draw-word-space"></span>') + '</div>';
+}
+
 function renderDrawScores(scores) {
     const el = document.getElementById('draw-scores');
+    if (!el) return;
     const arr = Object.values(scores).sort((a, b) => b.score - a.score);
-    if (arr.length === 0) { el.innerHTML = '<span style="color:var(--text-muted);font-size:12px;">Chưa có điểm</span>'; return; }
-    el.innerHTML = arr.map(s => `<div class="draw-score-item"><span style="color:${escapeHtml(s.nameColor)}">${escapeHtml(s.name)}</span><span class="draw-score-pts">${s.score}đ</span></div>`).join('');
+    if (arr.length === 0) {
+        el.innerHTML = '<span style="color:var(--text-muted);font-size:12px;">Chưa có lượt tính điểm nào</span>';
+        return;
+    }
+    el.innerHTML = arr.map((s, idx) => {
+        const medal = idx === 0 ? '🥇 ' : (idx === 1 ? '🥈 ' : (idx === 2 ? '🥉 ' : ''));
+        const isTop1 = idx === 0 ? ' top-1' : '';
+        return `<div class="draw-score-item${isTop1}">
+            <span>${medal}</span>
+            <span style="color:${escapeHtml(s.nameColor || '#fff')};font-weight:600;">${escapeHtml(s.name)}</span>
+            <span class="draw-score-pts">${s.score}đ</span>
+        </div>`;
+    }).join('');
 }
+
 function renderDrawUserList(users) {
     const el = document.getElementById('draw-user-list');
-    if (myRole !== 'admin') { el.innerHTML = '<div style="color:var(--text-muted);font-size:13px;padding:10px;">Chờ admin chọn người vẽ...</div>'; return; }
-    el.innerHTML = users.map(u => `<button class="draw-user-btn" style="color:${escapeHtml(u.nameColor)}" onclick="pickDrawer('${u.id}')">${escapeHtml(u.name)}</button>`).join('');
+    if (!el) return;
+    if (myRole !== 'admin') {
+        el.innerHTML = '<div style="color:var(--text-muted);font-size:14px;padding:12px;text-align:center;">Vui lòng chờ Admin chọn artist tiếp theo...</div>';
+        return;
+    }
+    el.innerHTML = users.map(u => `
+        <button class="draw-user-btn" style="color:${escapeHtml(u.nameColor || '#ffffff')}" onclick="pickDrawer('${u.id}')">
+            <span class="material-symbols-outlined" style="font-size:16px;">brush</span>
+            <span>${escapeHtml(u.name)}</span>
+        </button>
+    `).join('');
 }
+
 function showDrawPanel(panel) {
     document.getElementById('draw-waiting-panel').classList.toggle('hidden', panel !== 'waiting');
     document.getElementById('draw-canvas-panel').classList.toggle('hidden', panel !== 'canvas');
@@ -2132,7 +2213,6 @@ function showDrawPanel(panel) {
     }
 }
 
-
 socket.on('drawGameStarted', (data) => {
     drawGameActive = true; amIDrawer = false; drawGuessedCorrectly = false;
     document.getElementById('draw-game-overlay').classList.remove('hidden');
@@ -2142,74 +2222,91 @@ socket.on('drawGameStarted', (data) => {
     showDrawPanel('waiting');
     renderDrawUserList(data.users);
     renderDrawScores(data.scores || {});
-    document.getElementById('draw-info').innerHTML = '<div>👆 Chọn người vẽ để bắt đầu!</div>';
+    document.getElementById('draw-info').innerHTML = '<div style="color:var(--text-muted);">👆 Chọn artist để bắt đầu lượt mới</div>';
     document.getElementById('draw-timer').textContent = '--';
-    document.getElementById('draw-timer').classList.remove('urgent');
+    const timerBadge = document.querySelector('.draw-timer-badge');
+    if (timerBadge) timerBadge.classList.remove('urgent');
 });
-
 
 socket.on('drawRoundStart', (data) => {
     amIDrawer = (data.drawerId === socket.id);
     drawGuessedCorrectly = false;
     showDrawPanel('canvas');
     resizeDrawCanvas();
+    const wrap = document.getElementById('draw-canvas-wrap');
+    if (wrap && canvasGridEnabled) wrap.classList.add('grid-bg');
+
     document.getElementById('draw-tools-bar').classList.toggle('hidden', !amIDrawer);
     document.getElementById('draw-timer').textContent = data.timeLeft + 's';
-    document.getElementById('draw-timer').classList.remove('urgent');
-
+    const timerBadge = document.querySelector('.draw-timer-badge');
+    if (timerBadge) timerBadge.classList.remove('urgent');
 
     document.getElementById('draw-drawer-tools').classList.toggle('hidden', !amIDrawer);
-
 
     const guessArea = document.getElementById('draw-guess-area');
     guessArea.classList.toggle('hidden', amIDrawer);
     document.getElementById('draw-guess-input').value = '';
     document.getElementById('draw-guess-input').disabled = false;
-    document.getElementById('draw-guess-input').placeholder = 'Nhập câu trả lời của bạn...';
+    document.getElementById('draw-guess-input').placeholder = 'Gõ câu trả lời của bạn ở đây...';
     document.getElementById('draw-guess-feedback').textContent = '';
     document.getElementById('draw-guess-feedback').className = 'draw-guess-feedback';
 
     if (amIDrawer) {
-        document.getElementById('draw-info').innerHTML = `<div>Bạn đang vẽ! <span class="draw-word-secret"><span class="material-symbols-outlined" style="font-size:16px;vertical-align:text-bottom;">lock</span> Chờ nhận từ...</span></div>`;
+        document.getElementById('draw-info').innerHTML = `
+            <div style="font-weight:600;">Bạn đang vẽ! 
+                <span class="draw-word-secret">
+                    <span class="material-symbols-outlined" style="font-size:16px;">lock</span> 
+                    Đang chờ nhận từ khóa...
+                </span>
+            </div>`;
     } else {
-        document.getElementById('draw-info').innerHTML = `<div><span class="material-symbols-outlined" style="font-size:16px;vertical-align:text-bottom;">brush</span> <strong>${escapeHtml(data.drawerName)}</strong> đang vẽ... <div class="draw-word-display">${data.hint}</div></div>`;
+        document.getElementById('draw-info').innerHTML = `
+            <div style="font-size:14px;">
+                <span style="color:var(--text-muted);">Artist </span>
+                <strong style="color:${escapeHtml(data.drawerNameColor || '#3ea6ff')};">${escapeHtml(data.drawerName)}</strong> 
+                <span style="color:var(--text-muted);">đang vẽ</span>
+            </div>
+            ${formatWordHintHtml(data.hint)}`;
         setTimeout(() => document.getElementById('draw-guess-input').focus(), 300);
     }
 });
 
-
 socket.on('drawYourWord', (word) => {
-    document.getElementById('draw-info').innerHTML = `<div>Bạn đang vẽ! <span class="draw-word-secret"><span class="material-symbols-outlined" style="font-size:16px;vertical-align:text-bottom;">palette</span> ${escapeHtml(word).toUpperCase()}</span></div>`;
+    document.getElementById('draw-info').innerHTML = `
+        <div style="font-weight:600;">Từ khóa của bạn: 
+            <span class="draw-word-secret">
+                <span class="material-symbols-outlined" style="font-size:18px;">palette</span> 
+                ${escapeHtml(word).toUpperCase()}
+            </span>
+        </div>`;
 });
-
 
 socket.on('drawTimerUpdate', (t) => {
     const el = document.getElementById('draw-timer');
-    el.textContent = t + 's';
-    el.classList.toggle('urgent', t <= 15);
+    if (el) el.textContent = t + 's';
+    const badge = document.querySelector('.draw-timer-badge');
+    if (badge) badge.classList.toggle('urgent', t <= 15);
 });
 
-
 socket.on('drawStroke', (data) => { drawLine(data.x0, data.y0, data.x1, data.y1, data.color, data.size); });
-
-
 socket.on('drawClear', () => { resizeDrawCanvas(); });
-
 
 socket.on('drawNewWord', (data) => {
     resizeDrawCanvas();
     if (!amIDrawer) {
         const info = document.getElementById('draw-info');
-        const current = info.innerHTML;
-        info.innerHTML = current.replace(/<div class="draw-word-display">.*?<\/div>/, `<div class="draw-word-display">${data.hint}</div>`);
+        info.innerHTML = `
+            <div style="font-size:14px;">
+                <span style="color:var(--text-muted);">Artist đang vẽ</span>
+            </div>
+            ${formatWordHintHtml(data.hint)}`;
     }
     document.getElementById('draw-timer').textContent = data.timeLeft + 's';
-    document.getElementById('draw-timer').classList.remove('urgent');
+    const badge = document.querySelector('.draw-timer-badge');
+    if (badge) badge.classList.remove('urgent');
 });
 
-
 socket.on('drawScoreUpdate', (scores) => { renderDrawScores(scores); });
-
 
 socket.on('drawRoundEnd', (data) => {
     amIDrawer = false;
@@ -2217,20 +2314,23 @@ socket.on('drawRoundEnd', (data) => {
     document.getElementById('draw-drawer-tools').classList.add('hidden');
     document.getElementById('draw-tools-bar').classList.add('hidden');
     document.getElementById('draw-guess-area').classList.add('hidden');
-    document.getElementById('draw-round-result').innerHTML = `<h3><span class="material-symbols-outlined" style="font-size:24px;vertical-align:text-bottom;">timer</span> Hết lượt!</h3><div class="reveal-word">Đáp án: ${escapeHtml(data.word)}</div>`;
-    document.getElementById('draw-info').innerHTML = '<div>Chờ lượt tiếp theo...</div>';
+    document.getElementById('draw-round-result').innerHTML = `
+        <h3><span class="material-symbols-outlined" style="font-size:24px;color:#ffd43b;vertical-align:text-bottom;">timer</span> Hết giờ lượt vẽ!</h3>
+        <div class="reveal-word">Từ khóa: ${escapeHtml(data.word).toUpperCase()}</div>
+    `;
+    document.getElementById('draw-info').innerHTML = '<div style="color:var(--text-muted);">Đang chuẩn bị lượt tiếp theo...</div>';
     renderDrawScores(data.scores);
 });
-
 
 socket.on('drawWaitingForDrawer', (data) => {
     showDrawPanel('waiting');
     document.getElementById('draw-guess-area').classList.add('hidden');
     renderDrawUserList(data.users);
     renderDrawScores(data.scores);
-    document.getElementById('draw-info').innerHTML = '<div>👆 Chọn người vẽ tiếp theo!</div>';
+    document.getElementById('draw-info').innerHTML = '<div style="color:var(--text-muted);">👆 Chọn artist cho lượt tiếp theo!</div>';
     document.getElementById('draw-timer').textContent = '--';
-    document.getElementById('draw-timer').classList.remove('urgent');
+    const badge = document.querySelector('.draw-timer-badge');
+    if (badge) badge.classList.remove('urgent');
 });
 
 
@@ -2480,10 +2580,14 @@ socket.on('chessUpdate', (game) => {
 let currentLyricData = null;
 let lyricInterval = null;
 let parsedLyrics = [];
+let lrcSearchResults = [];
+let currentLrcIndex = 0;
 
 async function fetchLyrics(title) {
     document.getElementById('lyric-box').classList.remove('hidden');
     document.getElementById('lyric-content').innerHTML = '<div class="lyric-loading">Đang tìm lời bài hát...</div>';
+    const reportBtn = document.getElementById('lyric-report-btn');
+    if (reportBtn) reportBtn.classList.add('hidden');
 
     try {
         let cleanTitle = title.replace(/\(.*?\)|\[.*?\]|\{.*?\}/g, ' ')
@@ -2514,15 +2618,15 @@ async function fetchLyrics(title) {
         }
 
         if (data && data.length > 0) {
-            console.log(`First API Result: ${data[0].trackName} - ${data[0].artistName} (Duration: ${data[0].duration}s)`);
+            lrcSearchResults = data.filter(item => item.syncedLyrics || item.plainLyrics);
 
             let videoDuration = 0;
-            for (let i = 0; i < 15; i++) {
+            for (let i = 0; i < 10; i++) {
                 if (player && typeof player.getDuration === 'function') {
                     videoDuration = player.getDuration();
                     if (videoDuration > 0) break;
                 }
-                await new Promise(r => setTimeout(r, 200));
+                await new Promise(r => setTimeout(r, 150));
             }
 
             console.log("YouTube Video Duration:", videoDuration, "seconds");
@@ -2530,7 +2634,7 @@ async function fetchLyrics(title) {
             let found = null;
             if (videoDuration > 0) {
                 let minDiff = Infinity;
-                for (let item of data) {
+                for (let item of lrcSearchResults) {
                     if (item.syncedLyrics && item.duration) {
                         let diff = Math.abs(item.duration - videoDuration);
                         if (diff < minDiff) {
@@ -2539,44 +2643,64 @@ async function fetchLyrics(title) {
                         }
                     }
                 }
-                if (found) {
-                    console.log(`Closest duration match found with diff: ${minDiff}s`);
-                }
             }
 
-            if (!found) {
-                console.log("No duration info available, falling back to first synced lyrics...");
-                found = data.find(item => item.syncedLyrics);
-            }
-            if (!found) {
-                console.log("No synced lyrics found, falling back to first plain lyrics...");
-                found = data[0];
-            }
+            if (!found) found = lrcSearchResults.find(item => item.syncedLyrics);
+            if (!found && lrcSearchResults.length > 0) found = lrcSearchResults[0];
 
             if (found) {
-                console.log(`Chosen Lyric: ${found.trackName} - ${found.artistName} (Duration: ${found.duration}s, Synced: ${!!found.syncedLyrics})`);
-            }
-            console.log("--------------------------");
-
-            if (found.syncedLyrics) {
-                parseLyrics(found.syncedLyrics);
-                startLyricSync();
-            } else if (found.plainLyrics) {
-                document.getElementById('lyric-content').innerHTML = `<div style="white-space: pre-line; color: var(--text-muted); font-size: 15px;">${found.plainLyrics}</div>`;
-                stopLyricSync();
+                currentLrcIndex = lrcSearchResults.indexOf(found);
+                if (currentLrcIndex === -1) currentLrcIndex = 0;
+                applyLyricItem(found);
             } else {
                 document.getElementById('lyric-content').innerHTML = '<div class="lyric-loading">Không tìm thấy lời bài hát</div>';
                 stopLyricSync();
             }
         } else {
+            lrcSearchResults = [];
             document.getElementById('lyric-content').innerHTML = '<div class="lyric-loading">Không tìm thấy lời bài hát</div>';
             stopLyricSync();
         }
     } catch (e) {
         console.error("Lỗi khi tải lyric", e);
+        lrcSearchResults = [];
         document.getElementById('lyric-content').innerHTML = '<div class="lyric-loading">Lỗi khi tải lời bài hát</div>';
         stopLyricSync();
     }
+}
+
+function applyLyricItem(item) {
+    const reportBtn = document.getElementById('lyric-report-btn');
+    if (lrcSearchResults.length > 1 && reportBtn) {
+        reportBtn.classList.remove('hidden');
+    } else if (reportBtn) {
+        reportBtn.classList.add('hidden');
+    }
+
+    if (item.syncedLyrics) {
+        parseLyrics(item.syncedLyrics);
+        startLyricSync();
+    } else if (item.plainLyrics) {
+        document.getElementById('lyric-content').innerHTML = `<div style="white-space: pre-line; color: rgba(255,255,255,0.7); font-size: 16px; padding: 20px 0; line-height: 1.6;">${item.plainLyrics}</div>`;
+        stopLyricSync();
+    } else {
+        document.getElementById('lyric-content').innerHTML = '<div class="lyric-loading">Không có dữ liệu lời bài hát</div>';
+        stopLyricSync();
+    }
+}
+
+function switchToNextLyric() {
+    if (!lrcSearchResults || lrcSearchResults.length <= 1) {
+        showToastNotification('Không có bản lyric thay thế khác cho bài hát này!');
+        return;
+    }
+    currentLrcIndex = (currentLrcIndex + 1) % lrcSearchResults.length;
+    const item = lrcSearchResults[currentLrcIndex];
+    applyLyricItem(item);
+
+    const trackInfo = (item.trackName || '') + (item.artistName ? ' - ' + item.artistName : '');
+    const syncStatus = item.syncedLyrics ? 'Có đồng bộ' : 'Lời chay';
+    showToastNotification(`🔄 Đã đổi bản lyric (${currentLrcIndex + 1}/${lrcSearchResults.length}): ${trackInfo} [${syncStatus}]`);
 }
 
 function parseLyrics(lrc) {
@@ -2631,18 +2755,36 @@ function startLyricSync() {
 
         if (activeIndex !== -1 && activeIndex !== lastScrolledIndex) {
             lastScrolledIndex = activeIndex;
+
+            const allLines = document.querySelectorAll('.lyric-line');
+            allLines.forEach((el, idx) => {
+                el.classList.remove('active');
+                if (idx < activeIndex) {
+                    el.classList.add('passed');
+                } else {
+                    el.classList.remove('passed');
+                }
+            });
+
             const target = document.getElementById(`lyric-line-${activeIndex}`);
 
             if (target) {
+                target.classList.add('active');
+                target.classList.remove('passed');
                 const box = document.getElementById('lyric-box');
-                const offsetTop = target.offsetTop - box.offsetTop;
-                box.scrollTo({
-                    top: offsetTop - 24,
-                    behavior: 'smooth'
-                });
+                if (box) {
+                    const boxHeight = box.clientHeight;
+                    const targetTop = target.offsetTop;
+                    const targetHeight = target.offsetHeight;
+                    const scrollTo = targetTop - (boxHeight / 2) + (targetHeight / 2);
+                    box.scrollTo({
+                        top: Math.max(0, scrollTo),
+                        behavior: 'smooth'
+                    });
+                }
             }
         }
-    }, 200);
+    }, 150);
 }
 
 function stopLyricSync() {

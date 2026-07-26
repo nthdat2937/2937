@@ -455,14 +455,22 @@ io.on('connection', (socket) => {
 
     socket.on('joinRoom', async (data) => {
         const { name, isAdmin, password, nameColor } = data;
-        const username = name.trim() || 'Người dùng ẩn danh';
+        const username = (name || '').trim() || 'Người dùng ẩn danh';
         const chatHistory = await getRecentChatHistory();
+
+        const lowerName = username.toLowerCase().replace(/\s+/g, '');
+        const isReserved = lowerName.includes('admin') ||
+                           lowerName.includes('nthdat') ||
+                           lowerName.includes('quantrivien') ||
+                           lowerName.includes('quan-tri-vien') ||
+                           lowerName === 'doo' ||
+                           lowerName === 'hethong' ||
+                           lowerName === 'system';
 
         if (isAdmin) {
             let isValid = false;
             let adminLabel = 'Admin';
 
-            // Sao mày tìm tới đây chi vậy, thích stalk không?
             if (username.toLowerCase() === 'nthdat') {
                 if (password === ADMIN_PASSWORD) isValid = true;
                 adminLabel = 'Admin Chính';
@@ -480,9 +488,21 @@ io.on('connection', (socket) => {
                 io.emit('newMessage', { id: 'sys-' + Date.now(), name: 'Hệ thống 🤖', text: `👑 Admin [${socket.username}] đã lên sàn điều khiển nhạc!`, role: 'system' });
                 io.emit('activeUsersList', getDrawUserList());
             } else {
-                socket.emit('authResult', { success: false, message: 'Sai mật khẩu hoặc ngày sinh rồi ông chủ ơi! ❌' });
+                socket.emit('authResult', { success: false, message: 'Sai mật khẩu hoặc ngày sinh Quản trị viên rồi! ❌' });
             }
         } else {
+            if (isReserved) {
+                socket.emit('authResult', { success: false, message: 'Tên người dùng chứa từ khóa dành riêng cho Quản trị viên (admin, nthdat...)! Vui lòng chọn tên khác. ❌' });
+                return;
+            }
+
+            // Check duplicate username among active connected users
+            const isDuplicate = Array.from(connectedUsers.entries()).some(([id, u]) => id !== socket.id && (u.name.toLowerCase() === username.toLowerCase() || u.name.toLowerCase() === (username + ' 😎').toLowerCase()));
+            if (isDuplicate) {
+                socket.emit('authResult', { success: false, message: 'Tên này đã có người đang dùng trong phòng! Vui lòng chọn tên khác. ❌' });
+                return;
+            }
+
             socket.username = username;
             socket.role = 'member';
             socket.nameColor = nameColor || '#aaaaaa';
