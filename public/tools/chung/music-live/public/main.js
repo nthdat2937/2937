@@ -806,6 +806,8 @@ async function handleMediaFileSelect(event) {
             } catch (storageErr) {
                 console.warn('Cơ chế Supabase Storage ngoại lệ:', storageErr.message);
             }
+        }
+
         if (!publicUrl) {
             publicUrl = await new Promise((resolve, reject) => {
                 const reader = new FileReader();
