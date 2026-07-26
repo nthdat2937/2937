@@ -25,6 +25,23 @@
         </div>
         <div class="yt-splash-bar"></div>
     </div>
+    <script>
+        (function() {
+            function hideAppLoaderInline() {
+                var loader = document.getElementById('app-loader-screen');
+                if (loader && !loader.classList.contains('fade-out')) {
+                    loader.classList.add('fade-out');
+                    setTimeout(function() { if (loader && loader.parentNode) loader.parentNode.removeChild(loader); }, 500);
+                }
+            }
+            if (document.fonts && document.fonts.ready) {
+                document.fonts.ready.then(function() { setTimeout(hideAppLoaderInline, 200); }).catch(function(){});
+            }
+            document.addEventListener('DOMContentLoaded', function() { setTimeout(hideAppLoaderInline, 500); });
+            window.addEventListener('load', function() { setTimeout(hideAppLoaderInline, 200); });
+            setTimeout(hideAppLoaderInline, 1500);
+        })();
+    </script>
 
     <div id="login-section" class="login-overlay">
         <div class="login-card">
