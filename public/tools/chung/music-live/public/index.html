@@ -424,17 +424,31 @@
                     <!-- Voice Recording Bar Overlay -->
                     <div id="voice-recording-bar" class="voice-recording-bar hidden">
                         <div class="voice-rec-left">
-                            <span class="voice-rec-dot"></span>
+                            <button id="voice-rec-play-btn" class="voice-rec-play-btn hidden" onclick="toggleVoicePreviewPlay()" title="Nghe thử">
+                                <span class="material-symbols-outlined" style="font-size:18px;">play_arrow</span>
+                            </button>
+                            <span class="voice-rec-dot" id="voice-rec-dot"></span>
                             <span class="voice-rec-timer" id="voice-rec-timer">00:00</span>
-                            <div class="voice-rec-wave">
+                            <div class="voice-rec-wave" id="voice-rec-wave">
                                 <span></span><span></span><span></span><span></span><span></span>
                             </div>
                         </div>
                         <div class="voice-rec-right">
+                            <select id="voice-effect-select" class="voice-effect-select hidden" title="Đổi hiệu ứng giọng nói" onchange="handleVoiceEffectChange()">
+                                <option value="normal">🎙️ Gốc</option>
+                                <option value="chipmunk">🐿️ Sóc chuột</option>
+                                <option value="monster">👹 Quái vật</option>
+                                <option value="robot">🤖 Robot</option>
+                                <option value="radio">📻 Loa đài</option>
+                                <option value="cave">🌌 Hang động</option>
+                            </select>
                             <button class="voice-rec-cancel-btn" onclick="cancelVoiceRecording()" title="Hủy ghi âm">
                                 <span class="material-symbols-outlined" style="font-size:18px;">close</span>
                             </button>
-                            <button class="voice-rec-send-btn" onclick="stopAndSendVoiceRecording()" title="Gửi tin nhắn thoại">
+                            <button id="voice-rec-stop-btn" class="voice-rec-stop-btn" onclick="finishVoiceRecording()" title="Hoàn tất ghi âm">
+                                <span class="material-symbols-outlined" style="font-size:18px;">check</span>
+                            </button>
+                            <button id="voice-rec-send-btn" class="voice-rec-send-btn hidden" onclick="sendProcessedVoiceRecording()" title="Gửi tin nhắn thoại">
                                 <span class="material-symbols-outlined" style="font-size:18px;">send</span>
                             </button>
                         </div>

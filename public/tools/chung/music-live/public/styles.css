@@ -569,10 +569,12 @@
 
             .left-column.not-home .video-container,
             .left-column.mobile-mini .video-container {
-                right: 20px;
-                bottom: 84px;
-                width: 200px;
-                height: 112.5px;
+                right: auto;
+                left: 12px;
+                top: 72px;
+                bottom: auto;
+                width: 190px;
+                height: 106.875px;
             }
         }
 
@@ -1368,10 +1370,13 @@
             background: rgba(255, 71, 87, 0.12);
             border: 1px solid rgba(255, 71, 87, 0.3);
             border-radius: var(--radius-lg);
-            padding: 8px 16px;
+            padding: 6px 10px;
             animation: voiceBarSlide 0.25s cubic-bezier(0.4, 0, 0.2, 1);
             box-shadow: 0 4px 15px rgba(255, 71, 87, 0.15);
             backdrop-filter: blur(8px);
+            width: 100%;
+            box-sizing: border-box;
+            overflow: hidden;
         }
 
         @keyframes voiceBarSlide {
@@ -1389,16 +1394,19 @@
         .voice-rec-left {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 6px;
+            min-width: 0;
+            flex-shrink: 1;
         }
 
         .voice-rec-dot {
-            width: 10px;
-            height: 10px;
+            width: 8px;
+            height: 8px;
             background-color: #ff4757;
             border-radius: 50%;
             box-shadow: 0 0 8px #ff4757;
             animation: blinkDot 1s infinite;
+            flex-shrink: 0;
         }
 
         @keyframes blinkDot {
@@ -1415,22 +1423,24 @@
 
         .voice-rec-timer {
             font-family: var(--font-display);
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 700;
             color: #ff4757;
             letter-spacing: 0.5px;
-            min-width: 45px;
+            min-width: 40px;
+            flex-shrink: 0;
         }
 
         .voice-rec-wave {
             display: flex;
             align-items: center;
-            gap: 3px;
-            height: 16px;
+            gap: 2px;
+            height: 14px;
+            flex-shrink: 0;
         }
 
         .voice-rec-wave span {
-            width: 3px;
+            width: 2px;
             height: 100%;
             background: #ff4757;
             border-radius: 2px;
@@ -1459,31 +1469,54 @@
 
         @keyframes waveBar {
             0% {
-                height: 4px;
+                height: 3px;
             }
 
             100% {
-                height: 16px;
+                height: 14px;
             }
         }
 
         .voice-rec-right {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 5px;
+            flex-shrink: 0;
         }
 
         .voice-rec-cancel-btn,
+        .voice-rec-stop-btn,
         .voice-rec-send-btn {
             border: none;
             border-radius: 50%;
-            width: 34px;
-            height: 34px;
+            width: 30px;
+            height: 30px;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
             transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+
+        .voice-rec-play-btn {
+            border: none;
+            border-radius: 50%;
+            width: 28px;
+            height: 28px;
+            background: rgba(255, 255, 255, 0.2);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+
+        .voice-rec-play-btn:hover {
+            background: rgba(255, 255, 255, 0.35);
+            transform: scale(1.08);
         }
 
         .voice-rec-cancel-btn {
@@ -1496,6 +1529,17 @@
             color: #fff;
         }
 
+        .voice-rec-stop-btn {
+            background: #51cf66;
+            color: #fff;
+            box-shadow: 0 2px 8px rgba(81, 207, 102, 0.4);
+        }
+
+        .voice-rec-stop-btn:hover {
+            background: #40c057;
+            transform: scale(1.05);
+        }
+
         .voice-rec-send-btn {
             background: #0084ff;
             color: #fff;
@@ -1505,6 +1549,68 @@
         .voice-rec-send-btn:hover {
             background: #0073e6;
             transform: scale(1.05);
+        }
+
+        .voice-rec-wave.paused span {
+            animation: none;
+            height: 4px;
+        }
+
+        .voice-rec-dot.recorded {
+            animation: none;
+            background-color: #51cf66;
+            box-shadow: 0 0 8px #51cf66;
+        }
+
+        .voice-effect-select {
+            background: rgba(0, 0, 0, 0.5);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: var(--radius-md);
+            padding: 3px 6px;
+            font-size: 12px;
+            outline: none;
+            cursor: pointer;
+            font-family: var(--font-body);
+            transition: all 0.2s ease;
+            max-width: 95px;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        @media (max-width: 480px) {
+            .voice-recording-bar {
+                padding: 4px 6px;
+            }
+            .voice-rec-left {
+                gap: 4px;
+            }
+            .voice-rec-wave {
+                display: none !important;
+            }
+            .voice-rec-timer {
+                font-size: 12px;
+                min-width: 36px;
+            }
+            .voice-effect-select {
+                max-width: 82px;
+                font-size: 11px;
+                padding: 2px 4px;
+            }
+            .voice-rec-right {
+                gap: 4px;
+            }
+        }
+
+        .voice-effect-select:hover,
+        .voice-effect-select:focus {
+            background: rgba(0, 0, 0, 0.65);
+            border-color: var(--accent);
+        }
+
+        .voice-effect-select option {
+            background: #1d1a15;
+            color: #fff;
         }
 
         /* Messenger Style Voice Message (Single Layer Perfect Alignment) */
@@ -3553,15 +3659,17 @@
             }
 
             .chat-messages {
-                padding: 12px 16px;
-                gap: 4px;
+                padding: 12px 10px;
+                gap: 2px;
             }
 
             .chat-message {
-                padding: 8px 10px;
-                border-radius: 10px;
+                padding: 0;
+            }
+
+            .chat-bubble {
                 font-size: 14px;
-                line-height: 1.5;
+                line-height: 1.45;
             }
 
             .chat-message .chat-gif {

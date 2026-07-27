@@ -837,9 +837,14 @@ function formatVoiceDuration(sec) {
     return `${mins.toString().padStart(2, '0')}:${remainderSecs.toString().padStart(2, '0')}`;
 }
 
+let recordedVoiceBlob = null;
+let recordedVoiceDuration = 0;
+
 async function toggleVoiceRecording() {
     if (mediaRecorder && mediaRecorder.state === 'recording') {
-        stopAndSendVoiceRecording();
+        finishVoiceRecording();
+    } else if (recordedVoiceBlob) {
+        sendProcessedVoiceRecording();
     } else {
         await startVoiceRecording();
     }
@@ -856,14 +861,16 @@ async function startVoiceRecording() {
     try {
         const stream = await navigator.mediaDevices.getUserMedia({
             audio: {
-                echoCancellation: true,   // Khử tiếng vang
-                noiseSuppression: true,   // Lọc tạp âm môi trường
-                autoGainControl: true,    // Cân bằng âm lượng micro tự động
-                sampleRate: 48000,        // Tần số 48kHz chất lượng Studio
+                echoCancellation: false,   // Tắt khử tiếng vang để giữ âm thanh chân thật
+                noiseSuppression: false,   // Tắt lọc tạp âm môi trường
+                autoGainControl: false,    // Tắt tự động điều chỉnh âm lượng
+                sampleRate: 48000,
                 channelCount: 1
             }
         });
         audioChunks = [];
+        recordedVoiceBlob = null;
+        recordedVoiceDuration = 0;
 
         // Tự động Mute nhạc để không bị dính tiếng nhạc vào ghi âm
         if (player && typeof player.isMuted === 'function' && typeof player.mute === 'function') {
@@ -874,7 +881,7 @@ async function startVoiceRecording() {
         }
 
         let options = {
-            audioBitsPerSecond: 128000 // 128kbps âm thanh sắc nét Messenger HD
+            audioBitsPerSecond: 128000
         };
         if (typeof MediaRecorder !== 'undefined') {
             if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
@@ -898,6 +905,11 @@ async function startVoiceRecording() {
         voiceRecSeconds = 0;
 
         document.getElementById('voice-rec-timer').innerText = '00:00';
+        document.getElementById('voice-rec-dot').classList.remove('recorded');
+        document.getElementById('voice-rec-wave').classList.remove('paused');
+        document.getElementById('voice-effect-select').classList.add('hidden');
+        document.getElementById('voice-rec-send-btn').classList.add('hidden');
+        document.getElementById('voice-rec-stop-btn').classList.remove('hidden');
         document.getElementById('voice-rec-btn').classList.add('recording');
         document.getElementById('chat-input-wrapper').classList.add('hidden');
         document.getElementById('voice-recording-bar').classList.remove('hidden');
@@ -907,7 +919,7 @@ async function startVoiceRecording() {
             voiceRecSeconds++;
             document.getElementById('voice-rec-timer').innerText = formatVoiceDuration(voiceRecSeconds);
             if (voiceRecSeconds >= 120) {
-                stopAndSendVoiceRecording();
+                finishVoiceRecording();
             }
         }, 1000);
 
@@ -918,13 +930,239 @@ async function startVoiceRecording() {
     }
 }
 
-function stopAndSendVoiceRecording() {
-    if (!mediaRecorder || mediaRecorder.state !== 'recording') {
-        cleanupVoiceRecordingState();
+async function applyVoiceEffect(audioBlob, effectType) {
+    if (!effectType || effectType === 'normal') {
+        return audioBlob;
+    }
+
+    try {
+        const arrayBuffer = await audioBlob.arrayBuffer();
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const decodedBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+
+        let playbackRate = 1.0;
+        if (effectType === 'chipmunk') playbackRate = 1.4;
+        if (effectType === 'monster') playbackRate = 0.72;
+
+        const duration = decodedBuffer.duration / playbackRate;
+        const sampleRate = decodedBuffer.sampleRate;
+        const numberOfChannels = decodedBuffer.numberOfChannels;
+
+        const offlineCtx = new OfflineAudioContext(
+            numberOfChannels,
+            Math.ceil(duration * sampleRate),
+            sampleRate
+        );
+
+        const source = offlineCtx.createBufferSource();
+        source.buffer = decodedBuffer;
+        source.playbackRate.value = playbackRate;
+
+        let lastNode = source;
+
+        if (effectType === 'robot') {
+            const osc = offlineCtx.createOscillator();
+            osc.type = 'sawtooth';
+            osc.frequency.value = 55;
+            osc.start(0);
+
+            const oscGain = offlineCtx.createGain();
+            oscGain.gain.value = 0.5;
+
+            const modGain = offlineCtx.createGain();
+            modGain.gain.value = 0.5;
+
+            osc.connect(oscGain);
+            oscGain.connect(modGain.gain);
+            source.connect(modGain);
+            lastNode = modGain;
+        } else if (effectType === 'radio') {
+            const highpass = offlineCtx.createBiquadFilter();
+            highpass.type = 'highpass';
+            highpass.frequency.value = 800;
+
+            const lowpass = offlineCtx.createBiquadFilter();
+            lowpass.type = 'lowpass';
+            lowpass.frequency.value = 2800;
+
+            const gain = offlineCtx.createGain();
+            gain.gain.value = 1.4;
+
+            source.connect(highpass);
+            highpass.connect(lowpass);
+            lowpass.connect(gain);
+            lastNode = gain;
+        } else if (effectType === 'cave') {
+            const delay = offlineCtx.createDelay();
+            delay.delayTime.value = 0.22;
+
+            const feedback = offlineCtx.createGain();
+            feedback.gain.value = 0.45;
+
+            const mixGain = offlineCtx.createGain();
+            mixGain.gain.value = 0.85;
+
+            source.connect(mixGain);
+            source.connect(delay);
+            delay.connect(feedback);
+            feedback.connect(delay);
+            delay.connect(mixGain);
+
+            lastNode = mixGain;
+        }
+
+        lastNode.connect(offlineCtx.destination);
+        source.start(0);
+
+        const renderedBuffer = await offlineCtx.startRendering();
+        return audioBufferToWavBlob(renderedBuffer);
+    } catch (err) {
+        console.error('Lỗi biến đổi giọng:', err);
+        return audioBlob;
+    }
+}
+
+function audioBufferToWavBlob(buffer) {
+    const numChannels = buffer.numberOfChannels;
+    const sampleRate = buffer.sampleRate;
+    const format = 1;
+    const bitDepth = 16;
+
+    let result;
+    if (numChannels === 2) {
+        const inputL = buffer.getChannelData(0);
+        const inputR = buffer.getChannelData(1);
+        result = new Float32Array(inputL.length + inputR.length);
+        let index = 0, inputIndex = 0;
+        while (index < result.length) {
+            result[index++] = inputL[inputIndex];
+            result[index++] = inputR[inputIndex];
+            inputIndex++;
+        }
+    } else {
+        result = buffer.getChannelData(0);
+    }
+
+    const dataLength = result.length * 2;
+    const bufferLength = 44 + dataLength;
+    const arrayBuffer = new ArrayBuffer(bufferLength);
+    const view = new DataView(arrayBuffer);
+
+    function writeString(v, offset, str) {
+        for (let i = 0; i < str.length; i++) {
+            v.setUint8(offset + i, str.charCodeAt(i));
+        }
+    }
+
+    writeString(view, 0, 'RIFF');
+    view.setUint32(4, 36 + dataLength, true);
+    writeString(view, 8, 'WAVE');
+    writeString(view, 12, 'fmt ');
+    view.setUint32(16, 16, true);
+    view.setUint16(20, format, true);
+    view.setUint16(22, numChannels, true);
+    view.setUint32(24, sampleRate, true);
+    view.setUint32(28, sampleRate * numChannels * 2, true);
+    view.setUint16(32, numChannels * 2, true);
+    view.setUint16(34, bitDepth, true);
+    writeString(view, 36, 'data');
+    view.setUint32(40, dataLength, true);
+
+    let offset = 44;
+    for (let i = 0; i < result.length; i++, offset += 2) {
+        const s = Math.max(-1, Math.min(1, result[i]));
+        view.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
+    }
+
+    return new Blob([arrayBuffer], { type: 'audio/wav' });
+}
+
+let previewAudioPlayer = null;
+let currentPreviewObjectUrl = null;
+
+async function toggleVoicePreviewPlay() {
+    const playBtn = document.getElementById('voice-rec-play-btn');
+    const waveElem = document.getElementById('voice-rec-wave');
+
+    if (previewAudioPlayer && !previewAudioPlayer.paused) {
+        stopVoicePreviewPlayback();
         return;
     }
 
-    const duration = voiceRecSeconds;
+    if (!recordedVoiceBlob) return;
+
+    if (playBtn) playBtn.disabled = true;
+
+    try {
+        const effectType = document.getElementById('voice-effect-select')?.value || 'normal';
+        const processedBlob = await applyVoiceEffect(recordedVoiceBlob, effectType);
+
+        stopVoicePreviewPlayback();
+
+        currentPreviewObjectUrl = URL.createObjectURL(processedBlob);
+        previewAudioPlayer = new Audio(currentPreviewObjectUrl);
+
+        previewAudioPlayer.onended = () => {
+            stopVoicePreviewPlayback();
+        };
+
+        previewAudioPlayer.onerror = (e) => {
+            console.error('Lỗi khi phát thử ghi âm:', e);
+            stopVoicePreviewPlayback();
+        };
+
+        await previewAudioPlayer.play();
+
+        if (playBtn) {
+            playBtn.disabled = false;
+            playBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size:18px;">pause</span>';
+        }
+        if (waveElem) waveElem.classList.remove('paused');
+    } catch (err) {
+        console.error('Lỗi nghe thử ghi âm:', err);
+        stopVoicePreviewPlayback();
+        if (playBtn) playBtn.disabled = false;
+    }
+}
+
+function stopVoicePreviewPlayback() {
+    if (previewAudioPlayer) {
+        try {
+            previewAudioPlayer.pause();
+            previewAudioPlayer.currentTime = 0;
+        } catch (e) {}
+        previewAudioPlayer = null;
+    }
+    if (currentPreviewObjectUrl) {
+        URL.revokeObjectURL(currentPreviewObjectUrl);
+        currentPreviewObjectUrl = null;
+    }
+    const playBtn = document.getElementById('voice-rec-play-btn');
+    if (playBtn) {
+        playBtn.disabled = false;
+        playBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size:18px;">play_arrow</span>';
+    }
+    const waveElem = document.getElementById('voice-rec-wave');
+    if (waveElem) waveElem.classList.add('paused');
+}
+
+function handleVoiceEffectChange() {
+    if (previewAudioPlayer && !previewAudioPlayer.paused) {
+        toggleVoicePreviewPlay();
+    }
+}
+
+function finishVoiceRecording() {
+    if (!mediaRecorder || mediaRecorder.state !== 'recording') {
+        return;
+    }
+
+    if (voiceRecTimerInterval) {
+        clearInterval(voiceRecTimerInterval);
+        voiceRecTimerInterval = null;
+    }
+
+    recordedVoiceDuration = voiceRecSeconds;
 
     mediaRecorder.onstop = () => {
         const stream = mediaRecorder.stream;
@@ -932,40 +1170,69 @@ function stopAndSendVoiceRecording() {
             stream.getTracks().forEach(track => track.stop());
         }
 
-        if (audioChunks.length > 0 && duration > 0) {
+        if (audioChunks.length > 0 && recordedVoiceDuration > 0) {
             const mimeType = mediaRecorder.mimeType || 'audio/webm';
-            const audioBlob = new Blob(audioChunks, { type: mimeType });
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                const base64Audio = reader.result;
-                if (currentReply) {
-                    socket.emit('sendMessage', {
-                        type: 'voice',
-                        audioUrl: base64Audio,
-                        duration: duration,
-                        replyTo: currentReply
-                    });
-                    cancelReply();
-                } else {
-                    socket.emit('sendMessage', {
-                        type: 'voice',
-                        audioUrl: base64Audio,
-                        duration: duration
-                    });
-                }
-            };
-            reader.readAsDataURL(audioBlob);
+            recordedVoiceBlob = new Blob(audioChunks, { type: mimeType });
+
+            // Chuyển sang giao diện Nghe thử & Chọn giọng & Gửi
+            document.getElementById('voice-rec-dot').classList.add('recorded');
+            document.getElementById('voice-rec-wave').classList.add('paused');
+            document.getElementById('voice-rec-stop-btn').classList.add('hidden');
+            document.getElementById('voice-rec-play-btn').classList.remove('hidden');
+            document.getElementById('voice-effect-select').classList.remove('hidden');
+            document.getElementById('voice-rec-send-btn').classList.remove('hidden');
         } else {
             alert('Tin nhắn thoại quá ngắn!');
+            cleanupVoiceRecordingState();
         }
-
-        cleanupVoiceRecordingState();
     };
 
     mediaRecorder.stop();
 }
 
+async function sendProcessedVoiceRecording() {
+    if (!recordedVoiceBlob || recordedVoiceDuration <= 0) {
+        cleanupVoiceRecordingState();
+        return;
+    }
+
+    stopVoicePreviewPlayback();
+
+    const sendBtn = document.getElementById('voice-rec-send-btn');
+    if (sendBtn) sendBtn.disabled = true;
+
+    const effectType = document.getElementById('voice-effect-select')?.value || 'normal';
+    const processedBlob = await applyVoiceEffect(recordedVoiceBlob, effectType);
+
+    let finalDuration = recordedVoiceDuration;
+    if (effectType === 'chipmunk') finalDuration = Math.max(1, Math.round(recordedVoiceDuration / 1.4));
+    if (effectType === 'monster') finalDuration = Math.max(1, Math.round(recordedVoiceDuration / 0.72));
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+        const base64Audio = reader.result;
+        if (currentReply) {
+            socket.emit('sendMessage', {
+                type: 'voice',
+                audioUrl: base64Audio,
+                duration: finalDuration,
+                replyTo: currentReply
+            });
+            cancelReply();
+        } else {
+            socket.emit('sendMessage', {
+                type: 'voice',
+                audioUrl: base64Audio,
+                duration: finalDuration
+            });
+        }
+        cleanupVoiceRecordingState();
+    };
+    reader.readAsDataURL(processedBlob);
+}
+
 function cancelVoiceRecording() {
+    stopVoicePreviewPlayback();
     if (mediaRecorder && mediaRecorder.state === 'recording') {
         mediaRecorder.onstop = () => {
             const stream = mediaRecorder.stream;
@@ -979,11 +1246,15 @@ function cancelVoiceRecording() {
 }
 
 function cleanupVoiceRecordingState() {
+    stopVoicePreviewPlayback();
+
     if (voiceRecTimerInterval) {
         clearInterval(voiceRecTimerInterval);
         voiceRecTimerInterval = null;
     }
     voiceRecSeconds = 0;
+    recordedVoiceDuration = 0;
+    recordedVoiceBlob = null;
     audioChunks = [];
     mediaRecorder = null;
 
@@ -995,6 +1266,12 @@ function cleanupVoiceRecordingState() {
     }
     wasMutedBeforeRecording = false;
 
+    const sendBtn = document.getElementById('voice-rec-send-btn');
+    if (sendBtn) sendBtn.disabled = false;
+
+    const playBtn = document.getElementById('voice-rec-play-btn');
+    if (playBtn) playBtn.classList.add('hidden');
+
     const voiceBtn = document.getElementById('voice-rec-btn');
     if (voiceBtn) voiceBtn.classList.remove('recording');
 
@@ -1003,6 +1280,12 @@ function cleanupVoiceRecordingState() {
 
     const recBar = document.getElementById('voice-recording-bar');
     if (recBar) recBar.classList.add('hidden');
+
+    const effectSelect = document.getElementById('voice-effect-select');
+    if (effectSelect) {
+        effectSelect.value = 'normal';
+        effectSelect.classList.add('hidden');
+    }
 }
 
 function triggerMediaUpload() {
