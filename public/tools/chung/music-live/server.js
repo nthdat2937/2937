@@ -460,12 +460,12 @@ io.on('connection', (socket) => {
 
         const lowerName = username.toLowerCase().replace(/\s+/g, '');
         const isReserved = lowerName.includes('admin') ||
-                           lowerName.includes('nthdat') ||
-                           lowerName.includes('quantrivien') ||
-                           lowerName.includes('quan-tri-vien') ||
-                           lowerName === 'doo' ||
-                           lowerName === 'hethong' ||
-                           lowerName === 'system';
+            lowerName.includes('nthdat') ||
+            lowerName.includes('quantrivien') ||
+            lowerName.includes('quan-tri-vien') ||
+            lowerName === 'doo' ||
+            lowerName === 'hethong' ||
+            lowerName === 'system';
 
         if (isAdmin) {
             let isValid = false;
@@ -599,6 +599,32 @@ io.on('connection', (socket) => {
 
             const textLower = textMsg.trim().toLowerCase();
 
+            let isTbNotification = false;
+            let tbContent = '';
+            if (textLower.startsWith('/tb ') || textLower === '/tb') {
+                if (socket.role !== 'admin') {
+                    socket.emit('newMessage', {
+                        id: 'sys-' + Date.now(),
+                        name: 'Hệ thống ❌',
+                        text: 'Lệnh **/tb** chỉ dành cho Quản trị viên!',
+                        role: 'system'
+                    });
+                    return;
+                }
+                isTbNotification = true;
+                tbContent = textMsg.trim().replace(/^\/tb\s*/i, '').trim();
+                if (!tbContent) {
+                    socket.emit('newMessage', {
+                        id: 'sys-' + Date.now(),
+                        name: 'Hệ thống ⚠️',
+                        text: 'Vui lòng nhập nội dung thông báo! Cú pháp: **/tb <nội dung>**',
+                        role: 'system'
+                    });
+                    return;
+                }
+                textMsg = tbContent;
+            }
+
             if (textLower.startsWith('/') && !textLower.startsWith('/ai')) {
                 if (socket.role !== 'admin') {
                     socket.emit('newMessage', {
@@ -618,6 +644,15 @@ io.on('connection', (socket) => {
             };
             io.emit('newMessage', textMsgObj);
             saveMessageToSupabase(textMsgObj);
+
+            if (isTbNotification && tbContent) {
+                io.emit('fullscreenNotification', {
+                    id: msgId,
+                    senderName: senderName,
+                    senderColor: senderColor,
+                    text: tbContent
+                });
+            }
 
             if (textLower === '/skip') {
                 if (playlist.length > 0) {
@@ -775,6 +810,25 @@ io.on('connection', (socket) => {
 
 
 
+    socket.on('submitFeedback', async (data) => {
+        if (!data || !data.content) return;
+        try {
+            const { error } = await supabase.from('web_feedback').insert([{
+                username: data.username || socket.username || 'Ẩn danh',
+                type: data.type || 'gop_y',
+                content: data.content,
+                created_at: new Date().toISOString()
+            }]);
+            if (error) {
+                console.error('Supabase Error (web_feedback):', error.message);
+            } else {
+                console.log('Đã lưu đóng góp ý kiến:', data.content);
+            }
+        } catch (e) {
+            console.error('Feedback Exception:', e.message);
+        }
+    });
+
     socket.on('adminPinMessage', (msgObj) => {
         if (socket.role === 'admin') {
             pinnedMessage = msgObj;
@@ -828,7 +882,7 @@ io.on('connection', (socket) => {
             io.emit('newMessage', {
                 id: 'sys-' + Date.now(),
                 name: 'Hệ thống 🤖',
-                text: `🎵 **${socket.username || 'Thành viên'}** đã thêm bài **${info.title}** vào danh sách chờ!`,
+                text: `**${socket.username || 'Thành viên'}** đã thêm bài **${info.title}** vào danh sách chờ!`,
                 role: 'system'
             });
 

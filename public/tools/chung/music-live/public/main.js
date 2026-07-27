@@ -48,6 +48,8 @@ function showTab(tab) {
     document.getElementById('left-column').classList.remove('hidden');
     document.getElementById('history-column').classList.add('hidden');
     document.getElementById('top-column').classList.add('hidden');
+    const fbCol = document.getElementById('feedback-column');
+    if (fbCol) fbCol.classList.add('hidden');
 
     if (tab === 'home') {
         // Just home
@@ -60,6 +62,9 @@ function showTab(tab) {
         } else if (tab === 'top') {
             document.getElementById('top-column').classList.remove('hidden');
             loadTopNhac();
+        } else if (tab === 'feedback') {
+            if (fbCol) fbCol.classList.remove('hidden');
+            loadFeedbackHistory();
         }
     }
 }
@@ -190,6 +195,211 @@ async function loadTopNhac() {
     } catch (err) {
         console.error(err);
         list.innerHTML = '<div style="color:#ff6b6b; padding:12px; text-align:center;">Lỗi tải Top nhạc. Xin thử lại sau!</div>';
+    }
+}
+
+const SUPABASE_FEEDBACK_URL = 'https://wnioetdrphkdylkoybsu.supabase.co';
+const SUPABASE_FEEDBACK_KEY = 'sb_publishable_p0VSduH3epzQVUdvAf2kPQ_aoWk_l1T';
+
+let currentFeedbackType = 'gop_y';
+
+function updateFbCharCount(textarea) {
+    const counter = document.getElementById('fb-char-counter');
+    if (counter && textarea) {
+        counter.textContent = `${textarea.value.length}/500`;
+    }
+}
+
+function selectFeedbackType(type) {
+    currentFeedbackType = type;
+    document.querySelectorAll('.fb-segment-btn').forEach(btn => {
+        if (btn.getAttribute('data-type') === type) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+
+    const txt = document.getElementById('feedback-content-input');
+    if (txt) {
+        if (type === 'bao_loi') {
+            txt.classList.add('type-bao_loi');
+        } else {
+            txt.classList.remove('type-bao_loi');
+        }
+    }
+}
+
+async function submitFeedback() {
+    const contentEl = document.getElementById('feedback-content-input');
+    const btn = document.getElementById('btn-submit-feedback');
+    if (!contentEl || !btn) return;
+
+    const content = (contentEl.value || '').trim();
+    const type = currentFeedbackType || 'gop_y';
+
+    if (!content) {
+        showToastNotification('⚠️ Vui lòng nhập nội dung phản hồi!');
+        return;
+    }
+
+    const username = myUsername || 'Ẩn danh';
+    btn.disabled = true;
+    const origHtml = btn.innerHTML;
+    btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:16px; animation: spin 1s linear infinite;">sync</span> Gửi...';
+
+    try {
+        const supabaseClient = supabase.createClient(SUPABASE_FEEDBACK_URL, SUPABASE_FEEDBACK_KEY);
+        const { data, error } = await supabaseClient
+            .from('web_feedback')
+            .insert([{
+                username: username,
+                type: type,
+                content: content,
+                created_at: new Date().toISOString()
+            }]);
+
+        if (error) {
+            console.warn('Supabase direct insert error, fallback via socket:', error.message);
+            socket.emit('submitFeedback', { username, type, content });
+        }
+
+        showToastNotification('🎉 Cảm ơn bạn! Ý kiến đóng góp đã được ghi nhận.');
+        contentEl.value = '';
+        updateFbCharCount(contentEl);
+        setTimeout(() => loadFeedbackHistory(), 300);
+    } catch (err) {
+        console.error('Error submitting feedback:', err);
+        socket.emit('submitFeedback', { username, type, content });
+        showToastNotification('🎉 Cảm ơn bạn! Ý kiến đóng góp đã được ghi nhận.');
+        contentEl.value = '';
+        updateFbCharCount(contentEl);
+        setTimeout(() => loadFeedbackHistory(), 300);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = origHtml;
+    }
+}
+
+function assignFeedbackCodes(items) {
+    if (!items || !items.length) return items;
+
+    const dayCounts = {};
+
+    // Sort chronologically ascending (oldest first) to compute correct daily indices
+    const sorted = [...items].sort((a, b) => new Date(a.created_at || 0) - new Date(b.created_at || 0));
+
+    sorted.forEach(item => {
+        const d = new Date(item.created_at || Date.now());
+        const dayStr = String(d.getDate()).padStart(2, '0');
+        const monthStr = String(d.getMonth() + 1).padStart(2, '0');
+        const yearStr = String(d.getFullYear()).slice(-2);
+        const dateKey = `${dayStr}${monthStr}${yearStr}`;
+
+        if (!dayCounts[dateKey]) {
+            dayCounts[dateKey] = 0;
+        }
+        dayCounts[dateKey]++;
+
+        const seqStr = String(dayCounts[dateKey]).padStart(2, '0');
+        item.displayCode = `#${dateKey}${seqStr}`;
+    });
+
+    return items;
+}
+
+async function loadFeedbackHistory() {
+    const list = document.getElementById('feedback-list');
+    const countBadge = document.getElementById('fb-count-badge');
+    if (!list) return;
+
+    // Skeleton loading state
+    list.innerHTML = `
+        <div class="fb-skeleton-card">
+            <div class="fb-skeleton-line" style="width: 35%;"></div>
+            <div class="fb-skeleton-line" style="width: 80%;"></div>
+            <div class="fb-skeleton-line" style="width: 60%;"></div>
+        </div>
+        <div class="fb-skeleton-card">
+            <div class="fb-skeleton-line" style="width: 45%;"></div>
+            <div class="fb-skeleton-line" style="width: 75%;"></div>
+        </div>`;
+
+    try {
+        const supabaseClient = supabase.createClient(SUPABASE_FEEDBACK_URL, SUPABASE_FEEDBACK_KEY);
+        const { data, error } = await supabaseClient
+            .from('web_feedback')
+            .select('*')
+            .order('created_at', { ascending: false })
+            .limit(100);
+
+        if (error) throw error;
+
+        if (countBadge) {
+            countBadge.textContent = (data || []).length;
+        }
+
+        if (!data || data.length === 0) {
+            list.innerHTML = `
+                <div class="fb-state-card">
+                    <span class="material-symbols-outlined fb-state-icon">rate_review</span>
+                    <h4 class="fb-state-title">Chưa có đóng góp nào</h4>
+                    <p class="fb-state-desc">Hãy là người đầu tiên chia sẻ ý kiến hoặc báo lỗi để hoàn thiện ứng dụng!</p>
+                </div>`;
+            return;
+        }
+
+        assignFeedbackCodes(data);
+
+        list.innerHTML = data.map(item => {
+            const d = new Date(item.created_at || Date.now());
+            const timeStr = d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+            const dateStr = d.toLocaleDateString('vi-VN');
+            const isBug = item.type === 'bao_loi';
+            const badgeClass = isBug ? 'type-bao_loi' : 'type-gop_y';
+            const badgeStyle = isBug
+                ? 'background: rgba(244, 63, 94, 0.12); color: #fb7185; border: 1px solid rgba(244, 63, 94, 0.25);'
+                : 'background: rgba(245, 158, 11, 0.12); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.25);';
+            const badgeIcon = isBug ? 'bug_report' : 'lightbulb';
+            const badgeText = isBug ? 'Báo lỗi' : 'Góp ý';
+
+            const initial = (item.username || '?').charAt(0).toUpperCase();
+            const avatarBg = stringToColor(item.username || '');
+
+            return `
+                <div class="fb-feed-card ${badgeClass}">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div class="fb-avatar" style="background: ${escapeHtml(avatarBg)};">${escapeHtml(initial)}</div>
+                            <div>
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <span style="font-weight: 600; font-size: 15.5px; color: #f4f4f5; line-height: 1.2;">${escapeHtml(item.username || 'Ẩn danh')}</span>
+                                    <span class="fb-code-badge">${escapeHtml(item.displayCode || '')}</span>
+                                </div>
+                                <div style="font-size: 12.5px; color: #71717a; margin-top: 3px; font-family: monospace;">${timeStr} · ${dateStr}</div>
+                            </div>
+                        </div>
+                        <span style="display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 700; padding: 4px 11px; border-radius: 6px; ${badgeStyle}">
+                            <span class="material-symbols-outlined" style="font-size: 14px;">${badgeIcon}</span>
+                            ${badgeText}
+                        </span>
+                    </div>
+                    <div style="font-size: 15.5px; color: #e4e4e7; line-height: 1.65; white-space: pre-wrap; word-break: break-word;">${escapeHtml(item.content || '')}</div>
+                </div>
+            `;
+        }).join('');
+
+    } catch (err) {
+        console.error(err);
+        list.innerHTML = `
+            <div class="fb-state-card" style="border-color: rgba(244, 63, 94, 0.3);">
+                <span class="material-symbols-outlined fb-state-icon" style="color: #f43f5e;">wifi_off</span>
+                <h4 class="fb-state-title">Không thể tải dữ liệu</h4>
+                <p class="fb-state-desc" style="margin-bottom: 16px;">Đã xảy ra sự cố khi kết nối tới máy chủ lưu trữ.</p>
+                <button class="fb-refresh-btn" style="margin: 0 auto;" onclick="loadFeedbackHistory()">
+                    <span class="material-symbols-outlined" style="font-size: 15px;">refresh</span> Thử lại
+                </button>
+            </div>`;
     }
 }
 
@@ -330,10 +540,12 @@ socket.on('authResult', (res) => {
         if (res.chatHistory && Array.isArray(res.chatHistory)) {
             document.getElementById('chat-box-ui').innerHTML = '';
             lastChatSenderId = null;
+            isLoadingChatHistory = true;
             res.chatHistory.forEach(msg => {
                 const listeners = socket.listeners('newMessage');
-                listeners.forEach(fn => fn(msg));
+                listeners.forEach(fn => fn({ ...msg, isHistory: true }));
             });
+            isLoadingChatHistory = false;
         }
 
 
@@ -514,13 +726,100 @@ socket.on('viewersUpdate', (count) => {
     document.getElementById('viewer-count').innerHTML = `(<span class="material-symbols-outlined" style="font-size:14px; vertical-align:text-bottom;">visibility</span> ${count})`;
 });
 
+// --- FULLSCREEN ANNOUNCEMENT (/tb) LOGIC ---
+let tbTypeInterval = null;
+let tbAutoCloseTimeout = null;
+let isTbTyping = false;
+
+socket.on('fullscreenNotification', (data) => {
+    if (!data || !data.text) return;
+    showFullscreenNotification(data.text);
+});
+
+function showFullscreenNotification(text) {
+    const overlay = document.getElementById('tb-fullscreen-overlay');
+    const textEl = document.getElementById('tb-typed-text');
+    const cursorEl = document.getElementById('tb-cursor');
+
+    if (!overlay || !textEl) return;
+
+    if (tbTypeInterval) {
+        clearInterval(tbTypeInterval);
+        tbTypeInterval = null;
+    }
+    if (tbAutoCloseTimeout) {
+        clearTimeout(tbAutoCloseTimeout);
+        tbAutoCloseTimeout = null;
+    }
+
+    isTbTyping = true;
+    overlay.classList.add('typing');
+
+    textEl.textContent = '';
+    if (cursorEl) cursorEl.style.display = 'inline';
+
+    overlay.classList.remove('hidden');
+    void overlay.offsetWidth;
+    overlay.classList.add('active');
+
+    let charIndex = 0;
+    const fullText = (text || '').trim();
+    const typingSpeed = 85; // ms per character (slower, natural typing pace)
+
+    tbTypeInterval = setInterval(() => {
+        if (charIndex <= fullText.length) {
+            textEl.textContent = fullText.substring(0, charIndex);
+            charIndex++;
+        } else {
+            clearInterval(tbTypeInterval);
+            tbTypeInterval = null;
+            isTbTyping = false;
+            overlay.classList.remove('typing');
+
+            tbAutoCloseTimeout = setTimeout(() => {
+                closeTbNotification(true);
+            }, 5000);
+        }
+    }, typingSpeed);
+}
+
+function closeTbNotification(force = false) {
+    if (isTbTyping && !force) return;
+
+    if (tbTypeInterval) {
+        clearInterval(tbTypeInterval);
+        tbTypeInterval = null;
+    }
+    if (tbAutoCloseTimeout) {
+        clearTimeout(tbAutoCloseTimeout);
+        tbAutoCloseTimeout = null;
+    }
+    isTbTyping = false;
+
+    const overlay = document.getElementById('tb-fullscreen-overlay');
+    if (overlay) {
+        overlay.classList.remove('typing');
+        overlay.classList.remove('active');
+        setTimeout(() => {
+            overlay.classList.add('hidden');
+        }, 300);
+    }
+}
+
+window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        closeTbNotification();
+    }
+});
+
 let lastChatSenderId = null;
+let isLoadingChatHistory = false;
 
 // Generate a consistent color from a string
 function stringToColor(str) {
-    const colors = ['#e17076','#7bc862','#6ec9cb','#65aadd','#ee7aae','#dda15e','#a695e7','#e8a752'];
+    const colors = ['#e17076', '#7bc862', '#6ec9cb', '#65aadd', '#ee7aae', '#dda15e', '#a695e7', '#e8a752'];
     let hash = 0;
-    for (let i = 0; i < (str||'').length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    for (let i = 0; i < (str || '').length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
     return colors[Math.abs(hash) % colors.length];
 }
 
@@ -573,7 +872,7 @@ async function startVoiceRecording() {
                 player.mute();
             }
         }
-        
+
         let options = {
             audioBitsPerSecond: 128000 // 128kbps âm thanh sắc nét Messenger HD
         };
@@ -1099,10 +1398,10 @@ function showToastNotification(text) {
 
     let iconHtml = '<span class="material-symbols-outlined" style="color:#4dabf7;">info</span>';
     const textLower = text.toLowerCase();
-    
-    if (textLower.includes('chuyển bài') || textLower.includes('đang phát') || text.includes('⏭️') || text.includes('▶️')) {
+
+    if (textLower.includes('chuyển bài') || textLower.includes('đang phát')) {
         iconHtml = '<span class="material-symbols-outlined" style="color:#a9e34b;">skip_next</span>';
-    } else if (textLower.includes('thêm') || textLower.includes('danh sách') || text.includes('➕') || text.includes('🎵')) {
+    } else if (textLower.includes('thêm') || textLower.includes('danh sách')) {
         iconHtml = '<span class="material-symbols-outlined" style="color:#38d9a9;">queue_music</span>';
     } else if (textLower.includes('admin') || text.includes('👑')) {
         iconHtml = '<span class="material-symbols-outlined" style="color:#fbbc04;">workspace_premium</span>';
@@ -1319,7 +1618,7 @@ socket.on('newMessage', (data) => {
         }, 100);
     }
 
-    if (!isOwn && !isSystem) {
+    if (!isOwn && !isSystem && !data.isHistory && !isLoadingChatHistory) {
         playChatSound();
         if (!chatBubbleOpen && window.innerWidth < 900) {
             unreadCount++;
@@ -1506,7 +1805,7 @@ socket.on('changeVideo', (data) => {
     const vidTitle = data.title || 'Trạm Nhạc Live';
 
     if (vidTitle && vidTitle !== 'Trạm Nhạc Live') {
-        showToastNotification(`▶️ Đang phát: ${vidTitle}`);
+        showToastNotification(`Đang phát: ${vidTitle}`);
     }
 
     if (player) {
@@ -1971,7 +2270,7 @@ function toggleChatBubble() {
         const chatBox = document.getElementById('chat-box-ui');
         setTimeout(() => { chatBox.scrollTop = chatBox.scrollHeight; }, 100);
         setTimeout(() => { document.getElementById('chat-input').focus(); }, 200);
-        
+
         // Add mobile-mini to trigger mini player on mobile
         document.getElementById('left-column').classList.add('mobile-mini');
     } else {
@@ -1986,7 +2285,7 @@ function toggleChatBubble() {
             toggleIcon.style.transform = 'rotate(0deg)';
         }
         if (toggleBtn) toggleBtn.style.background = 'var(--accent)';
-        
+
         // Remove mobile-mini
         document.getElementById('left-column').classList.remove('mobile-mini');
     }
@@ -2089,7 +2388,7 @@ function drawLine(x0, y0, x1, y1, color, size) {
     ctx.beginPath();
     ctx.moveTo(x0 * c.width, y0 * c.height);
     ctx.lineTo(x1 * c.width, y1 * c.height);
-    
+
     if (color === 'eraser' || color === '#ffffff' || color === '#fff') {
         ctx.globalCompositeOperation = 'destination-out';
         ctx.strokeStyle = 'rgba(0,0,0,1)';
@@ -2097,7 +2396,7 @@ function drawLine(x0, y0, x1, y1, color, size) {
         ctx.globalCompositeOperation = 'source-over';
         ctx.strokeStyle = color;
     }
-    
+
     ctx.lineWidth = size;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
@@ -2147,9 +2446,9 @@ function clearDrawCanvas() {
     socket.emit('drawClear');
 }
 
-function startDrawGame() { 
+function startDrawGame() {
     document.getElementById('draw-game-overlay').classList.remove('hidden');
-    if (myRole === 'admin') socket.emit('adminStartDrawGame'); 
+    if (myRole === 'admin') socket.emit('adminStartDrawGame');
 }
 function endDrawGame() { socket.emit('adminEndDrawGame'); }
 function skipDrawWord() { socket.emit('skipWord'); }
@@ -2671,10 +2970,8 @@ async function fetchLyrics(title) {
 
 function applyLyricItem(item) {
     const reportBtn = document.getElementById('lyric-report-btn');
-    if (lrcSearchResults.length > 1 && reportBtn) {
+    if (reportBtn) {
         reportBtn.classList.remove('hidden');
-    } else if (reportBtn) {
-        reportBtn.classList.add('hidden');
     }
 
     if (item.syncedLyrics) {
@@ -2689,18 +2986,32 @@ function applyLyricItem(item) {
     }
 }
 
-function switchToNextLyric() {
-    if (!lrcSearchResults || lrcSearchResults.length <= 1) {
-        showToastNotification('Không có bản lyric thay thế khác cho bài hát này!');
-        return;
-    }
-    currentLrcIndex = (currentLrcIndex + 1) % lrcSearchResults.length;
-    const item = lrcSearchResults[currentLrcIndex];
-    applyLyricItem(item);
+async function switchToNextLyric() {
+    const currentTitle = document.getElementById('music-title')?.textContent || 'Bài hát';
 
-    const trackInfo = (item.trackName || '') + (item.artistName ? ' - ' + item.artistName : '');
-    const syncStatus = item.syncedLyrics ? 'Có đồng bộ' : 'Lời chay';
-    showToastNotification(`🔄 Đã đổi bản lyric (${currentLrcIndex + 1}/${lrcSearchResults.length}): ${trackInfo} [${syncStatus}]`);
+    if (lrcSearchResults && lrcSearchResults.length > 1) {
+        currentLrcIndex = (currentLrcIndex + 1) % lrcSearchResults.length;
+        const item = lrcSearchResults[currentLrcIndex];
+        applyLyricItem(item);
+
+        const trackInfo = (item.trackName || '') + (item.artistName ? ' - ' + item.artistName : '');
+        const syncStatus = item.syncedLyrics ? 'Có đồng bộ' : 'Lời chay';
+        showToastNotification(`🔄 Đã đổi bản lyric (${currentLrcIndex + 1}/${lrcSearchResults.length}): ${trackInfo} [${syncStatus}]`);
+    } else {
+        showToastNotification(`⚠️ Đã gửi báo cáo lệch lyric bài "${currentTitle}"! Cảm ơn bạn.`);
+        try {
+            const supabaseClient = supabase.createClient(SUPABASE_FEEDBACK_URL, SUPABASE_FEEDBACK_KEY);
+            await supabaseClient.from('web_feedback').insert([{
+                username: myUsername || 'Ẩn danh',
+                type: 'bao_loi',
+                content: `[TỰ ĐỘNG BÁO LỆCH LYRIC] Bài hát: "${currentTitle}" bị lệch hoặc thiếu lời.`,
+                created_at: new Date().toISOString()
+            }]);
+            setTimeout(() => loadFeedbackHistory(), 500);
+        } catch (e) {
+            console.error('Auto report lyric error:', e);
+        }
+    }
 }
 
 function parseLyrics(lrc) {
@@ -2896,7 +3207,7 @@ let xiangqiSelected = null;
 function renderXiangqiBoard(game) {
     const boardEl = document.getElementById('xiangqi-board');
     boardEl.innerHTML = '';
-    
+
     for (let r = 0; r < 10; r++) {
         for (let c = 0; c < 9; c++) {
             const cell = document.createElement('div');
@@ -2905,7 +3216,7 @@ function renderXiangqiBoard(game) {
             cell.style.position = 'relative'; cell.style.display = 'flex';
             cell.style.alignItems = 'center'; cell.style.justifyContent = 'center';
             cell.onclick = () => onXiangqiClick(r, c);
-            
+
             const piece = game.board[r][c];
             if (piece) {
                 const isRed = piece.startsWith('r_');
@@ -2919,10 +3230,10 @@ function renderXiangqiBoard(game) {
                 pieceEl.style.alignItems = 'center'; pieceEl.style.justifyContent = 'center';
                 pieceEl.style.fontSize = '18px'; pieceEl.style.boxShadow = '2px 2px 4px rgba(0,0,0,0.3)';
                 pieceEl.style.cursor = 'pointer';
-                
+
                 const labels = { 'r': isRed ? '俥' : '車', 'h': isRed ? '傌' : '馬', 'e': isRed ? '相' : '象', 'a': isRed ? '仕' : '士', 'k': isRed ? '帥' : '將', 'c': isRed ? '炮' : '砲', 'p': isRed ? '兵' : '卒' };
                 pieceEl.innerText = labels[type];
-                
+
                 if (xiangqiSelected && xiangqiSelected.r === r && xiangqiSelected.c === c) {
                     pieceEl.style.background = '#a67c52'; pieceEl.style.color = '#fff';
                 }
@@ -2931,7 +3242,7 @@ function renderXiangqiBoard(game) {
             if (xiangqiSelected && !piece && (myXiangqiSide === game.turn)) {
                 // simple dot for possible move
                 const dot = document.createElement('div');
-                dot.style.width='10px'; dot.style.height='10px'; dot.style.borderRadius='50%'; dot.style.background='rgba(0,0,0,0.2)';
+                dot.style.width = '10px'; dot.style.height = '10px'; dot.style.borderRadius = '50%'; dot.style.background = 'rgba(0,0,0,0.2)';
                 cell.appendChild(dot);
             }
             boardEl.appendChild(cell);
@@ -2941,7 +3252,7 @@ function renderXiangqiBoard(game) {
 function onXiangqiClick(r, c) {
     if (!currentXiangqiGame || currentXiangqiGame.winner || myXiangqiSide !== currentXiangqiGame.turn) return;
     const piece = currentXiangqiGame.board[r][c];
-    
+
     if (xiangqiSelected) {
         if (piece && piece.startsWith(myXiangqiSide.toLowerCase() + '_')) {
             xiangqiSelected = { r, c };
@@ -2962,17 +3273,17 @@ socket.on('xiangqiUpdate', (game) => {
     currentXiangqiGame = game;
     myXiangqiSide = (game.playerR === socket.id) ? 'R' : (game.playerB === socket.id ? 'B' : null);
     const isPlaying = game.playerR || game.playerB;
-    
+
     document.getElementById('xiangqi-challenge-target').classList.toggle('hidden', isPlaying || myXiangqiSide !== null);
     document.getElementById('btn-send-xiangqi-challenge').classList.toggle('hidden', isPlaying || myXiangqiSide !== null);
     document.getElementById('btn-leave-xiangqi').classList.toggle('hidden', myXiangqiSide === null && myRole !== 'admin');
     document.getElementById('xiangqi-board-wrapper').classList.toggle('hidden', !isPlaying);
-    
+
     let status = '';
-    if (game.winner) status = `🎉 <span style="color: ${game.winner==='R'?'#d32f2f':'#333'};">${game.winner==='R'?game.playerRName:game.playerBName}</span> ĐÃ CHIẾN THẮNG!`;
+    if (game.winner) status = `🎉 <span style="color: ${game.winner === 'R' ? '#d32f2f' : '#333'};">${game.winner === 'R' ? game.playerRName : game.playerBName}</span> ĐÃ CHIẾN THẮNG!`;
     else if (!game.playerR || !game.playerB) status = 'Chọn người thách đấu Cờ Tướng';
-    else status = `Lượt của: <span style="color: ${game.turn==='R'?'#d32f2f':'#333'};">${game.turn==='R'?game.playerRName:game.playerBName}</span> ${myXiangqiSide===game.turn ? '(Tới bạn!)' : ''}`;
-    
+    else status = `Lượt của: <span style="color: ${game.turn === 'R' ? '#d32f2f' : '#333'};">${game.turn === 'R' ? game.playerRName : game.playerBName}</span> ${myXiangqiSide === game.turn ? '(Tới bạn!)' : ''}`;
+
     document.getElementById('xiangqi-status').innerHTML = status;
     if (isPlaying) renderXiangqiBoard(game);
 });
@@ -3015,7 +3326,7 @@ socket.on('unoUpdate', (state) => {
     if (state.active || state.winner) {
         document.getElementById('uno-lobby').classList.add('hidden');
         document.getElementById('uno-board').classList.remove('hidden');
-        
+
         const topCard = state.topDiscard;
         const discardEl = document.getElementById('uno-discard');
         if (topCard) {
@@ -3023,7 +3334,7 @@ socket.on('unoUpdate', (state) => {
             discardEl.innerText = topCard.value === 'skip' ? '⊘' : (topCard.value === 'reverse' ? '⇄' : topCard.value);
             discardEl.style.border = `4px solid ${state.currentColor === 'black' ? 'white' : state.currentColor}`;
         }
-        
+
         let status = '';
         if (state.winner) status = `🎉 ${state.winner} ĐÃ THẮNG UNO!`;
         else {
@@ -3126,15 +3437,15 @@ function startMiniDrag(e) {
     if (e.type === 'mousedown' && e.button !== 0) return;
     isDraggingMini = true;
     dragHandle.style.height = '100%'; // cover full player to not lose mouse
-    
+
     const clientX = e.type === 'touchstart' ? e.touches[0].clientX : e.clientX;
     const clientY = e.type === 'touchstart' ? e.touches[0].clientY : e.clientY;
-    
+
     initialMiniX = miniDragX;
     initialMiniY = miniDragY;
     dragStartX = clientX;
     dragStartY = clientY;
-    
+
     document.addEventListener('mousemove', onMiniDrag);
     document.addEventListener('mouseup', endMiniDrag);
     document.addEventListener('touchmove', onMiniDrag, { passive: false });
@@ -3144,16 +3455,16 @@ function startMiniDrag(e) {
 function onMiniDrag(e) {
     if (!isDraggingMini) return;
     e.preventDefault();
-    
+
     const clientX = e.type === 'touchmove' ? e.touches[0].clientX : e.clientX;
     const clientY = e.type === 'touchmove' ? e.touches[0].clientY : e.clientY;
-    
+
     const dx = clientX - dragStartX;
     const dy = clientY - dragStartY;
-    
+
     miniDragX = initialMiniX + dx;
     miniDragY = initialMiniY + dy;
-    
+
     miniPlayer.style.transform = `translate(${miniDragX}px, ${miniDragY}px)`;
 }
 

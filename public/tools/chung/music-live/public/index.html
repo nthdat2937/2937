@@ -12,7 +12,7 @@
         rel="stylesheet">
     <link rel="stylesheet"
         href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles.css?v=1.1">
 </head>
 
 <body>
@@ -158,6 +158,10 @@
                 <span class="material-symbols-outlined">local_fire_department</span>
                 Top nhạc
             </div>
+            <div class="sidebar-item" onclick="showTab('feedback')" data-tab="feedback">
+                <span class="material-symbols-outlined">rate_review</span>
+                Góp ý
+            </div>
         </div>
 
         <div class="left-column" id="left-column">
@@ -246,6 +250,70 @@
             <h2 style="margin-bottom: 24px; font-family: var(--font-display); font-size: 24px; font-weight: 700;">Top nhạc</h2>
             <div id="top-list">
                 <div style="color:var(--text-muted);">Đang tải...</div>
+            </div>
+        </div>
+
+        <div class="history-column hidden" id="feedback-column">
+            <div class="fb-container">
+                <!-- Header -->
+                <div class="fb-title-header">
+                    <h2 class="fb-title-main">
+                        <span class="material-symbols-outlined" style="color: #f59e0b; font-size: 28px;">rate_review</span>
+                        GÓP Ý & BÁO LỖI
+                    </h2>
+                    <p class="fb-title-sub">
+                        Mọi ý kiến của bạn đều giúp ứng dụng ngày một hoàn thiện và ổn định hơn.
+                    </p>
+                </div>
+
+                <!-- Form Card -->
+                <div class="fb-hero-card">
+                    <div class="fb-label-group">
+                        <span class="fb-label-title">Loại phản hồi</span>
+                        <div class="fb-segmented-control" id="fb-type-control">
+                            <button type="button" class="fb-segment-btn active" data-type="gop_y" onclick="selectFeedbackType('gop_y')">
+                                <span class="material-symbols-outlined" style="font-size: 15px;">lightbulb</span>
+                                Ý kiến đóng góp
+                            </button>
+                            <button type="button" class="fb-segment-btn" data-type="bao_loi" onclick="selectFeedbackType('bao_loi')">
+                                <span class="material-symbols-outlined" style="font-size: 15px;">bug_report</span>
+                                Báo lỗi Web
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="fb-textarea-container">
+                        <textarea id="feedback-content-input" rows="3" class="fb-textarea" maxlength="500"
+                            placeholder="Mô tả chi tiết ý tưởng mới hoặc sự cố bạn gặp phải..." oninput="updateFbCharCount(this)"></textarea>
+                        <span id="fb-char-counter" class="fb-char-counter">0/500</span>
+                    </div>
+
+                    <div style="display: flex; justify-content: flex-end;">
+                        <button id="btn-submit-feedback" class="fb-submit-btn" onclick="submitFeedback()">
+                            <span class="material-symbols-outlined" style="font-size: 17px;">send</span>
+                            Gửi phản hồi
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Feed Header -->
+                <div class="fb-feed-header">
+                    <div class="fb-feed-title">
+                        Lịch sử đóng góp
+                        <span id="fb-count-badge" class="fb-count-badge">0</span>
+                    </div>
+                    <button class="fb-refresh-btn" onclick="loadFeedbackHistory()">
+                        <span class="material-symbols-outlined" style="font-size: 15px;">refresh</span> Tải lại
+                    </button>
+                </div>
+
+                <!-- Feed List -->
+                <div id="feedback-list">
+                    <div class="fb-skeleton-card">
+                        <div class="fb-skeleton-line" style="width: 40%;"></div>
+                        <div class="fb-skeleton-line" style="width: 85%;"></div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -801,6 +869,14 @@
         </div>
         <div class="lightbox-content-wrapper" onclick="event.stopPropagation()">
             <img id="lightbox-img" class="lightbox-img" src="" alt="Phóng to hình ảnh" onwheel="handleLightboxWheel(event)" ondblclick="toggleLightboxDblClick(event)" onmousedown="startLightboxDrag(event)">
+        </div>
+    </div>
+
+    <!-- Fullscreen Announcement Overlay -->
+    <div id="tb-fullscreen-overlay" class="tb-fullscreen-overlay hidden" onclick="closeTbNotification()">
+        <div class="tb-backdrop"></div>
+        <div class="tb-text-display">
+            <span id="tb-typed-text"></span><span id="tb-cursor" class="tb-cursor">|</span>
         </div>
     </div>
 
