@@ -41,18 +41,36 @@ function toggleSidebar() {
     if (sb) sb.classList.toggle('mini');
 }
 
+let wasMutedBeforeTopTab = false;
+let isMutedByTopTab = false;
+
 function muteRoomPlayerForTopTab() {
-    if (typeof player !== 'undefined' && player && typeof player.pauseVideo === 'function') {
+    if (typeof player !== 'undefined' && player && typeof player.mute === 'function' && typeof player.isMuted === 'function') {
         try {
-            const state = player.getPlayerState();
-            // 1 is PLAYING, 3 is BUFFERING
-            if (state === 1 || state === 3) {
-                player.pauseVideo();
-                if (typeof showToastNotification === 'function') {
-                    showToastNotification('⏸️ Đã tạm dừng nhạc phòng. Quay lại tab Trang chủ để tiếp tục nghe!');
+            if (!isMutedByTopTab) {
+                wasMutedBeforeTopTab = player.isMuted();
+                if (!wasMutedBeforeTopTab) {
+                    player.mute();
+                    isMutedByTopTab = true;
+                    if (typeof showToastNotification === 'function') {
+                        showToastNotification('🔇 Đã tắt tiếng nhạc phòng. Quay lại Trang chủ để bật lại tiếng!');
+                    }
                 }
             }
         } catch (e) {}
+    }
+}
+
+function restoreRoomPlayerFromTopTab() {
+    if (isMutedByTopTab) {
+        if (typeof player !== 'undefined' && player && typeof player.unMute === 'function') {
+            try {
+                if (!wasMutedBeforeTopTab) {
+                    player.unMute();
+                }
+            } catch (e) {}
+        }
+        isMutedByTopTab = false;
     }
 }
 
@@ -69,13 +87,14 @@ function showTab(tab) {
     if (fbCol) fbCol.classList.add('hidden');
 
     if (tab === 'home') {
-        // Just home
         miniPlayer.style.transform = '';
+        restoreRoomPlayerFromTopTab();
     } else {
         document.getElementById('left-column').classList.add('not-home');
         applyMiniPlayerSavedPos();
         if (tab === 'history') {
             document.getElementById('history-column').classList.remove('hidden');
+            restoreRoomPlayerFromTopTab();
             loadHistory();
         } else if (tab === 'top') {
             document.getElementById('top-column').classList.remove('hidden');
@@ -83,6 +102,7 @@ function showTab(tab) {
             muteRoomPlayerForTopTab();
         } else if (tab === 'feedback') {
             if (fbCol) fbCol.classList.remove('hidden');
+            restoreRoomPlayerFromTopTab();
             loadFeedbackHistory();
         }
     }
