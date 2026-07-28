@@ -2371,24 +2371,11 @@ function addSuggestedSong(videoId) {
     });
 }
 
-function setupSidebarHoverCollapse() {
-    const sb = document.getElementById('sidebar');
-    if (sb) {
-        sb.addEventListener('mouseleave', () => {
-            if (window.innerWidth >= 900) {
-                sb.classList.add('mini');
-            }
-        });
-    }
-}
-
 document.addEventListener('DOMContentLoaded', () => {
     setupSearchSuggestions();
-    setupSidebarHoverCollapse();
 });
 if (document.readyState !== 'loading') {
     setupSearchSuggestions();
-    setupSidebarHoverCollapse();
 }
 
 function nextSong() { socket.emit('adminNextSong'); }

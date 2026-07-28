@@ -3621,6 +3621,11 @@
             }
         }
 
+        /* Default base styles for mobile search button (hidden on desktop) */
+        .mobile-search-trigger-btn {
+            display: none;
+        }
+
         /* ===== MOBILE PREMIUM UI OVERHAUL ===== */
         /* Inspired by Spotify, YouTube, Instagram, Facebook */
 
