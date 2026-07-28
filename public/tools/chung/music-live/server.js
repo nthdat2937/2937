@@ -138,12 +138,29 @@ async function saveUserBackgroundsToSupabase(bgObj) {
                 web_bg: bgObj.web_bg || null,
                 chat_bg: bgObj.chat_bg || null,
                 lyric_bg: bgObj.lyric_bg || null,
+                top_tab_type: bgObj.top_tab_type || 'default',
+                top_tab_url: bgObj.top_tab_url || null,
                 updated_at: new Date().toISOString()
             }], { onConflict: 'username' });
+        
         if (error) {
-            console.error('❌ Supabase Save Backgrounds Error:', error.message);
+            if (error.message && error.message.includes('top_tab_type')) {
+                // Fallback if top_tab_type column does not exist yet in Supabase schema
+                await supabase
+                    .from('user_backgrounds')
+                    .upsert([{
+                        username: cleanName,
+                        web_bg: bgObj.web_bg || null,
+                        chat_bg: bgObj.chat_bg || null,
+                        lyric_bg: bgObj.lyric_bg || null,
+                        updated_at: new Date().toISOString()
+                    }], { onConflict: 'username' });
+                console.warn('⚠️ Supabase table `user_backgrounds` chưa có cột `top_tab_type`. Vui lòng chạy SQL migration.');
+            } else {
+                console.error('❌ Supabase Save Backgrounds Error:', error.message);
+            }
         } else {
-            console.log('✅ Đã lưu ảnh nền Supabase cho user:', cleanName);
+            console.log('✅ Đã lưu cài đặt giao diện Supabase cho user:', cleanName);
         }
     } catch (err) {
         console.error('❌ Supabase Save Backgrounds Exception:', err.message);
@@ -573,7 +590,9 @@ io.on('connection', (socket) => {
             username: username,
             web_bg: data.web_bg,
             chat_bg: data.chat_bg,
-            lyric_bg: data.lyric_bg
+            lyric_bg: data.lyric_bg,
+            top_tab_type: data.top_tab_type,
+            top_tab_url: data.top_tab_url
         };
         await saveUserBackgroundsToSupabase(bgObj);
         if (typeof callback === 'function') callback({ success: true });

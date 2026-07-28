@@ -41,6 +41,21 @@ function toggleSidebar() {
     if (sb) sb.classList.toggle('mini');
 }
 
+function muteRoomPlayerForTopTab() {
+    if (typeof player !== 'undefined' && player && typeof player.pauseVideo === 'function') {
+        try {
+            const state = player.getPlayerState();
+            // 1 is PLAYING, 3 is BUFFERING
+            if (state === 1 || state === 3) {
+                player.pauseVideo();
+                if (typeof showToastNotification === 'function') {
+                    showToastNotification('⏸️ Đã tạm dừng nhạc phòng. Quay lại tab Trang chủ để tiếp tục nghe!');
+                }
+            }
+        } catch (e) {}
+    }
+}
+
 function showTab(tab) {
     document.querySelectorAll('.sidebar-item').forEach(el => el.classList.remove('active'));
     const activeTab = document.querySelector(`.sidebar-item[data-tab="${tab}"]`);
@@ -65,6 +80,7 @@ function showTab(tab) {
         } else if (tab === 'top') {
             document.getElementById('top-column').classList.remove('hidden');
             loadTopNhac();
+            muteRoomPlayerForTopTab();
         } else if (tab === 'feedback') {
             if (fbCol) fbCol.classList.remove('hidden');
             loadFeedbackHistory();
@@ -140,8 +156,98 @@ async function loadHistory() {
     }
 }
 
-async function loadTopNhac() {
+const PRESET_TOP_TAB_URLS = ['https://open.spotify.com', 'https://www.nhaccuatui.com/'];
+
+function updateTopTabNameInUI() {
+    const sidebarLabel = document.getElementById('sidebar-top-label') || document.querySelector('.sidebar-item[data-tab="top"] .sidebar-label');
+    const sidebarIcon = document.getElementById('sidebar-top-icon');
+    const headerTitle = document.getElementById('top-column-title');
+
+    const tabType = userBgState.top_tab_type || 'default';
+    let tabUrl = (userBgState.top_tab_url || '').trim();
+
+    let sidebarName = 'Top nhạc';
+    let headerName = 'Top nhạc';
+    let iconName = 'local_fire_department';
+
+    if (tabType === 'spotify') {
+        sidebarName = 'Spotify';
+        headerName = 'Spotify';
+        iconName = 'graphic_eq';
+    } else if (tabType === 'nct') {
+        sidebarName = 'NhạcCủaTui';
+        headerName = 'NhạcCủaTui (NCT)';
+        iconName = 'music_note';
+    } else if (tabType === 'custom' && tabUrl) {
+        try {
+            const host = new URL(tabUrl).hostname.replace(/^www\./, '');
+            sidebarName = host.charAt(0).toUpperCase() + host.slice(1);
+            headerName = sidebarName;
+            iconName = 'language';
+        } catch(e) {
+            sidebarName = 'Trang web';
+            headerName = 'Trang web ngoài';
+            iconName = 'language';
+        }
+    }
+
+    if (sidebarLabel) sidebarLabel.textContent = sidebarName;
+    if (sidebarIcon) sidebarIcon.textContent = iconName;
+    if (headerTitle) headerTitle.textContent = headerName;
+}
+
+async function loadTopNhac(forceReload = false) {
     const list = document.getElementById('top-list');
+    const headerActions = document.getElementById('top-column-actions');
+    if (!list) return;
+
+    updateTopTabNameInUI();
+
+    const tabType = userBgState.top_tab_type || 'default';
+    let tabUrl = (userBgState.top_tab_url || '').trim();
+
+    if (tabType === 'spotify' && !tabUrl) {
+        tabUrl = 'https://open.spotify.com';
+    } else if (tabType === 'nct' && !tabUrl) {
+        tabUrl = 'https://www.nhaccuatui.com/';
+    }
+
+    if (headerActions) {
+        if (tabType !== 'default' && tabUrl) {
+            headerActions.innerHTML = `
+                <a href="${escapeHtml(tabUrl)}" target="_blank" rel="noopener noreferrer" style="display:inline-flex; align-items:center; gap:6px; padding:6px 14px; border-radius:18px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,180,210,0.2); color:var(--accent); font-size:13px; font-weight:600; text-decoration:none; transition:all 0.2s;" title="Mở trang web ở cửa sổ mới">
+                    <span class="material-symbols-outlined" style="font-size:16px;">open_in_new</span>
+                    <span>Mở tab mới</span>
+                </a>
+            `;
+        } else {
+            headerActions.innerHTML = '';
+        }
+    }
+
+    if (tabType !== 'default' && tabUrl) {
+        const existingIframe = list.querySelector('iframe');
+        if (!forceReload && existingIframe && existingIframe.getAttribute('data-url') === tabUrl) {
+            return;
+        }
+
+        list.innerHTML = `
+            <div class="top-iframe-wrapper">
+                <iframe data-url="${escapeHtml(tabUrl)}" src="${escapeHtml(tabUrl)}" title="Top Nhạc Web" style="width:100%; height:100%; border:none;" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe>
+            </div>
+        `;
+    } else {
+        const hasList = list.querySelector('.history-item');
+        if (!forceReload && hasList && tabType === 'default') {
+            return;
+        }
+        loadTopNhacList();
+    }
+}
+
+async function loadTopNhacList() {
+    const list = document.getElementById('top-list');
+    if (!list) return;
     list.innerHTML = '<div style="color:var(--text-muted); padding:12px; text-align:center;">Đang tải Top nhạc...</div>';
 
     try {
@@ -1128,7 +1234,7 @@ function stopVoicePreviewPlayback() {
         try {
             previewAudioPlayer.pause();
             previewAudioPlayer.currentTime = 0;
-        } catch (e) {}
+        } catch (e) { }
         previewAudioPlayer = null;
     }
     if (currentPreviewObjectUrl) {
@@ -4012,7 +4118,7 @@ try {
             miniDragY = parsed.y;
         }
     }
-} catch (err) {}
+} catch (err) { }
 
 function applyMiniPlayerSavedPos() {
     if (document.getElementById('left-column').classList.contains('not-home') || document.getElementById('left-column').classList.contains('mobile-mini')) {
@@ -4045,7 +4151,7 @@ function resetMiniPlayerDrag() {
     miniPlayer.style.transform = '';
     try {
         localStorage.removeItem('mini_player_pos');
-    } catch (e) {}
+    } catch (e) { }
 }
 
 function clampMiniPlayerPosition() {
@@ -4149,7 +4255,7 @@ function endMiniDrag() {
     // Save position to localStorage
     try {
         localStorage.setItem('mini_player_pos', JSON.stringify({ x: miniDragX, y: miniDragY }));
-    } catch (e) {}
+    } catch (e) { }
 }
 
 /* ==========================================================================
@@ -4163,12 +4269,16 @@ const DEFAULT_LYRIC_BG = '/assets/images/background-chat.jpeg';
 let userBgState = {
     web_bg: '',
     chat_bg: '',
-    lyric_bg: ''
+    lyric_bg: '',
+    top_tab_type: 'default',
+    top_tab_url: ''
 };
 
 let pendingWebBg = '';
 let pendingChatBg = '';
 let pendingLyricBg = '';
+let pendingTopTabType = 'default';
+let pendingTopTabUrl = '';
 let pendingWebBgFile = null;
 let pendingChatBgFile = null;
 let pendingLyricBgFile = null;
@@ -4178,7 +4288,9 @@ function applyUserBackgrounds(bgObj) {
         userBgState = {
             web_bg: bgObj.web_bg || '',
             chat_bg: bgObj.chat_bg || '',
-            lyric_bg: bgObj.lyric_bg || ''
+            lyric_bg: bgObj.lyric_bg || '',
+            top_tab_type: bgObj.top_tab_type || 'default',
+            top_tab_url: bgObj.top_tab_url || ''
         };
     }
 
@@ -4200,19 +4312,28 @@ function applyUserBackgrounds(bgObj) {
     if (lyricBox) {
         lyricBox.style.backgroundImage = `linear-gradient(rgba(15, 13, 11, 0.65), rgba(15, 13, 11, 0.65)), url('${lyricBgUrl}')`;
     }
+
+    // Update Top Tab label & header according to top_tab_type
+    updateTopTabNameInUI();
+
+    // If top tab is active, refresh top view
+    const topCol = document.getElementById('top-column');
+    if (topCol && !topCol.classList.contains('hidden')) {
+        loadTopNhac(true);
+    }
 }
 
 async function loadUserBackgrounds(username) {
     if (!username) return;
     const cleanName = username.replace(' 😎', '').trim();
-    
+
     // 1. LocalStorage cached version
     const cached = localStorage.getItem(`musiclive_bg_${cleanName}`);
     if (cached) {
         try {
             const bgData = JSON.parse(cached);
             applyUserBackgrounds(bgData);
-        } catch(e) {}
+        } catch (e) { }
     }
 
     // 2. Fetch via Socket
@@ -4222,7 +4343,9 @@ async function loadUserBackgrounds(username) {
                 const bgData = {
                     web_bg: res.web_bg || '',
                     chat_bg: res.chat_bg || '',
-                    lyric_bg: res.lyric_bg || ''
+                    lyric_bg: res.lyric_bg || '',
+                    top_tab_type: res.top_tab_type || 'default',
+                    top_tab_url: res.top_tab_url || ''
                 };
                 localStorage.setItem(`musiclive_bg_${cleanName}`, JSON.stringify(bgData));
                 applyUserBackgrounds(bgData);
@@ -4244,12 +4367,14 @@ async function loadUserBackgrounds(username) {
                 const bgData = {
                     web_bg: data.web_bg || '',
                     chat_bg: data.chat_bg || '',
-                    lyric_bg: data.lyric_bg || ''
+                    lyric_bg: data.lyric_bg || '',
+                    top_tab_type: data.top_tab_type || 'default',
+                    top_tab_url: data.top_tab_url || ''
                 };
                 localStorage.setItem(`musiclive_bg_${cleanName}`, JSON.stringify(bgData));
                 applyUserBackgrounds(bgData);
             }
-        } catch(err) {
+        } catch (err) {
             console.warn('Supabase fetch backgrounds error:', err);
         }
     }
@@ -4262,6 +4387,9 @@ function openSettingsModal() {
     pendingWebBg = userBgState.web_bg || '';
     pendingChatBg = userBgState.chat_bg || '';
     pendingLyricBg = userBgState.lyric_bg || '';
+    pendingTopTabType = userBgState.top_tab_type || 'default';
+    pendingTopTabUrl = userBgState.top_tab_url || '';
+
     pendingWebBgFile = null;
     pendingChatBgFile = null;
     pendingLyricBgFile = null;
@@ -4278,12 +4406,59 @@ function openSettingsModal() {
     updateChatBgPreview(pendingChatBg);
     updateLyricBgPreview(pendingLyricBg);
 
+    selectTopTabPreset(pendingTopTabType, false);
+    const topUrlInput = document.getElementById('setting-top-tab-url');
+    if (topUrlInput) topUrlInput.value = pendingTopTabUrl;
+
     modal.classList.remove('hidden');
 }
 
 function closeSettingsModal() {
     const modal = document.getElementById('settings-modal');
     if (modal) modal.classList.add('hidden');
+}
+
+function selectTopTabPreset(preset, updateUrlInput = true) {
+    pendingTopTabType = preset;
+    document.querySelectorAll('.top-tab-preset-btn').forEach(btn => {
+        if (btn.getAttribute('data-preset') === preset) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+
+    const urlInput = document.getElementById('setting-top-tab-url');
+
+    if (preset === 'spotify') {
+        pendingTopTabUrl = 'https://open.spotify.com';
+    } else if (preset === 'nct') {
+        pendingTopTabUrl = 'https://www.nhaccuatui.com/';
+    } else if (preset === 'default') {
+        pendingTopTabUrl = '';
+    } else if (preset === 'custom') {
+        if (updateUrlInput && (!pendingTopTabUrl || PRESET_TOP_TAB_URLS.includes(pendingTopTabUrl))) {
+            pendingTopTabUrl = '';
+        }
+    }
+
+    if (updateUrlInput && urlInput) {
+        urlInput.value = pendingTopTabUrl;
+    }
+}
+
+function updateTopTabCustomUrl(url) {
+    pendingTopTabUrl = (url || '').trim();
+    if (pendingTopTabType !== 'custom') {
+        pendingTopTabType = 'custom';
+        document.querySelectorAll('.top-tab-preset-btn').forEach(btn => {
+            if (btn.getAttribute('data-preset') === 'custom') {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
+    }
 }
 
 function updateWebBgPreview(url) {
@@ -4374,6 +4549,7 @@ function resetAllBgsToDefault() {
     resetWebBgToDefault();
     resetChatBgToDefault();
     resetLyricBgToDefault();
+    selectTopTabPreset('default');
 }
 
 async function uploadBgFileToSupabase(file) {
@@ -4382,7 +4558,7 @@ async function uploadBgFileToSupabase(file) {
         const compressed = await compressImage(file, 1920, 1080, 0.85);
         const fileExt = compressed.name.split('.').pop() || 'jpg';
         const fileName = `bg_${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${fileExt}`;
-        
+
         if (typeof supabase !== 'undefined' && supabase.createClient) {
             const supabaseStorage = supabase.createClient('https://wnioetdrphkdylkoybsu.supabase.co', 'sb_publishable_p0VSduH3epzQVUdvAf2kPQ_aoWk_l1T');
             const { data, error } = await supabaseStorage.storage.from('chat_media').upload(fileName, compressed, {
@@ -4394,10 +4570,10 @@ async function uploadBgFileToSupabase(file) {
                 if (urlData && urlData.publicUrl) return urlData.publicUrl;
             }
         }
-    } catch(err) {
+    } catch (err) {
         console.warn('Upload background to Supabase Storage failed:', err);
     }
-    
+
     return new Promise((resolve) => {
         const reader = new FileReader();
         reader.onload = () => resolve(reader.result);
@@ -4432,7 +4608,9 @@ async function saveUserSettings() {
         const newBgState = {
             web_bg: finalWebBg,
             chat_bg: finalChatBg,
-            lyric_bg: finalLyricBg
+            lyric_bg: finalLyricBg,
+            top_tab_type: pendingTopTabType,
+            top_tab_url: pendingTopTabUrl
         };
 
         const cleanName = (myUsername || '').replace(' 😎', '').trim();
@@ -4458,25 +4636,27 @@ async function saveUserSettings() {
                         web_bg: finalWebBg || null,
                         chat_bg: finalChatBg || null,
                         lyric_bg: finalLyricBg || null,
+                        top_tab_type: pendingTopTabType || 'default',
+                        top_tab_url: pendingTopTabUrl || null,
                         updated_at: new Date().toISOString()
                     }, { onConflict: 'username' });
-            } catch(spErr) {
+            } catch (spErr) {
                 console.warn('Supabase direct upsert error:', spErr);
             }
         }
 
         applyUserBackgrounds(newBgState);
         closeSettingsModal();
-        
+
         if (typeof showToastNotification === 'function') {
-            showToastNotification('✨ Đã lưu cài đặt hình nền thành công!');
+            showToastNotification('✨ Đã lưu cài đặt giao diện thành công!');
         } else {
-            alert('✨ Đã lưu cài đặt hình nền thành công!');
+            alert('✨ Đã lưu cài đặt giao diện thành công!');
         }
 
     } catch (err) {
-        console.error('Lỗi khi lưu cài đặt hình nền:', err);
-        alert('Không thể lưu cài đặt hình nền. Vui lòng thử lại!');
+        console.error('Lỗi khi lưu cài đặt giao diện:', err);
+        alert('Không thể lưu cài đặt giao diện. Vui lòng thử lại!');
     } finally {
         if (saveBtn) {
             saveBtn.disabled = false;
@@ -4486,6 +4666,6 @@ async function saveUserSettings() {
 }
 
 function resetBackgroundsToDefault() {
-    userBgState = { web_bg: '', chat_bg: '', lyric_bg: '' };
+    userBgState = { web_bg: '', chat_bg: '', lyric_bg: '', top_tab_type: 'default', top_tab_url: '' };
     applyUserBackgrounds(userBgState);
 }

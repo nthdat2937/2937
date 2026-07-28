@@ -168,8 +168,8 @@
                 <span class="material-symbols-outlined">arrow_back</span>
             </button>
             <div class="mobile-search-input-wrapper">
-                <input type="text" id="mobile-song-input" placeholder="Tìm kiếm YouTube hoặc dán link..." autocomplete="off"
-                    onkeypress="if(event.key === 'Enter') performMobileSearchTrigger()">
+                <input type="text" id="mobile-song-input" placeholder="Tìm kiếm YouTube hoặc dán link..."
+                    autocomplete="off" onkeypress="if(event.key === 'Enter') performMobileSearchTrigger()">
                 <button class="mobile-search-submit-btn" onclick="performMobileSearchTrigger()" title="Tìm kiếm">
                     <span class="material-symbols-outlined" style="font-size:18px;">search</span>
                 </button>
@@ -183,19 +183,19 @@
         <div class="sidebar" id="sidebar">
             <div class="sidebar-item active" onclick="showTab('home')" data-tab="home">
                 <span class="material-symbols-outlined">home</span>
-                Trang chủ
+                <span class="sidebar-label">Trang chủ</span>
             </div>
             <div class="sidebar-item" onclick="showTab('history')" data-tab="history">
                 <span class="material-symbols-outlined">history</span>
-                Lịch sử phát
+                <span class="sidebar-label">Lịch sử phát</span>
             </div>
             <div class="sidebar-item" onclick="showTab('top')" data-tab="top">
-                <span class="material-symbols-outlined">local_fire_department</span>
-                Top nhạc
+                <span class="material-symbols-outlined" id="sidebar-top-icon">local_fire_department</span>
+                <span class="sidebar-label" id="sidebar-top-label">Top nhạc</span>
             </div>
             <div class="sidebar-item" onclick="showTab('feedback')" data-tab="feedback">
                 <span class="material-symbols-outlined">rate_review</span>
-                Góp ý
+                <span class="sidebar-label">Góp ý</span>
             </div>
         </div>
 
@@ -278,8 +278,10 @@
         </div>
 
         <div class="history-column hidden" id="top-column">
-            <h2 style="margin-bottom: 24px; font-family: var(--font-display); font-size: 24px; font-weight: 700;">Top
-                nhạc</h2>
+            <div id="top-column-header" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+                <h2 id="top-column-title" style="margin: 0; font-family: var(--font-display); font-size: 24px; font-weight: 700;">Top nhạc</h2>
+                <div id="top-column-actions" style="display: flex; gap: 8px; align-items: center;"></div>
+            </div>
             <div id="top-list">
                 <div style="color:var(--text-muted);">Đang tải...</div>
             </div>
@@ -978,10 +980,14 @@
     <!-- Settings Modal -->
     <div id="settings-modal" class="draw-overlay hidden" style="z-index: 2000;">
         <div class="draw-container settings-modal-container">
-            <div class="draw-header" style="justify-content: space-between; margin-bottom: 18px; border-bottom: 1px solid rgba(255,180,210,0.2); padding-bottom: 14px;">
+            <div class="draw-header"
+                style="justify-content: space-between; margin-bottom: 18px; border-bottom: 1px solid rgba(255,180,210,0.2); padding-bottom: 14px;">
                 <div class="draw-header-title" style="display:flex; align-items:center; gap: 10px;">
-                    <span class="material-symbols-outlined" style="color: var(--accent); font-size: 26px;">settings</span>
-                    <span style="font-family: var(--font-display); font-size: 22px; font-weight: 700; color: #ffffff;">Cài Đặt Giao Diện</span>
+                    <span class="material-symbols-outlined"
+                        style="color: var(--accent); font-size: 26px;">settings</span>
+                    <span
+                        style="font-family: var(--font-display); font-size: 22px; font-weight: 700; color: #ffffff;">Cài
+                        Đặt Giao Diện</span>
                 </div>
                 <button class="settings-close-btn" onclick="closeSettingsModal()" title="Đóng">
                     <span class="material-symbols-outlined" style="font-size:20px;">close</span>
@@ -996,21 +1002,26 @@
                         <span>Ảnh Nền Website</span>
                     </div>
                     <div class="settings-preview-row">
-                        <div class="settings-preview-box" id="preview-web-bg" style="background-image: url('/assets/images/many-bunnies-bg.png');">
+                        <div class="settings-preview-box" id="preview-web-bg"
+                            style="background-image: url('/assets/images/many-bunnies-bg.png');">
                             <span class="preview-badge">Web</span>
                         </div>
                         <div class="settings-input-group">
                             <div class="settings-input-row">
                                 <span class="material-symbols-outlined input-icon">link</span>
-                                <input type="text" id="setting-web-bg-url" placeholder="Nhập đường dẫn URL (https://...)" oninput="updateWebBgPreview(this.value)">
+                                <input type="text" id="setting-web-bg-url"
+                                    placeholder="Nhập đường dẫn URL (https://...)"
+                                    oninput="updateWebBgPreview(this.value)">
                             </div>
                             <div class="settings-upload-row">
                                 <label for="setting-web-bg-file" class="settings-upload-btn">
                                     <span class="material-symbols-outlined">cloud_upload</span>
-                                    <span>Tải ảnh lên</span>
+                                    <span style="font-size: 16px">Tải ảnh lên</span>
                                 </label>
-                                <input type="file" id="setting-web-bg-file" accept="image/*" style="display:none;" onchange="handleWebBgFileSelect(event)">
-                                <button type="button" class="settings-reset-btn" onclick="resetWebBgToDefault()" title="Khôi phục mặc định">
+                                <input type="file" id="setting-web-bg-file" accept="image/*" style="display:none;"
+                                    onchange="handleWebBgFileSelect(event)">
+                                <button type="button" class="settings-reset-btn" onclick="resetWebBgToDefault()"
+                                    title="Khôi phục mặc định">
                                     <span class="material-symbols-outlined">restart_alt</span>
                                 </button>
                             </div>
@@ -1025,21 +1036,26 @@
                         <span>Ảnh Nền Khung Chat</span>
                     </div>
                     <div class="settings-preview-row">
-                        <div class="settings-preview-box" id="preview-chat-bg" style="background-image: url('/assets/images/background-chat.jpeg');">
+                        <div class="settings-preview-box" id="preview-chat-bg"
+                            style="background-image: url('/assets/images/background-chat.jpeg');">
                             <span class="preview-badge">Chat</span>
                         </div>
                         <div class="settings-input-group">
                             <div class="settings-input-row">
                                 <span class="material-symbols-outlined input-icon">link</span>
-                                <input type="text" id="setting-chat-bg-url" placeholder="Nhập đường dẫn URL (https://...)" oninput="updateChatBgPreview(this.value)">
+                                <input type="text" id="setting-chat-bg-url"
+                                    placeholder="Nhập đường dẫn URL (https://...)"
+                                    oninput="updateChatBgPreview(this.value)">
                             </div>
                             <div class="settings-upload-row">
                                 <label for="setting-chat-bg-file" class="settings-upload-btn">
                                     <span class="material-symbols-outlined">cloud_upload</span>
-                                    <span>Tải ảnh lên</span>
+                                    <span style="font-size: 16px">Tải ảnh lên</span>
                                 </label>
-                                <input type="file" id="setting-chat-bg-file" accept="image/*" style="display:none;" onchange="handleChatBgFileSelect(event)">
-                                <button type="button" class="settings-reset-btn" onclick="resetChatBgToDefault()" title="Khôi phục mặc định">
+                                <input type="file" id="setting-chat-bg-file" accept="image/*" style="display:none;"
+                                    onchange="handleChatBgFileSelect(event)">
+                                <button type="button" class="settings-reset-btn" onclick="resetChatBgToDefault()"
+                                    title="Khôi phục mặc định">
                                     <span class="material-symbols-outlined">restart_alt</span>
                                 </button>
                             </div>
@@ -1054,30 +1070,64 @@
                         <span>Ảnh Nền Lời Bài Hát</span>
                     </div>
                     <div class="settings-preview-row">
-                        <div class="settings-preview-box" id="preview-lyric-bg" style="background-image: url('/assets/images/background-chat.jpeg');">
+                        <div class="settings-preview-box" id="preview-lyric-bg"
+                            style="background-image: url('/assets/images/background-chat.jpeg');">
                             <span class="preview-badge">Lyric</span>
                         </div>
                         <div class="settings-input-group">
                             <div class="settings-input-row">
                                 <span class="material-symbols-outlined input-icon">link</span>
-                                <input type="text" id="setting-lyric-bg-url" placeholder="Nhập đường dẫn URL (https://...)" oninput="updateLyricBgPreview(this.value)">
+                                <input type="text" id="setting-lyric-bg-url"
+                                    placeholder="Nhập đường dẫn URL (https://...)"
+                                    oninput="updateLyricBgPreview(this.value)">
                             </div>
                             <div class="settings-upload-row">
                                 <label for="setting-lyric-bg-file" class="settings-upload-btn">
                                     <span class="material-symbols-outlined">cloud_upload</span>
-                                    <span>Tải ảnh lên</span>
+                                    <span style="font-size: 16px">Tải ảnh lên</span>
                                 </label>
-                                <input type="file" id="setting-lyric-bg-file" accept="image/*" style="display:none;" onchange="handleLyricBgFileSelect(event)">
-                                <button type="button" class="settings-reset-btn" onclick="resetLyricBgToDefault()" title="Khôi phục mặc định">
+                                <input type="file" id="setting-lyric-bg-file" accept="image/*" style="display:none;"
+                                    onchange="handleLyricBgFileSelect(event)">
+                                <button type="button" class="settings-reset-btn" onclick="resetLyricBgToDefault()"
+                                    title="Khôi phục mặc định">
                                     <span class="material-symbols-outlined">restart_alt</span>
                                 </button>
                             </div>
                         </div>
                     </div>
                 </div>
+
+                <!-- Top Music Tab Source Section -->
+                <div class="settings-section-card">
+                    <div class="settings-section-title">
+                        <span class="material-symbols-outlined" style="color: #ffd43b;">local_fire_department</span>
+                        <span>Nguồn Trang Tab Top Nhạc</span>
+                    </div>
+                    <div class="settings-top-tab-wrapper" style="display: flex; flex-direction: column; gap: 12px;">
+                        <div class="settings-preset-pills">
+                            <button type="button" class="top-tab-preset-btn active" data-preset="default" onclick="selectTopTabPreset('default')">
+                                <span class="material-symbols-outlined">local_fire_department</span> Top nhạc
+                            </button>
+                            <button type="button" class="top-tab-preset-btn" data-preset="spotify" onclick="selectTopTabPreset('spotify')">
+                                <span class="material-symbols-outlined">graphic_eq</span> Spotify
+                            </button>
+                            <button type="button" class="top-tab-preset-btn" data-preset="nct" onclick="selectTopTabPreset('nct')">
+                                <span class="material-symbols-outlined">music_note</span> NhạcCủaTui (NCT)
+                            </button>
+                            <button type="button" class="top-tab-preset-btn" data-preset="custom" onclick="selectTopTabPreset('custom')">
+                                <span class="material-symbols-outlined">link</span> Web Tùy Chỉnh
+                            </button>
+                        </div>
+                        <div class="settings-input-row" id="top-tab-url-row">
+                            <span class="material-symbols-outlined input-icon">link</span>
+                            <input type="text" id="setting-top-tab-url" placeholder="Đường dẫn trang web iframe (https://...)" oninput="updateTopTabCustomUrl(this.value)">
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <div class="settings-modal-footer" style="margin-top: 20px; padding-top: 14px; border-top: 1px solid rgba(255,180,210,0.2); display: flex; justify-content: space-between; align-items: center;">
+            <div class="settings-modal-footer"
+                style="margin-top: 20px; padding-top: 14px; border-top: 1px solid rgba(255,180,210,0.2); display: flex; justify-content: space-between; align-items: center;">
                 <button type="button" class="settings-btn-secondary" onclick="resetAllBgsToDefault()">
                     <span class="material-symbols-outlined" style="font-size: 16px;">refresh</span>
                     Mặc định tất cả
