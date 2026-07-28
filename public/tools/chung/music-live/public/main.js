@@ -1,22 +1,24 @@
-// Hide App Splash Loading Screen when fonts/assets are ready
+// Hide App Splash Loading Screen after 3 seconds so running bunny is fully visible
+const appLoaderStartTime = Date.now();
 function hideAppLoader() {
-    const loader = document.getElementById('app-loader-screen');
-    if (loader && !loader.classList.contains('fade-out')) {
-        loader.classList.add('fade-out');
-        setTimeout(() => { if (loader.parentNode) loader.remove(); }, 500);
-    }
+    const elapsed = Date.now() - appLoaderStartTime;
+    const remaining = Math.max(0, 3000 - elapsed);
+    setTimeout(() => {
+        const loader = document.getElementById('app-loader-screen');
+        if (loader && !loader.classList.contains('fade-out')) {
+            loader.classList.add('fade-out');
+            setTimeout(() => { if (loader.parentNode) loader.remove(); }, 500);
+        }
+    }, remaining);
 }
 
 if (document.fonts) {
-    document.fonts.ready.then(() => {
-        setTimeout(hideAppLoader, 250);
-    });
+    document.fonts.ready.then(() => { hideAppLoader(); });
 }
 window.addEventListener('load', () => {
-    setTimeout(hideAppLoader, 250);
+    hideAppLoader();
 });
-// Safety fallback (max 2 seconds)
-setTimeout(hideAppLoader, 1800);
+setTimeout(hideAppLoader, 3000);
 
 const socket = io();
 socket.on('connect', () => {
@@ -53,9 +55,10 @@ function showTab(tab) {
 
     if (tab === 'home') {
         // Just home
-        resetMiniPlayerDrag();
+        miniPlayer.style.transform = '';
     } else {
         document.getElementById('left-column').classList.add('not-home');
+        applyMiniPlayerSavedPos();
         if (tab === 'history') {
             document.getElementById('history-column').classList.remove('hidden');
             loadHistory();
@@ -127,9 +130,7 @@ async function loadHistory() {
                             <span>${timeStr} ${dateStr}</span>
                         </div>
                     </div>
-                    <button class="history-add-btn" onclick="addSongFromHistory('${song.video_id}', this)" title="Thêm vào hàng đợi">
-                        <span class="material-symbols-outlined" style="font-size:18px;">add</span>
-                    </button>
+                    <button class="history-add-btn" onclick="addSongFromHistory('${song.video_id}', this)" title="Thêm vào hàng đợi"></button>
                 </div>
             `;
         }).join('');
@@ -186,9 +187,7 @@ async function loadTopNhac() {
                             <span>Đóng góp: <strong class="history-meta-user">${escapeHtml(song.add_by || 'Cộng đồng')}</strong></span>
                         </div>
                     </div>
-                    <button class="history-add-btn" onclick="addSongFromHistory('${escapeHtml(query)}', this)" title="Thêm vào hàng đợi">
-                        <span class="material-symbols-outlined" style="font-size:18px;">add</span>
-                    </button>
+                    <button class="history-add-btn" onclick="addSongFromHistory('${escapeHtml(query)}', this)" title="Thêm vào hàng đợi"></button>
                 </div>
             `;
         }).join('');
@@ -357,9 +356,6 @@ async function loadFeedbackHistory() {
             const dateStr = d.toLocaleDateString('vi-VN');
             const isBug = item.type === 'bao_loi';
             const badgeClass = isBug ? 'type-bao_loi' : 'type-gop_y';
-            const badgeStyle = isBug
-                ? 'background: rgba(244, 63, 94, 0.12); color: #fb7185; border: 1px solid rgba(244, 63, 94, 0.25);'
-                : 'background: rgba(245, 158, 11, 0.12); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.25);';
             const badgeIcon = isBug ? 'bug_report' : 'lightbulb';
             const badgeText = isBug ? 'Báo lỗi' : 'Góp ý';
 
@@ -368,23 +364,23 @@ async function loadFeedbackHistory() {
 
             return `
                 <div class="fb-feed-card ${badgeClass}">
-                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
                         <div style="display: flex; align-items: center; gap: 10px;">
                             <div class="fb-avatar" style="background: ${escapeHtml(avatarBg)};">${escapeHtml(initial)}</div>
                             <div>
                                 <div style="display: flex; align-items: center; gap: 8px;">
-                                    <span style="font-weight: 600; font-size: 15.5px; color: #f4f4f5; line-height: 1.2;">${escapeHtml(item.username || 'Ẩn danh')}</span>
+                                    <span class="fb-username">${escapeHtml(item.username || 'Ẩn danh')}</span>
                                     <span class="fb-code-badge">${escapeHtml(item.displayCode || '')}</span>
                                 </div>
-                                <div style="font-size: 12.5px; color: #71717a; margin-top: 3px; font-family: monospace;">${timeStr} · ${dateStr}</div>
+                                <div class="fb-timestamp">${timeStr} · ${dateStr}</div>
                             </div>
                         </div>
-                        <span style="display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 700; padding: 4px 11px; border-radius: 6px; ${badgeStyle}">
+                        <span class="fb-type-pill ${badgeClass}">
                             <span class="material-symbols-outlined" style="font-size: 14px;">${badgeIcon}</span>
                             ${badgeText}
                         </span>
                     </div>
-                    <div style="font-size: 15.5px; color: #e4e4e7; line-height: 1.65; white-space: pre-wrap; word-break: break-word;">${escapeHtml(item.content || '')}</div>
+                    <div class="fb-content-text">${escapeHtml(item.content || '')}</div>
                 </div>
             `;
         }).join('');
@@ -392,35 +388,33 @@ async function loadFeedbackHistory() {
     } catch (err) {
         console.error(err);
         list.innerHTML = `
-            <div class="fb-state-card" style="border-color: rgba(244, 63, 94, 0.3);">
-                <span class="material-symbols-outlined fb-state-icon" style="color: #f43f5e;">wifi_off</span>
+            <div class="fb-state-card" style="border-color: rgba(255, 117, 160, 0.3);">
+                <span class="material-symbols-outlined fb-state-icon" style="color: var(--accent);">wifi_off</span>
                 <h4 class="fb-state-title">Không thể tải dữ liệu</h4>
                 <p class="fb-state-desc" style="margin-bottom: 16px;">Đã xảy ra sự cố khi kết nối tới máy chủ lưu trữ.</p>
                 <button class="fb-refresh-btn" style="margin: 0 auto;" onclick="loadFeedbackHistory()">
-                    <span class="material-symbols-outlined" style="font-size: 15px;">refresh</span> Thử lại
+                    <span class="material-symbols-outlined" style="font-size: 16px;">refresh</span> Thử lại
                 </button>
             </div>`;
     }
 }
 
 function addSongFromHistory(videoId, btn) {
-    const originalHtml = btn.innerHTML;
-    btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:18px; animation: spin 1s linear infinite;">sync</span>';
+    btn.style.backgroundImage = 'none';
+    btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:18px; color: #fff; animation: spin 1s linear infinite;">sync</span>';
     btn.disabled = true;
 
     socket.emit('addSong', videoId, (res) => {
         if (res && res.success) {
-            btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:20px;">check</span>';
-            btn.style.background = '#51cf66';
+            btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:20px; color: #51cf66;">check</span>';
         } else {
-            btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:20px;">close</span>';
-            btn.style.background = '#ff6b6b';
+            btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:20px; color: #ff6b6b;">close</span>';
             showToastNotification('⚠️ ' + (res && res.message ? res.message : "Không tìm thấy bài hát hoặc có lỗi xảy ra!"));
         }
         setTimeout(() => {
-            btn.innerHTML = originalHtml;
+            btn.innerHTML = '';
             btn.disabled = false;
-            btn.style.background = '';
+            btn.style.backgroundImage = '';
         }, 2000);
     });
 }
@@ -2057,7 +2051,10 @@ function toggleVideoMute() {
 function addSong() {
     const input = document.getElementById('song-input');
     const btn = document.querySelector('.btn-add-search') || document.querySelector('.btn-add');
-    if (input.value) {
+    const suggestionsDropdown = document.getElementById('search-suggestions');
+    if (suggestionsDropdown) suggestionsDropdown.classList.add('hidden');
+
+    if (input && input.value) {
         let originalHtml = '';
         if (btn) {
             originalHtml = btn.innerHTML;
@@ -2080,6 +2077,320 @@ function addSong() {
         });
     }
 }
+
+function performSearchTrigger() {
+    const input = document.getElementById('song-input');
+    const suggestionsDropdown = document.getElementById('search-suggestions');
+    const btn = document.querySelector('.btn-add-search') || document.querySelector('.btn-add');
+    if (!input) return;
+
+    const query = input.value.trim();
+    if (!query) {
+        input.focus();
+        return;
+    }
+
+    // If input is a direct YouTube video URL, add directly
+    if (/^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+$/.test(query)) {
+        addSong();
+        return;
+    }
+
+    // Immediately fetch & display search suggestions on button click/Enter
+    clearTimeout(searchDebounceTimer);
+    let originalHtml = '';
+    if (btn) {
+        originalHtml = btn.innerHTML;
+        btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:18px; animation: spin 1s linear infinite;">sync</span>';
+        btn.disabled = true;
+    }
+
+    const requestId = ++latestSearchRequestId;
+    isHoveringSuggestions = false;
+
+    socket.emit('searchSuggestions', query, (videos) => {
+        if (btn) {
+            btn.innerHTML = originalHtml;
+            btn.disabled = false;
+        }
+
+        if (requestId !== latestSearchRequestId) return;
+
+        if (!videos || !videos.length) {
+            showToastNotification(`⚠️ Không tìm thấy gợi ý nào cho "${query}"`);
+            if (suggestionsDropdown) {
+                suggestionsDropdown.innerHTML = '';
+                suggestionsDropdown.classList.add('hidden');
+            }
+            return;
+        }
+
+        if (suggestionsDropdown) {
+            suggestionsDropdown.innerHTML = videos.map(v => `
+                <div class="search-suggestion-item" onclick="addSuggestedSong('${v.id}')">
+                    <img src="${escapeHtml(v.thumbnail)}" class="search-suggestion-thumb" alt="thumbnail" onerror="this.onerror=null; this.src='/assets/images/music-placeholder.png';">
+                    <div class="search-suggestion-info">
+                        <div class="search-suggestion-title" title="${escapeHtml(v.title)}">${escapeHtml(v.title)}</div>
+                        <div class="search-suggestion-meta">${escapeHtml(v.author)} ${v.timestamp ? '• ' + escapeHtml(v.timestamp) : ''}</div>
+                    </div>
+                    <button class="search-suggestion-add-btn" onclick="event.stopPropagation(); addSuggestedSong('${v.id}')">
+                        <span class="material-symbols-outlined" style="font-size:14px;">add</span> Thêm
+                    </button>
+                </div>
+            `).join('');
+
+            suggestionsDropdown.classList.remove('hidden');
+        }
+    });
+}
+
+function openMobileSearch() {
+    const overlay = document.getElementById('mobile-search-overlay');
+    const input = document.getElementById('mobile-song-input');
+    if (overlay) {
+        overlay.classList.remove('hidden');
+        if (input) {
+            setTimeout(() => input.focus(), 50);
+            if (input.value.trim().length >= 2) {
+                performMobileSearchTrigger();
+            }
+        }
+    }
+}
+
+function closeMobileSearch() {
+    const overlay = document.getElementById('mobile-search-overlay');
+    const suggestions = document.getElementById('mobile-search-suggestions');
+    if (overlay) overlay.classList.add('hidden');
+    if (suggestions) suggestions.classList.add('hidden');
+}
+
+function performMobileSearchTrigger() {
+    const input = document.getElementById('mobile-song-input');
+    const suggestionsDropdown = document.getElementById('mobile-search-suggestions');
+    if (!input) return;
+
+    const query = input.value.trim();
+    if (!query) {
+        input.focus();
+        return;
+    }
+
+    if (/^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+$/.test(query)) {
+        socket.emit('addSong', extractVideoID(query), (res) => {
+            if (res && res.success) {
+                input.value = '';
+                showToastNotification('✅ Đã thêm bài hát vào hàng đợi!');
+                closeMobileSearch();
+            } else {
+                showToastNotification('⚠️ ' + (res && res.message ? res.message : "Không tìm thấy bài hát!"));
+            }
+        });
+        return;
+    }
+
+    clearTimeout(searchDebounceTimer);
+    const requestId = ++latestSearchRequestId;
+
+    socket.emit('searchSuggestions', query, (videos) => {
+        if (requestId !== latestSearchRequestId) return;
+
+        if (!videos || !videos.length) {
+            showToastNotification(`⚠️ Không tìm thấy gợi ý nào cho "${query}"`);
+            if (suggestionsDropdown) {
+                suggestionsDropdown.innerHTML = '';
+                suggestionsDropdown.classList.add('hidden');
+            }
+            return;
+        }
+
+        if (suggestionsDropdown) {
+            suggestionsDropdown.innerHTML = videos.map(v => `
+                <div class="search-suggestion-item" onclick="addSuggestedSong('${v.id}')">
+                    <img src="${escapeHtml(v.thumbnail)}" class="search-suggestion-thumb" alt="thumbnail" onerror="this.onerror=null; this.src='/assets/images/music-placeholder.png';">
+                    <div class="search-suggestion-info">
+                        <div class="search-suggestion-title" title="${escapeHtml(v.title)}">${escapeHtml(v.title)}</div>
+                        <div class="search-suggestion-meta">${escapeHtml(v.author)} ${v.timestamp ? '• ' + escapeHtml(v.timestamp) : ''}</div>
+                    </div>
+                    <button class="search-suggestion-add-btn" onclick="event.stopPropagation(); addSuggestedSong('${v.id}')">
+                        <span class="material-symbols-outlined" style="font-size:14px;">add</span> Thêm
+                    </button>
+                </div>
+            `).join('');
+
+            suggestionsDropdown.classList.remove('hidden');
+        }
+    });
+}
+
+// --- LIVE YOUTUBE SEARCH SUGGESTIONS ---
+let searchDebounceTimer = null;
+let latestSearchRequestId = 0;
+let isHoveringSuggestions = false;
+
+function setupSearchSuggestions() {
+    const songInput = document.getElementById('song-input');
+    const suggestionsDropdown = document.getElementById('search-suggestions');
+    const mobileInput = document.getElementById('mobile-song-input');
+    const mobileDropdown = document.getElementById('mobile-search-suggestions');
+
+    if (suggestionsDropdown) {
+        suggestionsDropdown.addEventListener('mouseenter', () => { isHoveringSuggestions = true; });
+        suggestionsDropdown.addEventListener('mouseleave', () => { isHoveringSuggestions = false; });
+    }
+
+    if (songInput && suggestionsDropdown) {
+        songInput.addEventListener('input', () => {
+            const query = songInput.value.trim();
+            clearTimeout(searchDebounceTimer);
+
+            if (query.length < 2) {
+                latestSearchRequestId++;
+                suggestionsDropdown.innerHTML = '';
+                suggestionsDropdown.classList.add('hidden');
+                return;
+            }
+
+            const requestId = ++latestSearchRequestId;
+
+            searchDebounceTimer = setTimeout(() => {
+                socket.emit('searchSuggestions', query, (videos) => {
+                    // Drop stale out-of-order responses or updates while mouse is hovering dropdown
+                    if (requestId !== latestSearchRequestId) return;
+                    if (songInput.value.trim() !== query) return;
+                    if (isHoveringSuggestions) return;
+
+                    if (!videos || !videos.length) {
+                        suggestionsDropdown.innerHTML = '';
+                        suggestionsDropdown.classList.add('hidden');
+                        return;
+                    }
+
+                    suggestionsDropdown.innerHTML = videos.map(v => `
+                        <div class="search-suggestion-item" onclick="addSuggestedSong('${v.id}')">
+                            <img src="${escapeHtml(v.thumbnail)}" class="search-suggestion-thumb" alt="thumbnail" onerror="this.onerror=null; this.src='/assets/images/music-placeholder.png';">
+                            <div class="search-suggestion-info">
+                                <div class="search-suggestion-title" title="${escapeHtml(v.title)}">${escapeHtml(v.title)}</div>
+                                <div class="search-suggestion-meta">${escapeHtml(v.author)} ${v.timestamp ? '• ' + escapeHtml(v.timestamp) : ''}</div>
+                            </div>
+                            <button class="search-suggestion-add-btn" onclick="event.stopPropagation(); addSuggestedSong('${v.id}')">
+                                <span class="material-symbols-outlined" style="font-size:14px;">add</span> Thêm
+                            </button>
+                        </div>
+                    `).join('');
+
+                    suggestionsDropdown.classList.remove('hidden');
+                });
+            }, 300);
+        });
+
+        songInput.addEventListener('focus', () => {
+            if (suggestionsDropdown.children.length > 0 && songInput.value.trim().length >= 2) {
+                suggestionsDropdown.classList.remove('hidden');
+            }
+        });
+    }
+
+    if (mobileInput && mobileDropdown) {
+        mobileInput.addEventListener('input', () => {
+            const query = mobileInput.value.trim();
+            clearTimeout(searchDebounceTimer);
+
+            if (query.length < 2) {
+                latestSearchRequestId++;
+                mobileDropdown.innerHTML = '';
+                mobileDropdown.classList.add('hidden');
+                return;
+            }
+
+            const requestId = ++latestSearchRequestId;
+
+            searchDebounceTimer = setTimeout(() => {
+                socket.emit('searchSuggestions', query, (videos) => {
+                    if (requestId !== latestSearchRequestId) return;
+                    if (mobileInput.value.trim() !== query) return;
+
+                    if (!videos || !videos.length) {
+                        mobileDropdown.innerHTML = '';
+                        mobileDropdown.classList.add('hidden');
+                        return;
+                    }
+
+                    mobileDropdown.innerHTML = videos.map(v => `
+                        <div class="search-suggestion-item" onclick="addSuggestedSong('${v.id}')">
+                            <img src="${escapeHtml(v.thumbnail)}" class="search-suggestion-thumb" alt="thumbnail" onerror="this.onerror=null; this.src='/assets/images/music-placeholder.png';">
+                            <div class="search-suggestion-info">
+                                <div class="search-suggestion-title" title="${escapeHtml(v.title)}">${escapeHtml(v.title)}</div>
+                                <div class="search-suggestion-meta">${escapeHtml(v.author)} ${v.timestamp ? '• ' + escapeHtml(v.timestamp) : ''}</div>
+                            </div>
+                            <button class="search-suggestion-add-btn" onclick="event.stopPropagation(); addSuggestedSong('${v.id}')">
+                                <span class="material-symbols-outlined" style="font-size:14px;">add</span> Thêm
+                            </button>
+                        </div>
+                    `).join('');
+
+                    mobileDropdown.classList.remove('hidden');
+                });
+            }, 300);
+        });
+    }
+
+    document.addEventListener('click', (e) => {
+        const searchWrapper = document.getElementById('navbar-search');
+        if (searchWrapper && !searchWrapper.contains(e.target)) {
+            if (suggestionsDropdown) suggestionsDropdown.classList.add('hidden');
+        }
+    });
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            if (suggestionsDropdown) suggestionsDropdown.classList.add('hidden');
+            closeMobileSearch();
+        }
+    });
+}
+
+function addSuggestedSong(videoId) {
+    const suggestionsDropdown = document.getElementById('search-suggestions');
+    const mobileDropdown = document.getElementById('mobile-search-suggestions');
+    const songInput = document.getElementById('song-input');
+    const mobileInput = document.getElementById('mobile-song-input');
+
+    if (suggestionsDropdown) suggestionsDropdown.classList.add('hidden');
+    if (mobileDropdown) mobileDropdown.classList.add('hidden');
+    if (songInput) songInput.value = '';
+    if (mobileInput) mobileInput.value = '';
+    closeMobileSearch();
+
+    socket.emit('addSong', videoId, (res) => {
+        if (res && res.success) {
+            showToastNotification('✅ Đã thêm bài hát vào hàng đợi!');
+        } else {
+            showToastNotification('⚠️ ' + (res && res.message ? res.message : "Bài hát đã có trong hàng đợi hoặc có lỗi!"));
+        }
+    });
+}
+
+function setupSidebarHoverCollapse() {
+    const sb = document.getElementById('sidebar');
+    if (sb) {
+        sb.addEventListener('mouseleave', () => {
+            if (window.innerWidth >= 900) {
+                sb.classList.add('mini');
+            }
+        });
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    setupSearchSuggestions();
+    setupSidebarHoverCollapse();
+});
+if (document.readyState !== 'loading') {
+    setupSearchSuggestions();
+    setupSidebarHoverCollapse();
+}
+
 function nextSong() { socket.emit('adminNextSong'); }
 
 socket.on('updatePlaylist', (list) => { updatePlaylistUI(list); });
@@ -3682,7 +3993,10 @@ dragHandle.style.cursor = 'move';
 dragHandle.style.zIndex = '50';
 dragHandle.style.background = 'linear-gradient(to bottom, rgba(0,0,0,0.6), transparent)';
 dragHandle.style.display = 'none';
-dragHandle.innerHTML = '<div style="width: 40px; height: 4px; background: rgba(255,255,255,0.5); border-radius: 2px; margin: 6px auto;"></div>';
+dragHandle.style.userSelect = 'none';
+dragHandle.style.webkitUserSelect = 'none';
+dragHandle.innerHTML = '<div style="width: 40px; height: 4px; background: rgba(255,255,255,0.5); border-radius: 2px; margin: 6px auto; pointer-events: none;"></div>';
+dragHandle.addEventListener('dragstart', (e) => e.preventDefault());
 miniPlayer.appendChild(dragHandle);
 
 let isDraggingMini = false;
@@ -3692,15 +4006,42 @@ let initialMiniX = 0;
 let initialMiniY = 0;
 let dragStartX = 0;
 let dragStartY = 0;
+let untranslatedLeft = 0;
+let untranslatedTop = 0;
+let playerWidth = 0;
+let playerHeight = 0;
 
-// Show handle only in mini mode
+// Load saved position from localStorage
+try {
+    const savedPos = localStorage.getItem('mini_player_pos');
+    if (savedPos) {
+        const parsed = JSON.parse(savedPos);
+        if (typeof parsed.x === 'number' && typeof parsed.y === 'number') {
+            miniDragX = parsed.x;
+            miniDragY = parsed.y;
+        }
+    }
+} catch (err) {}
+
+function applyMiniPlayerSavedPos() {
+    if (document.getElementById('left-column').classList.contains('not-home') || document.getElementById('left-column').classList.contains('mobile-mini')) {
+        if (miniDragX || miniDragY) {
+            miniPlayer.style.transform = `translate(${miniDragX}px, ${miniDragY}px)`;
+            clampMiniPlayerPosition();
+        }
+    }
+}
+
+// Show handle & restore position in mini mode
 const observer = new MutationObserver((mutations) => {
     mutations.forEach((m) => {
         if (m.attributeName === 'class') {
             if (document.getElementById('left-column').classList.contains('not-home') || document.getElementById('left-column').classList.contains('mobile-mini')) {
                 dragHandle.style.display = 'block';
+                applyMiniPlayerSavedPos();
             } else {
                 dragHandle.style.display = 'none';
+                miniPlayer.style.transform = '';
             }
         }
     });
@@ -3711,15 +4052,55 @@ function resetMiniPlayerDrag() {
     miniDragX = 0;
     miniDragY = 0;
     miniPlayer.style.transform = '';
+    try {
+        localStorage.removeItem('mini_player_pos');
+    } catch (e) {}
 }
+
+function clampMiniPlayerPosition() {
+    if (!document.getElementById('left-column').classList.contains('not-home') && !document.getElementById('left-column').classList.contains('mobile-mini')) {
+        return;
+    }
+    const rect = miniPlayer.getBoundingClientRect();
+    if (!rect.width || !rect.height) return;
+
+    const currentUnX = rect.left - miniDragX;
+    const currentUnY = rect.top - miniDragY;
+    const margin = 4;
+
+    const minX = -currentUnX + margin;
+    const maxX = window.innerWidth - currentUnX - rect.width - margin;
+    const minY = -currentUnY + margin;
+    const maxY = window.innerHeight - currentUnY - rect.height - margin;
+
+    miniDragX = Math.min(Math.max(miniDragX, minX), Math.max(minX, maxX));
+    miniDragY = Math.min(Math.max(miniDragY, minY), Math.max(minY, maxY));
+
+    miniPlayer.style.transform = `translate(${miniDragX}px, ${miniDragY}px)`;
+}
+window.addEventListener('resize', clampMiniPlayerPosition);
 
 dragHandle.addEventListener('mousedown', startMiniDrag);
 dragHandle.addEventListener('touchstart', startMiniDrag, { passive: false });
 
 function startMiniDrag(e) {
     if (e.type === 'mousedown' && e.button !== 0) return;
+    if (e.cancelable) e.preventDefault();
     isDraggingMini = true;
     dragHandle.style.height = '100%'; // cover full player to not lose mouse
+
+    // Disable text selection globally while dragging
+    document.body.style.userSelect = 'none';
+    document.body.style.webkitUserSelect = 'none';
+    if (window.getSelection) {
+        window.getSelection().removeAllRanges();
+    }
+
+    const rect = miniPlayer.getBoundingClientRect();
+    playerWidth = rect.width;
+    playerHeight = rect.height;
+    untranslatedLeft = rect.left - miniDragX;
+    untranslatedTop = rect.top - miniDragY;
 
     const clientX = e.type === 'touchstart' ? e.touches[0].clientX : e.clientX;
     const clientY = e.type === 'touchstart' ? e.touches[0].clientY : e.clientY;
@@ -3737,7 +4118,7 @@ function startMiniDrag(e) {
 
 function onMiniDrag(e) {
     if (!isDraggingMini) return;
-    e.preventDefault();
+    if (e.cancelable) e.preventDefault();
 
     const clientX = e.type === 'touchmove' ? e.touches[0].clientX : e.clientX;
     const clientY = e.type === 'touchmove' ? e.touches[0].clientY : e.clientY;
@@ -3745,8 +4126,18 @@ function onMiniDrag(e) {
     const dx = clientX - dragStartX;
     const dy = clientY - dragStartY;
 
-    miniDragX = initialMiniX + dx;
-    miniDragY = initialMiniY + dy;
+    const targetX = initialMiniX + dx;
+    const targetY = initialMiniY + dy;
+
+    // Clamp within viewport boundaries with 4px margin
+    const margin = 4;
+    const minX = -untranslatedLeft + margin;
+    const maxX = window.innerWidth - untranslatedLeft - playerWidth - margin;
+    const minY = -untranslatedTop + margin;
+    const maxY = window.innerHeight - untranslatedTop - playerHeight - margin;
+
+    miniDragX = Math.min(Math.max(targetX, minX), Math.max(minX, maxX));
+    miniDragY = Math.min(Math.max(targetY, minY), Math.max(minY, maxY));
 
     miniPlayer.style.transform = `translate(${miniDragX}px, ${miniDragY}px)`;
 }
@@ -3754,8 +4145,18 @@ function onMiniDrag(e) {
 function endMiniDrag() {
     isDraggingMini = false;
     dragHandle.style.height = '32px';
+
+    // Restore text selection
+    document.body.style.userSelect = '';
+    document.body.style.webkitUserSelect = '';
+
     document.removeEventListener('mousemove', onMiniDrag);
     document.removeEventListener('mouseup', endMiniDrag);
     document.removeEventListener('touchmove', onMiniDrag);
     document.removeEventListener('touchend', endMiniDrag);
+
+    // Save position to localStorage
+    try {
+        localStorage.setItem('mini_player_pos', JSON.stringify({ x: miniDragX, y: miniDragY }));
+    } catch (e) {}
 }

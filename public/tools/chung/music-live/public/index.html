@@ -3,12 +3,14 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
-    <title>2937.ML</title>
-    <!-- Display font for headings/logo (character), body relies on the
-         native system font stack instead of loading Inter for everything -->
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
+    <meta name="description"
+        content="Trạm Nhạc Live 2937 - Thưởng thức âm nhạc trực tuyến, trò chuyện và chơi game giải trí cùng bạn bè.">
+    <title>2937.ML - Trạm Nhạc Live Trực Tuyến</title>
+    <!-- Display, Cute Vietnamese & Mono Fonts -->
     <link
-        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@600;700&family=Itim&family=Nunito:wght@700;800&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&family=Space+Grotesk:wght@500;600;700&display=swap"
         rel="stylesheet">
     <link rel="stylesheet"
         href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
@@ -16,30 +18,41 @@
 </head>
 
 <body>
-    <!-- YouTube-style Minimal Splash Screen -->
+    <!-- Cute Bunny Splash Screen -->
     <div id="app-loader-screen" class="app-loader-screen">
-        <div class="yt-splash-logo">
-            <svg viewBox="0 0 24 24" width="64" height="64" fill="#ff0000">
-                <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-            </svg>
+        <div class="bunny-splash-content">
+            <div class="bunny-splash-title">2937.ML</div>
+            <div class="bunny-splash-sub">Trạm Nhạc Live</div>
+            <div class="bunny-track-container">
+                <div class="bunny-progress-track">
+                    <div class="bunny-progress-fill">
+                        <div class="bunny-runner-box">
+                            <img src="/assets/images/bunny-run.png" class="bunny-runner-img" alt="Running Bunny">
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="yt-splash-bar"></div>
     </div>
     <script>
-        (function() {
+        (function () {
+            var loaderStartTime = Date.now();
             function hideAppLoaderInline() {
-                var loader = document.getElementById('app-loader-screen');
-                if (loader && !loader.classList.contains('fade-out')) {
-                    loader.classList.add('fade-out');
-                    setTimeout(function() { if (loader && loader.parentNode) loader.parentNode.removeChild(loader); }, 500);
-                }
+                var elapsed = Date.now() - loaderStartTime;
+                var remaining = Math.max(0, 3000 - elapsed);
+                setTimeout(function () {
+                    var loader = document.getElementById('app-loader-screen');
+                    if (loader && !loader.classList.contains('fade-out')) {
+                        loader.classList.add('fade-out');
+                        setTimeout(function () { if (loader && loader.parentNode) loader.parentNode.removeChild(loader); }, 500);
+                    }
+                }, remaining);
             }
             if (document.fonts && document.fonts.ready) {
-                document.fonts.ready.then(function() { setTimeout(hideAppLoaderInline, 200); }).catch(function(){});
+                document.fonts.ready.then(function () { hideAppLoaderInline(); }).catch(function () { hideAppLoaderInline(); });
+            } else {
+                window.addEventListener('load', hideAppLoaderInline);
             }
-            document.addEventListener('DOMContentLoaded', function() { setTimeout(hideAppLoaderInline, 500); });
-            window.addEventListener('load', function() { setTimeout(hideAppLoaderInline, 200); });
-            setTimeout(hideAppLoaderInline, 1500);
         })();
     </script>
 
@@ -124,15 +137,19 @@
         <div class="navbar-search hidden" id="navbar-search">
             <div class="search-bar-wrapper">
                 <span class="material-symbols-outlined search-icon">search</span>
-                <input type="text" id="song-input" placeholder="Tìm kiếm YouTube hoặc dán link..."
-                    onkeypress="if(event.key === 'Enter') addSong()">
-                <button class="btn-add-search" onclick="addSong()" title="Thêm vào hàng đợi">
-                    <span class="material-symbols-outlined" style="font-size:20px;">add</span>
+                <input type="text" id="song-input" placeholder="Tìm kiếm YouTube hoặc dán link..." autocomplete="off"
+                    onkeypress="if(event.key === 'Enter') performSearchTrigger()">
+                <button class="btn-add-search" onclick="performSearchTrigger()" title="Tìm kiếm bài hát">
+                    <span class="material-symbols-outlined" style="font-size:20px;">search</span>
                 </button>
             </div>
+            <div id="search-suggestions" class="search-suggestions-dropdown hidden"></div>
         </div>
 
         <div id="navbar-right" class="navbar-right hidden">
+            <button class="mobile-search-trigger-btn" onclick="openMobileSearch()" title="Tìm kiếm">
+                <span class="material-symbols-outlined" style="font-size:20px;">search</span>
+            </button>
             <div class="navbar-user">
                 <span class="user-dot"></span>
                 <span id="navbar-username"></span>
@@ -141,6 +158,21 @@
                 <span class="material-symbols-outlined">logout</span>
             </button>
         </div>
+
+        <!-- YouTube-Style Mobile Search Overlay -->
+        <div id="mobile-search-overlay" class="mobile-search-overlay hidden">
+            <button class="mobile-search-back-btn" onclick="closeMobileSearch()" title="Quay lại">
+                <span class="material-symbols-outlined">arrow_back</span>
+            </button>
+            <div class="mobile-search-input-wrapper">
+                <input type="text" id="mobile-song-input" placeholder="Tìm kiếm YouTube hoặc dán link..." autocomplete="off"
+                    onkeypress="if(event.key === 'Enter') performMobileSearchTrigger()">
+                <button class="mobile-search-submit-btn" onclick="performMobileSearchTrigger()" title="Tìm kiếm">
+                    <span class="material-symbols-outlined" style="font-size:18px;">search</span>
+                </button>
+            </div>
+        </div>
+        <div id="mobile-search-suggestions" class="mobile-search-suggestions-dropdown hidden"></div>
     </div>
 
     <div id="main-room" class="main-layout hidden">
@@ -185,7 +217,7 @@
                         <span id="volume-icon" class="material-symbols-outlined"
                             style="font-size: 20px; cursor: pointer;" onclick="toggleVideoMute()"
                             title="Bật/Tắt tiếng video">volume_up</span>
-                        <input type="range" id="volume-slider" min="0" max="100" value="50"
+                        <input type="range" id="volume-slider" class="ui-slider" min="0" max="100" value="50"
                             oninput="changeVolume(this.value)">
                     </div>
 
@@ -209,29 +241,24 @@
                         </div>
                     </div>
 
-                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
                         <button id="btn-start-game" class="btn-start-game hidden" onclick="startDrawGame()">
-                            <span class="material-symbols-outlined" style="font-size:20px;">brush</span>
                             Vẽ & Đoán
                         </button>
                         <button id="btn-open-caro" class="btn-start-game" onclick="openCaroGame()">
-                            <span class="material-symbols-outlined" style="font-size:20px;">grid_4x4</span>
                             Cờ Caro
                         </button>
                         <button id="btn-open-chess" class="btn-start-game" onclick="openChessGame()">
-                            <span class="material-symbols-outlined" style="font-size:20px;">chess</span>
                             Cờ Vua
                         </button>
                         <button id="btn-open-xiangqi" class="btn-start-game" onclick="openXiangqiGame()">
-                            <span class="material-symbols-outlined" style="font-size:20px;">sports_esports</span>
                             Cờ Tướng
                         </button>
                         <button id="btn-open-uno" class="btn-start-game" onclick="openUnoGame()">
-                            <span class="material-symbols-outlined" style="font-size:20px;">style</span>
                             Uno
                         </button>
-                        <button id="btn-open-monkeytype" class="btn-start-game" onclick="window.open('/monkeytype/', '_blank')" title="Mở Monkeytype Luyện Gõ Phím">
-                            <span class="material-symbols-outlined" style="font-size:20px;">keyboard</span>
+                        <button id="btn-open-monkeytype" class="btn-start-game"
+                            onclick="window.open('/monkeytype/', '_blank')" title="Mở Monkeytype Luyện Gõ Phím">
                             Monkeytype
                         </button>
                     </div>
@@ -240,14 +267,16 @@
         </div>
 
         <div class="history-column hidden" id="history-column">
-            <h2 style="margin-bottom: 24px; font-family: var(--font-display); font-size: 24px; font-weight: 700;">Lịch sử phát gần đây</h2>
+            <h2 style="margin-bottom: 24px; font-family: var(--font-display); font-size: 24px; font-weight: 700;">Lịch
+                sử phát gần đây</h2>
             <div id="history-list">
                 <div style="color:var(--text-muted);">Đang tải...</div>
             </div>
         </div>
 
         <div class="history-column hidden" id="top-column">
-            <h2 style="margin-bottom: 24px; font-family: var(--font-display); font-size: 24px; font-weight: 700;">Top nhạc</h2>
+            <h2 style="margin-bottom: 24px; font-family: var(--font-display); font-size: 24px; font-weight: 700;">Top
+                nhạc</h2>
             <div id="top-list">
                 <div style="color:var(--text-muted);">Đang tải...</div>
             </div>
@@ -258,11 +287,11 @@
                 <!-- Header -->
                 <div class="fb-title-header">
                     <h2 class="fb-title-main">
-                        <span class="material-symbols-outlined" style="color: #f59e0b; font-size: 28px;">rate_review</span>
+                        <span class="material-symbols-outlined fb-header-icon">rate_review</span>
                         GÓP Ý & BÁO LỖI
                     </h2>
                     <p class="fb-title-sub">
-                        Mọi ý kiến của bạn đều giúp ứng dụng ngày một hoàn thiện và ổn định hơn.
+                        Mọi ý kiến đóng góp của bạn đều giúp Trạm Nhạc Live hoàn thiện và phát triển hơn!
                     </p>
                 </div>
 
@@ -271,12 +300,14 @@
                     <div class="fb-label-group">
                         <span class="fb-label-title">Loại phản hồi</span>
                         <div class="fb-segmented-control" id="fb-type-control">
-                            <button type="button" class="fb-segment-btn active" data-type="gop_y" onclick="selectFeedbackType('gop_y')">
-                                <span class="material-symbols-outlined" style="font-size: 15px;">lightbulb</span>
+                            <button type="button" class="fb-segment-btn active" data-type="gop_y"
+                                onclick="selectFeedbackType('gop_y')">
+                                <span class="material-symbols-outlined" style="font-size: 16px;">lightbulb</span>
                                 Ý kiến đóng góp
                             </button>
-                            <button type="button" class="fb-segment-btn" data-type="bao_loi" onclick="selectFeedbackType('bao_loi')">
-                                <span class="material-symbols-outlined" style="font-size: 15px;">bug_report</span>
+                            <button type="button" class="fb-segment-btn" data-type="bao_loi"
+                                onclick="selectFeedbackType('bao_loi')">
+                                <span class="material-symbols-outlined" style="font-size: 16px;">bug_report</span>
                                 Báo lỗi Web
                             </button>
                         </div>
@@ -284,13 +315,14 @@
 
                     <div class="fb-textarea-container">
                         <textarea id="feedback-content-input" rows="3" class="fb-textarea" maxlength="500"
-                            placeholder="Mô tả chi tiết ý tưởng mới hoặc sự cố bạn gặp phải..." oninput="updateFbCharCount(this)"></textarea>
+                            placeholder="Chia sẻ chi tiết ý tưởng mới hoặc sự cố bạn gặp phải..."
+                            oninput="updateFbCharCount(this)"></textarea>
                         <span id="fb-char-counter" class="fb-char-counter">0/500</span>
                     </div>
 
                     <div style="display: flex; justify-content: flex-end;">
                         <button id="btn-submit-feedback" class="fb-submit-btn" onclick="submitFeedback()">
-                            <span class="material-symbols-outlined" style="font-size: 17px;">send</span>
+                            <span class="material-symbols-outlined" style="font-size: 18px;">send</span>
                             Gửi phản hồi
                         </button>
                     </div>
@@ -303,7 +335,7 @@
                         <span id="fb-count-badge" class="fb-count-badge">0</span>
                     </div>
                     <button class="fb-refresh-btn" onclick="loadFeedbackHistory()">
-                        <span class="material-symbols-outlined" style="font-size: 15px;">refresh</span> Tải lại
+                        <span class="material-symbols-outlined" style="font-size: 16px;">refresh</span> Tải lại
                     </button>
                 </div>
 
@@ -408,12 +440,16 @@
                         <button class="picker-btn action-icon-btn" id="emoji-toggle-btn" onclick="togglePicker()"
                             title="Emoji & GIF">😊</button>
                         <input type="text" id="chat-input" placeholder="Trò chuyện công khai..."
-                            onkeydown="if(event.key === 'Enter' && !event.isComposing) { event.preventDefault(); sendChat(); }" oninput="onChatInputChange()">
-                        <button class="picker-btn action-icon-btn media-btn" id="media-upload-btn" onclick="triggerMediaUpload()" title="Gửi hình ảnh hoặc video">
+                            onkeydown="if(event.key === 'Enter' && !event.isComposing) { event.preventDefault(); sendChat(); }"
+                            oninput="onChatInputChange()">
+                        <button class="picker-btn action-icon-btn media-btn" id="media-upload-btn"
+                            onclick="triggerMediaUpload()" title="Gửi hình ảnh hoặc video">
                             <span class="material-symbols-outlined" style="font-size:20px;">image</span>
                         </button>
-                        <input type="file" id="media-file-input" accept="image/*,video/*" style="display:none;" onchange="handleMediaFileSelect(event)">
-                        <button class="picker-btn action-icon-btn voice-btn" id="voice-rec-btn" onclick="toggleVoiceRecording()" title="Tin nhắn thoại">
+                        <input type="file" id="media-file-input" accept="image/*,video/*" style="display:none;"
+                            onchange="handleMediaFileSelect(event)">
+                        <button class="picker-btn action-icon-btn voice-btn" id="voice-rec-btn"
+                            onclick="toggleVoiceRecording()" title="Tin nhắn thoại">
                             <span class="material-symbols-outlined" style="font-size:20px;">mic</span>
                         </button>
                         <button class="picker-btn action-icon-btn send-btn" onclick="sendChat()" title="Gửi tin nhắn">
@@ -424,7 +460,8 @@
                     <!-- Voice Recording Bar Overlay -->
                     <div id="voice-recording-bar" class="voice-recording-bar hidden">
                         <div class="voice-rec-left">
-                            <button id="voice-rec-play-btn" class="voice-rec-play-btn hidden" onclick="toggleVoicePreviewPlay()" title="Nghe thử">
+                            <button id="voice-rec-play-btn" class="voice-rec-play-btn hidden"
+                                onclick="toggleVoicePreviewPlay()" title="Nghe thử">
                                 <span class="material-symbols-outlined" style="font-size:18px;">play_arrow</span>
                             </button>
                             <span class="voice-rec-dot" id="voice-rec-dot"></span>
@@ -434,7 +471,8 @@
                             </div>
                         </div>
                         <div class="voice-rec-right">
-                            <select id="voice-effect-select" class="voice-effect-select hidden" title="Đổi hiệu ứng giọng nói" onchange="handleVoiceEffectChange()">
+                            <select id="voice-effect-select" class="voice-effect-select hidden"
+                                title="Đổi hiệu ứng giọng nói" onchange="handleVoiceEffectChange()">
                                 <option value="normal">🎙️ Gốc</option>
                                 <option value="chipmunk">🐿️ Sóc chuột</option>
                                 <option value="monster">👹 Quái vật</option>
@@ -445,10 +483,12 @@
                             <button class="voice-rec-cancel-btn" onclick="cancelVoiceRecording()" title="Hủy ghi âm">
                                 <span class="material-symbols-outlined" style="font-size:18px;">close</span>
                             </button>
-                            <button id="voice-rec-stop-btn" class="voice-rec-stop-btn" onclick="finishVoiceRecording()" title="Hoàn tất ghi âm">
+                            <button id="voice-rec-stop-btn" class="voice-rec-stop-btn" onclick="finishVoiceRecording()"
+                                title="Hoàn tất ghi âm">
                                 <span class="material-symbols-outlined" style="font-size:18px;">check</span>
                             </button>
-                            <button id="voice-rec-send-btn" class="voice-rec-send-btn hidden" onclick="sendProcessedVoiceRecording()" title="Gửi tin nhắn thoại">
+                            <button id="voice-rec-send-btn" class="voice-rec-send-btn hidden"
+                                onclick="sendProcessedVoiceRecording()" title="Gửi tin nhắn thoại">
                                 <span class="material-symbols-outlined" style="font-size:18px;">send</span>
                             </button>
                         </div>
@@ -462,7 +502,8 @@
                     style="flex:1; margin:0; border-radius:0; border:none; max-height:none; background:transparent;">
                     <div id="lyric-content"></div>
                 </div>
-                <button class="lyric-report-btn hidden" id="lyric-report-btn" onclick="switchToNextLyric()" title="Báo lệch lời / Đổi sang bản lyric khác trên LRCLIB">
+                <button class="lyric-report-btn hidden" id="lyric-report-btn" onclick="switchToNextLyric()"
+                    title="Báo lệch lời / Đổi sang bản lyric khác trên LRCLIB">
                     <span class="material-symbols-outlined" style="font-size:15px;">sync_alt</span>
                     <span>Báo lệch / Đổi lyric</span>
                 </button>
@@ -633,49 +674,61 @@
             <div style="background: rgba(211, 47, 47, 0.1); padding: 40px 24px 24px 24px;">
                 <div style="font-size: 56px; margin-bottom: 16px; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));">🀄
                 </div>
-                <h3 style="margin-bottom: 8px; color: white; font-family: var(--font-display); font-size: 24px; font-weight: 700;">
+                <h3
+                    style="margin-bottom: 8px; color: white; font-family: var(--font-display); font-size: 24px; font-weight: 700;">
                     THÁCH ĐẤU</h3>
-                <div style="width: 40px; height: 3px; background: #d32f2f; margin: 0 auto 16px auto; border-radius: 2px;">
+                <div
+                    style="width: 40px; height: 3px; background: #d32f2f; margin: 0 auto 16px auto; border-radius: 2px;">
                 </div>
                 <p style="margin-bottom: 0; color: var(--text-muted); font-size: 16px; line-height: 1.5;">
-                    <strong id="xiangqi-challenger-name" style="color: white; font-size: 20px; display: block; margin-bottom: 4px;">Ai đó</strong>
+                    <strong id="xiangqi-challenger-name"
+                        style="color: white; font-size: 20px; display: block; margin-bottom: 4px;">Ai đó</strong>
                     đang gửi chiến thư Cờ Tướng đến bạn!
                 </p>
             </div>
             <div style="padding: 24px; display: flex; gap: 12px; justify-content: center;">
                 <button class="challenge-btn decline-btn" onclick="respondXiangqiChallenge(false)">Từ chối</button>
-                <button class="challenge-btn accept-btn" style="background:#d32f2f;" onclick="respondXiangqiChallenge(true)">Tiếp chiêu</button>
+                <button class="challenge-btn accept-btn" style="background:#d32f2f;"
+                    onclick="respondXiangqiChallenge(true)">Tiếp chiêu</button>
             </div>
         </div>
     </div>
 
     <div id="xiangqi-game-overlay" class="draw-overlay hidden">
-        <div class="draw-container" style="max-width: 600px; padding: 24px; position: relative; max-height: 90vh; overflow-y: auto;">
-            <div class="draw-header" style="justify-content: space-between; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 16px;">
+        <div class="draw-container"
+            style="max-width: 600px; padding: 24px; position: relative; max-height: 90vh; overflow-y: auto;">
+            <div class="draw-header"
+                style="justify-content: space-between; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 16px;">
                 <div class="draw-header-title" style="display:flex; align-items:center; gap: 8px;">
                     <span class="material-symbols-outlined" style="color: #d32f2f;">sports_esports</span>
                     Cờ Tướng
                 </div>
-                <button style="background:rgba(255,255,255,0.1); border:none; color:white; cursor:pointer; width: 32px; height: 32px; border-radius: 50%; display:flex; align-items:center; justify-content:center; transition: background 0.2s;"
+                <button
+                    style="background:rgba(255,255,255,0.1); border:none; color:white; cursor:pointer; width: 32px; height: 32px; border-radius: 50%; display:flex; align-items:center; justify-content:center; transition: background 0.2s;"
                     onclick="closeXiangqiGame()">
                     <span class="material-symbols-outlined" style="font-size:20px;">close</span>
                 </button>
             </div>
 
-            <div id="xiangqi-status" style="margin-bottom: 20px; font-size: 16px; color: var(--text-main); text-align: center; font-weight: 500;">
+            <div id="xiangqi-status"
+                style="margin-bottom: 20px; font-size: 16px; color: var(--text-main); text-align: center; font-weight: 500;">
                 Đang tải bàn cờ...</div>
             <div style="display: flex; gap: 12px; margin-bottom: 24px; justify-content: center; flex-wrap: wrap; align-items: center;"
                 id="xiangqi-actions">
-                <select id="xiangqi-challenge-target" style="padding: 10px 16px; border-radius: var(--radius-md); background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; outline: none;">
+                <select id="xiangqi-challenge-target"
+                    style="padding: 10px 16px; border-radius: var(--radius-md); background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; outline: none;">
                     <option value="">-- Chọn đối thủ --</option>
                 </select>
-                <button class="caro-btn" style="color: #fff; background: #d32f2f; border-color: #d32f2f;" onclick="sendXiangqiChallenge()" id="btn-send-xiangqi-challenge">
+                <button class="caro-btn" style="color: #fff; background: #d32f2f; border-color: #d32f2f;"
+                    onclick="sendXiangqiChallenge()" id="btn-send-xiangqi-challenge">
                     ⚔️ Thách đấu
                 </button>
-                <button class="caro-btn hidden" style="border-color: #ff4757; color: #ff4757;" onclick="leaveXiangqi()" id="btn-leave-xiangqi">Rời bàn / Hủy</button>
+                <button class="caro-btn hidden" style="border-color: #ff4757; color: #ff4757;" onclick="leaveXiangqi()"
+                    id="btn-leave-xiangqi">Rời bàn / Hủy</button>
             </div>
             <div class="caro-board-container hidden" id="xiangqi-board-wrapper">
-                <div id="xiangqi-board" style="display: grid; grid-template-columns: repeat(9, 40px); grid-template-rows: repeat(10, 40px); gap: 0; margin: 0 auto; width: fit-content; border: 2px solid #a67c52; background: #e3c498; position: relative;">
+                <div id="xiangqi-board"
+                    style="display: grid; grid-template-columns: repeat(9, 40px); grid-template-rows: repeat(10, 40px); gap: 0; margin: 0 auto; width: fit-content; border: 2px solid #a67c52; background: #e3c498; position: relative;">
                     <!-- Grid drawn by JS -->
                 </div>
             </div>
@@ -684,13 +737,16 @@
 
     <!-- UNO MODALS -->
     <div id="uno-game-overlay" class="draw-overlay hidden">
-        <div class="draw-container" style="max-width: 800px; padding: 24px; position: relative; max-height: 90vh; overflow-y: auto;">
-            <div class="draw-header" style="justify-content: space-between; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 16px;">
+        <div class="draw-container"
+            style="max-width: 800px; padding: 24px; position: relative; max-height: 90vh; overflow-y: auto;">
+            <div class="draw-header"
+                style="justify-content: space-between; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 16px;">
                 <div class="draw-header-title" style="display:flex; align-items:center; gap: 8px;">
                     <span class="material-symbols-outlined" style="color: #fbbc04;">style</span>
                     UNO Multiplayer
                 </div>
-                <button style="background:rgba(255,255,255,0.1); border:none; color:white; cursor:pointer; width: 32px; height: 32px; border-radius: 50%; display:flex; align-items:center; justify-content:center; transition: background 0.2s;"
+                <button
+                    style="background:rgba(255,255,255,0.1); border:none; color:white; cursor:pointer; width: 32px; height: 32px; border-radius: 50%; display:flex; align-items:center; justify-content:center; transition: background 0.2s;"
                     onclick="closeUnoGame()">
                     <span class="material-symbols-outlined" style="font-size:20px;">close</span>
                 </button>
@@ -698,22 +754,31 @@
 
             <div id="uno-lobby" style="text-align: center;">
                 <p>Mọi người đều có thể tham gia ván UNO này!</p>
-                <div id="uno-players-list" style="margin: 20px 0; font-weight: bold; color: var(--accent);">Chưa có ai</div>
-                <button class="caro-btn" style="background: var(--accent); color: #000;" onclick="joinUnoGame()">Tham gia</button>
-                <button class="caro-btn" style="background: #51cf66; color: #000;" onclick="startUnoGame()">Bắt đầu Game</button>
+                <div id="uno-players-list" style="margin: 20px 0; font-weight: bold; color: var(--accent);">Chưa có ai
+                </div>
+                <button class="caro-btn" style="background: var(--accent); color: #000;" onclick="joinUnoGame()">Tham
+                    gia</button>
+                <button class="caro-btn" style="background: #51cf66; color: #000;" onclick="startUnoGame()">Bắt đầu
+                    Game</button>
             </div>
 
             <div id="uno-board" class="hidden">
-                <div id="uno-status" style="margin-bottom: 20px; font-size: 18px; color: var(--text-main); text-align: center; font-weight: bold;"></div>
-                
-                <div style="display: flex; justify-content: center; gap: 40px; margin-bottom: 40px; align-items: center;">
-                    <div id="uno-deck" onclick="drawUnoCard()" style="width: 80px; height: 120px; background: #222; border: 2px solid white; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: white; font-weight: bold;">
+                <div id="uno-status"
+                    style="margin-bottom: 20px; font-size: 18px; color: var(--text-main); text-align: center; font-weight: bold;">
+                </div>
+
+                <div
+                    style="display: flex; justify-content: center; gap: 40px; margin-bottom: 40px; align-items: center;">
+                    <div id="uno-deck" onclick="drawUnoCard()"
+                        style="width: 80px; height: 120px; background: #222; border: 2px solid white; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: white; font-weight: bold;">
                         Bốc bài
                     </div>
-                    <div id="uno-pass" onclick="passUnoTurn()" style="width: 80px; height: 120px; background: #555; border: 2px solid white; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: white; font-weight: bold;">
+                    <div id="uno-pass" onclick="passUnoTurn()"
+                        style="width: 80px; height: 120px; background: #555; border: 2px solid white; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: white; font-weight: bold;">
                         Bỏ lượt
                     </div>
-                    <div id="uno-discard" style="width: 80px; height: 120px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 24px; color: white;">
+                    <div id="uno-discard"
+                        style="width: 80px; height: 120px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 24px; color: white;">
                         --
                     </div>
                 </div>
@@ -753,7 +818,9 @@
                             <span>Dừng game</span>
                         </button>
                     </div>
-                    <button class="draw-close-btn" onclick="document.getElementById('draw-game-overlay').classList.add('hidden')" title="Thu nhỏ cửa sổ">
+                    <button class="draw-close-btn"
+                        onclick="document.getElementById('draw-game-overlay').classList.add('hidden')"
+                        title="Thu nhỏ cửa sổ">
                         <span class="material-symbols-outlined" style="font-size:20px;">expand_more</span>
                     </button>
                 </div>
@@ -766,10 +833,13 @@
             <div id="draw-main-area">
                 <div id="draw-waiting-panel">
                     <div class="draw-waiting-header">
-                        <span class="material-symbols-outlined" style="font-size:28px;color:var(--accent);">touch_app</span>
+                        <span class="material-symbols-outlined"
+                            style="font-size:28px;color:var(--accent);">touch_app</span>
                         <div>
-                            <div style="font-weight:600;font-size:15px;color:white;">Chọn artist cho lượt tiếp theo</div>
-                            <div style="color:var(--text-muted);font-size:13px;margin-top:2px;">Danh sách thành viên sẵn sàng trong phòng</div>
+                            <div style="font-weight:600;font-size:15px;color:white;">Chọn artist cho lượt tiếp theo
+                            </div>
+                            <div style="color:var(--text-muted);font-size:13px;margin-top:2px;">Danh sách thành viên sẵn
+                                sàng trong phòng</div>
                         </div>
                     </div>
                     <div id="draw-random-btn-container" class="hidden" style="text-align:center; margin: 12px 0;">
@@ -802,23 +872,28 @@
                             <div class="draw-colors" id="draw-colors"></div>
                             <label class="draw-custom-color-btn" title="Chọn màu tùy chỉnh">
                                 <span class="material-symbols-outlined" style="font-size:16px;">colorize</span>
-                                <input type="color" id="draw-custom-color-input" value="#3ea6ff" onchange="setCustomDrawColor(this.value)">
+                                <input type="color" id="draw-custom-color-input" value="#3ea6ff"
+                                    onchange="setCustomDrawColor(this.value)">
                             </label>
                         </div>
 
                         <div class="draw-divider"></div>
 
                         <div class="draw-sizes" id="draw-sizes-bar">
-                            <button class="draw-size-btn" data-size="3" onclick="setDrawSize(3,this)" title="Nét mảnh (3px)">
+                            <button class="draw-size-btn" data-size="3" onclick="setDrawSize(3,this)"
+                                title="Nét mảnh (3px)">
                                 <span class="draw-size-dot" style="width:4px;height:4px;"></span>
                             </button>
-                            <button class="draw-size-btn active" data-size="7" onclick="setDrawSize(7,this)" title="Nét vừa (7px)">
+                            <button class="draw-size-btn active" data-size="7" onclick="setDrawSize(7,this)"
+                                title="Nét vừa (7px)">
                                 <span class="draw-size-dot" style="width:8px;height:8px;"></span>
                             </button>
-                            <button class="draw-size-btn" data-size="14" onclick="setDrawSize(14,this)" title="Nét dày (14px)">
+                            <button class="draw-size-btn" data-size="14" onclick="setDrawSize(14,this)"
+                                title="Nét dày (14px)">
                                 <span class="draw-size-dot" style="width:14px;height:14px;"></span>
                             </button>
-                            <button class="draw-size-btn" data-size="24" onclick="setDrawSize(24,this)" title="Nét lớn (24px)">
+                            <button class="draw-size-btn" data-size="24" onclick="setDrawSize(24,this)"
+                                title="Nét lớn (24px)">
                                 <span class="draw-size-dot" style="width:20px;height:20px;"></span>
                             </button>
                         </div>
@@ -830,7 +905,8 @@
                                 <span class="material-symbols-outlined" style="font-size:18px;">ink_eraser</span>
                                 <span>Tẩy</span>
                             </button>
-                            <button class="draw-tool-btn" id="grid-toggle-btn" onclick="toggleCanvasGrid()" title="Bật/Tắt lưới chấm vẽ">
+                            <button class="draw-tool-btn" id="grid-toggle-btn" onclick="toggleCanvasGrid()"
+                                title="Bật/Tắt lưới chấm vẽ">
                                 <span class="material-symbols-outlined" style="font-size:18px;">grid_on</span>
                                 <span>Lưới</span>
                             </button>
@@ -860,7 +936,8 @@
 
             <div class="draw-scores-section">
                 <div class="draw-scores-header">
-                    <span class="material-symbols-outlined" style="font-size:15px;color:var(--accent);">emoji_events</span>
+                    <span class="material-symbols-outlined"
+                        style="font-size:15px;color:var(--accent);">emoji_events</span>
                     <span>Bảng Xếp Hạng</span>
                 </div>
                 <div class="draw-scores" id="draw-scores"></div>
@@ -872,17 +949,26 @@
     <!-- Image Lightbox Modal -->
     <div id="image-lightbox-modal" class="image-lightbox-modal hidden" onclick="closeImageLightbox()">
         <div class="lightbox-toolbar" onclick="event.stopPropagation()">
-            <button onclick="zoomLightboxImage(0.25)" title="Phóng to (Cuộn chuột lên)"><span class="material-symbols-outlined" style="font-size:20px;">zoom_in</span></button>
-            <button onclick="zoomLightboxImage(-0.25)" title="Thu nhỏ (Cuộn chuột xuống)"><span class="material-symbols-outlined" style="font-size:20px;">zoom_out</span></button>
-            <button onclick="rotateLightboxImage(-90)" title="Xoay trái 90°"><span class="material-symbols-outlined" style="font-size:20px;">rotate_left</span></button>
-            <button onclick="rotateLightboxImage(90)" title="Xoay phải 90°"><span class="material-symbols-outlined" style="font-size:20px;">rotate_right</span></button>
-            <button onclick="flipLightboxImage('h')" title="Lật ngang"><span class="material-symbols-outlined" style="font-size:20px;">flip</span></button>
-            <button onclick="flipLightboxImage('v')" title="Lật dọc"><span class="material-symbols-outlined" style="font-size:20px; transform: rotate(90deg);">flip</span></button>
-            <button onclick="resetLightboxZoom()" title="Kích thước & Trạng thái ban đầu"><span class="material-symbols-outlined" style="font-size:20px;">restart_alt</span></button>
+            <button onclick="zoomLightboxImage(0.25)" title="Phóng to (Cuộn chuột lên)"><span
+                    class="material-symbols-outlined" style="font-size:20px;">zoom_in</span></button>
+            <button onclick="zoomLightboxImage(-0.25)" title="Thu nhỏ (Cuộn chuột xuống)"><span
+                    class="material-symbols-outlined" style="font-size:20px;">zoom_out</span></button>
+            <button onclick="rotateLightboxImage(-90)" title="Xoay trái 90°"><span class="material-symbols-outlined"
+                    style="font-size:20px;">rotate_left</span></button>
+            <button onclick="rotateLightboxImage(90)" title="Xoay phải 90°"><span class="material-symbols-outlined"
+                    style="font-size:20px;">rotate_right</span></button>
+            <button onclick="flipLightboxImage('h')" title="Lật ngang"><span class="material-symbols-outlined"
+                    style="font-size:20px;">flip</span></button>
+            <button onclick="flipLightboxImage('v')" title="Lật dọc"><span class="material-symbols-outlined"
+                    style="font-size:20px; transform: rotate(90deg);">flip</span></button>
+            <button onclick="resetLightboxZoom()" title="Kích thước & Trạng thái ban đầu"><span
+                    class="material-symbols-outlined" style="font-size:20px;">restart_alt</span></button>
             <button class="lightbox-close-btn" onclick="closeImageLightbox()" title="Đóng">&times;</button>
         </div>
         <div class="lightbox-content-wrapper" onclick="event.stopPropagation()">
-            <img id="lightbox-img" class="lightbox-img" src="" alt="Phóng to hình ảnh" onwheel="handleLightboxWheel(event)" ondblclick="toggleLightboxDblClick(event)" onmousedown="startLightboxDrag(event)">
+            <img id="lightbox-img" class="lightbox-img" src="" alt="Phóng to hình ảnh"
+                onwheel="handleLightboxWheel(event)" ondblclick="toggleLightboxDblClick(event)"
+                onmousedown="startLightboxDrag(event)">
         </div>
     </div>
 

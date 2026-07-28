@@ -114,6 +114,7 @@ const io = new Server(server, {
 });
 
 app.use(express.static('public'));
+app.use('/assets', express.static(path.join(__dirname, 'assets')));
 
 let playlist = [];
 let currentVideoId = '';
@@ -902,6 +903,31 @@ io.on('connection', (socket) => {
         }
         if (typeof callback === 'function') {
             callback({ success });
+        }
+    });
+
+    socket.on('searchSuggestions', async (query, callback) => {
+        if (typeof callback !== 'function') return;
+        if (!query || typeof query !== 'string' || !query.trim()) {
+            return callback([]);
+        }
+        const q = query.trim();
+        if (q.length < 2) {
+            return callback([]);
+        }
+        try {
+            const r = await ytSearch(q);
+            const videos = (r && r.videos ? r.videos : []).slice(0, 5).map(v => ({
+                id: v.videoId,
+                title: v.title,
+                author: v.author ? v.author.name : '',
+                timestamp: v.timestamp || v.duration?.timestamp || '',
+                thumbnail: v.thumbnail || v.image || `https://i.ytimg.com/vi/${v.videoId}/hqdefault.jpg`
+            }));
+            callback(videos);
+        } catch (err) {
+            console.error('Lỗi searchSuggestions:', err);
+            callback([]);
         }
     });
 
