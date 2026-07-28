@@ -958,6 +958,10 @@
             font-weight: 800;
             transform: scale(1.02);
             text-shadow: none;
+            background-color: #53535381;
+            border-radius: 10px;
+            margin: 0 15px;
+            padding-left: 10px;
         }
 
         .lyric-report-btn {
