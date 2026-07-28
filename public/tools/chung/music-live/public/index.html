@@ -154,6 +154,9 @@
                 <span class="user-dot"></span>
                 <span id="navbar-username"></span>
             </div>
+            <button class="settings-btn" onclick="openSettingsModal()" title="Cài đặt giao diện">
+                <span class="material-symbols-outlined">settings</span>
+            </button>
             <button class="logout-btn" onclick="logout()" title="Đăng xuất để đổi tên">
                 <span class="material-symbols-outlined">logout</span>
             </button>
@@ -969,6 +972,124 @@
             <img id="lightbox-img" class="lightbox-img" src="" alt="Phóng to hình ảnh"
                 onwheel="handleLightboxWheel(event)" ondblclick="toggleLightboxDblClick(event)"
                 onmousedown="startLightboxDrag(event)">
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="draw-overlay hidden" style="z-index: 2000;">
+        <div class="draw-container settings-modal-container">
+            <div class="draw-header" style="justify-content: space-between; margin-bottom: 18px; border-bottom: 1px solid rgba(255,180,210,0.2); padding-bottom: 14px;">
+                <div class="draw-header-title" style="display:flex; align-items:center; gap: 10px;">
+                    <span class="material-symbols-outlined" style="color: var(--accent); font-size: 26px;">settings</span>
+                    <span style="font-family: var(--font-display); font-size: 22px; font-weight: 700; color: #ffffff;">Cài Đặt Giao Diện</span>
+                </div>
+                <button class="settings-close-btn" onclick="closeSettingsModal()" title="Đóng">
+                    <span class="material-symbols-outlined" style="font-size:20px;">close</span>
+                </button>
+            </div>
+
+            <div class="settings-modal-body" style="display: flex; flex-direction: column; gap: 16px;">
+                <!-- Web Background Section -->
+                <div class="settings-section-card">
+                    <div class="settings-section-title">
+                        <span class="material-symbols-outlined" style="color: var(--accent);">wallpaper</span>
+                        <span>Ảnh Nền Website</span>
+                    </div>
+                    <div class="settings-preview-row">
+                        <div class="settings-preview-box" id="preview-web-bg" style="background-image: url('/assets/images/many-bunnies-bg.png');">
+                            <span class="preview-badge">Web</span>
+                        </div>
+                        <div class="settings-input-group">
+                            <div class="settings-input-row">
+                                <span class="material-symbols-outlined input-icon">link</span>
+                                <input type="text" id="setting-web-bg-url" placeholder="Nhập đường dẫn URL (https://...)" oninput="updateWebBgPreview(this.value)">
+                            </div>
+                            <div class="settings-upload-row">
+                                <label for="setting-web-bg-file" class="settings-upload-btn">
+                                    <span class="material-symbols-outlined">cloud_upload</span>
+                                    <span>Tải ảnh lên</span>
+                                </label>
+                                <input type="file" id="setting-web-bg-file" accept="image/*" style="display:none;" onchange="handleWebBgFileSelect(event)">
+                                <button type="button" class="settings-reset-btn" onclick="resetWebBgToDefault()" title="Khôi phục mặc định">
+                                    <span class="material-symbols-outlined">restart_alt</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chat Background Section -->
+                <div class="settings-section-card">
+                    <div class="settings-section-title">
+                        <span class="material-symbols-outlined" style="color: #4dabf7;">chat</span>
+                        <span>Ảnh Nền Khung Chat</span>
+                    </div>
+                    <div class="settings-preview-row">
+                        <div class="settings-preview-box" id="preview-chat-bg" style="background-image: url('/assets/images/background-chat.jpeg');">
+                            <span class="preview-badge">Chat</span>
+                        </div>
+                        <div class="settings-input-group">
+                            <div class="settings-input-row">
+                                <span class="material-symbols-outlined input-icon">link</span>
+                                <input type="text" id="setting-chat-bg-url" placeholder="Nhập đường dẫn URL (https://...)" oninput="updateChatBgPreview(this.value)">
+                            </div>
+                            <div class="settings-upload-row">
+                                <label for="setting-chat-bg-file" class="settings-upload-btn">
+                                    <span class="material-symbols-outlined">cloud_upload</span>
+                                    <span>Tải ảnh lên</span>
+                                </label>
+                                <input type="file" id="setting-chat-bg-file" accept="image/*" style="display:none;" onchange="handleChatBgFileSelect(event)">
+                                <button type="button" class="settings-reset-btn" onclick="resetChatBgToDefault()" title="Khôi phục mặc định">
+                                    <span class="material-symbols-outlined">restart_alt</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lyric Background Section -->
+                <div class="settings-section-card">
+                    <div class="settings-section-title">
+                        <span class="material-symbols-outlined" style="color: #51cf66;">lyrics</span>
+                        <span>Ảnh Nền Lời Bài Hát</span>
+                    </div>
+                    <div class="settings-preview-row">
+                        <div class="settings-preview-box" id="preview-lyric-bg" style="background-image: url('/assets/images/background-chat.jpeg');">
+                            <span class="preview-badge">Lyric</span>
+                        </div>
+                        <div class="settings-input-group">
+                            <div class="settings-input-row">
+                                <span class="material-symbols-outlined input-icon">link</span>
+                                <input type="text" id="setting-lyric-bg-url" placeholder="Nhập đường dẫn URL (https://...)" oninput="updateLyricBgPreview(this.value)">
+                            </div>
+                            <div class="settings-upload-row">
+                                <label for="setting-lyric-bg-file" class="settings-upload-btn">
+                                    <span class="material-symbols-outlined">cloud_upload</span>
+                                    <span>Tải ảnh lên</span>
+                                </label>
+                                <input type="file" id="setting-lyric-bg-file" accept="image/*" style="display:none;" onchange="handleLyricBgFileSelect(event)">
+                                <button type="button" class="settings-reset-btn" onclick="resetLyricBgToDefault()" title="Khôi phục mặc định">
+                                    <span class="material-symbols-outlined">restart_alt</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-modal-footer" style="margin-top: 20px; padding-top: 14px; border-top: 1px solid rgba(255,180,210,0.2); display: flex; justify-content: space-between; align-items: center;">
+                <button type="button" class="settings-btn-secondary" onclick="resetAllBgsToDefault()">
+                    <span class="material-symbols-outlined" style="font-size: 16px;">refresh</span>
+                    Mặc định tất cả
+                </button>
+                <div style="display: flex; gap: 10px;">
+                    <button type="button" class="settings-btn-cancel" onclick="closeSettingsModal()">Hủy</button>
+                    <button type="button" id="save-settings-btn" class="settings-btn-save" onclick="saveUserSettings()">
+                        <span class="material-symbols-outlined" style="font-size: 18px;">check</span>
+                        Lưu Cài Đặt
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 

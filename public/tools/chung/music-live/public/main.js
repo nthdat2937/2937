@@ -549,6 +549,8 @@ socket.on('authResult', (res) => {
         navUsername.textContent = myUsername;
         navUsername.style.color = myNameColor;
 
+        loadUserBackgrounds(myUsername);
+
 
         document.getElementById('navbar-search').classList.remove('hidden');
         document.getElementById('menu-btn').classList.remove('hidden');
@@ -617,6 +619,8 @@ function logout() {
     myRole = '';
     myUsername = '';
     myNameColor = '#3ea6ff';
+
+    resetBackgroundsToDefault();
 
 
     document.getElementById('main-room').classList.add('hidden');
@@ -4146,4 +4150,342 @@ function endMiniDrag() {
     try {
         localStorage.setItem('mini_player_pos', JSON.stringify({ x: miniDragX, y: miniDragY }));
     } catch (e) {}
+}
+
+/* ==========================================================================
+   USER BACKGROUND & INTERFACE SETTINGS SYSTEM
+   ========================================================================== */
+
+const DEFAULT_WEB_BG = '/assets/images/many-bunnies-bg.png';
+const DEFAULT_CHAT_BG = '/assets/images/background-chat.jpeg';
+const DEFAULT_LYRIC_BG = '/assets/images/background-chat.jpeg';
+
+let userBgState = {
+    web_bg: '',
+    chat_bg: '',
+    lyric_bg: ''
+};
+
+let pendingWebBg = '';
+let pendingChatBg = '';
+let pendingLyricBg = '';
+let pendingWebBgFile = null;
+let pendingChatBgFile = null;
+let pendingLyricBgFile = null;
+
+function applyUserBackgrounds(bgObj) {
+    if (bgObj) {
+        userBgState = {
+            web_bg: bgObj.web_bg || '',
+            chat_bg: bgObj.chat_bg || '',
+            lyric_bg: bgObj.lyric_bg || ''
+        };
+    }
+
+    const webBgUrl = userBgState.web_bg || DEFAULT_WEB_BG;
+    const chatBgUrl = userBgState.chat_bg || DEFAULT_CHAT_BG;
+    const lyricBgUrl = userBgState.lyric_bg || DEFAULT_LYRIC_BG;
+
+    // Web background
+    document.body.style.backgroundImage = `linear-gradient(rgba(28, 24, 34, 0.4), rgba(28, 24, 34, 0.4)), url('${webBgUrl}')`;
+
+    // Chat background
+    const chatBox = document.getElementById('chat-box-ui');
+    if (chatBox) {
+        chatBox.style.backgroundImage = `linear-gradient(rgba(15, 13, 11, 0.45), rgba(15, 13, 11, 0.45)), url('${chatBgUrl}')`;
+    }
+
+    // Lyric background
+    const lyricBox = document.getElementById('lyric-box');
+    if (lyricBox) {
+        lyricBox.style.backgroundImage = `linear-gradient(rgba(15, 13, 11, 0.65), rgba(15, 13, 11, 0.65)), url('${lyricBgUrl}')`;
+    }
+}
+
+async function loadUserBackgrounds(username) {
+    if (!username) return;
+    const cleanName = username.replace(' 😎', '').trim();
+    
+    // 1. LocalStorage cached version
+    const cached = localStorage.getItem(`musiclive_bg_${cleanName}`);
+    if (cached) {
+        try {
+            const bgData = JSON.parse(cached);
+            applyUserBackgrounds(bgData);
+        } catch(e) {}
+    }
+
+    // 2. Fetch via Socket
+    if (socket && socket.connected) {
+        socket.emit('getUserBackgrounds', { username: cleanName }, (res) => {
+            if (res) {
+                const bgData = {
+                    web_bg: res.web_bg || '',
+                    chat_bg: res.chat_bg || '',
+                    lyric_bg: res.lyric_bg || ''
+                };
+                localStorage.setItem(`musiclive_bg_${cleanName}`, JSON.stringify(bgData));
+                applyUserBackgrounds(bgData);
+            }
+        });
+    }
+
+    // 3. Fetch via Supabase Client fallback
+    if (typeof supabase !== 'undefined' && supabase.createClient) {
+        try {
+            const supabaseClient = supabase.createClient('https://wnioetdrphkdylkoybsu.supabase.co', 'sb_publishable_p0VSduH3epzQVUdvAf2kPQ_aoWk_l1T');
+            const { data, error } = await supabaseClient
+                .from('user_backgrounds')
+                .select('*')
+                .eq('username', cleanName)
+                .maybeSingle();
+
+            if (data && !error) {
+                const bgData = {
+                    web_bg: data.web_bg || '',
+                    chat_bg: data.chat_bg || '',
+                    lyric_bg: data.lyric_bg || ''
+                };
+                localStorage.setItem(`musiclive_bg_${cleanName}`, JSON.stringify(bgData));
+                applyUserBackgrounds(bgData);
+            }
+        } catch(err) {
+            console.warn('Supabase fetch backgrounds error:', err);
+        }
+    }
+}
+
+function openSettingsModal() {
+    const modal = document.getElementById('settings-modal');
+    if (!modal) return;
+
+    pendingWebBg = userBgState.web_bg || '';
+    pendingChatBg = userBgState.chat_bg || '';
+    pendingLyricBg = userBgState.lyric_bg || '';
+    pendingWebBgFile = null;
+    pendingChatBgFile = null;
+    pendingLyricBgFile = null;
+
+    document.getElementById('setting-web-bg-url').value = pendingWebBg;
+    document.getElementById('setting-chat-bg-url').value = pendingChatBg;
+    document.getElementById('setting-lyric-bg-url').value = pendingLyricBg;
+
+    document.getElementById('setting-web-bg-file').value = '';
+    document.getElementById('setting-chat-bg-file').value = '';
+    document.getElementById('setting-lyric-bg-file').value = '';
+
+    updateWebBgPreview(pendingWebBg);
+    updateChatBgPreview(pendingChatBg);
+    updateLyricBgPreview(pendingLyricBg);
+
+    modal.classList.remove('hidden');
+}
+
+function closeSettingsModal() {
+    const modal = document.getElementById('settings-modal');
+    if (modal) modal.classList.add('hidden');
+}
+
+function updateWebBgPreview(url) {
+    pendingWebBg = (url || '').trim();
+    const box = document.getElementById('preview-web-bg');
+    if (box) {
+        box.style.backgroundImage = `url('${pendingWebBg || DEFAULT_WEB_BG}')`;
+    }
+}
+
+function handleWebBgFileSelect(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    pendingWebBgFile = file;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        const box = document.getElementById('preview-web-bg');
+        if (box) box.style.backgroundImage = `url('${e.target.result}')`;
+    };
+    reader.readAsDataURL(file);
+}
+
+function resetWebBgToDefault() {
+    pendingWebBg = '';
+    pendingWebBgFile = null;
+    document.getElementById('setting-web-bg-url').value = '';
+    document.getElementById('setting-web-bg-file').value = '';
+    updateWebBgPreview('');
+}
+
+function updateChatBgPreview(url) {
+    pendingChatBg = (url || '').trim();
+    const box = document.getElementById('preview-chat-bg');
+    if (box) {
+        box.style.backgroundImage = `url('${pendingChatBg || DEFAULT_CHAT_BG}')`;
+    }
+}
+
+function handleChatBgFileSelect(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    pendingChatBgFile = file;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        const box = document.getElementById('preview-chat-bg');
+        if (box) box.style.backgroundImage = `url('${e.target.result}')`;
+    };
+    reader.readAsDataURL(file);
+}
+
+function resetChatBgToDefault() {
+    pendingChatBg = '';
+    pendingChatBgFile = null;
+    document.getElementById('setting-chat-bg-url').value = '';
+    document.getElementById('setting-chat-bg-file').value = '';
+    updateChatBgPreview('');
+}
+
+function updateLyricBgPreview(url) {
+    pendingLyricBg = (url || '').trim();
+    const box = document.getElementById('preview-lyric-bg');
+    if (box) {
+        box.style.backgroundImage = `url('${pendingLyricBg || DEFAULT_LYRIC_BG}')`;
+    }
+}
+
+function handleLyricBgFileSelect(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    pendingLyricBgFile = file;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        const box = document.getElementById('preview-lyric-bg');
+        if (box) box.style.backgroundImage = `url('${e.target.result}')`;
+    };
+    reader.readAsDataURL(file);
+}
+
+function resetLyricBgToDefault() {
+    pendingLyricBg = '';
+    pendingLyricBgFile = null;
+    document.getElementById('setting-lyric-bg-url').value = '';
+    document.getElementById('setting-lyric-bg-file').value = '';
+    updateLyricBgPreview('');
+}
+
+function resetAllBgsToDefault() {
+    resetWebBgToDefault();
+    resetChatBgToDefault();
+    resetLyricBgToDefault();
+}
+
+async function uploadBgFileToSupabase(file) {
+    if (!file) return '';
+    try {
+        const compressed = await compressImage(file, 1920, 1080, 0.85);
+        const fileExt = compressed.name.split('.').pop() || 'jpg';
+        const fileName = `bg_${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${fileExt}`;
+        
+        if (typeof supabase !== 'undefined' && supabase.createClient) {
+            const supabaseStorage = supabase.createClient('https://wnioetdrphkdylkoybsu.supabase.co', 'sb_publishable_p0VSduH3epzQVUdvAf2kPQ_aoWk_l1T');
+            const { data, error } = await supabaseStorage.storage.from('chat_media').upload(fileName, compressed, {
+                cacheControl: '3600',
+                upsert: false
+            });
+            if (!error && data) {
+                const { data: urlData } = supabaseStorage.storage.from('chat_media').getPublicUrl(fileName);
+                if (urlData && urlData.publicUrl) return urlData.publicUrl;
+            }
+        }
+    } catch(err) {
+        console.warn('Upload background to Supabase Storage failed:', err);
+    }
+    
+    return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = () => resolve('');
+        reader.readAsDataURL(file);
+    });
+}
+
+async function saveUserSettings() {
+    const saveBtn = document.getElementById('save-settings-btn');
+    const originalBtnText = saveBtn ? saveBtn.innerHTML : '';
+    if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<span class="material-symbols-outlined spin" style="font-size:18px;">sync</span> Đang lưu...';
+    }
+
+    try {
+        let finalWebBg = pendingWebBg;
+        let finalChatBg = pendingChatBg;
+        let finalLyricBg = pendingLyricBg;
+
+        if (pendingWebBgFile) {
+            finalWebBg = await uploadBgFileToSupabase(pendingWebBgFile);
+        }
+        if (pendingChatBgFile) {
+            finalChatBg = await uploadBgFileToSupabase(pendingChatBgFile);
+        }
+        if (pendingLyricBgFile) {
+            finalLyricBg = await uploadBgFileToSupabase(pendingLyricBgFile);
+        }
+
+        const newBgState = {
+            web_bg: finalWebBg,
+            chat_bg: finalChatBg,
+            lyric_bg: finalLyricBg
+        };
+
+        const cleanName = (myUsername || '').replace(' 😎', '').trim();
+
+        if (cleanName) {
+            localStorage.setItem(`musiclive_bg_${cleanName}`, JSON.stringify(newBgState));
+        }
+
+        if (socket && socket.connected) {
+            socket.emit('saveUserBackgrounds', {
+                username: cleanName,
+                ...newBgState
+            });
+        }
+
+        if (cleanName && typeof supabase !== 'undefined' && supabase.createClient) {
+            try {
+                const supabaseClient = supabase.createClient('https://wnioetdrphkdylkoybsu.supabase.co', 'sb_publishable_p0VSduH3epzQVUdvAf2kPQ_aoWk_l1T');
+                await supabaseClient
+                    .from('user_backgrounds')
+                    .upsert({
+                        username: cleanName,
+                        web_bg: finalWebBg || null,
+                        chat_bg: finalChatBg || null,
+                        lyric_bg: finalLyricBg || null,
+                        updated_at: new Date().toISOString()
+                    }, { onConflict: 'username' });
+            } catch(spErr) {
+                console.warn('Supabase direct upsert error:', spErr);
+            }
+        }
+
+        applyUserBackgrounds(newBgState);
+        closeSettingsModal();
+        
+        if (typeof showToastNotification === 'function') {
+            showToastNotification('✨ Đã lưu cài đặt hình nền thành công!');
+        } else {
+            alert('✨ Đã lưu cài đặt hình nền thành công!');
+        }
+
+    } catch (err) {
+        console.error('Lỗi khi lưu cài đặt hình nền:', err);
+        alert('Không thể lưu cài đặt hình nền. Vui lòng thử lại!');
+    } finally {
+        if (saveBtn) {
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = originalBtnText;
+        }
+    }
+}
+
+function resetBackgroundsToDefault() {
+    userBgState = { web_bg: '', chat_bg: '', lyric_bg: '' };
+    applyUserBackgrounds(userBgState);
 }

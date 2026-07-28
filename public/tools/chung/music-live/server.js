@@ -107,6 +107,49 @@ async function deleteMessageFromSupabase(msgId) {
     }
 }
 
+async function getUserBackgroundsFromSupabase(username) {
+    if (!supabase || !username) return null;
+    try {
+        const cleanName = String(username).replace(' 😎', '').trim();
+        const { data, error } = await supabase
+            .from('user_backgrounds')
+            .select('*')
+            .eq('username', cleanName)
+            .maybeSingle();
+        if (error) {
+            console.error('❌ Supabase Get Backgrounds Error:', error.message);
+            return null;
+        }
+        return data;
+    } catch (err) {
+        console.error('❌ Supabase Get Backgrounds Exception:', err.message);
+        return null;
+    }
+}
+
+async function saveUserBackgroundsToSupabase(bgObj) {
+    if (!supabase || !bgObj.username) return;
+    try {
+        const cleanName = String(bgObj.username).replace(' 😎', '').trim();
+        const { error } = await supabase
+            .from('user_backgrounds')
+            .upsert([{
+                username: cleanName,
+                web_bg: bgObj.web_bg || null,
+                chat_bg: bgObj.chat_bg || null,
+                lyric_bg: bgObj.lyric_bg || null,
+                updated_at: new Date().toISOString()
+            }], { onConflict: 'username' });
+        if (error) {
+            console.error('❌ Supabase Save Backgrounds Error:', error.message);
+        } else {
+            console.log('✅ Đã lưu ảnh nền Supabase cho user:', cleanName);
+        }
+    } catch (err) {
+        console.error('❌ Supabase Save Backgrounds Exception:', err.message);
+    }
+}
+
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
@@ -513,6 +556,27 @@ io.on('connection', (socket) => {
             io.emit('activeUsersList', getDrawUserList());
         }
         if (drawGame.active) io.emit('drawUsersUpdate', getDrawUserList());
+    });
+
+    socket.on('getUserBackgrounds', async (data, callback) => {
+        const username = socket.username || data?.username;
+        if (!username) return;
+        const bgData = await getUserBackgroundsFromSupabase(username);
+        if (typeof callback === 'function') callback(bgData);
+        else socket.emit('userBackgroundsResult', bgData);
+    });
+
+    socket.on('saveUserBackgrounds', async (data, callback) => {
+        const username = socket.username || data?.username;
+        if (!username) return;
+        const bgObj = {
+            username: username,
+            web_bg: data.web_bg,
+            chat_bg: data.chat_bg,
+            lyric_bg: data.lyric_bg
+        };
+        await saveUserBackgroundsToSupabase(bgObj);
+        if (typeof callback === 'function') callback({ success: true });
     });
 
 
