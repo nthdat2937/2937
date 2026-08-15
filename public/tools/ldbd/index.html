@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="title" content="Happy Birthday Website 2.0 | Aoudumber Bade">
+    <meta name="github" content="https://github.com/Aoudumber-Bade">
+    <title>LĐ Birthday</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+        integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@500;700&family=Poppins:wght@400;600&display=swap"
+        rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+        integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <style>
+        .viewer-content {
+            position: relative;
+        }
+
+        .viewer-nav-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0, 0, 0, 0.45);
+            color: #fff;
+            border: none;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 5;
+            transition: background 0.2s ease;
+        }
+
+        .viewer-nav-btn:hover {
+            background: rgba(0, 0, 0, 0.7);
+        }
+
+        .viewer-prev {
+            left: -10px;
+        }
+
+        .viewer-next {
+            right: -10px;
+        }
+
+        /* Trên điện thoại: ẩn nút, chỉ cho vuốt */
+        @media (max-width: 768px), (hover: none) and (pointer: coarse) {
+            .viewer-nav-btn {
+                display: none;
+            }
+        }
+
+        #viewerImg {
+            touch-action: pan-y;
+            user-select: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="giftCover">
+        <div class="gift-box" id="giftBox">
+            <svg id="giftBoxImg" width="220" height="220" viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg">
+                <!-- thân hộp -->
+                <rect x="35" y="95" width="150" height="105" rx="6" fill="#FF7882" stroke="#333" stroke-width="6"/>
+                <!-- nắp hộp -->
+                <rect x="22" y="65" width="176" height="42" rx="8" fill="#ffffff" stroke="#333" stroke-width="6"/>
+                <!-- dải ruy băng dọc -->
+                <rect x="97" y="65" width="26" height="135" fill="#ffffff" stroke="#333" stroke-width="6"/>
+                <!-- nơ trái -->
+                <path d="M110 60 C70 60 55 20 85 15 C110 12 110 45 110 60 Z" fill="#FF7882" stroke="#333" stroke-width="6" stroke-linejoin="round"/>
+                <!-- nơ phải -->
+                <path d="M110 60 C150 60 165 20 135 15 C110 12 110 45 110 60 Z" fill="#FF7882" stroke="#333" stroke-width="6" stroke-linejoin="round"/>
+                <!-- nút thắt giữa nơ -->
+                <circle cx="110" cy="58" r="11" fill="#ffffff" stroke="#333" stroke-width="6"/>
+            </svg>
+            <p class="gift-hint">Bấm vào hộp quà để mở nè 🎁</p>
+        </div>
+    </div>
+    <div id="wrapper">
+        <div class="flag__birthday">
+            <img src="./images/1.png" alt="" width="350" class="flag__left">
+            <img src="./images/1.png" alt="" width="350" class="flag__right">
+        </div>
+        <div class="content">
+            <div class="left">
+                <div class="title">
+                    <h1 class="happy">
+                        <span style="--t: 4s;">H</span>
+                        <span style="--t: 4.2s;">a</span>
+                        <span style="--t: 4.4s;">p</span>
+                        <span style="--t: 4.6s;">p</span>
+                        <span style="--t: 4.8s;">y</span>
+                    </h1>
+                    <h1 class="birthday">
+                        <span style="--t: 5s;">B</span>
+                        <span style="--t: 5.2s;">i</span>
+                        <span style="--t: 5.4s;">r</span>
+                        <span style="--t: 5.6s;">t</span>
+                        <span style="--t: 5.8s;">h</span>
+                        <span style="--t: 6s;">d</span>
+                        <span style="--t: 6.2s;">a</span>
+                        <span style="--t: 6.4s;">y</span>
+                    </h1>
+                    <div class="hat">
+                        <img src="./images/hat.png" alt="" width="130">
+                    </div>
+                </div>
+                <div class="date__of__birth">
+                    <span></span>
+                </div>
+                <div class="btn">
+    <button id="btn__letter">
+        <div class="mail">
+            Nhấn vô đây đi
+            <i class="fa-regular fa-envelope"></i>
+        </div>
+    </button>
+    
+    <button id="btn__gallery">
+        <div class="mail">
+            Kho ảnh nè
+            <i class="fa-regular fa-folder-open"></i>
+        </div>
+    </button>
+
+    <button id="btn__secret" onclick="window.open('https://2937.vercel.app/tools/happy_birthday/birthday.html')">
+        <div class="mail">
+            Cái này ở cuối
+            <i class="fa-regular fa-folder-open"></i>
+        </div>
+    </button>
+</div>
+                
+            </div>
+            <div class="right">
+                <div class="box__account">
+                    <div class="image">
+                        <img src="./images/unnamed.png" alt="">
+                    </div>
+                    <div class="name">
+                        <i class="fa-solid fa-heart"></i>
+                        <span>Linh Đan</span>
+                        <i class="fa-solid fa-heart"></i>
+                    </div>
+                    <div class="balloon_one">
+                        <img width="100px" src="./images/balloon1.png" alt="">
+                    </div>
+                    <div class="balloon_two">
+                        <img width="100px" src="./images/balloon2.png" alt="">
+                    </div>
+                </div>
+                <div class="cricle">
+                    <div class="text__cricle">
+                        <span style="--i: 1;">h</span>
+                        <span style="--i: 2;">a</span>
+                        <span style="--i: 3;">p</span>
+                        <span style="--i: 4;">p</span>
+                        <span style="--i: 5;">y</span>
+                        <span style="--i: 6;">-</span>
+                        <span style="--i: 7;">b</span>
+                        <span style="--i: 8;">i</span>
+                        <span style="--i: 9;">r</span>
+                        <span style="--i: 10;">t</span>
+                        <span style="--i: 11;">h</span>
+                        <span style="--i: 12;">d</span>
+                        <span style="--i: 13;">a</span>
+                        <span style="--i: 14;">y</span>
+                        <span style="--i: 15;">-</span>
+                    </div>
+                    <i class="fa-solid fa-heart"></i>
+                </div>
+            </div>
+        </div>
+        <div class="decorate_star star1" style="--t: 15s;"></div>
+        <div class="decorate_star star2" style="--t: 15.2s;"></div>
+        <div class="decorate_star star3" style="--t: 15.4s;"></div>
+        <div class="decorate_star star4" style="--t: 15.6s;"></div>
+        <div class="decorate_star star5" style="--t: 15.8s;"></div>
+        <div class="decorate_flower--one" style="--t: 15s;">
+            <img width="20" src="./images/decorate_flower.png" alt="">
+        </div>
+        <div class="decorate_flower--two" style="--t: 15.3s;">
+            <img width="20" src="./images/decorate_flower.png" alt="">
+        </div>
+        <div class="decorate_flower--three" style="--t: 15.6s;">
+            <img width="20" src="./images/decorate_flower.png" alt="">
+        </div>
+        <div class="decorate_bottom">
+            <img src="./images/decorate.png" alt="" width="100">
+        </div>
+        <div class="smiley__icon">
+            <img src="./images/smiley_icon.png" alt="" width="100">
+        </div>
+
+
+        <div class="boxMail">
+            <i class="fa-solid fa-xmark"></i>
+            <div class="boxMail-container">
+                <div class="card1">
+                    <div class="userImg">
+                        <img src="images/unnamed.png" alt="">
+                    </div>
+                    <h4 class="username">To: Linh Đan 💖<span class="underline"></span></h4>
+
+                    <h3>Happy Birthday</h3>
+                    <div class="imageCute">
+                        <img src="cute1.png" alt="">
+                    </div>
+                </div>
+                <div class="card2">
+                    <div class="card2-content">
+                        <h3>To You!</h3>
+                        <h2>Happy Birthday, Linh Dan! 🎂✨ Even though we're just online friends, I feel so lucky to have met you. Thank you for all the fun chats! Wishing you a new year of life filled with joy, radiance, and happiness. Most importantly, good luck with your exam prep so you can crush the high school graduation exam next year with top scores and get into your dream university! I hope our friendship stays strong and we get to meet in real life soon. Happy Birthday, Linh Dan! 🎉
+
+— From Thanh Dat —
+</h2>
+<button class="vietnamese" onclick="alert('Chúc mừng sinh nhật Linh Đan! 🎂✨ Tuy tụi mình chỉ là bạn qua mạng, nhưng tớ luôn thấy rất may mắn vì đã quen biết cậu. Cảm ơn Linh Đan vì những lần trò chuyện vui vẻ nha! Chúc cậu tuổi mới luôn xinh đẹp, rạng rỡ và ngập tràn hạnh phúc. Đặc biệt là chúc cậu ôn thi thật tốt để năm sau vượt qua kỳ thi TN THPT với điểm số thật cao, đỗ nguyện vọng 1 nha! Hy vọng tình bạn của tụi mình mãi bền chặt và sớm có dịp gặp nhau ngoài đời nè! Happy Birthday Linh Đan 🎉')">Tiếng Việt</button>
+
+                        <div class="imageCute2">
+                            <img src="cute2.png" alt="">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    
+<div id="explorerModal" class="explorer-modal">
+    <div class="explorer-window">
+        
+        <div class="explorer-header">
+            <div class="explorer-title">
+                <i class="fa-regular fa-folder"></i> File Explorer - Gallery
+            </div>
+            <div class="explorer-controls">
+                <i class="fa-solid fa-xmark" id="closeExplorer"></i>
+            </div>
+        </div>
+        <div class="explorer-toolbar">
+            <span class="path"><i class="fa-solid fa-desktop"></i> This PC > Pictures > Kỷ niệm 💖</span>
+        </div>
+        <div class="explorer-body">
+            <div class="file-item" data-src="./images/unnamed.png" data-desc="Ảnh đại diện vô tình kiếm được">
+                <img src="images/unnamed.png" class="thumb-img">
+                <span class="file-name" style="font-weight: 900; padding-top: 5px;">avatar.png</span>
+            </div>
+            <div class="file-item" data-src="./images/image_bucket/class.jpeg" data-desc="Ảnh được chụp trong lớp">
+                <img src="images/image_bucket/class.jpeg" class="thumb-img">
+                <span class="file-name" style="font-weight: 900; padding-top: 5px;">class.png</span>
+            </div>
+            <div class="file-item" data-src="./images/image_bucket/firstcall.jpg" data-desc="Kỉ niệm lần đầu tiên call, chắc thế!">
+                <img src="images/image_bucket/firstcall.jpg" class="thumb-img">
+                <span class="file-name" style="font-weight: 900; padding-top: 5px;">firstcall.jpg</span>
+            </div>
+            <div class="file-item" data-src="./images/image_bucket/khoc1.jpeg" data-desc="Chả biết nói gì nữa">
+                <img src="images/image_bucket/khoc1.jpeg" class="thumb-img">
+                <span class="file-name" style="font-weight: 900; padding-top: 5px;">khoc1.jpeg</span>
+            </div>
+            <div class="file-item" data-src="./images/image_bucket/khoc2.jpg" data-desc="Chả biết nói gì nữa">
+                <img src="images/image_bucket/khoc2.jpg" class="thumb-img">
+                <span class="file-name" style="font-weight: 900; padding-top: 5px;">khoc2.jpg</span>
+            </div>
+            <div class="file-item" data-src="./images/image_bucket/khoc3.jpg" data-desc="Chả biết nói gì nữa">
+                <img src="images/image_bucket/khoc3.jpg" class="thumb-img">
+                <span class="file-name" style="font-weight: 900; padding-top: 5px;">khoc3.jpg</span>
+            </div>
+            <div class="file-item" data-src="./images/image_bucket/old.jpg" data-desc="Hmmm..">
+                <img src="images/image_bucket/old.jpg" class="thumb-img">
+                <span class="file-name" style="font-weight: 900; padding-top: 5px;">old.jpg</span>
+            </div>
+            <div class="file-item" data-src="./images/image_bucket/old2.jpg" data-desc="Cái ảnh này đâu ra ấy nhỉ?">
+                <img src="images/image_bucket/old2.jpg" class="thumb-img">
+                <span class="file-name" style="font-weight: 900; padding-top: 5px;">old2.jpg</span>
+            </div>
+            <div class="file-item" data-src="./images/image_bucket/tiktok1.jpg" data-desc="Ảnh lụm trên tiktok">
+                <img src="images/image_bucket/tiktok1.jpg" class="thumb-img">
+                <span class="file-name" style="font-weight: 900; padding-top: 5px;">tiktok1.jpg</span>
+            </div>
+            <div class="file-item" data-src="./images/image_bucket/tiktok2.jpg" data-desc="Ảnh lụm trên tiktok">
+                <img src="images/image_bucket/tiktok2.jpg" class="thumb-img">
+                <span class="file-name" style="font-weight: 900; padding-top: 5px;">tiktok2.jpg</span>
+            </div>
+            <div class="file-item" data-src="./images/image_bucket/tiktok3.jpg" data-desc="Ảnh lụm trên tiktok">
+                <img src="images/image_bucket/tiktok3.jpg" class="thumb-img">
+                <span class="file-name" style="font-weight: 900; padding-top: 5px;">tiktok3.jpg</span>
+            </div>
+            <div class="file-item" data-src="./images/image_bucket/secret.png" data-desc="Vui lòng không hỏi thêm về ảnh này!">
+                <img src="images/image_bucket/secret.png" class="thumb-img">
+                <span class="file-name" style="font-weight: 900; padding-top: 5px;">secret.png</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="imageViewerModal" class="viewer-modal">
+    <div class="viewer-content">
+        <i class="fa-solid fa-xmark viewer-close" id="closeViewer"></i>
+        <button class="viewer-nav-btn viewer-prev" id="viewerPrev"><i class="fa-solid fa-chevron-left"></i></button>
+        <img id="viewerImg" src="" alt="Photo">
+        <button class="viewer-nav-btn viewer-next" id="viewerNext"><i class="fa-solid fa-chevron-right"></i></button>
+        <p id="viewerDesc" class="viewer-desc"></p>
+    </div>
+</div>
+</body>
+<script>
+    function startEntrance() {
+        let datetxt = "16 tháng 8";
+        let charArrDate = datetxt.split('');
+        let currentIndex = 0;
+        let date__of__birth = document.querySelector(".date__of__birth span");
+        setTimeout(function () {
+            timeDatetxt = setInterval(function () {
+                if (currentIndex < charArrDate.length) {
+                    date__of__birth.textContent += charArrDate[currentIndex];
+                    currentIndex++;
+                }
+                else {
+                    let i = document.createElement("i");
+                    i.className = "fa-solid fa-star"
+                    document.querySelector(".date__of__birth").prepend(i)
+                    document.querySelector(".date__of__birth").appendChild(i.cloneNode(true))
+                    clearInterval(timeDatetxt)
+                }
+            }, 100)
+        }, 12000);
+    }
+
+    (function () {
+        const giftCover = document.getElementById('giftCover');
+        const giftBox = document.getElementById('giftBox');
+        const wrapper = document.getElementById('wrapper');
+
+        if (giftBox && giftCover && wrapper) {
+            giftBox.addEventListener('click', function () {
+                if (giftBox.classList.contains('opening')) return;
+                giftBox.classList.add('opening');
+
+                setTimeout(function () {
+                    giftCover.classList.add('hide');
+                    // Đặt lại display để toàn bộ animation CSS bên trong #wrapper chạy lại từ đầu
+                    wrapper.style.display = 'block';
+                    startEntrance();
+
+                    setTimeout(function () {
+                        giftCover.remove();
+                    }, 700);
+                }, 550);
+            });
+        }
+    })();
+
+    (function () {
+        const letterEl = document.querySelector(".card2 .card2-content h2");
+        const titleEl = document.querySelector(".card2 .card2-content h3");
+        if (!letterEl) return;
+
+        const fullText = letterEl.textContent.trim();
+        let isTyped = false; 
+
+        letterEl.textContent = '';
+
+        function typeLetter(text, speed = 30) {
+            let i = 0;
+            letterEl.textContent = '';
+            const t = setInterval(() => {
+                letterEl.textContent += text.charAt(i);
+                i++;
+                if (i >= text.length) {
+                    clearInterval(t);
+                    isTyped = true; 
+                }
+            }, speed);
+        }
+
+        const mailBoxBtn = document.querySelector('#btn__letter');
+        const boxmail = document.querySelector('.boxMail');
+        const boxmailContainer = document.querySelector('.boxMail .boxMail-container');
+        const closeBtn = document.querySelector('.fa-xmark');
+
+        
+        if (mailBoxBtn && boxmail) {
+            mailBoxBtn.addEventListener('click', function () {
+                boxmail.classList.add('active');
+                if (boxmailContainer) boxmailContainer.classList.remove('open');
+                
+                
+                if(titleEl) {
+                    titleEl.style.opacity = '1';
+                    titleEl.style.visibility = 'visible';
+                }
+                
+                
+                letterEl.style.opacity = '1';
+                if (!isTyped) {
+                    typeLetter(fullText, 35); 
+                } else {
+                    letterEl.textContent = fullText; 
+                }
+            });
+        }
+
+        
+        if (boxmailContainer) {
+            boxmailContainer.addEventListener('click', function (e) {
+                e.stopPropagation();
+                boxmailContainer.classList.toggle('open');
+            });
+        }
+
+        
+        if (closeBtn && boxmail) {
+            closeBtn.addEventListener('click', function () {
+                boxmail.classList.remove('active');
+                if (boxmailContainer) boxmailContainer.classList.remove('open');
+            });
+        }
+    })();
+
+    
+(function () {
+    const btnGallery = document.getElementById('btn__gallery');
+    const explorerModal = document.getElementById('explorerModal');
+    const closeExplorer = document.getElementById('closeExplorer');
+
+    const imageViewerModal = document.getElementById('imageViewerModal');
+    const closeViewer = document.getElementById('closeViewer');
+    const viewerImg = document.getElementById('viewerImg');
+    const viewerDesc = document.getElementById('viewerDesc');
+    const viewerPrev = document.getElementById('viewerPrev');
+    const viewerNext = document.getElementById('viewerNext');
+
+    
+    if (btnGallery && explorerModal) {
+        btnGallery.addEventListener('click', () => {
+            explorerModal.classList.add('active');
+        });
+    }
+
+    
+    if (closeExplorer && explorerModal) {
+        closeExplorer.addEventListener('click', () => {
+            explorerModal.classList.remove('active');
+        });
+    }
+
+    
+    const fileItems = Array.from(document.querySelectorAll('.file-item'));
+    const photos = fileItems.map(item => ({
+        src: item.getAttribute('data-src'),
+        desc: item.getAttribute('data-desc')
+    }));
+    let currentPhotoIndex = 0;
+
+    const SLIDE_MS = 220;
+    let isSliding = false;
+
+    function renderPhoto(index, direction) {
+        if (!photos.length) return;
+
+        currentPhotoIndex = (index + photos.length) % photos.length;
+        const photo = photos[currentPhotoIndex];
+
+        // Không có hướng (mở lần đầu / chọn từ danh sách) -> hiện luôn, không hiệu ứng
+        if (!direction) {
+            viewerImg.style.transition = 'none';
+            viewerImg.style.transform = 'translateX(0)';
+            viewerImg.style.opacity = '1';
+            viewerImg.src = photo.src;
+            viewerDesc.textContent = photo.desc;
+            return;
+        }
+
+        if (isSliding) return;
+        isSliding = true;
+
+        const outX = direction === 'next' ? '-18%' : '18%';
+        const inX = direction === 'next' ? '18%' : '-18%';
+
+        // 1) Trượt ảnh hiện tại ra ngoài
+        viewerImg.style.transition = `transform ${SLIDE_MS}ms ease, opacity ${SLIDE_MS}ms ease`;
+        viewerImg.style.transform = `translateX(${outX})`;
+        viewerImg.style.opacity = '0';
+
+        setTimeout(() => {
+            // 2) Đổi ảnh mới, đặt nó ở phía đối diện (không có transition)
+            viewerImg.src = photo.src;
+            viewerDesc.textContent = photo.desc;
+            viewerImg.style.transition = 'none';
+            viewerImg.style.transform = `translateX(${inX})`;
+
+            // ép trình duyệt tính lại layout để transition sau đó chạy đúng
+            void viewerImg.offsetWidth;
+
+            // 3) Trượt ảnh mới vào giữa
+            viewerImg.style.transition = `transform ${SLIDE_MS}ms ease, opacity ${SLIDE_MS}ms ease`;
+            viewerImg.style.transform = 'translateX(0)';
+            viewerImg.style.opacity = '1';
+
+            setTimeout(() => {
+                isSliding = false;
+            }, SLIDE_MS);
+        }, SLIDE_MS);
+    }
+
+    function showNextPhoto() {
+        renderPhoto(currentPhotoIndex + 1, 'next');
+    }
+
+    function showPrevPhoto() {
+        renderPhoto(currentPhotoIndex - 1, 'prev');
+    }
+
+    
+    fileItems.forEach((item, index) => {
+        item.addEventListener('click', function () {
+            renderPhoto(index);
+            imageViewerModal.classList.add('active');
+        });
+    });
+
+    
+    if (viewerNext) {
+        viewerNext.addEventListener('click', function (e) {
+            e.stopPropagation();
+            showNextPhoto();
+        });
+    }
+    if (viewerPrev) {
+        viewerPrev.addEventListener('click', function (e) {
+            e.stopPropagation();
+            showPrevPhoto();
+        });
+    }
+
+    
+    let touchStartX = 0;
+    let touchStartY = 0;
+
+    viewerImg.addEventListener('touchstart', function (e) {
+        touchStartX = e.changedTouches[0].clientX;
+        touchStartY = e.changedTouches[0].clientY;
+    }, { passive: true });
+
+    viewerImg.addEventListener('touchend', function (e) {
+        const touchEndX = e.changedTouches[0].clientX;
+        const touchEndY = e.changedTouches[0].clientY;
+        const diffX = touchEndX - touchStartX;
+        const diffY = touchEndY - touchStartY;
+
+        
+        if (Math.abs(diffX) > 50 && Math.abs(diffX) > Math.abs(diffY)) {
+            if (diffX < 0) {
+                showNextPhoto(); 
+            } else {
+                showPrevPhoto(); 
+            }
+        }
+    }, { passive: true });
+
+    
+    document.addEventListener('keydown', function (e) {
+        if (!imageViewerModal.classList.contains('active')) return;
+        if (e.key === 'ArrowRight') showNextPhoto();
+        if (e.key === 'ArrowLeft') showPrevPhoto();
+    });
+
+    
+    if (closeViewer && imageViewerModal) {
+        closeViewer.addEventListener('click', () => {
+            imageViewerModal.classList.remove('active');
+        });
+    }
+})();
+</script>
+
+</html>
