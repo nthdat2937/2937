@@ -5,6 +5,7 @@ const https = require('https');
 const ytSearch = require('yt-search');
 const { createClient } = require('@supabase/supabase-js');
 const path = require('path');
+const fs = require('fs');
 
 const SUPABASE_URL = 'https://wnioetdrphkdylkoybsu.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_p0VSduH3epzQVUdvAf2kPQ_aoWk_l1T';
@@ -352,6 +353,202 @@ function getPublicUnoState() {
     };
 }
 
+// --- PICTURE QUIZ (GAME ĐOÁN TỪ THEO HÌNH) STORAGE & HELPERS ---
+const DATA_DIR = path.join(__dirname, 'data');
+const QUIZ_FILE = path.join(DATA_DIR, 'picture_quiz_packs.json');
+
+const DEFAULT_QUIZ_PACKS = [
+    {
+        id: 'co-cac-nuoc',
+        name: 'Bộ câu hỏi Cờ Các Nước 🚩',
+        description: 'Đoán tên quốc gia dựa trên hình ảnh lá cờ.',
+        items: [
+            { id: 'flag-1', name: 'Cờ Việt Nam', imageUrl: 'https://flagcdn.com/w640/vn.png' },
+            { id: 'flag-2', name: 'Cờ Nhật Bản', imageUrl: 'https://flagcdn.com/w640/jp.png' },
+            { id: 'flag-3', name: 'Cờ Hàn Quốc', imageUrl: 'https://flagcdn.com/w640/kr.png' },
+            { id: 'flag-4', name: 'Cờ Mỹ', imageUrl: 'https://flagcdn.com/w640/us.png' },
+            { id: 'flag-5', name: 'Cờ Pháp', imageUrl: 'https://flagcdn.com/w640/fr.png' }
+        ]
+    },
+    {
+        id: 'dong-vat',
+        name: 'Bộ câu hỏi Động Vật 🦁',
+        description: 'Đoán tên các loài động vật qua hình ảnh.',
+        items: [
+            { id: 'animal-1', name: 'Con Mèo', imageUrl: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=600&q=80' },
+            { id: 'animal-2', name: 'Con Chó', imageUrl: 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=600&q=80' },
+            { id: 'animal-3', name: 'Sư Tử', imageUrl: 'https://images.unsplash.com/photo-1546182990-dffeafbe841d?w=600&q=80' },
+            { id: 'animal-4', name: 'Chim Cánh Cụt', imageUrl: 'https://images.unsplash.com/photo-1598439210625-5067c578f3f6?w=600&q=80' }
+        ]
+    }
+];
+
+function isQuizPackComplete(pack) {
+    if (!pack || !Array.isArray(pack.items)) return false;
+    const validItems = pack.items.filter(item => item && item.name && item.name.trim() !== '' && item.imageUrl && item.imageUrl.trim() !== '');
+    return validItems.length >= 4;
+}
+
+// --- Supabase-backed Quiz Pack Persistence ---
+let cachedQuizPacks = null;
+
+async function loadQuizPacksFromSupabase() {
+    if (!supabase) return null;
+    try {
+        const { data, error } = await supabase
+            .from('picture_quiz_packs')
+            .select('*')
+            .order('created_at', { ascending: true });
+        if (error) {
+            console.error('❌ Supabase Load Quiz Packs Error:', error.message);
+            return null;
+        }
+        if (!data || data.length === 0) return null;
+        return data.map(row => ({
+            id: row.id,
+            name: row.name || '',
+            description: row.description || '',
+            items: (typeof row.items === 'string' ? JSON.parse(row.items) : row.items) || []
+        }));
+    } catch (err) {
+        console.error('❌ Supabase Load Quiz Packs Exception:', err.message);
+        return null;
+    }
+}
+
+async function saveQuizPacksToSupabase(packs) {
+    if (!supabase) return;
+    try {
+        // Delete all existing packs then re-insert
+        await supabase.from('picture_quiz_packs').delete().neq('id', '___never___');
+        if (packs.length > 0) {
+            const rows = packs.map(p => ({
+                id: p.id,
+                name: (p.name || '').trim(),
+                description: (p.description || '').trim(),
+                items: JSON.stringify(p.items || []),
+                updated_at: new Date().toISOString()
+            }));
+            const { error } = await supabase.from('picture_quiz_packs').upsert(rows, { onConflict: 'id' });
+            if (error) {
+                console.error('❌ Supabase Save Quiz Packs Error:', error.message);
+            } else {
+                console.log('✅ Đã lưu', packs.length, 'bộ câu hỏi lên Supabase.');
+            }
+        }
+    } catch (err) {
+        console.error('❌ Supabase Save Quiz Packs Exception:', err.message);
+    }
+}
+
+function loadQuizPacksFromFile() {
+    try {
+        if (!fs.existsSync(DATA_DIR)) {
+            fs.mkdirSync(DATA_DIR, { recursive: true });
+        }
+        if (!fs.existsSync(QUIZ_FILE)) {
+            fs.writeFileSync(QUIZ_FILE, JSON.stringify(DEFAULT_QUIZ_PACKS, null, 2), 'utf8');
+            return DEFAULT_QUIZ_PACKS;
+        }
+        const raw = fs.readFileSync(QUIZ_FILE, 'utf8');
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) return parsed;
+    } catch (err) {
+        console.error('Lỗi khi đọc picture_quiz_packs.json:', err.message);
+    }
+    return DEFAULT_QUIZ_PACKS;
+}
+
+function saveQuizPacksToFile(packs) {
+    try {
+        if (!fs.existsSync(DATA_DIR)) {
+            fs.mkdirSync(DATA_DIR, { recursive: true });
+        }
+        fs.writeFileSync(QUIZ_FILE, JSON.stringify(packs, null, 2), 'utf8');
+    } catch (err) {
+        console.error('Lỗi khi ghi picture_quiz_packs.json:', err.message);
+    }
+}
+
+function loadQuizPacks() {
+    if (cachedQuizPacks) {
+        return cachedQuizPacks.map(p => ({ ...p, isComplete: isQuizPackComplete(p) }));
+    }
+    const filePacks = loadQuizPacksFromFile();
+    cachedQuizPacks = filePacks;
+    return filePacks.map(p => ({ ...p, isComplete: isQuizPackComplete(p) }));
+}
+
+function saveQuizPacks(packs) {
+    const cleanedPacks = packs.map(p => {
+        const items = (p.items || []).map(it => ({
+            id: it.id || 'item-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6),
+            name: (it.name || '').trim(),
+            imageUrl: (it.imageUrl || '').trim()
+        }));
+        return {
+            id: p.id || 'pack-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6),
+            name: (p.name || 'Bộ câu hỏi mới').trim(),
+            description: (p.description || '').trim(),
+            items: items
+        };
+    });
+    cachedQuizPacks = cleanedPacks;
+    saveQuizPacksToFile(cleanedPacks);
+    saveQuizPacksToSupabase(cleanedPacks);
+    return cleanedPacks.map(p => ({ ...p, isComplete: isQuizPackComplete(p) }));
+}
+
+// On startup: try Supabase first, fallback to local file
+(async function initQuizPacks() {
+    const supabasePacks = await loadQuizPacksFromSupabase();
+    if (supabasePacks && supabasePacks.length > 0) {
+        cachedQuizPacks = supabasePacks;
+        saveQuizPacksToFile(supabasePacks);
+        console.log('✅ Đã tải', supabasePacks.length, 'bộ câu hỏi từ Supabase.');
+    } else {
+        const filePacks = loadQuizPacksFromFile();
+        cachedQuizPacks = filePacks;
+        // Sync defaults to Supabase if empty
+        saveQuizPacksToSupabase(filePacks);
+        console.log('📂 Đã tải', filePacks.length, 'bộ câu hỏi từ file local (đồng bộ lên Supabase).');
+    }
+})();
+
+function generateQuestionsForPack(pack, allPacks) {
+    if (!pack || !Array.isArray(pack.items)) return [];
+    const validItems = pack.items.filter(it => it.name && it.name.trim() && it.imageUrl && it.imageUrl.trim());
+    if (validItems.length < 4) return [];
+
+    const allItemNames = [];
+    (allPacks || []).forEach(p => {
+        (p.items || []).forEach(it => {
+            if (it.name && it.name.trim()) allItemNames.push(it.name.trim());
+        });
+    });
+
+    return validItems.map(targetItem => {
+        const correct = targetItem.name.trim();
+        let pool = validItems.map(it => it.name.trim()).filter(n => n !== correct);
+        if (pool.length < 3) {
+            const extra = allItemNames.filter(n => n !== correct && !pool.includes(n));
+            pool = pool.concat(extra);
+        }
+        pool = pool.sort(() => Math.random() - 0.5);
+        const distractors = pool.slice(0, 3);
+        const options = [correct, ...distractors].sort(() => Math.random() - 0.5);
+        const correctOptionIndex = options.indexOf(correct);
+
+        return {
+            id: targetItem.id,
+            imageUrl: targetItem.imageUrl,
+            correctAnswer: correct,
+            correctOptionIndex: correctOptionIndex,
+            options: options
+        };
+    });
+}
+
 function checkCaroWinner(row, col, player) {
     const board = caroGame.board;
     const dirs = [[0, 1], [1, 0], [1, 1], [1, -1]];
@@ -545,7 +742,17 @@ io.on('connection', (socket) => {
                 socket.role = 'admin';
                 socket.nameColor = nameColor || '#fbbc04';
                 connectedUsers.set(socket.id, { name: socket.username, role: 'admin', nameColor: socket.nameColor });
-                socket.emit('authResult', { success: true, role: 'admin', currentVideoId, currentVideoTitle, playlist, pinnedMessage, loopMode, drawGame: drawGame.active ? { active: true, state: drawGame.state, scores: drawGame.scores } : null, caroGame, chessGame, xiangqiGame, unoPublicState: getPublicUnoState(), chatHistory });
+                if (quizRoomState.active) {
+                    const uKey = getQuizUserKey(socket);
+                    quizRoomState.players[uKey] = {
+                        id: socket.id,
+                        name: socket.username,
+                        color: socket.nameColor || '#ff75a0',
+                        score: (quizRoomState.players[uKey] ? quizRoomState.players[uKey].score : 0),
+                        correctCount: (quizRoomState.players[uKey] ? quizRoomState.players[uKey].correctCount : 0)
+                    };
+                }
+                socket.emit('authResult', { success: true, role: 'admin', currentVideoId, currentVideoTitle, playlist, pinnedMessage, loopMode, drawGame: drawGame.active ? { active: true, state: drawGame.state, scores: drawGame.scores } : null, caroGame, chessGame, xiangqiGame, unoPublicState: getPublicUnoState(), quizPublicState: quizRoomState.active ? getPublicQuizState() : null, chatHistory });
                 io.emit('newMessage', { id: 'sys-' + Date.now(), name: 'Hệ thống 🤖', text: `👑 Admin [${socket.username}] đã lên sàn điều khiển nhạc!`, role: 'system' });
                 io.emit('activeUsersList', getDrawUserList());
             } else {
@@ -568,7 +775,17 @@ io.on('connection', (socket) => {
             socket.role = 'member';
             socket.nameColor = nameColor || '#aaaaaa';
             connectedUsers.set(socket.id, { name: socket.username, role: 'member', nameColor: socket.nameColor });
-            socket.emit('authResult', { success: true, role: 'member', currentVideoId, currentVideoTitle, playlist, pinnedMessage, loopMode, drawGame: drawGame.active ? { active: true, state: drawGame.state, scores: drawGame.scores } : null, caroGame, chessGame, xiangqiGame, unoPublicState: getPublicUnoState(), chatHistory });
+            if (quizRoomState.active) {
+                const uKey = getQuizUserKey(socket);
+                quizRoomState.players[uKey] = {
+                    id: socket.id,
+                    name: socket.username,
+                    color: socket.nameColor || '#ff75a0',
+                    score: (quizRoomState.players[uKey] ? quizRoomState.players[uKey].score : 0),
+                    correctCount: (quizRoomState.players[uKey] ? quizRoomState.players[uKey].correctCount : 0)
+                };
+            }
+            socket.emit('authResult', { success: true, role: 'member', currentVideoId, currentVideoTitle, playlist, pinnedMessage, loopMode, drawGame: drawGame.active ? { active: true, state: drawGame.state, scores: drawGame.scores } : null, caroGame, chessGame, xiangqiGame, unoPublicState: getPublicUnoState(), quizPublicState: quizRoomState.active ? getPublicQuizState() : null, chatHistory });
             io.emit('newMessage', { id: 'sys-' + Date.now(), name: 'Hệ thống 🤖', text: `👋 Chào mừng [${socket.username}] đã tham gia phòng nhạc!`, role: 'system' });
             io.emit('activeUsersList', getDrawUserList());
         }
@@ -1450,6 +1667,292 @@ io.on('connection', (socket) => {
         if (unoGame.players[unoGame.turnIndex].id !== socket.id) return;
         nextUnoTurn();
         io.emit('unoUpdate', getPublicUnoState());
+    });
+
+// --- MULTIPLAYER QUIZ ROOM SERVER ENGINE ---
+let quizRoomState = {
+    active: false,
+    hostName: '',
+    packId: null,
+    packName: '',
+    questions: [],
+    currentIndex: 0,
+    state: 'lobby', // 'lobby' | 'question' | 'reveal' | 'finished'
+    timerSeconds: 15,
+    timeLeft: 15,
+    questionStartTime: 0,
+    answers: {}, // { [userKey]: { optionIndex, isCorrect, scoreAdded, timeTaken } }
+    optionCounts: [0, 0, 0, 0],
+    players: {} // { [userKey]: { id, name, color, score, correctCount } }
+};
+let quizRoomTimer = null;
+
+function getQuizUserKey(socket) {
+    if (socket && socket.username && socket.username.trim()) {
+        return socket.username.replace(/😎/g, '').trim().toLowerCase();
+    }
+    return socket ? socket.id : 'unknown';
+}
+
+function getPublicQuizState() {
+    const currentQ = quizRoomState.questions[quizRoomState.currentIndex];
+    const leaderboard = Object.values(quizRoomState.players)
+        .sort((a, b) => b.score - a.score);
+    return {
+        active: quizRoomState.active,
+        hostName: quizRoomState.hostName,
+        packId: quizRoomState.packId,
+        packName: quizRoomState.packName,
+        totalQuestions: quizRoomState.questions.length,
+        currentIndex: quizRoomState.currentIndex,
+        state: quizRoomState.state,
+        timeLeft: quizRoomState.timeLeft,
+        timerSeconds: quizRoomState.timerSeconds,
+        question: currentQ ? {
+            id: currentQ.id,
+            imageUrl: currentQ.imageUrl,
+            options: currentQ.options,
+            correctOptionIndex: (quizRoomState.state === 'reveal' || quizRoomState.state === 'finished')
+                ? currentQ.options.indexOf(currentQ.correctAnswer)
+                : null,
+            correctAnswer: (quizRoomState.state === 'reveal' || quizRoomState.state === 'finished')
+                ? currentQ.correctAnswer
+                : null
+        } : null,
+        answeredCount: Object.keys(quizRoomState.answers).length,
+        totalPlayersCount: Math.max(connectedUsers.size, Object.keys(quizRoomState.players).length, 1),
+        optionCounts: (quizRoomState.state === 'reveal' || quizRoomState.state === 'finished')
+            ? quizRoomState.optionCounts
+            : [0, 0, 0, 0],
+        leaderboard: leaderboard
+    };
+}
+
+function startQuizQuestionTimer() {
+    if (quizRoomTimer) clearInterval(quizRoomTimer);
+    quizRoomState.answers = {};
+    quizRoomState.optionCounts = [0, 0, 0, 0];
+    quizRoomState.state = 'question';
+    quizRoomState.timeLeft = quizRoomState.timerSeconds;
+    quizRoomState.questionStartTime = Date.now();
+
+    // Ensure all connected sockets are registered in players map
+    connectedUsers.forEach((user, sid) => {
+        const key = (user.name && user.name.trim()) ? user.name.replace(/😎/g, '').trim().toLowerCase() : sid;
+        if (!quizRoomState.players[key]) {
+            quizRoomState.players[key] = {
+                id: sid,
+                name: user.name || 'Người chơi',
+                color: user.nameColor || '#ff75a0',
+                score: 0,
+                correctCount: 0
+            };
+        } else {
+            quizRoomState.players[key].id = sid;
+            if (user.name) quizRoomState.players[key].name = user.name;
+            if (user.nameColor) quizRoomState.players[key].color = user.nameColor;
+        }
+    });
+
+    io.emit('quizRoomUpdate', getPublicQuizState());
+
+    quizRoomTimer = setInterval(() => {
+        quizRoomState.timeLeft--;
+        if (quizRoomState.timeLeft <= 0) {
+            clearInterval(quizRoomTimer);
+            revealQuizQuestionResult();
+        } else {
+            const totalP = Math.max(connectedUsers.size, Object.keys(quizRoomState.players).length, 1);
+            const answeredP = Object.keys(quizRoomState.answers).length;
+            io.emit('quizRoomTimerTick', {
+                timeLeft: quizRoomState.timeLeft,
+                answeredCount: answeredP,
+                totalPlayersCount: totalP
+            });
+        }
+    }, 1000);
+}
+
+function revealQuizQuestionResult() {
+    if (quizRoomTimer) clearInterval(quizRoomTimer);
+    quizRoomState.state = 'reveal';
+    io.emit('quizRoomUpdate', getPublicQuizState());
+
+    // Wait 5 seconds on reveal screen, then move to next question or end
+    setTimeout(() => {
+        if (!quizRoomState.active) return;
+        if (quizRoomState.currentIndex + 1 < quizRoomState.questions.length) {
+            quizRoomState.currentIndex++;
+            startQuizQuestionTimer();
+        } else {
+            quizRoomState.state = 'finished';
+            io.emit('quizRoomUpdate', getPublicQuizState());
+            io.emit('newMessage', {
+                id: 'sys-' + Date.now(),
+                name: 'Đoán Hình 🧩',
+                text: `🏆 Trò chơi Đoán Hình đã kết thúc! Tới bảng xếp hạng tổng để xem quán quân!`,
+                role: 'system'
+            });
+        }
+    }, 5000);
+}
+
+    socket.on('getQuizPacks', (callback) => {
+        const packs = loadQuizPacks();
+        if (typeof callback === 'function') callback(packs);
+        else socket.emit('quizPacksResult', packs);
+    });
+
+    socket.on('getQuizState', (callback) => {
+        const st = getPublicQuizState();
+        if (typeof callback === 'function') callback(st);
+        else socket.emit('quizRoomUpdate', st);
+    });
+
+    socket.on('startMultiplayerQuiz', ({ packId }, callback) => {
+        const allPacks = loadQuizPacks();
+        const pack = allPacks.find(p => p.id === packId);
+        if (!pack || !isQuizPackComplete(pack)) {
+            if (typeof callback === 'function') callback({ success: false, message: 'Bộ câu hỏi không hợp lệ hoặc chưa đủ 4 item!' });
+            return;
+        }
+
+        const questions = generateQuestionsForPack(pack, allPacks);
+        if (questions.length === 0) {
+            if (typeof callback === 'function') callback({ success: false, message: 'Không thể tạo danh sách câu hỏi!' });
+            return;
+        }
+
+        // Initialize multiplayer room state
+        quizRoomState.active = true;
+        quizRoomState.hostName = socket.username || 'Admin';
+        quizRoomState.packId = pack.id;
+        quizRoomState.packName = pack.name;
+        quizRoomState.questions = questions;
+        quizRoomState.currentIndex = 0;
+        quizRoomState.players = {};
+
+        // Register all currently connected active users into players map
+        connectedUsers.forEach((user, sid) => {
+            const key = (user.name && user.name.trim()) ? user.name.replace(/😎/g, '').trim().toLowerCase() : sid;
+            quizRoomState.players[key] = {
+                id: sid,
+                name: user.name || 'Người chơi',
+                color: user.nameColor || '#ff75a0',
+                score: 0,
+                correctCount: 0
+            };
+        });
+
+        if (typeof callback === 'function') callback({ success: true });
+
+        io.emit('newMessage', {
+            id: 'sys-' + Date.now(),
+            name: 'Đoán Hình 🧩',
+            text: `🔥 **[${socket.username || 'Admin'}]** đã khởi chạy trò chơi **Đoán Hình Multiplayer**: *${pack.name}*! Mọi người cùng tham gia trả lời nào!`,
+            role: 'system'
+        });
+
+        startQuizQuestionTimer();
+    });
+
+    socket.on('submitQuizAnswer', ({ optionIndex }, callback) => {
+        if (!quizRoomState.active || quizRoomState.state !== 'question') {
+            if (typeof callback === 'function') callback({ success: false, message: 'Lượt trả lời đã kết thúc!' });
+            return;
+        }
+
+        const uKey = getQuizUserKey(socket);
+
+        if (quizRoomState.answers[uKey]) {
+            if (typeof callback === 'function') callback({ success: false, message: 'Bạn đã chọn đáp án rồi!' });
+            return;
+        }
+
+        const currentQ = quizRoomState.questions[quizRoomState.currentIndex];
+        if (!currentQ || optionIndex < 0 || optionIndex >= currentQ.options.length) return;
+
+        const isCorrect = (optionIndex === currentQ.correctOptionIndex) || 
+                          (currentQ.options[optionIndex] && currentQ.correctAnswer && 
+                           String(currentQ.options[optionIndex]).trim().toLowerCase() === String(currentQ.correctAnswer).trim().toLowerCase());
+        const timeTaken = (Date.now() - quizRoomState.questionStartTime) / 1000;
+        // Kahoot scoring: Base 1000 pts + up to 500 bonus pts for fast response
+        const timeBonus = Math.max(0, Math.round(500 * (1 - timeTaken / quizRoomState.timerSeconds)));
+        const scoreAdded = isCorrect ? (1000 + timeBonus) : 0;
+
+        if (!quizRoomState.players[uKey]) {
+            quizRoomState.players[uKey] = {
+                id: socket.id,
+                name: socket.username || 'Người chơi',
+                color: socket.nameColor || '#ff75a0',
+                score: 0,
+                correctCount: 0
+            };
+        } else {
+            quizRoomState.players[uKey].id = socket.id;
+            if (socket.username) quizRoomState.players[uKey].name = socket.username;
+            if (socket.nameColor) quizRoomState.players[uKey].color = socket.nameColor;
+        }
+
+        quizRoomState.players[uKey].score += scoreAdded;
+        if (isCorrect) quizRoomState.players[uKey].correctCount += 1;
+
+        quizRoomState.answers[uKey] = {
+            optionIndex: optionIndex,
+            isCorrect: isCorrect,
+            scoreAdded: scoreAdded,
+            timeTaken: timeTaken
+        };
+
+        quizRoomState.optionCounts[optionIndex] = (quizRoomState.optionCounts[optionIndex] || 0) + 1;
+
+        const totalP = Math.max(connectedUsers.size, Object.keys(quizRoomState.players).length, 1);
+        const answeredP = Object.keys(quizRoomState.answers).length;
+
+        if (typeof callback === 'function') {
+            callback({
+                success: true,
+                isCorrect: isCorrect,
+                scoreAdded: scoreAdded,
+                totalScore: quizRoomState.players[uKey].score
+            });
+        }
+
+        io.emit('quizAnswerProgress', {
+            answeredCount: answeredP,
+            totalPlayersCount: totalP
+        });
+
+        // Broadcast updated room state so all clients get real-time live score updates
+        io.emit('quizRoomUpdate', getPublicQuizState());
+
+        // Only reveal early if EVERY connected player in room has answered
+        if (answeredP >= totalP && totalP > 0) {
+            revealQuizQuestionResult();
+        }
+    });
+
+    socket.on('endMultiplayerQuiz', (callback) => {
+        if (socket.role !== 'admin' && socket.username !== quizRoomState.hostName) {
+            if (typeof callback === 'function') callback({ success: false, message: 'Chỉ Host hoặc Admin mới có quyền hủy trò chơi!' });
+            return;
+        }
+        if (quizRoomTimer) clearInterval(quizRoomTimer);
+        quizRoomState.active = false;
+        quizRoomState.state = 'lobby';
+        io.emit('quizRoomUpdate', getPublicQuizState());
+        if (typeof callback === 'function') callback({ success: true });
+    });
+
+    socket.on('adminSaveQuizPacks', (newPacks, callback) => {
+        if (socket.role !== 'admin') {
+            if (typeof callback === 'function') callback({ success: false, message: 'Chỉ Admin mới có quyền quản lý kho câu hỏi!' });
+            return;
+        }
+        const updatedPacks = saveQuizPacks(newPacks);
+        io.emit('quizPacksUpdated', updatedPacks);
+        io.emit('newMessage', { id: 'sys-' + Date.now(), name: 'Hệ thống 🧩', text: `⚙️ Admin [${socket.username || 'Admin'}] vừa cập nhật kho câu hỏi game Đoán Hình!`, role: 'system' });
+        if (typeof callback === 'function') callback({ success: true, packs: updatedPacks });
     });
 
     socket.on('disconnect', () => {

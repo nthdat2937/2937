@@ -26,6 +26,9 @@ socket.on('connect', () => {
     if (myRole || savedName) {
         joinRoom();
     }
+    socket.emit('getQuizPacks', (packs) => {
+        if (Array.isArray(packs)) currentQuizPacks = packs;
+    });
 });
 let player;
 let isPlayerReady = false;
@@ -85,6 +88,8 @@ function showTab(tab) {
     document.getElementById('top-column').classList.add('hidden');
     const fbCol = document.getElementById('feedback-column');
     if (fbCol) fbCol.classList.add('hidden');
+    const quizAdminCol = document.getElementById('quiz-admin-column');
+    if (quizAdminCol) quizAdminCol.classList.add('hidden');
 
     if (tab === 'home') {
         miniPlayer.style.transform = '';
@@ -104,6 +109,10 @@ function showTab(tab) {
             if (fbCol) fbCol.classList.remove('hidden');
             restoreRoomPlayerFromTopTab();
             loadFeedbackHistory();
+        } else if (tab === 'quiz-admin') {
+            if (quizAdminCol) quizAdminCol.classList.remove('hidden');
+            restoreRoomPlayerFromTopTab();
+            openQuizAdminTab();
         }
     }
 }
@@ -650,6 +659,12 @@ socket.on('authResult', (res) => {
 
         document.getElementById('login-section').classList.add('hidden');
         document.getElementById('main-room').classList.remove('hidden');
+        if (res.quizPublicState && res.quizPublicState.active) {
+            currentQuizState = res.quizPublicState;
+            renderMultiplayerQuizState(currentQuizState);
+        } else if (typeof currentQuizState !== 'undefined' && currentQuizState && currentQuizState.active) {
+            renderMultiplayerQuizState(currentQuizState);
+        }
 
         if (res.currentVideoTitle) {
             document.title = res.currentVideoTitle;
@@ -687,6 +702,8 @@ socket.on('authResult', (res) => {
             document.getElementById('btn-loop').classList.remove('hidden');
             document.getElementById('btn-start-game').classList.remove('hidden');
             document.getElementById('player-container').style.pointerEvents = 'auto';
+            const sidebarQuizAdmin = document.getElementById('sidebar-quiz-admin');
+            if (sidebarQuizAdmin) sidebarQuizAdmin.classList.remove('hidden');
         }
         document.getElementById('sync-btn').classList.remove('hidden');
 
@@ -4688,4 +4705,740 @@ async function saveUserSettings() {
 function resetBackgroundsToDefault() {
     userBgState = { web_bg: '', chat_bg: '', lyric_bg: '', top_tab_type: 'default', top_tab_url: '' };
     applyUserBackgrounds(userBgState);
+}
+
+/* ==========================================================================
+   GAME ĐOÁN TỪ THEO HÌNH (PICTURE QUIZ SYSTEM)
+   ========================================================================== */
+
+let currentQuizPacks = [];
+let quizActiveSession = null;
+let adminQuizPacksWorkingCopy = [];
+let activeAdminPackId = null;
+
+// Socket events for Quiz
+socket.on('quizPacksUpdated', (packs) => {
+    currentQuizPacks = packs || [];
+    renderQuizPacksLobby();
+    const adminCol = document.getElementById('quiz-admin-column');
+    if (adminCol && !adminCol.classList.contains('hidden')) {
+        openQuizAdminTab();
+    }
+});
+
+socket.on('quizPacksResult', (packs) => {
+    currentQuizPacks = packs || [];
+    renderQuizPacksLobby();
+});
+
+function isQuizPackCompleteClient(pack) {
+    if (!pack || !Array.isArray(pack.items)) return false;
+    const validItems = pack.items.filter(item => item && item.name && item.name.trim() !== '' && item.imageUrl && item.imageUrl.trim() !== '');
+    return validItems.length >= 4;
+}
+
+let currentQuizState = null;
+let mySelectedOptionIndex = null;
+let lastRenderedQuestionIndex = -1;
+let myLastAnswerResult = null;
+
+socket.on('quizRoomUpdate', (state) => {
+    currentQuizState = state;
+    renderMultiplayerQuizState(state);
+});
+
+socket.on('quizRoomTimerTick', ({ timeLeft, answeredCount, totalPlayersCount }) => {
+    const timeSec = document.getElementById('quiz-time-sec');
+    if (timeSec) timeSec.innerText = `${timeLeft}s`;
+
+    const textBadge = document.getElementById('quiz-answered-count-text');
+    if (textBadge) textBadge.innerText = `${answeredCount}/${totalPlayersCount} đã chọn`;
+
+    if (currentQuizState) {
+        currentQuizState.timeLeft = timeLeft;
+        const fill = document.getElementById('quiz-progress-fill');
+        if (fill && currentQuizState.timerSeconds) {
+            const pct = Math.round((timeLeft / currentQuizState.timerSeconds) * 100);
+            fill.style.width = `${pct}%`;
+        }
+    }
+});
+
+socket.on('quizAnswerProgress', ({ answeredCount, totalPlayersCount }) => {
+    const textBadge = document.getElementById('quiz-answered-count-text');
+    if (textBadge) textBadge.innerText = `${answeredCount}/${totalPlayersCount} đã chọn`;
+});
+
+function openPictureQuizGame() {
+    socket.emit('getQuizPacks', (packs) => {
+        if (Array.isArray(packs)) currentQuizPacks = packs;
+        renderQuizPacksLobby();
+    });
+
+    socket.emit('getQuizState', (state) => {
+        currentQuizState = state;
+        document.getElementById('picture-quiz-overlay').classList.remove('hidden');
+        renderMultiplayerQuizState(state);
+    });
+}
+
+function closePictureQuizGame() {
+    document.getElementById('picture-quiz-overlay').classList.add('hidden');
+}
+
+function returnToQuizLobby() {
+    socket.emit('endMultiplayerQuiz', () => {});
+    document.getElementById('quiz-lobby-view').classList.remove('hidden');
+    document.getElementById('quiz-game-view').classList.add('hidden');
+    document.getElementById('quiz-result-view').classList.add('hidden');
+    renderQuizPacksLobby();
+}
+
+function renderQuizPacksLobby() {
+    const grid = document.getElementById('quiz-packs-grid');
+    if (!grid) return;
+    grid.innerHTML = '';
+
+    if (!currentQuizPacks || currentQuizPacks.length === 0) {
+        grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 30px;">Chưa có bộ câu hỏi nào. ${myRole === 'admin' ? 'Vào sidebar chọn "Kho Đoán Hình" để tạo!' : ''}</div>`;
+        return;
+    }
+
+    currentQuizPacks.forEach((pack) => {
+        const validItems = (pack.items || []).filter(it => it && it.name && it.name.trim() && it.imageUrl && it.imageUrl.trim());
+        const isComplete = validItems.length >= 4;
+
+        const card = document.createElement('div');
+        card.className = 'quiz-pack-card';
+
+        let thumbsHtml = '';
+        if (validItems.length > 0) {
+            thumbsHtml = `<div class="quiz-pack-thumbs-strip">` +
+                validItems.slice(0, 4).map(it => `<img src="${it.imageUrl}" class="quiz-pack-thumb-item" alt="${it.name}" onerror="this.src='/assets/images/background-chat.jpeg'">`).join('') +
+                `</div>`;
+        }
+
+        const badgeHtml = isComplete
+            ? `<span class="quiz-pack-badge ready">✅ ${validItems.length} câu (Sẵn sàng)</span>`
+            : `<span class="quiz-pack-badge not-ready">⚠️ ${validItems.length}/4 câu (Chưa đủ)</span>`;
+
+        const playBtnHtml = isComplete
+            ? `<button class="caro-btn" style="width: 100%; background: linear-gradient(135deg, #ff75a0, #ff4757); color: #fff; font-weight: 800; border: none; margin-top: 6px;" onclick="startQuizGame('${pack.id}')">🚀 Bắt Đầu Trận Đấu (Multiplayer)</button>`
+            : `<button class="caro-btn" style="width: 100%; background: rgba(255,255,255,0.05); color: var(--text-muted); border: 1px solid rgba(255,255,255,0.1); cursor: not-allowed; margin-top: 6px;" disabled>⚠️ Cần tối thiểu 4 câu để chơi</button>`;
+
+        card.innerHTML = `
+            <div class="quiz-pack-card-header">
+                <div class="quiz-pack-card-title">${pack.name}</div>
+                ${badgeHtml}
+            </div>
+            <div class="quiz-pack-card-desc">${pack.description || 'Bộ câu hỏi trắc nghiệm 4 đáp án.'}</div>
+            ${thumbsHtml}
+            ${playBtnHtml}
+        `;
+
+        grid.appendChild(card);
+    });
+}
+
+function startQuizGame(packId) {
+    socket.emit('startMultiplayerQuiz', { packId }, (res) => {
+        if (!res.success) {
+            alert(res.message || 'Không thể bắt đầu trận đấu!');
+        }
+    });
+}
+
+function submitKahootOption(optionIndex) {
+    if (mySelectedOptionIndex !== null) return;
+    mySelectedOptionIndex = optionIndex;
+    myLastAnswerResult = null;
+
+    const btns = document.querySelectorAll('#quiz-options-grid .quiz-kahoot-opt');
+    btns.forEach((btn, idx) => {
+        btn.disabled = true;
+        if (idx === optionIndex) {
+            btn.classList.add('selected');
+        } else {
+            btn.style.opacity = '0.4';
+        }
+    });
+
+    const banner = document.getElementById('quiz-feedback-banner');
+    if (banner) {
+        banner.innerHTML = `⏳ ĐÃ CHỐT ĐÁP ÁN! ĐANG CHỜ CÁC NGƯỜI CHƠI KHÁC...`;
+        banner.style.background = 'rgba(255, 212, 59, 0.2)';
+        banner.style.color = '#ffd43b';
+        banner.style.border = '1px solid rgba(255, 212, 59, 0.4)';
+        banner.classList.remove('hidden');
+    }
+
+    socket.emit('submitQuizAnswer', { optionIndex }, (res) => {
+        if (res && res.success) {
+            myLastAnswerResult = res;
+            const myScoreEl = document.getElementById('quiz-my-score-text');
+            if (myScoreEl && typeof res.totalScore === 'number') {
+                myScoreEl.innerText = `Điểm: ${res.totalScore}đ`;
+            }
+            if (banner && mySelectedOptionIndex !== null) {
+                if (res.isCorrect) {
+                    banner.innerHTML = `🎉 ĐÃ CHỐT ĐÁP ÁN! ĐÚNG RỒI (+${res.scoreAdded} điểm)`;
+                    banner.style.background = 'rgba(81, 207, 102, 0.25)';
+                    banner.style.color = '#51cf66';
+                    banner.style.border = '1px solid rgba(81, 207, 102, 0.5)';
+                } else {
+                    banner.innerHTML = `❌ ĐÃ CHỐT ĐÁP ÁN! (CHƯA CHÍNH XÁC)`;
+                    banner.style.background = 'rgba(255, 71, 87, 0.25)';
+                    banner.style.color = '#ff4757';
+                    banner.style.border = '1px solid rgba(255, 71, 87, 0.5)';
+                }
+            }
+        }
+    });
+}
+
+function renderMultiplayerQuizState(state) {
+    if (!state || !state.active) {
+        document.getElementById('quiz-lobby-view').classList.remove('hidden');
+        document.getElementById('quiz-game-view').classList.add('hidden');
+        document.getElementById('quiz-result-view').classList.add('hidden');
+        renderQuizPacksLobby();
+        return;
+    }
+
+    const loginSection = document.getElementById('login-section');
+    if (loginSection && !loginSection.classList.contains('hidden')) {
+        return;
+    }
+
+    const overlay = document.getElementById('picture-quiz-overlay');
+    if (overlay.classList.contains('hidden')) {
+        overlay.classList.remove('hidden');
+    }
+
+    if (state.state === 'question' || state.state === 'reveal') {
+        document.getElementById('quiz-lobby-view').classList.add('hidden');
+        document.getElementById('quiz-result-view').classList.add('hidden');
+        document.getElementById('quiz-game-view').classList.remove('hidden');
+
+        // Reset option choice on new question
+        if (lastRenderedQuestionIndex !== state.currentIndex) {
+            lastRenderedQuestionIndex = state.currentIndex;
+            mySelectedOptionIndex = null;
+            myLastAnswerResult = null;
+        }
+
+        const totalQ = state.totalQuestions || 1;
+        const curQIndex = (state.currentIndex || 0) + 1;
+        document.getElementById('quiz-question-counter').innerText = `CÂU ${curQIndex} / ${totalQ}`;
+
+        // Personal Live Score & Rank update
+        let myScore = 0;
+        let myRankStr = '';
+        if (Array.isArray(state.leaderboard)) {
+            const myIdx = state.leaderboard.findIndex(p => (p.id && p.id === socket.id) || (p.name && p.name === myUsername));
+            if (myIdx !== -1) {
+                myScore = state.leaderboard[myIdx].score || 0;
+                myRankStr = ` (#${myIdx + 1})`;
+            }
+        }
+        const myScoreEl = document.getElementById('quiz-my-score-text');
+        if (myScoreEl) {
+            myScoreEl.innerText = `Điểm: ${myScore}đ${myRankStr}`;
+        }
+
+        const fill = document.getElementById('quiz-progress-fill');
+        if (fill && state.timerSeconds) {
+            const pct = Math.round((state.timeLeft / state.timerSeconds) * 100);
+            fill.style.width = `${pct}%`;
+        }
+
+        document.getElementById('quiz-answered-count-text').innerText = `${state.answeredCount || 0}/${state.totalPlayersCount || 1} đã chọn`;
+        document.getElementById('quiz-time-sec').innerText = `${state.timeLeft || 0}s`;
+
+        const imgEl = document.getElementById('quiz-current-image');
+        if (state.question && state.question.imageUrl) {
+            imgEl.src = state.question.imageUrl;
+        }
+
+        const icons = ['▲', '◆', '●', '■'];
+        const optionsGrid = document.getElementById('quiz-options-grid');
+        optionsGrid.innerHTML = '';
+
+        if (state.question && Array.isArray(state.question.options)) {
+            state.question.options.forEach((optText, idx) => {
+                const btn = document.createElement('button');
+                btn.className = `quiz-kahoot-opt quiz-kahoot-opt-${idx}`;
+                btn.onclick = () => submitKahootOption(idx);
+
+                if (mySelectedOptionIndex !== null) {
+                    btn.disabled = true;
+                    if (mySelectedOptionIndex === idx) btn.classList.add('selected');
+                    else btn.style.opacity = '0.4';
+                }
+
+                if (state.state === 'reveal') {
+                    btn.disabled = true;
+                    if (idx === state.question.correctOptionIndex) {
+                        btn.classList.add('correct-answer');
+                        btn.style.opacity = '1';
+                    } else {
+                        btn.classList.add('wrong-answer');
+                    }
+                }
+
+                btn.innerHTML = `
+                    <div class="quiz-kahoot-opt-icon">${icons[idx]}</div>
+                    <span>${optText}</span>
+                `;
+                optionsGrid.appendChild(btn);
+            });
+        }
+
+        // Render Histogram during Reveal Phase
+        const histView = document.getElementById('quiz-histogram-view');
+        if (state.state === 'reveal') {
+            histView.classList.remove('hidden');
+            const counts = state.optionCounts || [0, 0, 0, 0];
+            const maxVotes = Math.max(1, ...counts);
+            counts.forEach((c, idx) => {
+                const bar = document.getElementById(`hist-bar-${idx}`);
+                const cnt = document.getElementById(`hist-count-${idx}`);
+                if (bar) bar.style.height = `${Math.round((c / maxVotes) * 100)}%`;
+                if (cnt) cnt.innerText = c;
+            });
+        } else {
+            histView.classList.add('hidden');
+        }
+
+        // Render Feedback Banner
+        const feedbackBanner = document.getElementById('quiz-feedback-banner');
+        if (state.state === 'reveal') {
+            const correctText = state.question ? state.question.correctAnswer : '';
+            if (myLastAnswerResult) {
+                if (myLastAnswerResult.isCorrect) {
+                    feedbackBanner.innerHTML = `🎉 CHÍNH XÁC! Bạn nhận được <span style="color:#ffd43b; font-weight:bold;">+${myLastAnswerResult.scoreAdded} điểm</span>! (Tổng: ${myLastAnswerResult.totalScore}đ)`;
+                    feedbackBanner.style.background = 'rgba(81, 207, 102, 0.25)';
+                    feedbackBanner.style.color = '#51cf66';
+                    feedbackBanner.style.border = '1px solid rgba(81, 207, 102, 0.5)';
+                } else {
+                    feedbackBanner.innerHTML = `❌ TIẾC QUÁ! Đáp án đúng là: <span style="color:#51cf66; font-weight:bold;">${correctText}</span>`;
+                    feedbackBanner.style.background = 'rgba(255, 71, 87, 0.25)';
+                    feedbackBanner.style.color = '#ff4757';
+                    feedbackBanner.style.border = '1px solid rgba(255, 71, 87, 0.5)';
+                }
+            } else if (mySelectedOptionIndex !== null && mySelectedOptionIndex === state.question.correctOptionIndex) {
+                feedbackBanner.innerHTML = `🎉 CHÍNH XÁC! TỐC ĐỘ XUẤT SẮC!`;
+                feedbackBanner.style.background = 'rgba(81, 207, 102, 0.25)';
+                feedbackBanner.style.color = '#51cf66';
+                feedbackBanner.style.border = '1px solid rgba(81, 207, 102, 0.5)';
+            } else if (mySelectedOptionIndex !== null) {
+                feedbackBanner.innerHTML = `❌ TIẾC QUÁ! Đáp án đúng là: <span style="color:#51cf66; font-weight:bold;">${correctText}</span>`;
+                feedbackBanner.style.background = 'rgba(255, 71, 87, 0.25)';
+                feedbackBanner.style.color = '#ff4757';
+                feedbackBanner.style.border = '1px solid rgba(255, 71, 87, 0.5)';
+            } else {
+                feedbackBanner.innerHTML = `⏰ HẾT GIỜ HOẶC VÀO TRỄ! Đáp án đúng là: <span style="color:#51cf66; font-weight:bold;">${correctText}</span>`;
+                feedbackBanner.style.background = 'rgba(255, 212, 59, 0.2)';
+                feedbackBanner.style.color = '#ffd43b';
+                feedbackBanner.style.border = '1px solid rgba(255, 212, 59, 0.4)';
+            }
+            feedbackBanner.classList.remove('hidden');
+        } else if (mySelectedOptionIndex === null) {
+            feedbackBanner.classList.add('hidden');
+        }
+
+        // Render Live Leaderboard Ticker at bottom
+        const ticker = document.getElementById('quiz-leaderboard-ticker');
+        if (ticker && Array.isArray(state.leaderboard)) {
+            const top3 = state.leaderboard.slice(0, 4);
+            ticker.innerHTML = top3.map((p, rank) => {
+                const medals = ['👑', '🥈', '🥉', '4️⃣'];
+                return `<span style="color: ${p.color || '#fff'};">${medals[rank]} ${p.name}: <span style="color:#ffd43b;">${p.score}đ</span></span>`;
+            }).join(' &nbsp;|&nbsp; ');
+        }
+    } else if (state.state === 'finished') {
+        document.getElementById('quiz-lobby-view').classList.add('hidden');
+        document.getElementById('quiz-game-view').classList.add('hidden');
+        document.getElementById('quiz-result-view').classList.remove('hidden');
+
+        document.getElementById('quiz-result-pack-title').innerText = `Bộ câu hỏi: ${state.packName || ''}`;
+
+        const leaderboard = state.leaderboard || [];
+
+        // 3D Podium Render
+        const podiumContainer = document.getElementById('quiz-podium-container');
+        if (podiumContainer) {
+            const p1 = leaderboard[0];
+            const p2 = leaderboard[1];
+            const p3 = leaderboard[2];
+
+            podiumContainer.innerHTML = `
+                <div class="podium-step">
+                    ${p2 ? `
+                        <div class="podium-avatar-box">
+                            <div class="podium-crown">🥈</div>
+                            <div class="podium-name" style="color: ${p2.color || '#fff'}">${p2.name}</div>
+                            <div class="podium-score">${p2.score}đ</div>
+                        </div>
+                        <div class="podium-block podium-2nd">2</div>
+                    ` : ''}
+                </div>
+                <div class="podium-step">
+                    ${p1 ? `
+                        <div class="podium-avatar-box">
+                            <div class="podium-crown">👑</div>
+                            <div class="podium-name" style="color: ${p1.color || '#fff'}">${p1.name}</div>
+                            <div class="podium-score">${p1.score}đ</div>
+                        </div>
+                        <div class="podium-block podium-1st">1</div>
+                    ` : ''}
+                </div>
+                <div class="podium-step">
+                    ${p3 ? `
+                        <div class="podium-avatar-box">
+                            <div class="podium-crown">🥉</div>
+                            <div class="podium-name" style="color: ${p3.color || '#fff'}">${p3.name}</div>
+                            <div class="podium-score">${p3.score}đ</div>
+                        </div>
+                        <div class="podium-block podium-3rd">3</div>
+                    ` : ''}
+                </div>
+            `;
+        }
+
+        // Full Scoreboard Table
+        const listEl = document.getElementById('quiz-final-leaderboard-list');
+        if (listEl) {
+            listEl.innerHTML = leaderboard.map((p, index) => `
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 14px; background: rgba(255,255,255,0.05); border-radius: 8px; font-size: 14px;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="font-weight: 800; color: #ffd43b; width: 24px;">#${index + 1}</span>
+                        <span style="font-weight: 700; color: ${p.color || '#fff'};">${p.name}</span>
+                    </div>
+                    <div style="display: flex; gap: 16px; font-weight: 700;">
+                        <span style="color: #51cf66;">🎯 ${p.correctCount || 0} câu đúng</span>
+                        <span style="color: #ffd43b;">🏆 ${p.score} điểm</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+    }
+}
+
+/* --- ADMIN KHO QUIZ MANAGEMENT SYSTEM --- */
+
+function openQuizAdminTab() {
+    if (myRole !== 'admin') return;
+
+    socket.emit('getQuizPacks', (packs) => {
+        if (Array.isArray(packs)) {
+            currentQuizPacks = packs;
+        }
+        adminQuizPacksWorkingCopy = JSON.parse(JSON.stringify(currentQuizPacks || []));
+        if (adminQuizPacksWorkingCopy.length > 0) {
+            if (!activeAdminPackId || !adminQuizPacksWorkingCopy.find(p => p.id === activeAdminPackId)) {
+                activeAdminPackId = adminQuizPacksWorkingCopy[0].id;
+            }
+        } else {
+            activeAdminPackId = null;
+        }
+
+        renderAdminQuizPacksList();
+        renderAdminPackEditor();
+    });
+}
+
+function openQuizAdminModal() {
+    showTab('quiz-admin');
+}
+
+function closeQuizAdminModal() {
+    showTab('home');
+}
+
+function renderAdminQuizPacksList() {
+    const listEl = document.getElementById('admin-quiz-pack-selector-list');
+    if (!listEl) return;
+    listEl.innerHTML = '';
+
+    if (!adminQuizPacksWorkingCopy || adminQuizPacksWorkingCopy.length === 0) {
+        listEl.innerHTML = `<div style="font-size: 13px; color: var(--text-muted); text-align: center; padding: 12px;">Chưa có bộ nào</div>`;
+        return;
+    }
+
+    adminQuizPacksWorkingCopy.forEach(pack => {
+        const validItems = (pack.items || []).filter(it => it && it.name && it.name.trim() && it.imageUrl && it.imageUrl.trim());
+        const isComplete = validItems.length >= 4;
+        const isActive = pack.id === activeAdminPackId;
+
+        const itemBtn = document.createElement('button');
+        itemBtn.type = 'button';
+        itemBtn.className = `quiz-admin-pack-btn${isActive ? ' active' : ''}`;
+
+        itemBtn.onclick = () => {
+            activeAdminPackId = pack.id;
+            renderAdminQuizPacksList();
+            renderAdminPackEditor();
+        };
+
+        const statusDot = isComplete
+            ? `<span style="color: #51cf66; font-size: 12px; font-weight: 800; background: rgba(81, 207, 102, 0.2); padding: 2px 8px; border-radius: 10px; border: 1px solid rgba(81, 207, 102, 0.4);">✅ ${validItems.length} câu</span>`
+            : `<span style="color: #ff4757; font-size: 12px; font-weight: 800; background: rgba(255, 71, 87, 0.2); padding: 2px 8px; border-radius: 10px; border: 1px solid rgba(255, 71, 87, 0.4);">⚠️ ${validItems.length}/4</span>`;
+
+        itemBtn.innerHTML = `
+            <div style="font-size: 14px; font-weight: 700; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; max-width: 140px;">${pack.name}</div>
+            ${statusDot}
+        `;
+
+        listEl.appendChild(itemBtn);
+    });
+}
+
+function createEmptyQuizPack() {
+    const newPack = {
+        id: 'pack-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6),
+        name: 'Bộ câu hỏi mới ' + (adminQuizPacksWorkingCopy.length + 1),
+        description: 'Mô tả bộ câu hỏi...',
+        items: []
+    };
+
+    adminQuizPacksWorkingCopy.push(newPack);
+    activeAdminPackId = newPack.id;
+
+    renderAdminQuizPacksList();
+    renderAdminPackEditor();
+}
+
+function deleteCurrentAdminPack() {
+    if (!activeAdminPackId) return;
+    if (!confirm('Bạn có chắc chắn muốn xóa bộ câu hỏi này khỏi kho?')) return;
+
+    adminQuizPacksWorkingCopy = adminQuizPacksWorkingCopy.filter(p => p.id !== activeAdminPackId);
+    if (adminQuizPacksWorkingCopy.length > 0) {
+        activeAdminPackId = adminQuizPacksWorkingCopy[0].id;
+    } else {
+        activeAdminPackId = null;
+    }
+
+    renderAdminQuizPacksList();
+    renderAdminPackEditor();
+}
+
+function renderAdminPackEditor() {
+    const editorContent = document.getElementById('admin-pack-editor-content');
+    const editorEmpty = document.getElementById('admin-pack-editor-empty');
+
+    if (!activeAdminPackId) {
+        editorContent.classList.add('hidden');
+        editorEmpty.classList.remove('hidden');
+        return;
+    }
+
+    const pack = adminQuizPacksWorkingCopy.find(p => p.id === activeAdminPackId);
+    if (!pack) {
+        editorContent.classList.add('hidden');
+        editorEmpty.classList.remove('hidden');
+        return;
+    }
+
+    editorContent.classList.remove('hidden');
+    editorEmpty.classList.add('hidden');
+
+    document.getElementById('admin-pack-name-input').value = pack.name || '';
+    document.getElementById('admin-pack-desc-input').value = pack.description || '';
+
+    updateAdminPackHeader();
+}
+
+function updateAdminPackHeader() {
+    if (!activeAdminPackId) return;
+    const pack = adminQuizPacksWorkingCopy.find(p => p.id === activeAdminPackId);
+    if (!pack) return;
+
+    const nameVal = document.getElementById('admin-pack-name-input').value;
+    const descVal = document.getElementById('admin-pack-desc-input').value;
+
+    pack.name = nameVal;
+    pack.description = descVal;
+
+    const validItems = (pack.items || []).filter(it => it && it.name && it.name.trim() && it.imageUrl && it.imageUrl.trim());
+    const isComplete = validItems.length >= 4;
+
+    const banner = document.getElementById('admin-pack-status-banner');
+    if (isComplete) {
+        banner.style.background = 'rgba(81, 207, 102, 0.2)';
+        banner.style.color = '#51cf66';
+        banner.style.border = '1px solid rgba(81, 207, 102, 0.4)';
+        banner.innerHTML = `✅ BỘ CÂU HỎI ĐỦ ĐIỀU KIỆN! Có ${validItems.length} item hợp lệ (đầy đủ tên & ảnh). Có thể sử dụng làm game trắc nghiệm 4 đáp án.`;
+    } else {
+        banner.style.background = 'rgba(255, 71, 87, 0.2)';
+        banner.style.color = '#ff4757';
+        banner.style.border = '1px solid rgba(255, 71, 87, 0.4)';
+        banner.innerHTML = `⚠️ CHƯA ĐỦ ĐIỀU KIỆN! Cần ít nhất 4 item có đầy đủ TÊN và ẢNH để có thể xếp thành bộ câu hỏi. (Hiện có: ${validItems.length}/4 item)`;
+    }
+
+    renderAdminQuizPacksList();
+    renderAdminPackItemsContainer();
+}
+
+function renderAdminPackItemsContainer() {
+    const container = document.getElementById('admin-pack-items-container');
+    if (!container || !activeAdminPackId) return;
+    const pack = adminQuizPacksWorkingCopy.find(p => p.id === activeAdminPackId);
+    if (!pack) return;
+
+    container.innerHTML = '';
+
+    if (!pack.items || pack.items.length === 0) {
+        container.innerHTML = `<div style="font-size: 14px; color: var(--text-muted); text-align: center; padding: 30px; font-weight: 600;">Bộ câu hỏi này chưa có câu hỏi nào. Bấm "+ Thêm Câu Hỏi" phía trên để thêm!</div>`;
+        return;
+    }
+
+    pack.items.forEach((item) => {
+        const itemCard = document.createElement('div');
+        itemCard.className = 'quiz-item-card-input-box';
+        itemCard.style.display = 'flex';
+        itemCard.style.alignItems = 'center';
+        itemCard.style.gap = '12px';
+
+        const thumbSrc = item.imageUrl || '/assets/images/background-chat.jpeg';
+
+        itemCard.innerHTML = `
+            <img src="${thumbSrc}" id="thumb-preview-${item.id}" alt="Item image" style="width: 54px; height: 54px; object-fit: cover; border-radius: 12px; border: 1.5px solid rgba(255,180,210,0.3); background: #000;" onerror="this.src='/assets/images/background-chat.jpeg'">
+            <div style="flex: 1; display: flex; flex-direction: column; gap: 8px;">
+                <input type="text" class="login-input" style="padding: 8px 12px; font-size: 13px; font-weight: 700; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,180,210,0.2); border-radius: 10px; color: #fff;" placeholder="Tên đáp án đúng (Ví dụ: Cờ Việt Nam)..." value="${item.name || ''}" oninput="updateAdminItemName('${item.id}', this.value)">
+                
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <input type="text" class="login-input" style="padding: 6px 10px; font-size: 12px; flex: 1; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,180,210,0.15); border-radius: 8px; color: var(--text-muted);" placeholder="Link URL ảnh (https://...)..." value="${item.imageUrl || ''}" oninput="updateAdminItemImageUrl('${item.id}', this.value)">
+                    <label class="action-btn" style="padding: 6px 12px; font-size: 12px; cursor: pointer; white-space: nowrap; background: rgba(255,117,160,0.2); border: 1px solid rgba(255,117,160,0.4); color: #ff75a0; font-weight: 700; border-radius: 8px;">
+                        📷 Tải ảnh
+                        <input type="file" accept="image/*" style="display: none;" onchange="handleAdminItemFileUpload(event, '${item.id}')">
+                    </label>
+                </div>
+            </div>
+            <button type="button" style="background: rgba(255,71,87,0.2); color: #ff4757; border: 1px solid rgba(255,71,87,0.4); border-radius: 10px; width: 36px; height: 36px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.2s ease;" onclick="deleteAdminPackItem('${item.id}')" title="Xóa item này">
+                <span class="material-symbols-outlined" style="font-size: 20px;">delete</span>
+            </button>
+        `;
+
+        container.appendChild(itemCard);
+    });
+}
+
+function addAdminPackItem() {
+    if (!activeAdminPackId) return;
+    const pack = adminQuizPacksWorkingCopy.find(p => p.id === activeAdminPackId);
+    if (!pack) return;
+
+    if (!pack.items) pack.items = [];
+    const newItem = {
+        id: 'item-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6),
+        name: '',
+        imageUrl: ''
+    };
+
+    pack.items.push(newItem);
+    updateAdminPackHeader();
+}
+
+function deleteAdminPackItem(itemId) {
+    if (!activeAdminPackId) return;
+    const pack = adminQuizPacksWorkingCopy.find(p => p.id === activeAdminPackId);
+    if (!pack || !pack.items) return;
+
+    pack.items = pack.items.filter(it => it.id !== itemId);
+    updateAdminPackHeader();
+}
+
+function updateAdminItemName(itemId, val) {
+    if (!activeAdminPackId) return;
+    const pack = adminQuizPacksWorkingCopy.find(p => p.id === activeAdminPackId);
+    if (!pack || !pack.items) return;
+
+    const item = pack.items.find(it => it.id === itemId);
+    if (item) {
+        item.name = val;
+        const validItems = pack.items.filter(it => it && it.name && it.name.trim() && it.imageUrl && it.imageUrl.trim());
+        const isComplete = validItems.length >= 4;
+
+        const banner = document.getElementById('admin-pack-status-banner');
+        if (banner) {
+            if (isComplete) {
+                banner.style.background = 'rgba(81, 207, 102, 0.2)';
+                banner.style.color = '#51cf66';
+                banner.style.border = '1px solid rgba(81, 207, 102, 0.4)';
+                banner.innerHTML = `✅ BỘ CÂU HỎI ĐỦ ĐIỀU KIỆN! Có ${validItems.length} item hợp lệ (đầy đủ tên & ảnh).`;
+            } else {
+                banner.style.background = 'rgba(255, 71, 87, 0.2)';
+                banner.style.color = '#ff4757';
+                banner.style.border = '1px solid rgba(255, 71, 87, 0.4)';
+                banner.innerHTML = `⚠️ CHƯA ĐỦ ĐIỀU KIỆN! Cần ít nhất 4 item có đầy đủ TÊN và ẢNH để có thể xếp thành bộ câu hỏi. (Hiện có: ${validItems.length}/4 item)`;
+            }
+        }
+        renderAdminQuizPacksList();
+    }
+}
+
+function updateAdminItemImageUrl(itemId, val) {
+    if (!activeAdminPackId) return;
+    const pack = adminQuizPacksWorkingCopy.find(p => p.id === activeAdminPackId);
+    if (!pack || !pack.items) return;
+
+    const item = pack.items.find(it => it.id === itemId);
+    if (item) {
+        item.imageUrl = val.trim();
+        const thumb = document.getElementById(`thumb-preview-${itemId}`);
+        if (thumb) thumb.src = item.imageUrl || '/assets/images/background-chat.jpeg';
+
+        const validItems = pack.items.filter(it => it && it.name && it.name.trim() && it.imageUrl && it.imageUrl.trim());
+        const isComplete = validItems.length >= 4;
+
+        const banner = document.getElementById('admin-pack-status-banner');
+        if (banner) {
+            if (isComplete) {
+                banner.style.background = 'rgba(81, 207, 102, 0.2)';
+                banner.style.color = '#51cf66';
+                banner.style.border = '1px solid rgba(81, 207, 102, 0.4)';
+                banner.innerHTML = `✅ BỘ CÂU HỎI ĐỦ ĐIỀU KIỆN! Có ${validItems.length} item hợp lệ (đầy đủ tên & ảnh).`;
+            } else {
+                banner.style.background = 'rgba(255, 71, 87, 0.2)';
+                banner.style.color = '#ff4757';
+                banner.style.border = '1px solid rgba(255, 71, 87, 0.4)';
+                banner.innerHTML = `⚠️ CHƯA ĐỦ ĐIỀU KIỆN! Cần ít nhất 4 item có đầy đủ TÊN và ẢNH để có thể xếp thành bộ câu hỏi. (Hiện có: ${validItems.length}/4 item)`;
+            }
+        }
+        renderAdminQuizPacksList();
+    }
+}
+
+function handleAdminItemFileUpload(event, itemId) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        updateAdminItemImageUrl(itemId, e.target.result);
+    };
+    reader.readAsDataURL(file);
+}
+
+function saveQuizAdminPacks() {
+    if (myRole !== 'admin') {
+        return alert('Chỉ Admin mới có quyền thực hiện thao tác này!');
+    }
+
+    socket.emit('adminSaveQuizPacks', adminQuizPacksWorkingCopy, (response) => {
+        if (response && response.success) {
+            currentQuizPacks = response.packs;
+            closeQuizAdminModal();
+            renderQuizPacksLobby();
+            if (typeof showToastNotification === 'function') {
+                showToastNotification('🎉 Đã lưu thành công kho bộ câu hỏi!');
+            } else {
+                alert('🎉 Đã lưu thành công kho bộ câu hỏi!');
+            }
+        } else {
+            alert((response && response.message) || 'Lỗi khi lưu kho bộ câu hỏi!');
+        }
+    });
 }

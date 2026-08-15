@@ -197,6 +197,10 @@
                 <span class="material-symbols-outlined">rate_review</span>
                 <span class="sidebar-label">Góp ý</span>
             </div>
+            <div class="sidebar-item hidden" id="sidebar-quiz-admin" onclick="showTab('quiz-admin')" data-tab="quiz-admin" title="Kho Bộ Câu Hỏi (Admin)">
+                <span class="material-symbols-outlined">folder_managed</span>
+                <span class="sidebar-label">Kho Đoán Hình</span>
+            </div>
         </div>
 
         <div class="left-column" id="left-column">
@@ -247,6 +251,9 @@
                     <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
                         <button id="btn-start-game" class="btn-start-game hidden" onclick="startDrawGame()">
                             Vẽ & Đoán
+                        </button>
+                        <button id="btn-open-picture-quiz" class="btn-start-game" onclick="openPictureQuizGame()" title="Mở Game Đoán Từ Theo Hình">
+                            Đoán Hình
                         </button>
                         <button id="btn-open-caro" class="btn-start-game" onclick="openCaroGame()">
                             Cờ Caro
@@ -350,6 +357,86 @@
                         <div class="fb-skeleton-line" style="width: 40%;"></div>
                         <div class="fb-skeleton-line" style="width: 85%;"></div>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- QUIZ ADMIN MANAGEMENT TAB COLUMN -->
+        <div class="history-column hidden" id="quiz-admin-column">
+            <div class="quiz-admin-hero-card">
+                <!-- Header -->
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; border-bottom: 1px solid rgba(255, 180, 210, 0.2); padding-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+                    <div style="display: flex; align-items: center; gap: 14px;">
+                        <div style="width: 46px; height: 46px; border-radius: 14px; background: linear-gradient(135deg, rgba(255, 212, 59, 0.25), rgba(255, 117, 160, 0.25)); border: 1px solid rgba(255, 212, 59, 0.4); display: flex; align-items: center; justify-content: center;">
+                            <span class="material-symbols-outlined" style="color: #ffd43b; font-size: 28px;">folder_managed</span>
+                        </div>
+                        <div>
+                            <h2 style="font-family: var(--font-display); font-size: 24px; font-weight: 800; color: #ffffff; margin: 0; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">QUẢN LÝ KHO BỘ CÂU HỎI</h2>
+                            <p style="font-size: 13px; color: var(--text-muted); margin: 2px 0 0 0; font-weight: 600;">Thêm, chỉnh sửa hoặc xóa bộ câu hỏi Đoán Hình cho phòng nhạc.</p>
+                        </div>
+                    </div>
+                    <button type="button" class="settings-btn-save" style="background: linear-gradient(135deg, #ff75a0, #ff4757); padding: 10px 24px; font-weight: 800; font-size: 15px; border-radius: 16px; box-shadow: 0 4px 16px rgba(255, 117, 160, 0.3);" onclick="saveQuizAdminPacks()">
+                        <span class="material-symbols-outlined" style="font-size: 20px;">save</span>
+                        Lưu Thay Đổi Kho
+                    </button>
+                </div>
+
+                <div style="display: flex; gap: 20px; flex-direction: row; flex-wrap: wrap;">
+                    <!-- Left Sidebar: Pack list -->
+                    <div class="quiz-admin-sidebar-box" style="flex: 1; min-width: 260px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                            <span style="font-weight: 800; font-size: 14px; color: #ffffff; font-family: var(--font-display);">DANH SÁCH BỘ CÂU HỎI</span>
+                            <button type="button" class="action-btn" style="padding: 6px 12px; font-size: 12px; background: linear-gradient(135deg, #ff75a0, #7b61ff); color: #fff; font-weight: 800; border: none; border-radius: 12px;" onclick="createEmptyQuizPack()">+ Tạo Bộ Mới</button>
+                        </div>
+                        <div id="admin-quiz-pack-selector-list" style="display: flex; flex-direction: column; gap: 8px; max-height: 520px; overflow-y: auto; padding-right: 2px;">
+                            <!-- Rendered by JS -->
+                        </div>
+                    </div>
+
+                    <!-- Right Editor: Pack items editor -->
+                    <div class="quiz-admin-editor-box" style="flex: 2; min-width: 320px;">
+                        <div id="admin-pack-editor-content" class="hidden">
+                            <div style="display: flex; flex-direction: column; gap: 14px;">
+                                <div>
+                                    <label style="font-size: 13px; color: var(--text-muted); font-weight: 700; display: block; margin-bottom: 4px;">TÊN BỘ CÂU HỎI:</label>
+                                    <input type="text" id="admin-pack-name-input" class="login-input" style="background: rgba(0,0,0,0.3); border: 1.5px solid rgba(255, 180, 210, 0.2); border-radius: 12px; font-weight: 600; color: #fff;" placeholder="Ví dụ: Bộ câu hỏi Cờ các nước..." oninput="updateAdminPackHeader()">
+                                </div>
+                                <div>
+                                    <label style="font-size: 13px; color: var(--text-muted); font-weight: 700; display: block; margin-bottom: 4px;">MÔ TẢ BỘ CÂU HỎI:</label>
+                                    <input type="text" id="admin-pack-desc-input" class="login-input" style="background: rgba(0,0,0,0.3); border: 1.5px solid rgba(255, 180, 210, 0.2); border-radius: 12px; font-weight: 600; color: #fff;" placeholder="Mô tả ngắn về bộ này..." oninput="updateAdminPackHeader()">
+                                </div>
+
+                                <!-- Readiness Condition Banner -->
+                                <div id="admin-pack-status-banner" style="padding: 12px 16px; border-radius: 14px; font-size: 13px; font-weight: 700; margin: 4px 0; backdrop-filter: blur(8px);">
+                                    <!-- Rendered dynamically -->
+                                </div>
+
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
+                                    <span style="font-weight: 800; font-size: 14px; color: #ffffff; font-family: var(--font-display);">DANH SÁCH HÌNH ẢNH & ĐÁP ÁN (Tối thiểu 4 câu):</span>
+                                    <button type="button" class="action-btn" style="padding: 6px 14px; font-size: 13px; background: rgba(77, 171, 247, 0.2); color: #4dabf7; border: 1px solid rgba(77, 171, 247, 0.4); font-weight: 800; border-radius: 12px;" onclick="addAdminPackItem()">+ Thêm Câu Hỏi</button>
+                                </div>
+
+                                <!-- List of item cards -->
+                                <div id="admin-pack-items-container" style="display: flex; flex-direction: column; gap: 14px; max-height: 420px; overflow-y: auto; padding-right: 4px;">
+                                    <!-- Items rendered by JS -->
+                                </div>
+                            </div>
+                        </div>
+                        <div id="admin-pack-editor-empty" style="text-align: center; color: var(--text-muted); padding: 60px 0; font-size: 15px; font-weight: 600;">
+                            👈 Vui lòng chọn hoặc tạo bộ câu hỏi bên trái để bắt đầu chỉnh sửa.
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid rgba(255, 180, 210, 0.2); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                    <button type="button" class="settings-btn-secondary" style="color: #ff4757; border-color: rgba(255,71,87,0.4); font-weight: 800; border-radius: 14px; padding: 8px 16px;" onclick="deleteCurrentAdminPack()">
+                        <span class="material-symbols-outlined" style="font-size: 18px;">delete</span>
+                        Xóa Bộ Câu Hỏi Này
+                    </button>
+                    <button type="button" class="settings-btn-save" style="background: linear-gradient(135deg, #51cf66, #37b24d); padding: 10px 24px; font-size: 15px; font-weight: 800; border-radius: 14px; box-shadow: 0 4px 16px rgba(81, 207, 102, 0.3);" onclick="saveQuizAdminPacks()">
+                        <span class="material-symbols-outlined" style="font-size: 20px;">check</span>
+                        Lưu Thay Đổi Kho
+                    </button>
                 </div>
             </div>
         </div>
@@ -1142,6 +1229,139 @@
             </div>
         </div>
     </div>
+
+    <!-- PICTURE QUIZ GAME OVERLAY -->
+    <div id="picture-quiz-overlay" class="draw-overlay hidden" style="z-index: 1050;">
+        <div class="draw-container settings-modal-container quiz-modal-container" style="max-width: 780px; width: 92%; padding: 24px; max-height: 90vh; overflow-y: auto;">
+            <div class="draw-header" style="justify-content: space-between; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 16px;">
+                <div class="draw-header-title" style="display:flex; align-items:center; gap: 10px;">
+                    <span class="material-symbols-outlined" style="color: #ff75a0; font-size: 26px;">quiz</span>
+                    <span style="font-family: var(--font-display); font-size: 22px; font-weight: 700; color: #ffffff;">Đoán Từ Theo Hình</span>
+                    <span class="draw-live-tag" style="background: linear-gradient(135deg, #ff75a0, #ff4757);">TRẮC NGHIỆM</span>
+                </div>
+                <button class="settings-close-btn" onclick="closePictureQuizGame()" title="Đóng">
+                    <span class="material-symbols-outlined" style="font-size:20px;">close</span>
+                </button>
+            </div>
+
+            <!-- View 1: Lobby / Pack Selector -->
+            <div id="quiz-lobby-view">
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <h3 style="margin-bottom: 6px; font-family: var(--font-display); font-size: 22px; color: #ffffff;">🎮 SẢNH ĐOÁN HÌNH MULTIPLAYER</h3>
+                    <p style="color: var(--text-muted); font-size: 14px; margin: 0;">Chọn bộ câu hỏi để bắt đầu trận đấu trực tuyến cùng mọi người trong phòng!</p>
+                </div>
+
+                <div id="quiz-packs-grid" class="quiz-packs-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; margin-bottom: 20px;">
+                    <!-- Rendered by JS -->
+                </div>
+            </div>
+
+            <!-- View 2: Gameplay Screen (Kahoot / Quizizz Live Style) -->
+            <div id="quiz-game-view" class="hidden">
+                <!-- Top Status Bar -->
+                <div class="quiz-progress-bar-wrapper" style="margin-bottom: 14px; background: rgba(255,255,255,0.1); height: 8px; border-radius: 4px; overflow: hidden;">
+                    <div id="quiz-progress-fill" style="width: 0%; height: 100%; background: linear-gradient(90deg, #ff75a0, #51cf66); transition: width 0.3s linear;"></div>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
+                    <div style="font-size: 15px; font-weight: 800; color: var(--accent); font-family: var(--font-display);" id="quiz-question-counter">CÂU 1 / 5</div>
+                    
+                    <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                        <span id="quiz-my-score-badge" style="background: rgba(255,117,160,0.15); border: 1px solid rgba(255,117,160,0.4); padding: 4px 12px; border-radius: 16px; font-size: 13px; font-weight: 800; color: #ff75a0; display: flex; align-items: center; gap: 4px;">
+                            <span class="material-symbols-outlined" style="font-size: 16px;">military_tech</span>
+                            <span id="quiz-my-score-text">Điểm: 0đ</span>
+                        </span>
+
+                        <span id="quiz-answered-count-badge" style="background: rgba(255,255,255,0.12); padding: 4px 12px; border-radius: 16px; font-size: 13px; font-weight: 700; color: #4dabf7; display: flex; align-items: center; gap: 4px;">
+                            <span class="material-symbols-outlined" style="font-size: 16px;">groups</span>
+                            <span id="quiz-answered-count-text">0/0 đã chọn</span>
+                        </span>
+                        
+                        <span id="quiz-timer-display" style="background: rgba(255,212,59,0.15); border: 1px solid rgba(255,212,59,0.4); padding: 4px 12px; border-radius: 16px; font-size: 15px; font-weight: 800; color: #ffd43b; display: flex; align-items: center; gap: 4px;">
+                            <span class="material-symbols-outlined" style="font-size: 18px;">timer</span>
+                            <span id="quiz-time-sec">15s</span>
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Image container -->
+                <div class="quiz-image-container" style="position: relative; width: 100%; max-height: 300px; min-height: 200px; background: #0b0c10; border-radius: var(--radius-md); overflow: hidden; margin-bottom: 16px; display: flex; align-items: center; justify-content: center; border: 2px solid var(--border-color); box-shadow: var(--shadow-soft);">
+                    <img id="quiz-current-image" src="" alt="Hình ảnh câu hỏi" style="max-width: 100%; max-height: 300px; object-fit: contain; transition: transform 0.3s ease;">
+                </div>
+
+                <!-- Kahoot Option Bar Chart (Hidden during question, shown during reveal) -->
+                <div id="quiz-histogram-view" class="quiz-histogram-container hidden">
+                    <div class="quiz-histogram-col">
+                        <div class="quiz-histogram-bar quiz-kahoot-opt-0" id="hist-bar-0" style="height: 0%;">
+                            <span class="quiz-histogram-count" id="hist-count-0">0</span>
+                        </div>
+                        <span style="font-size: 12px; font-weight: 800; color: #ffffff;">▲</span>
+                    </div>
+                    <div class="quiz-histogram-col">
+                        <div class="quiz-histogram-bar quiz-kahoot-opt-1" id="hist-bar-1" style="height: 0%;">
+                            <span class="quiz-histogram-count" id="hist-count-1">0</span>
+                        </div>
+                        <span style="font-size: 12px; font-weight: 800; color: #ffffff;">◆</span>
+                    </div>
+                    <div class="quiz-histogram-col">
+                        <div class="quiz-histogram-bar quiz-kahoot-opt-2" id="hist-bar-2" style="height: 0%;">
+                            <span class="quiz-histogram-count" id="hist-count-2">0</span>
+                        </div>
+                        <span style="font-size: 12px; font-weight: 800; color: #ffffff;">●</span>
+                    </div>
+                    <div class="quiz-histogram-col">
+                        <div class="quiz-histogram-bar quiz-kahoot-opt-3" id="hist-bar-3" style="height: 0%;">
+                            <span class="quiz-histogram-count" id="hist-count-3">0</span>
+                        </div>
+                        <span style="font-size: 12px; font-weight: 800; color: #ffffff;">■</span>
+                    </div>
+                </div>
+
+                <!-- 4 Kahoot Colors Options Grid -->
+                <div id="quiz-options-grid" class="quiz-kahoot-grid">
+                    <!-- Generated by JS: ▲ Red, ◆ Blue, ● Yellow, ■ Green -->
+                </div>
+
+                <!-- Feedback Banner & Points Alert -->
+                <div id="quiz-feedback-banner" class="hidden" style="padding: 12px 16px; border-radius: var(--radius-md); text-align: center; font-weight: 800; font-size: 16px; margin-top: 10px; animation: drawFadeIn 0.3s ease;"></div>
+
+                <!-- Live Mini Leaderboard Bar -->
+                <div id="quiz-live-leaderboard" style="margin-top: 16px; background: rgba(0,0,0,0.2); padding: 10px 14px; border-radius: var(--radius-md); border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+                    <div style="font-size: 13px; font-weight: 700; color: var(--text-muted); display: flex; align-items: center; gap: 4px;">
+                        <span class="material-symbols-outlined" style="font-size: 16px; color: #ffd43b;">leaderboard</span>
+                        BXH Trực Tiếp:
+                    </div>
+                    <div id="quiz-leaderboard-ticker" style="display: flex; gap: 12px; font-size: 13px; font-weight: 700; color: #ffffff; flex-wrap: wrap;">
+                        <!-- Rendered by JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- View 3: Kahoot Results & 3D Winner Podium -->
+            <div id="quiz-result-view" class="hidden" style="text-align: center; padding: 10px 0;">
+                <h2 style="font-family: var(--font-display); font-size: 28px; color: #ffffff; margin-bottom: 4px;">🏆 BẢNG XẾP HẠNG CHUNG CUỘC</h2>
+                <div id="quiz-result-pack-title" style="color: var(--accent); font-size: 15px; font-weight: 700; margin-bottom: 10px;">--</div>
+                
+                <!-- 3D Podium Container -->
+                <div id="quiz-podium-container" class="quiz-podium-wrapper">
+                    <!-- Rendered by JS -->
+                </div>
+
+                <!-- Full Leaderboard Table -->
+                <div style="background: rgba(0,0,0,0.25); border-radius: var(--radius-md); border: 1px solid var(--border-color); padding: 14px; margin-bottom: 20px; max-height: 220px; overflow-y: auto;">
+                    <div id="quiz-final-leaderboard-list" style="display: flex; flex-direction: column; gap: 8px;">
+                        <!-- Rendered by JS -->
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+                    <button class="caro-btn" style="background: linear-gradient(135deg, #ff75a0, #ff4757); color: #fff; font-weight: 800; padding: 10px 20px; font-size: 15px;" onclick="returnToQuizLobby()">📋 Chơi Lượt Mới / Chọn Bộ Khác</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
 
     <!-- Fullscreen Announcement Overlay -->
     <div id="tb-fullscreen-overlay" class="tb-fullscreen-overlay hidden" onclick="closeTbNotification()">

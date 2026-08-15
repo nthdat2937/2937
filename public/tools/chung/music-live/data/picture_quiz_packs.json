@@ -1,0 +1,59 @@
+[
+  {
+    "id": "pack-1785571628723-abba",
+    "name": "Cờ",
+    "description": "Mô tả bộ câu hỏi...",
+    "items": [
+      {
+        "id": "item-1785571646207-twyw",
+        "name": "Vietnam",
+        "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/21/Flag_of_Vietnam.svg/1280px-Flag_of_Vietnam.svg.png"
+      },
+      {
+        "id": "item-1785571692504-1bix",
+        "name": "Korea",
+        "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/0/09/Flag_of_South_Korea.svg"
+      },
+      {
+        "id": "item-1785572094754-4nr2",
+        "name": "China",
+        "imageUrl": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQADh7AEYVCzOFtlI6dmATmIGj_X4duCfGfYB0QgmS1LA&s=10"
+      },
+      {
+        "id": "item-1785572133640-2ebz",
+        "name": "Thailand",
+        "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a9/Flag_of_Thailand.svg/960px-Flag_of_Thailand.svg.png"
+      },
+      {
+        "id": "item-1785572170370-vkaf",
+        "name": "Argentina",
+        "imageUrl": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSvqkCErl4zJOjiLqbx6KIBJUKM2anUp9Tz7zHutC_AUg&s=10"
+      },
+      {
+        "id": "item-1785572207425-unkk",
+        "name": "Portugal",
+        "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5c/Flag_of_Portugal.svg/960px-Flag_of_Portugal.svg.png"
+      },
+      {
+        "id": "item-1785572230829-1clq",
+        "name": "Brazil",
+        "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/0/05/Flag_of_Brazil.svg"
+      },
+      {
+        "id": "item-1785572256539-ni4y",
+        "name": "Spain",
+        "imageUrl": "https://cdn.britannica.com/36/4336-050-056AC114/Flag-Spain.jpg?w=1000"
+      },
+      {
+        "id": "item-1785572278701-4y6h",
+        "name": "Germany",
+        "imageUrl": "https://upload.wikimedia.org/wikipedia/en/thumb/b/ba/Flag_of_Germany.svg/330px-Flag_of_Germany.svg.png"
+      },
+      {
+        "id": "item-1785572342303-vd7a",
+        "name": "England",
+        "imageUrl": "https://upload.wikimedia.org/wikipedia/en/thumb/b/be/Flag_of_England.svg/330px-Flag_of_England.svg.png"
+      }
+    ]
+  }
+]
