@@ -29,11 +29,13 @@ async function logMusicHistory(videoId, title, addedBy) {
     }
 }
 
+const userAvatars = new Map();
+
 async function saveMessageToSupabase(msgObj) {
     if (!supabase) return;
     if (msgObj.role === 'system') return; // Do not save system notifications
     try {
-        const { error } = await supabase.from('chat_messages').insert([{
+        const payload = {
             id: String(msgObj.id),
             sender_id: msgObj.senderId ? String(msgObj.senderId) : null,
             name: msgObj.name || null,
@@ -44,12 +46,20 @@ async function saveMessageToSupabase(msgObj) {
             duration: msgObj.duration ? parseFloat(msgObj.duration) : null,
             gif_url: msgObj.gifUrl || null,
             file_url: msgObj.fileUrl || null,
+            avatar_url: msgObj.avatarUrl || null,
             role: msgObj.role || 'member',
             reply_to: msgObj.replyTo ? JSON.stringify(msgObj.replyTo) : null,
             created_at: new Date().toISOString()
-        }]);
+        };
+
+        const { error } = await supabase.from('chat_messages').insert([payload]);
         if (error) {
-            console.error('❌ Supabase Save Chat Error:', error.message, error.details || '');
+            if (error.message && error.message.includes('avatar_url')) {
+                delete payload.avatar_url;
+                await supabase.from('chat_messages').insert([payload]);
+            } else {
+                console.error('❌ Supabase Save Chat Error:', error.message, error.details || '');
+            }
         } else {
             console.log('✅ Đã lưu tin nhắn vào Supabase:', msgObj.text || msgObj.type);
         }
@@ -71,20 +81,24 @@ async function getRecentChatHistory() {
             return [];
         }
         if (!data) return [];
-        return data.reverse().map(m => ({
-            id: m.id,
-            senderId: m.sender_id,
-            name: m.name,
-            nameColor: m.name_color,
-            text: m.text,
-            type: m.type,
-            audioUrl: m.audio_url,
-            duration: m.duration,
-            gifUrl: m.gif_url,
-            fileUrl: m.file_url,
-            role: m.role,
-            replyTo: typeof m.reply_to === 'string' ? JSON.parse(m.reply_to) : m.reply_to
-        }));
+        return data.reverse().map(m => {
+            const cleanMName = (m.name || '').replace(' 😎', '').trim().toLowerCase();
+            return {
+                id: m.id,
+                senderId: m.sender_id,
+                name: m.name,
+                nameColor: m.name_color,
+                text: m.text,
+                type: m.type,
+                audioUrl: m.audio_url,
+                duration: m.duration,
+                gifUrl: m.gif_url,
+                fileUrl: m.file_url,
+                avatarUrl: m.avatar_url || userAvatars.get(cleanMName) || '',
+                role: m.role,
+                replyTo: typeof m.reply_to === 'string' ? JSON.parse(m.reply_to) : m.reply_to
+            };
+        });
     } catch (err) {
         console.error('❌ Supabase Fetch Chat Exception:', err.message);
         return [];
@@ -168,6 +182,659 @@ async function saveUserBackgroundsToSupabase(bgObj) {
     }
 }
 
+// ==========================================
+// --- MESSENGER & FRIENDSHIP BACKEND ---
+// ==========================================
+
+const memoryFriendships = new Map(); // id -> { id, user_id, friend_id, status, created_at, updated_at }
+const memoryDirectMessages = []; // { id, sender_id, receiver_id, text, media_url, media_type, is_read, created_at }
+const userSockets = new Map(); // userId -> Set<socket.id>
+
+function isUserOnline(userId) {
+    if (!userId) return false;
+    return userSockets.has(String(userId)) && userSockets.get(String(userId)).size > 0;
+}
+
+function getOnlineUserIds() {
+    return Array.from(userSockets.keys());
+}
+
+async function getProfileById(userId) {
+    if (!userId) return null;
+    if (supabase) {
+        try {
+            const { data, error } = await supabase
+                .from('profiles')
+                .select('id, username, display_name, avatar_url, name_color, role, email')
+                .eq('id', userId)
+                .maybeSingle();
+            if (!error && data) {
+                let resolvedRole = data.role || 'member';
+                for (const [sId, u] of connectedUsers.entries()) {
+                    const sock = io ? io.sockets.sockets.get(sId) : null;
+                    if (sock && String(sock.userId) === String(userId)) {
+                        if (sock.role === 'admin' || u.role === 'admin' || (u.name && u.name.includes('😎'))) {
+                            resolvedRole = 'admin';
+                        }
+                    }
+                }
+                return {
+                    id: data.id,
+                    username: data.username || 'Người dùng',
+                    displayName: data.display_name || data.username || 'Người dùng',
+                    avatarUrl: data.avatar_url || '',
+                    nameColor: data.name_color || '#3ea6ff',
+                    role: resolvedRole,
+                    email: data.email || ''
+                };
+            }
+        } catch (e) { }
+    }
+    for (const [sId, u] of connectedUsers.entries()) {
+        const sock = io ? io.sockets.sockets.get(sId) : null;
+        if (sock && String(sock.userId) === String(userId)) {
+            const isAdm = (sock.role === 'admin') || (u.role === 'admin') || (u.name && u.name.includes('😎'));
+            return {
+                id: userId,
+                username: u.name ? u.name.replace(' 😎', '') : 'Người dùng',
+                displayName: u.name ? u.name.replace(' 😎', '') : 'Người dùng',
+                avatarUrl: u.avatarUrl || '',
+                nameColor: u.nameColor || '#3ea6ff',
+                role: isAdm ? 'admin' : (u.role || 'member'),
+                email: ''
+            };
+        }
+    }
+    return {
+        id: userId,
+        username: 'Người dùng',
+        displayName: 'Người dùng',
+        avatarUrl: '',
+        nameColor: '#3ea6ff',
+        role: 'member',
+        email: ''
+    };
+}
+
+async function getUserRelationships(userId) {
+    const relMap = new Map();
+    if (!userId) return relMap;
+
+    let rows = [];
+    if (supabase) {
+        try {
+            const { data, error } = await supabase
+                .from('friendships')
+                .select('*')
+                .or(`user_id.eq.${userId},friend_id.eq.${userId}`);
+            if (!error && data) {
+                rows = data;
+            }
+        } catch (e) { }
+    }
+
+    for (const f of memoryFriendships.values()) {
+        if (String(f.user_id) === String(userId) || String(f.friend_id) === String(userId)) {
+            if (!rows.some(r => String(r.id) === String(f.id))) {
+                rows.push(f);
+            }
+        }
+    }
+
+    rows.forEach(r => {
+        const isSender = String(r.user_id) === String(userId);
+        const otherId = String(isSender ? r.friend_id : r.user_id);
+        if (r.status === 'accepted') {
+            relMap.set(otherId, { id: r.id, status: 'friends' });
+        } else if (r.status === 'pending') {
+            relMap.set(otherId, {
+                id: r.id,
+                status: isSender ? 'pending_sent' : 'pending_received'
+            });
+        }
+    });
+
+    return relMap;
+}
+
+async function searchMessengerUsers(query, currentUserId) {
+    const q = (query || '').trim();
+    if (!q) return [];
+    let list = [];
+
+    if (supabase) {
+        try {
+            const { data, error } = await supabase
+                .from('profiles')
+                .select('id, username, display_name, avatar_url, name_color, role, email')
+                .neq('id', currentUserId)
+                .or(`username.ilike.%${q}%,display_name.ilike.%${q}%,email.ilike.%${q}%`)
+                .limit(25);
+            if (!error && data) {
+                list = data.map(u => ({
+                    id: u.id,
+                    username: u.username || '',
+                    displayName: u.display_name || u.username || 'Người dùng',
+                    avatarUrl: u.avatar_url || '',
+                    nameColor: u.name_color || '#3ea6ff',
+                    role: u.role || 'member',
+                    email: u.email || ''
+                }));
+                // Check if any in list are currently connected as admin
+                for (const item of list) {
+                    for (const [sId, u] of connectedUsers.entries()) {
+                        const sock = io ? io.sockets.sockets.get(sId) : null;
+                        if (sock && String(sock.userId) === String(item.id)) {
+                            if (sock.role === 'admin' || u.role === 'admin' || (u.name && u.name.includes('😎'))) {
+                                item.role = 'admin';
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (err) {
+            console.error('searchMessengerUsers Supabase error:', err.message);
+        }
+    }
+
+    for (const [sId, u] of connectedUsers.entries()) {
+        const sock = io ? io.sockets.sockets.get(sId) : null;
+        if (sock && sock.userId && String(sock.userId) !== String(currentUserId)) {
+            const clean = (u.name || '').replace(' 😎', '').toLowerCase();
+            const isAdm = (sock.role === 'admin') || (u.role === 'admin') || (u.name && u.name.includes('😎'));
+            if (clean.includes(q.toLowerCase()) && !list.some(x => String(x.id) === String(sock.userId))) {
+                list.push({
+                    id: sock.userId,
+                    username: clean,
+                    displayName: clean,
+                    avatarUrl: u.avatarUrl || '',
+                    nameColor: u.nameColor || '#3ea6ff',
+                    role: isAdm ? 'admin' : (u.role || 'member'),
+                    email: ''
+                });
+            }
+        }
+    }
+
+    const relationships = await getUserRelationships(currentUserId);
+    return list.map(user => {
+        const rel = relationships.get(String(user.id)) || { status: 'none' };
+        return {
+            ...user,
+            online: isUserOnline(user.id),
+            relationship: rel.status,
+            friendshipId: rel.id || null
+        };
+    });
+}
+
+async function getLatestDirectMessage(u1, u2) {
+    let latest = null;
+
+    const msgs = memoryDirectMessages.filter(m =>
+        (String(m.sender_id) === String(u1) && String(m.receiver_id) === String(u2)) ||
+        (String(m.sender_id) === String(u2) && String(m.receiver_id) === String(u1))
+    );
+    if (msgs.length > 0) {
+        const last = msgs[msgs.length - 1];
+        latest = {
+            id: last.id,
+            senderId: last.sender_id,
+            receiverId: last.receiver_id,
+            text: last.text,
+            mediaUrl: last.media_url,
+            mediaType: last.media_type,
+            isRead: last.is_read,
+            createdAt: last.created_at
+        };
+    }
+
+    if (supabase) {
+        try {
+            const { data, error } = await supabase
+                .from('direct_messages')
+                .select('*')
+                .or(`and(sender_id.eq.${u1},receiver_id.eq.${u2}),and(sender_id.eq.${u2},receiver_id.eq.${u1})`)
+                .order('created_at', { ascending: false })
+                .limit(1)
+                .maybeSingle();
+            if (!error && data) {
+                const sbMsg = {
+                    id: data.id,
+                    senderId: data.sender_id,
+                    receiverId: data.receiver_id,
+                    text: data.text,
+                    mediaUrl: data.media_url,
+                    mediaType: data.media_type,
+                    isRead: data.is_read,
+                    createdAt: data.created_at
+                };
+                if (!latest || new Date(sbMsg.createdAt) >= new Date(latest.createdAt)) {
+                    latest = sbMsg;
+                }
+            }
+        } catch (e) { }
+    }
+
+    return latest;
+}
+
+async function getUnreadDirectMessageCount(senderId, receiverId) {
+    if (supabase) {
+        try {
+            const { count, error } = await supabase
+                .from('direct_messages')
+                .select('*', { count: 'exact', head: true })
+                .eq('sender_id', senderId)
+                .eq('receiver_id', receiverId)
+                .eq('is_read', false);
+            if (!error && count !== null) return count;
+        } catch (e) { }
+    }
+
+    return memoryDirectMessages.filter(m =>
+        String(m.sender_id) === String(senderId) &&
+        String(m.receiver_id) === String(receiverId) &&
+        !m.is_read
+    ).length;
+}
+
+async function getMessengerOverview(userId) {
+    if (!userId) return { friends: [], pendingRequests: [], sentRequests: [], conversations: [], onlineUserIds: getOnlineUserIds() };
+
+    let rows = [];
+    if (supabase) {
+        try {
+            const { data, error } = await supabase
+                .from('friendships')
+                .select('*')
+                .or(`user_id.eq.${userId},friend_id.eq.${userId}`);
+            if (!error && data) {
+                rows = data;
+            }
+        } catch (e) { }
+    }
+
+    for (const f of memoryFriendships.values()) {
+        if (String(f.user_id) === String(userId) || String(f.friend_id) === String(userId)) {
+            if (!rows.some(r => String(r.id) === String(f.id))) {
+                rows.push(f);
+            }
+        }
+    }
+
+    const acceptedFriends = [];
+    const pendingRequests = [];
+    const sentRequests = [];
+
+    for (const r of rows) {
+        const isSender = String(r.user_id) === String(userId);
+        const otherId = String(isSender ? r.friend_id : r.user_id);
+        const profile = await getProfileById(otherId);
+
+        if (r.status === 'accepted') {
+            acceptedFriends.push({
+                friendshipId: r.id,
+                friend: {
+                    ...profile,
+                    online: isUserOnline(otherId)
+                },
+                createdAt: r.created_at
+            });
+        } else if (r.status === 'pending') {
+            if (isSender) {
+                sentRequests.push({
+                    friendshipId: r.id,
+                    receiver: profile,
+                    createdAt: r.created_at
+                });
+            } else {
+                pendingRequests.push({
+                    friendshipId: r.id,
+                    sender: profile,
+                    createdAt: r.created_at
+                });
+            }
+        }
+    }
+
+    const conversations = [];
+    const addedFriendIds = new Set();
+
+    for (const item of acceptedFriends) {
+        const friendId = item.friend.id;
+        addedFriendIds.add(String(friendId));
+        const lastMsg = await getLatestDirectMessage(userId, friendId);
+        const unreadCount = await getUnreadDirectMessageCount(friendId, userId);
+
+        conversations.push({
+            friend: item.friend,
+            lastMessage: lastMsg,
+            unreadCount: unreadCount,
+            updatedAt: lastMsg ? lastMsg.createdAt : item.createdAt
+        });
+    }
+
+    const otherUserIds = new Set();
+    for (const m of memoryDirectMessages) {
+        if (String(m.sender_id) === String(userId) && !addedFriendIds.has(String(m.receiver_id))) {
+            otherUserIds.add(String(m.receiver_id));
+        } else if (String(m.receiver_id) === String(userId) && !addedFriendIds.has(String(m.sender_id))) {
+            otherUserIds.add(String(m.sender_id));
+        }
+    }
+
+    for (const otherId of otherUserIds) {
+        const profile = await getProfileById(otherId);
+        const friendObj = {
+            ...profile,
+            online: isUserOnline(otherId)
+        };
+        const lastMsg = await getLatestDirectMessage(userId, otherId);
+        const unreadCount = await getUnreadDirectMessageCount(otherId, userId);
+        conversations.push({
+            friend: friendObj,
+            lastMessage: lastMsg,
+            unreadCount: unreadCount,
+            updatedAt: lastMsg ? lastMsg.createdAt : new Date().toISOString()
+        });
+    }
+
+    conversations.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+
+    return {
+        friends: acceptedFriends.map(f => f.friend),
+        pendingRequests,
+        sentRequests,
+        conversations,
+        onlineUserIds: getOnlineUserIds()
+    };
+}
+
+async function sendFriendRequestDb(senderId, targetUserId) {
+    if (!senderId || !targetUserId || String(senderId) === String(targetUserId)) {
+        return { success: false, error: 'Không thể kết bạn với chính mình' };
+    }
+
+    const existing = await getUserRelationships(senderId);
+    const rel = existing.get(String(targetUserId));
+    if (rel) {
+        if (rel.status === 'friends') return { success: false, error: 'Hai bạn đã là bạn bè' };
+        if (rel.status === 'pending_sent') return { success: false, error: 'Bạn đã gửi lời mời kết bạn rồi' };
+        if (rel.status === 'pending_received') {
+            return await respondFriendRequestDb(rel.id, 'accept', senderId);
+        }
+    }
+
+    const row = {
+        id: 'fr-' + Date.now() + '-' + Math.random().toString(36).substring(2, 7),
+        user_id: senderId,
+        friend_id: targetUserId,
+        status: 'pending',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+    };
+
+    memoryFriendships.set(row.id, row);
+
+    if (supabase) {
+        try {
+            const { data, error } = await supabase
+                .from('friendships')
+                .insert([{
+                    user_id: senderId,
+                    friend_id: targetUserId,
+                    status: 'pending',
+                    created_at: row.created_at,
+                    updated_at: row.updated_at
+                }])
+                .select()
+                .maybeSingle();
+            if (!error && data) {
+                row.id = data.id;
+                memoryFriendships.set(String(data.id), data);
+            }
+        } catch (err) {
+            console.error('sendFriendRequestDb Supabase insert error:', err.message);
+        }
+    }
+
+    const senderProfile = await getProfileById(senderId);
+    return { success: true, friendship: row, sender: senderProfile };
+}
+
+async function respondFriendRequestDb(friendshipId, action, userId) {
+    let friendship = null;
+
+    if (supabase) {
+        try {
+            const { data, error } = await supabase
+                .from('friendships')
+                .select('*')
+                .eq('id', friendshipId)
+                .maybeSingle();
+            if (!error && data) friendship = data;
+        } catch (e) { }
+    }
+
+    if (!friendship && memoryFriendships.has(String(friendshipId))) {
+        friendship = memoryFriendships.get(String(friendshipId));
+    }
+
+    if (!friendship) {
+        return { success: false, error: 'Không tìm thấy lời mời kết bạn' };
+    }
+
+    if (action === 'accept') {
+        const updatedAt = new Date().toISOString();
+        if (supabase) {
+            try {
+                await supabase
+                    .from('friendships')
+                    .update({ status: 'accepted', updated_at: updatedAt })
+                    .eq('id', friendship.id);
+            } catch (e) { }
+        }
+        friendship.status = 'accepted';
+        friendship.updated_at = updatedAt;
+        memoryFriendships.set(String(friendship.id), friendship);
+
+        const user1Profile = await getProfileById(friendship.user_id);
+        const user2Profile = await getProfileById(friendship.friend_id);
+
+        return {
+            success: true,
+            action: 'accept',
+            friendship,
+            user1: user1Profile,
+            user2: user2Profile
+        };
+    } else {
+        if (supabase) {
+            try {
+                await supabase
+                    .from('friendships')
+                    .delete()
+                    .eq('id', friendship.id);
+            } catch (e) { }
+        }
+        memoryFriendships.delete(String(friendship.id));
+        return {
+            success: true,
+            action: 'decline',
+            friendship
+        };
+    }
+}
+
+async function unfriendDb(userId, friendId) {
+    if (!userId || !friendId) return { success: false, error: 'Dữ liệu không hợp lệ' };
+
+    if (supabase) {
+        try {
+            await supabase
+                .from('friendships')
+                .delete()
+                .or(`and(user_id.eq.${userId},friend_id.eq.${friendId}),and(user_id.eq.${friendId},friend_id.eq.${userId})`);
+        } catch (e) { }
+    }
+
+    for (const [id, f] of memoryFriendships.entries()) {
+        if ((String(f.user_id) === String(userId) && String(f.friend_id) === String(friendId)) ||
+            (String(f.user_id) === String(friendId) && String(f.friend_id) === String(userId))) {
+            memoryFriendships.delete(id);
+        }
+    }
+
+    return { success: true, userId, friendId };
+}
+
+async function saveDirectMessageDb(senderId, receiverId, text, mediaUrl, mediaType) {
+    const row = {
+        id: 'dm-' + Date.now() + '-' + Math.random().toString(36).substring(2, 8),
+        sender_id: senderId,
+        receiver_id: receiverId,
+        text: text || '',
+        media_url: mediaUrl || null,
+        media_type: mediaType || 'text',
+        is_read: false,
+        created_at: new Date().toISOString()
+    };
+
+    memoryDirectMessages.push(row);
+
+    if (supabase) {
+        try {
+            const { data, error } = await supabase
+                .from('direct_messages')
+                .insert([{
+                    sender_id: senderId,
+                    receiver_id: receiverId,
+                    text: row.text,
+                    media_url: row.media_url,
+                    media_type: row.media_type,
+                    is_read: false,
+                    created_at: row.created_at
+                }])
+                .select()
+                .maybeSingle();
+            if (!error && data) {
+                row.id = data.id;
+            }
+        } catch (err) {
+            console.error('saveDirectMessageDb Supabase error:', err.message);
+        }
+    }
+
+    return {
+        id: row.id,
+        senderId: row.sender_id,
+        receiverId: row.receiver_id,
+        text: row.text,
+        mediaUrl: row.media_url,
+        mediaType: row.media_type,
+        isRead: row.is_read,
+        createdAt: row.created_at
+    };
+}
+
+async function getDirectMessagesDb(userId1, userId2, limit = 60) {
+    const map = new Map();
+
+    const memMsgs = memoryDirectMessages.filter(m =>
+        (String(m.sender_id) === String(userId1) && String(m.receiver_id) === String(userId2)) ||
+        (String(m.sender_id) === String(userId2) && String(m.receiver_id) === String(userId1))
+    );
+    for (const m of memMsgs) {
+        map.set(String(m.id), {
+            id: m.id,
+            senderId: m.sender_id,
+            receiverId: m.receiver_id,
+            text: m.text,
+            mediaUrl: m.media_url,
+            mediaType: m.media_type,
+            isRead: m.is_read,
+            createdAt: m.created_at
+        });
+    }
+
+    if (supabase) {
+        try {
+            const { data, error } = await supabase
+                .from('direct_messages')
+                .select('*')
+                .or(`and(sender_id.eq.${userId1},receiver_id.eq.${userId2}),and(sender_id.eq.${userId2},receiver_id.eq.${userId1})`)
+                .order('created_at', { ascending: false })
+                .limit(limit);
+            if (!error && Array.isArray(data)) {
+                for (const m of data) {
+                    if (map.has(String(m.id))) {
+                        map.set(String(m.id), {
+                            id: m.id,
+                            senderId: m.sender_id,
+                            receiverId: m.receiver_id,
+                            text: m.text,
+                            mediaUrl: m.media_url,
+                            mediaType: m.media_type,
+                            isRead: m.is_read,
+                            createdAt: m.created_at
+                        });
+                    } else {
+                        let foundKey = null;
+                        for (const [k, v] of map.entries()) {
+                            if (String(v.senderId) === String(m.sender_id) &&
+                                String(v.receiverId) === String(m.receiver_id) &&
+                                v.text === m.text &&
+                                Math.abs(new Date(v.createdAt) - new Date(m.created_at)) < 2000) {
+                                foundKey = k;
+                                break;
+                            }
+                        }
+                        if (foundKey) {
+                            map.delete(foundKey);
+                        }
+                        map.set(String(m.id), {
+                            id: m.id,
+                            senderId: m.sender_id,
+                            receiverId: m.receiver_id,
+                            text: m.text,
+                            mediaUrl: m.media_url,
+                            mediaType: m.media_type,
+                            isRead: m.is_read,
+                            createdAt: m.created_at
+                        });
+                    }
+                }
+            }
+        } catch (e) { }
+    }
+
+    const all = Array.from(map.values());
+    all.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+    return all.slice(-limit);
+}
+
+async function markDirectMessagesReadDb(userId, friendId) {
+    if (supabase) {
+        try {
+            await supabase
+                .from('direct_messages')
+                .update({ is_read: true })
+                .eq('sender_id', friendId)
+                .eq('receiver_id', userId)
+                .eq('is_read', false);
+        } catch (e) { }
+    }
+
+    memoryDirectMessages.forEach(m => {
+        if (String(m.sender_id) === String(friendId) && String(m.receiver_id) === String(userId)) {
+            m.is_read = true;
+        }
+    });
+
+    return { success: true };
+}
+
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
@@ -187,6 +854,17 @@ let lastGlobalVideoEndedTime = 0;
 
 
 let connectedUsers = new Map();
+let typingUsers = new Map(); // socket.id -> { id, name, nameColor, timer }
+
+function broadcastTypingUsers() {
+    const list = Array.from(typingUsers.values()).map(u => ({
+        id: u.id,
+        name: u.name,
+        nameColor: u.nameColor
+    }));
+    io.emit('typingUsersUpdate', list);
+}
+
 let drawGame = {
     active: false, state: 'inactive', drawerId: null, drawerName: '',
     word: '', scores: {}, timeLeft: 90, timer: null,
@@ -549,6 +1227,152 @@ function generateQuestionsForPack(pack, allPacks) {
     });
 }
 
+// --- MULTIPLAYER QUIZ ROOM SERVER ENGINE (SHARED GLOBAL STATE) ---
+let quizRoomState = {
+    active: false,
+    hostId: null,
+    hostName: '',
+    hostToken: null,
+    packId: null,
+    packName: '',
+    questions: [],
+    currentIndex: 0,
+    gameSessionId: null,
+    state: 'lobby', // 'lobby' | 'question' | 'reveal' | 'finished'
+    timerSeconds: 15,
+    timeLeft: 15,
+    questionStartTime: 0,
+    answers: {}, // { [userKey]: { optionIndex, isCorrect, scoreAdded, timeTaken } }
+    optionCounts: [0, 0, 0, 0],
+    players: {} // { [userKey]: { id, name, color, score, correctCount } }
+};
+let quizRoomTimer = null;
+let quizRevealTimeout = null;
+
+function clearQuizTimers() {
+    if (quizRoomTimer) {
+        clearInterval(quizRoomTimer);
+        quizRoomTimer = null;
+    }
+    if (quizRevealTimeout) {
+        clearTimeout(quizRevealTimeout);
+        quizRevealTimeout = null;
+    }
+}
+
+function getQuizUserKey(socket) {
+    if (socket && socket.username && socket.username.trim()) {
+        return socket.username.replace(/😎/g, '').trim().toLowerCase();
+    }
+    return socket ? socket.id : 'unknown';
+}
+
+function getPublicQuizState() {
+    const currentQ = quizRoomState.questions[quizRoomState.currentIndex];
+    const leaderboard = Object.values(quizRoomState.players)
+        .sort((a, b) => b.score - a.score);
+    return {
+        active: quizRoomState.active,
+        hostId: quizRoomState.hostId,
+        hostName: quizRoomState.hostName,
+        packId: quizRoomState.packId,
+        packName: quizRoomState.packName,
+        gameSessionId: quizRoomState.gameSessionId,
+        totalQuestions: quizRoomState.questions.length,
+        currentIndex: quizRoomState.currentIndex,
+        state: quizRoomState.state,
+        timeLeft: quizRoomState.timeLeft,
+        timerSeconds: quizRoomState.timerSeconds,
+        question: currentQ ? {
+            id: currentQ.id,
+            imageUrl: currentQ.imageUrl,
+            options: currentQ.options,
+            correctOptionIndex: (quizRoomState.state === 'reveal' || quizRoomState.state === 'finished')
+                ? currentQ.options.indexOf(currentQ.correctAnswer)
+                : null,
+            correctAnswer: (quizRoomState.state === 'reveal' || quizRoomState.state === 'finished')
+                ? currentQ.correctAnswer
+                : null
+        } : null,
+        answeredCount: Object.keys(quizRoomState.answers).length,
+        totalPlayersCount: Math.max(io.engine ? io.engine.clientsCount : 1, connectedUsers.size, Object.keys(quizRoomState.players).length, 1),
+        optionCounts: (quizRoomState.state === 'reveal' || quizRoomState.state === 'finished')
+            ? quizRoomState.optionCounts
+            : [0, 0, 0, 0],
+        leaderboard: leaderboard
+    };
+}
+
+function startQuizQuestionTimer() {
+    clearQuizTimers();
+    quizRoomState.answers = {};
+    quizRoomState.optionCounts = [0, 0, 0, 0];
+    quizRoomState.state = 'question';
+    quizRoomState.timeLeft = quizRoomState.timerSeconds;
+    quizRoomState.questionStartTime = Date.now();
+
+    // Ensure all connected sockets are registered in players map
+    connectedUsers.forEach((user, sid) => {
+        const key = (user.name && user.name.trim()) ? user.name.replace(/😎/g, '').trim().toLowerCase() : sid;
+        if (!quizRoomState.players[key]) {
+            quizRoomState.players[key] = {
+                id: sid,
+                name: user.name || 'Người chơi',
+                color: user.nameColor || '#ff75a0',
+                score: 0,
+                correctCount: 0
+            };
+        } else {
+            quizRoomState.players[key].id = sid;
+            if (user.name) quizRoomState.players[key].name = user.name;
+            if (user.nameColor) quizRoomState.players[key].color = user.nameColor;
+        }
+    });
+
+    io.emit('quizRoomUpdate', getPublicQuizState());
+
+    quizRoomTimer = setInterval(() => {
+        quizRoomState.timeLeft--;
+        if (quizRoomState.timeLeft <= 0) {
+            clearQuizTimers();
+            revealQuizQuestionResult();
+        } else {
+            const totalP = Math.max(io.engine ? io.engine.clientsCount : 1, connectedUsers.size, Object.keys(quizRoomState.players).length, 1);
+            const answeredP = Object.keys(quizRoomState.answers).length;
+            io.emit('quizRoomTimerTick', {
+                timeLeft: quizRoomState.timeLeft,
+                answeredCount: answeredP,
+                totalPlayersCount: totalP
+            });
+        }
+    }, 1000);
+}
+
+function revealQuizQuestionResult() {
+    clearQuizTimers();
+    quizRoomState.state = 'reveal';
+    io.emit('quizRoomUpdate', getPublicQuizState());
+
+    // Wait 5 seconds on reveal screen, then move to next question or end
+    quizRevealTimeout = setTimeout(() => {
+        quizRevealTimeout = null;
+        if (!quizRoomState.active) return;
+        if (quizRoomState.currentIndex + 1 < quizRoomState.questions.length) {
+            quizRoomState.currentIndex++;
+            startQuizQuestionTimer();
+        } else {
+            quizRoomState.state = 'finished';
+            io.emit('quizRoomUpdate', getPublicQuizState());
+            io.emit('newMessage', {
+                id: 'sys-' + Date.now(),
+                name: 'Đoán Hình 🧩',
+                text: `🏆 Trò chơi Đoán Hình đã kết thúc! Tới bảng xếp hạng tổng để xem quán quân!`,
+                role: 'system'
+            });
+        }
+    }, 5000);
+}
+
 function checkCaroWinner(row, col, player) {
     const board = caroGame.board;
     const dirs = [[0, 1], [1, 0], [1, 1], [1, -1]];
@@ -584,7 +1408,7 @@ function generateHint(word) {
 }
 function getDrawUserList() {
     const users = [];
-    connectedUsers.forEach((u, id) => users.push({ id, name: u.name, nameColor: u.nameColor }));
+    connectedUsers.forEach((u, id) => users.push({ id, name: u.name, nameColor: u.nameColor, avatarUrl: u.avatarUrl || '' }));
     return users;
 }
 function endDrawRound() {
@@ -712,69 +1536,62 @@ io.on('connection', (socket) => {
     io.emit('viewersUpdate', io.engine.clientsCount);
 
     socket.on('joinRoom', async (data) => {
-        const { name, isAdmin, password, nameColor } = data;
-        const username = (name || '').trim() || 'Người dùng ẩn danh';
+        const { name, isAdmin, password, nameColor, userId, role: clientRole } = data || {};
+        let username = (name || '').trim() || 'Người dùng';
+        let resolvedDisplayName = '';
+        let resolvedRole = 'member';
+        let resolvedColor = nameColor || '#3ea6ff';
+        let resolvedAvatar = '';
+        socket.userId = userId || null;
+        if (socket.userId) {
+            socket.join('user:' + socket.userId);
+            if (!userSockets.has(String(socket.userId))) {
+                userSockets.set(String(socket.userId), new Set());
+            }
+            userSockets.get(String(socket.userId)).add(socket.id);
+            io.emit('messenger:userOnline', { userId: socket.userId, online: true });
+        }
         const chatHistory = await getRecentChatHistory();
 
-        const lowerName = username.toLowerCase().replace(/\s+/g, '');
-        const isReserved = lowerName.includes('admin') ||
-            lowerName.includes('nthdat') ||
-            lowerName.includes('quantrivien') ||
-            lowerName.includes('quan-tri-vien') ||
-            lowerName === 'doo' ||
-            lowerName === 'hethong' ||
-            lowerName === 'system';
+        // Check Supabase profiles table if userId is provided
+        if (userId) {
+            try {
+                const { data: profile, error } = await supabase
+                    .from('profiles')
+                    .select('role, username, display_name, name_color, avatar_url')
+                    .eq('id', userId)
+                    .maybeSingle();
 
-        if (isAdmin) {
-            let isValid = false;
-            let adminLabel = 'Admin';
-
-            if (username.toLowerCase() === 'nthdat') {
-                if (password === ADMIN_PASSWORD) isValid = true;
-                adminLabel = 'Admin Chính';
-            } else {
-                if (password === '16082009' || /^[0-9]{8}$/.test(password)) isValid = true;
-                adminLabel = 'Doo';
-            }
-
-            if (isValid) {
-                socket.username = username + ` 😎`;
-                socket.role = 'admin';
-                socket.nameColor = nameColor || '#fbbc04';
-                connectedUsers.set(socket.id, { name: socket.username, role: 'admin', nameColor: socket.nameColor });
-                if (quizRoomState.active) {
-                    const uKey = getQuizUserKey(socket);
-                    quizRoomState.players[uKey] = {
-                        id: socket.id,
-                        name: socket.username,
-                        color: socket.nameColor || '#ff75a0',
-                        score: (quizRoomState.players[uKey] ? quizRoomState.players[uKey].score : 0),
-                        correctCount: (quizRoomState.players[uKey] ? quizRoomState.players[uKey].correctCount : 0)
-                    };
+                if (profile) {
+                    if (profile.role) resolvedRole = profile.role.toLowerCase().trim();
+                    if (profile.display_name && profile.display_name.trim()) resolvedDisplayName = profile.display_name.trim();
+                    if (profile.username && profile.username.trim()) username = profile.username.trim();
+                    if (profile.name_color) resolvedColor = profile.name_color;
+                    if (profile.avatar_url) resolvedAvatar = profile.avatar_url;
                 }
-                socket.emit('authResult', { success: true, role: 'admin', currentVideoId, currentVideoTitle, playlist, pinnedMessage, loopMode, drawGame: drawGame.active ? { active: true, state: drawGame.state, scores: drawGame.scores } : null, caroGame, chessGame, xiangqiGame, unoPublicState: getPublicUnoState(), quizPublicState: quizRoomState.active ? getPublicQuizState() : null, chatHistory });
-                io.emit('newMessage', { id: 'sys-' + Date.now(), name: 'Hệ thống 🤖', text: `👑 Admin [${socket.username}] đã lên sàn điều khiển nhạc!`, role: 'system' });
-                io.emit('activeUsersList', getDrawUserList());
-            } else {
-                socket.emit('authResult', { success: false, message: 'Sai mật khẩu hoặc ngày sinh Quản trị viên rồi! ❌' });
+            } catch (err) {
+                console.error('Supabase profile query error in joinRoom:', err.message);
             }
-        } else {
-            if (isReserved) {
-                socket.emit('authResult', { success: false, message: 'Tên người dùng chứa từ khóa dành riêng cho Quản trị viên (admin, nthdat...)! Vui lòng chọn tên khác. ❌' });
-                return;
-            }
+        }
 
-            // Check duplicate username among active connected users
-            const isDuplicate = Array.from(connectedUsers.entries()).some(([id, u]) => id !== socket.id && (u.name.toLowerCase() === username.toLowerCase() || u.name.toLowerCase() === (username + ' 😎').toLowerCase()));
-            if (isDuplicate) {
-                socket.emit('authResult', { success: false, message: 'Tên này đã có người đang dùng trong phòng! Vui lòng chọn tên khác. ❌' });
-                return;
+        // Support password fallback for admin
+        if (isAdmin || clientRole === 'admin') {
+            if (password === ADMIN_PASSWORD || password === '16082009' || /^[0-9]{8}$/.test(password)) {
+                resolvedRole = 'admin';
             }
+        }
 
-            socket.username = username;
-            socket.role = 'member';
-            socket.nameColor = nameColor || '#aaaaaa';
-            connectedUsers.set(socket.id, { name: socket.username, role: 'member', nameColor: socket.nameColor });
+        const isUserAdmin = (resolvedRole === 'admin');
+        const chosenName = resolvedDisplayName || username;
+
+        if (isUserAdmin) {
+            socket.username = chosenName.includes('😎') ? chosenName : (chosenName + ' 😎');
+            socket.role = 'admin';
+            socket.nameColor = resolvedColor || '#fbbc04';
+            socket.avatarUrl = resolvedAvatar;
+            userAvatars.set(username.toLowerCase(), resolvedAvatar);
+            if (resolvedDisplayName) userAvatars.set(resolvedDisplayName.toLowerCase(), resolvedAvatar);
+            connectedUsers.set(socket.id, { id: socket.id, name: socket.username, role: 'admin', nameColor: socket.nameColor, avatarUrl: socket.avatarUrl });
             if (quizRoomState.active) {
                 const uKey = getQuizUserKey(socket);
                 quizRoomState.players[uKey] = {
@@ -785,10 +1602,71 @@ io.on('connection', (socket) => {
                     correctCount: (quizRoomState.players[uKey] ? quizRoomState.players[uKey].correctCount : 0)
                 };
             }
-            socket.emit('authResult', { success: true, role: 'member', currentVideoId, currentVideoTitle, playlist, pinnedMessage, loopMode, drawGame: drawGame.active ? { active: true, state: drawGame.state, scores: drawGame.scores } : null, caroGame, chessGame, xiangqiGame, unoPublicState: getPublicUnoState(), quizPublicState: quizRoomState.active ? getPublicQuizState() : null, chatHistory });
+            socket.emit('authResult', {
+                success: true,
+                role: 'admin',
+                userProfile: { username, displayName: resolvedDisplayName, avatarUrl: resolvedAvatar, nameColor: socket.nameColor, role: 'admin' },
+                currentVideoId, currentVideoTitle, playlist, pinnedMessage, loopMode,
+                drawGame: drawGame.active ? { active: true, state: drawGame.state, scores: drawGame.scores } : null,
+                caroGame, chessGame, xiangqiGame, unoPublicState: getPublicUnoState(),
+                quizPublicState: quizRoomState.active ? getPublicQuizState() : null, chatHistory
+            });
+            io.emit('newMessage', { id: 'sys-' + Date.now(), name: 'Hệ thống 🤖', text: `👑 Admin [${socket.username}] đã lên sàn điều khiển nhạc!`, role: 'system' });
+            io.emit('activeUsersList', getDrawUserList());
+        } else {
+            socket.username = chosenName.replace(/😎/g, '').trim();
+            socket.role = 'member';
+            socket.nameColor = resolvedColor || '#3ea6ff';
+            socket.avatarUrl = resolvedAvatar;
+            userAvatars.set(username.toLowerCase(), resolvedAvatar);
+            if (resolvedDisplayName) userAvatars.set(resolvedDisplayName.toLowerCase(), resolvedAvatar);
+            connectedUsers.set(socket.id, { id: socket.id, name: socket.username, role: 'member', nameColor: socket.nameColor, avatarUrl: socket.avatarUrl });
+            if (quizRoomState.active) {
+                const uKey = getQuizUserKey(socket);
+                quizRoomState.players[uKey] = {
+                    id: socket.id,
+                    name: socket.username,
+                    color: socket.nameColor || '#ff75a0',
+                    score: (quizRoomState.players[uKey] ? quizRoomState.players[uKey].score : 0),
+                    correctCount: (quizRoomState.players[uKey] ? quizRoomState.players[uKey].correctCount : 0)
+                };
+            }
+            socket.emit('authResult', {
+                success: true,
+                role: 'member',
+                userProfile: { username, displayName: resolvedDisplayName, avatarUrl: resolvedAvatar, nameColor: socket.nameColor, role: 'member' },
+                currentVideoId, currentVideoTitle, playlist, pinnedMessage, loopMode,
+                drawGame: drawGame.active ? { active: true, state: drawGame.state, scores: drawGame.scores } : null,
+                caroGame, chessGame, xiangqiGame, unoPublicState: getPublicUnoState(),
+                quizPublicState: quizRoomState.active ? getPublicQuizState() : null, chatHistory
+            });
             io.emit('newMessage', { id: 'sys-' + Date.now(), name: 'Hệ thống 🤖', text: `👋 Chào mừng [${socket.username}] đã tham gia phòng nhạc!`, role: 'system' });
             io.emit('activeUsersList', getDrawUserList());
         }
+        if (drawGame.active) io.emit('drawUsersUpdate', getDrawUserList());
+    });
+
+    socket.on('updateUserProfile', async (data) => {
+        const { displayName, username, phone, avatarUrl, nameColor } = data || {};
+        const cleanName = (displayName || username || socket.username || '').replace(' 😎', '').trim();
+        const isAdmin = (socket.role === 'admin') || (socket.username && socket.username.includes('😎'));
+
+        socket.username = isAdmin ? (cleanName + ' 😎') : cleanName;
+        if (nameColor) socket.nameColor = nameColor;
+        if (avatarUrl !== undefined) socket.avatarUrl = avatarUrl;
+
+        userAvatars.set(cleanName.toLowerCase(), socket.avatarUrl || '');
+        if (username) userAvatars.set(username.toLowerCase(), socket.avatarUrl || '');
+
+        connectedUsers.set(socket.id, {
+            id: socket.id,
+            name: socket.username,
+            role: socket.role,
+            nameColor: socket.nameColor,
+            avatarUrl: socket.avatarUrl
+        });
+
+        io.emit('activeUsersList', getDrawUserList());
         if (drawGame.active) io.emit('drawUsersUpdate', getDrawUserList());
     });
 
@@ -816,11 +1694,42 @@ io.on('connection', (socket) => {
     });
 
 
+    socket.on('userTyping', (isTyping) => {
+        const existing = typingUsers.get(socket.id);
+        if (existing && existing.timer) clearTimeout(existing.timer);
+
+        if (isTyping) {
+            const timer = setTimeout(() => {
+                if (typingUsers.has(socket.id)) {
+                    typingUsers.delete(socket.id);
+                    broadcastTypingUsers();
+                }
+            }, 4500);
+
+            typingUsers.set(socket.id, {
+                id: socket.id,
+                name: socket.username || 'Người dùng',
+                nameColor: socket.nameColor || '#3ea6ff',
+                timer: timer
+            });
+        } else {
+            typingUsers.delete(socket.id);
+        }
+        broadcastTypingUsers();
+    });
+
     socket.on('sendMessage', async (msg) => {
+        if (typingUsers.has(socket.id)) {
+            const existing = typingUsers.get(socket.id);
+            if (existing && existing.timer) clearTimeout(existing.timer);
+            typingUsers.delete(socket.id);
+            broadcastTypingUsers();
+        }
         const msgId = Date.now() + '-' + Math.random().toString(36).substr(2, 9);
         const senderName = socket.username || 'Ẩn danh';
         const senderRole = socket.role || 'member';
         const senderColor = socket.nameColor || '#aaaaaa';
+        const senderAvatar = socket.avatarUrl || '';
         const replyTo = (typeof msg === 'object' && msg.replyTo) ? msg.replyTo : null;
 
         if (typeof msg === 'object' && msg.type === 'gif' && msg.gifUrl) {
@@ -829,6 +1738,7 @@ io.on('connection', (socket) => {
                 senderId: socket.id,
                 name: senderName,
                 nameColor: senderColor,
+                avatarUrl: senderAvatar,
                 text: '[GIF]',
                 type: 'gif',
                 gifUrl: msg.gifUrl,
@@ -845,6 +1755,7 @@ io.on('connection', (socket) => {
                 senderId: socket.id,
                 name: senderName,
                 nameColor: senderColor,
+                avatarUrl: senderAvatar,
                 text: '[Tin nhắn thoại]',
                 type: 'voice',
                 audioUrl: msg.audioUrl,
@@ -863,6 +1774,7 @@ io.on('connection', (socket) => {
                 senderId: socket.id,
                 name: senderName,
                 nameColor: senderColor,
+                avatarUrl: senderAvatar,
                 text: msg.type === 'image' ? '[Hình ảnh]' : '[Video]',
                 type: msg.type,
                 fileUrl: msg.fileUrl,
@@ -940,7 +1852,7 @@ io.on('connection', (socket) => {
 
             const textMsgObj = {
                 id: msgId, senderId: socket.id, name: senderName,
-                nameColor: senderColor, text: textMsg, role: senderRole,
+                nameColor: senderColor, avatarUrl: senderAvatar, text: textMsg, role: senderRole,
                 replyTo: replyTo, type: 'text'
             };
             io.emit('newMessage', textMsgObj);
@@ -1669,134 +2581,6 @@ io.on('connection', (socket) => {
         io.emit('unoUpdate', getPublicUnoState());
     });
 
-// --- MULTIPLAYER QUIZ ROOM SERVER ENGINE ---
-let quizRoomState = {
-    active: false,
-    hostName: '',
-    packId: null,
-    packName: '',
-    questions: [],
-    currentIndex: 0,
-    state: 'lobby', // 'lobby' | 'question' | 'reveal' | 'finished'
-    timerSeconds: 15,
-    timeLeft: 15,
-    questionStartTime: 0,
-    answers: {}, // { [userKey]: { optionIndex, isCorrect, scoreAdded, timeTaken } }
-    optionCounts: [0, 0, 0, 0],
-    players: {} // { [userKey]: { id, name, color, score, correctCount } }
-};
-let quizRoomTimer = null;
-
-function getQuizUserKey(socket) {
-    if (socket && socket.username && socket.username.trim()) {
-        return socket.username.replace(/😎/g, '').trim().toLowerCase();
-    }
-    return socket ? socket.id : 'unknown';
-}
-
-function getPublicQuizState() {
-    const currentQ = quizRoomState.questions[quizRoomState.currentIndex];
-    const leaderboard = Object.values(quizRoomState.players)
-        .sort((a, b) => b.score - a.score);
-    return {
-        active: quizRoomState.active,
-        hostName: quizRoomState.hostName,
-        packId: quizRoomState.packId,
-        packName: quizRoomState.packName,
-        totalQuestions: quizRoomState.questions.length,
-        currentIndex: quizRoomState.currentIndex,
-        state: quizRoomState.state,
-        timeLeft: quizRoomState.timeLeft,
-        timerSeconds: quizRoomState.timerSeconds,
-        question: currentQ ? {
-            id: currentQ.id,
-            imageUrl: currentQ.imageUrl,
-            options: currentQ.options,
-            correctOptionIndex: (quizRoomState.state === 'reveal' || quizRoomState.state === 'finished')
-                ? currentQ.options.indexOf(currentQ.correctAnswer)
-                : null,
-            correctAnswer: (quizRoomState.state === 'reveal' || quizRoomState.state === 'finished')
-                ? currentQ.correctAnswer
-                : null
-        } : null,
-        answeredCount: Object.keys(quizRoomState.answers).length,
-        totalPlayersCount: Math.max(connectedUsers.size, Object.keys(quizRoomState.players).length, 1),
-        optionCounts: (quizRoomState.state === 'reveal' || quizRoomState.state === 'finished')
-            ? quizRoomState.optionCounts
-            : [0, 0, 0, 0],
-        leaderboard: leaderboard
-    };
-}
-
-function startQuizQuestionTimer() {
-    if (quizRoomTimer) clearInterval(quizRoomTimer);
-    quizRoomState.answers = {};
-    quizRoomState.optionCounts = [0, 0, 0, 0];
-    quizRoomState.state = 'question';
-    quizRoomState.timeLeft = quizRoomState.timerSeconds;
-    quizRoomState.questionStartTime = Date.now();
-
-    // Ensure all connected sockets are registered in players map
-    connectedUsers.forEach((user, sid) => {
-        const key = (user.name && user.name.trim()) ? user.name.replace(/😎/g, '').trim().toLowerCase() : sid;
-        if (!quizRoomState.players[key]) {
-            quizRoomState.players[key] = {
-                id: sid,
-                name: user.name || 'Người chơi',
-                color: user.nameColor || '#ff75a0',
-                score: 0,
-                correctCount: 0
-            };
-        } else {
-            quizRoomState.players[key].id = sid;
-            if (user.name) quizRoomState.players[key].name = user.name;
-            if (user.nameColor) quizRoomState.players[key].color = user.nameColor;
-        }
-    });
-
-    io.emit('quizRoomUpdate', getPublicQuizState());
-
-    quizRoomTimer = setInterval(() => {
-        quizRoomState.timeLeft--;
-        if (quizRoomState.timeLeft <= 0) {
-            clearInterval(quizRoomTimer);
-            revealQuizQuestionResult();
-        } else {
-            const totalP = Math.max(connectedUsers.size, Object.keys(quizRoomState.players).length, 1);
-            const answeredP = Object.keys(quizRoomState.answers).length;
-            io.emit('quizRoomTimerTick', {
-                timeLeft: quizRoomState.timeLeft,
-                answeredCount: answeredP,
-                totalPlayersCount: totalP
-            });
-        }
-    }, 1000);
-}
-
-function revealQuizQuestionResult() {
-    if (quizRoomTimer) clearInterval(quizRoomTimer);
-    quizRoomState.state = 'reveal';
-    io.emit('quizRoomUpdate', getPublicQuizState());
-
-    // Wait 5 seconds on reveal screen, then move to next question or end
-    setTimeout(() => {
-        if (!quizRoomState.active) return;
-        if (quizRoomState.currentIndex + 1 < quizRoomState.questions.length) {
-            quizRoomState.currentIndex++;
-            startQuizQuestionTimer();
-        } else {
-            quizRoomState.state = 'finished';
-            io.emit('quizRoomUpdate', getPublicQuizState());
-            io.emit('newMessage', {
-                id: 'sys-' + Date.now(),
-                name: 'Đoán Hình 🧩',
-                text: `🏆 Trò chơi Đoán Hình đã kết thúc! Tới bảng xếp hạng tổng để xem quán quân!`,
-                role: 'system'
-            });
-        }
-    }, 5000);
-}
-
     socket.on('getQuizPacks', (callback) => {
         const packs = loadQuizPacks();
         if (typeof callback === 'function') callback(packs);
@@ -1809,28 +2593,41 @@ function revealQuizQuestionResult() {
         else socket.emit('quizRoomUpdate', st);
     });
 
-    socket.on('startMultiplayerQuiz', ({ packId }, callback) => {
+    socket.on('startMultiplayerQuiz', (data, callback) => {
+        let cb = (typeof data === 'function') ? data : callback;
+        let packId = (data && typeof data === 'object') ? data.packId : data;
+        let starterName = (data && typeof data === 'object') ? data.starterName : '';
+
+        clearQuizTimers();
         const allPacks = loadQuizPacks();
         const pack = allPacks.find(p => p.id === packId);
         if (!pack || !isQuizPackComplete(pack)) {
-            if (typeof callback === 'function') callback({ success: false, message: 'Bộ câu hỏi không hợp lệ hoặc chưa đủ 4 item!' });
+            if (typeof cb === 'function') cb({ success: false, message: 'Bộ câu hỏi không hợp lệ hoặc chưa đủ 4 item!' });
             return;
         }
 
         const questions = generateQuestionsForPack(pack, allPacks);
         if (questions.length === 0) {
-            if (typeof callback === 'function') callback({ success: false, message: 'Không thể tạo danh sách câu hỏi!' });
+            if (typeof cb === 'function') cb({ success: false, message: 'Không thể tạo danh sách câu hỏi!' });
             return;
         }
 
+        const hostToken = 'token_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9);
+        const resolvedHostName = (socket.username && socket.username.trim()) ? socket.username : (starterName || 'Người chơi');
+
         // Initialize multiplayer room state
         quizRoomState.active = true;
-        quizRoomState.hostName = socket.username || 'Admin';
+        quizRoomState.hostId = socket.id;
+        quizRoomState.hostName = resolvedHostName;
+        quizRoomState.hostToken = hostToken;
         quizRoomState.packId = pack.id;
         quizRoomState.packName = pack.name;
         quizRoomState.questions = questions;
         quizRoomState.currentIndex = 0;
+        quizRoomState.gameSessionId = Date.now();
         quizRoomState.players = {};
+        quizRoomState.answers = {};
+        quizRoomState.optionCounts = [0, 0, 0, 0];
 
         // Register all currently connected active users into players map
         connectedUsers.forEach((user, sid) => {
@@ -1844,12 +2641,12 @@ function revealQuizQuestionResult() {
             };
         });
 
-        if (typeof callback === 'function') callback({ success: true });
+        if (typeof cb === 'function') cb({ success: true, hostToken: hostToken });
 
         io.emit('newMessage', {
             id: 'sys-' + Date.now(),
             name: 'Đoán Hình 🧩',
-            text: `🔥 **[${socket.username || 'Admin'}]** đã khởi chạy trò chơi **Đoán Hình Multiplayer**: *${pack.name}*! Mọi người cùng tham gia trả lời nào!`,
+            text: `🔥 **[${resolvedHostName}]** đã khởi chạy trò chơi **Đoán Hình Multiplayer**: *${pack.name}*! Mọi người cùng tham gia trả lời nào!`,
             role: 'system'
         });
 
@@ -1906,7 +2703,7 @@ function revealQuizQuestionResult() {
 
         quizRoomState.optionCounts[optionIndex] = (quizRoomState.optionCounts[optionIndex] || 0) + 1;
 
-        const totalP = Math.max(connectedUsers.size, Object.keys(quizRoomState.players).length, 1);
+        const totalP = Math.max(io.engine ? io.engine.clientsCount : 1, connectedUsers.size, Object.keys(quizRoomState.players).length, 1);
         const answeredP = Object.keys(quizRoomState.answers).length;
 
         if (typeof callback === 'function') {
@@ -1932,16 +2729,40 @@ function revealQuizQuestionResult() {
         }
     });
 
-    socket.on('endMultiplayerQuiz', (callback) => {
-        if (socket.role !== 'admin' && socket.username !== quizRoomState.hostName) {
-            if (typeof callback === 'function') callback({ success: false, message: 'Chỉ Host hoặc Admin mới có quyền hủy trò chơi!' });
+    socket.on('endMultiplayerQuiz', (data, callback) => {
+        let cb = (typeof data === 'function') ? data : callback;
+        let token = (data && typeof data === 'object') ? data.hostToken : null;
+
+        const cleanHostName = (quizRoomState.hostName || '').replace(' 😎', '').trim().toLowerCase();
+        const cleanUsername = (socket.username || '').replace(' 😎', '').trim().toLowerCase();
+        
+        const isTokenMatch = !!(token && quizRoomState.hostToken && token === quizRoomState.hostToken);
+        const isIdMatch = !!(quizRoomState.hostId && quizRoomState.hostId === socket.id);
+        const isNameMatch = !!(cleanHostName && cleanUsername && cleanHostName === cleanUsername);
+        const isAdmin = (socket.role === 'admin') || (socket.username && socket.username.includes('😎'));
+
+        if (!isAdmin && !isTokenMatch && !isIdMatch && !isNameMatch) {
+            if (typeof cb === 'function') cb({ success: false, message: 'Chỉ Người khởi tạo hoặc Admin mới có quyền kết thúc trò chơi!' });
             return;
         }
-        if (quizRoomTimer) clearInterval(quizRoomTimer);
+
+        clearQuizTimers();
         quizRoomState.active = false;
         quizRoomState.state = 'lobby';
+        quizRoomState.hostToken = null;
+        quizRoomState.questions = [];
+        quizRoomState.currentIndex = 0;
+        quizRoomState.answers = {};
+        quizRoomState.players = {};
+
         io.emit('quizRoomUpdate', getPublicQuizState());
-        if (typeof callback === 'function') callback({ success: true });
+        io.emit('newMessage', {
+            id: 'sys-' + Date.now(),
+            name: 'Đoán Hình 🧩',
+            text: `🛑 Trò chơi Đoán Hình đã bị kết thúc bởi **[${socket.username || quizRoomState.hostName || 'Admin/Host'}]**!`,
+            role: 'system'
+        });
+        if (typeof cb === 'function') cb({ success: true });
     });
 
     socket.on('adminSaveQuizPacks', (newPacks, callback) => {
@@ -1950,12 +2771,136 @@ function revealQuizQuestionResult() {
             return;
         }
         const updatedPacks = saveQuizPacks(newPacks);
-        io.emit('quizPacksUpdated', updatedPacks);
-        io.emit('newMessage', { id: 'sys-' + Date.now(), name: 'Hệ thống 🧩', text: `⚙️ Admin [${socket.username || 'Admin'}] vừa cập nhật kho câu hỏi game Đoán Hình!`, role: 'system' });
         if (typeof callback === 'function') callback({ success: true, packs: updatedPacks });
     });
 
+    // --- Messenger & 1-on-1 Chat Socket Events ---
+    socket.on('messenger:init', async (data, callback) => {
+        const uId = data?.userId || socket.userId;
+        if (uId) {
+            socket.userId = uId;
+            socket.join('user:' + uId);
+            if (!userSockets.has(String(uId))) {
+                userSockets.set(String(uId), new Set());
+            }
+            userSockets.get(String(uId)).add(socket.id);
+        }
+        const overview = await getMessengerOverview(uId);
+        if (typeof callback === 'function') callback(overview);
+        else socket.emit('messenger:initResult', overview);
+    });
+
+    socket.on('messenger:searchUsers', async (data, callback) => {
+        const { query, currentUserId } = data || {};
+        const uId = currentUserId || socket.userId;
+        const results = await searchMessengerUsers(query, uId);
+        if (typeof callback === 'function') callback({ results });
+        else socket.emit('messenger:searchUsersResult', { results });
+    });
+
+    socket.on('messenger:sendFriendRequest', async (data, callback) => {
+        const { senderId, targetUserId } = data || {};
+        const sId = senderId || socket.userId;
+        const res = await sendFriendRequestDb(sId, targetUserId);
+        if (res.success) {
+            io.to('user:' + targetUserId).emit('messenger:friendRequestReceived', {
+                friendshipId: res.friendship.id,
+                sender: res.sender,
+                createdAt: res.friendship.created_at
+            });
+        }
+        if (typeof callback === 'function') callback(res);
+    });
+
+    socket.on('messenger:respondFriendRequest', async (data, callback) => {
+        const { friendshipId, action, userId } = data || {};
+        const uId = userId || socket.userId;
+        const res = await respondFriendRequestDb(friendshipId, action, uId);
+        if (res.success) {
+            if (action === 'accept') {
+                io.to('user:' + res.friendship.user_id).emit('messenger:friendRequestAccepted', {
+                    friendshipId: res.friendship.id,
+                    friend: res.user2
+                });
+                io.to('user:' + res.friendship.friend_id).emit('messenger:friendRequestAccepted', {
+                    friendshipId: res.friendship.id,
+                    friend: res.user1
+                });
+            } else {
+                io.to('user:' + res.friendship.user_id).emit('messenger:friendRequestDeclined', { friendshipId });
+                io.to('user:' + res.friendship.friend_id).emit('messenger:friendRequestDeclined', { friendshipId });
+            }
+        }
+        if (typeof callback === 'function') callback(res);
+    });
+
+    socket.on('messenger:unfriend', async (data, callback) => {
+        const { userId, friendId } = data || {};
+        const uId = userId || socket.userId;
+        const res = await unfriendDb(uId, friendId);
+        if (res.success) {
+            io.to('user:' + uId).emit('messenger:unfriended', { friendId });
+            io.to('user:' + friendId).emit('messenger:unfriended', { friendId: uId });
+        }
+        if (typeof callback === 'function') callback(res);
+    });
+
+    socket.on('messenger:sendMessage', async (data, callback) => {
+        const { senderId, receiverId, text, mediaUrl, mediaType } = data || {};
+        const sId = senderId || socket.userId;
+        if (!sId || !receiverId || (!text && !mediaUrl)) {
+            if (typeof callback === 'function') callback({ success: false, error: 'Tin nhắn không hợp lệ' });
+            return;
+        }
+        const msg = await saveDirectMessageDb(sId, receiverId, text, mediaUrl, mediaType);
+        io.to('user:' + receiverId).emit('messenger:receiveMessage', msg);
+        socket.to('user:' + sId).emit('messenger:messageSent', msg);
+        if (typeof callback === 'function') {
+            callback({ success: true, message: msg });
+        } else {
+            socket.emit('messenger:messageSent', msg);
+        }
+    });
+
+    socket.on('messenger:getHistory', async (data, callback) => {
+        const { userId, friendId, limit } = data || {};
+        const uId = userId || socket.userId;
+        const messages = await getDirectMessagesDb(uId, friendId, limit || 60);
+        if (typeof callback === 'function') callback({ messages });
+        else socket.emit('messenger:historyResult', { friendId, messages });
+    });
+
+    socket.on('messenger:markRead', async (data, callback) => {
+        const { userId, friendId } = data || {};
+        const uId = userId || socket.userId;
+        const res = await markDirectMessagesReadDb(uId, friendId);
+        io.to('user:' + friendId).emit('messenger:messagesRead', { readerId: uId, friendId });
+        if (typeof callback === 'function') callback(res);
+    });
+
+    socket.on('messenger:typing', (data) => {
+        const { senderId, receiverId, isTyping } = data || {};
+        const sId = senderId || socket.userId;
+        if (receiverId) {
+            io.to('user:' + receiverId).emit('messenger:userTyping', { senderId: sId, isTyping });
+        }
+    });
+
     socket.on('disconnect', () => {
+        if (socket.userId && userSockets.has(String(socket.userId))) {
+            const sSet = userSockets.get(String(socket.userId));
+            sSet.delete(socket.id);
+            if (sSet.size === 0) {
+                userSockets.delete(String(socket.userId));
+                io.emit('messenger:userOnline', { userId: socket.userId, online: false });
+            }
+        }
+        if (typingUsers.has(socket.id)) {
+            const existing = typingUsers.get(socket.id);
+            if (existing && existing.timer) clearTimeout(existing.timer);
+            typingUsers.delete(socket.id);
+            broadcastTypingUsers();
+        }
         connectedUsers.delete(socket.id);
         io.emit('activeUsersList', getDrawUserList());
         io.emit('viewersUpdate', io.engine.clientsCount);
@@ -2000,6 +2945,23 @@ function revealQuizQuestionResult() {
             unoGame.players.splice(unoPlayerIdx, 1);
             if (unoGame.players.length < 2) unoGame.active = false;
             io.emit('unoUpdate', getPublicUnoState());
+        }
+
+        if (quizRoomState.active) {
+            const totalP = Math.max(io.engine ? io.engine.clientsCount : 1, connectedUsers.size, Object.keys(quizRoomState.players).length, 1);
+            const answeredP = Object.keys(quizRoomState.answers).length;
+            io.emit('quizAnswerProgress', {
+                answeredCount: answeredP,
+                totalPlayersCount: totalP
+            });
+            if (quizRoomState.state === 'question' && answeredP >= totalP && totalP > 0) {
+                revealQuizQuestionResult();
+            }
+        }
+        if (io.engine && io.engine.clientsCount === 0 && quizRoomState.active) {
+            clearQuizTimers();
+            quizRoomState.active = false;
+            quizRoomState.state = 'lobby';
         }
     });
 });

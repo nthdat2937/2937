@@ -21,9 +21,10 @@ window.addEventListener('load', () => {
 setTimeout(hideAppLoader, 3000);
 
 const socket = io();
+let isAuthInitialized = false;
+
 socket.on('connect', () => {
-    const savedName = localStorage.getItem('musiclive_username');
-    if (myRole || savedName) {
+    if (isAuthInitialized && currentUserId && myUsername) {
         joinRoom();
     }
     socket.emit('getQuizPacks', (packs) => {
@@ -34,9 +35,23 @@ let player;
 let isPlayerReady = false;
 let isYoutubeApiLoaded = false;
 let pendingVideoId = null;
-let myRole = '';
+let currentUserId = localStorage.getItem('musiclive_user_id') || null;
+let myRole = localStorage.getItem('musiclive_user_role') || '';
 let initialVideoId = '';
-let myUsername = '';
+let myUsername = localStorage.getItem('musiclive_username') || '';
+let myAvatarUrl = localStorage.getItem('musiclive_avatar_url') || '';
+let myDisplayName = localStorage.getItem('musiclive_display_name') || '';
+let myRawUsername = localStorage.getItem('musiclive_raw_username') || '';
+let myPhone = localStorage.getItem('musiclive_phone') || '';
+let pendingAvatarFile = null;
+let myQuickLockType = localStorage.getItem('musiclive_quick_lock_type') || '';
+let myQuickLockData = null;
+try {
+    const rawQLData = localStorage.getItem('musiclive_quick_lock_data');
+    if (rawQLData) myQuickLockData = JSON.parse(rawQLData);
+} catch (e) {
+    myQuickLockData = null;
+}
 
 
 function toggleSidebar() {
@@ -90,6 +105,10 @@ function showTab(tab) {
     if (fbCol) fbCol.classList.add('hidden');
     const quizAdminCol = document.getElementById('quiz-admin-column');
     if (quizAdminCol) quizAdminCol.classList.add('hidden');
+    const msgCol = document.getElementById('messenger-column');
+    if (msgCol) msgCol.classList.add('hidden');
+    const rightCol = document.querySelector('.right-column');
+    if (rightCol) rightCol.classList.remove('hidden');
 
     if (tab === 'home') {
         miniPlayer.style.transform = '';
@@ -97,7 +116,12 @@ function showTab(tab) {
     } else {
         document.getElementById('left-column').classList.add('not-home');
         applyMiniPlayerSavedPos();
-        if (tab === 'history') {
+        if (tab === 'messenger') {
+            if (msgCol) msgCol.classList.remove('hidden');
+            if (rightCol) rightCol.classList.add('hidden');
+            restoreRoomPlayerFromTopTab();
+            openMessengerTab();
+        } else if (tab === 'history') {
             document.getElementById('history-column').classList.remove('hidden');
             restoreRoomPlayerFromTopTab();
             loadHistory();
@@ -554,104 +578,1853 @@ function addSongFromHistory(videoId, btn) {
     });
 }
 
-let myNameColor = '#3ea6ff';
+let myNameColor = localStorage.getItem('musiclive_namecolor') || '#3ea6ff';
 let isLoopMode = false;
-
 let selectedAdminType = null;
 
-(function restoreSavedUser() {
-    const savedName = localStorage.getItem('musiclive_username');
-    const savedColor = localStorage.getItem('musiclive_namecolor');
-    const savedAdminType = localStorage.getItem('musiclive_admin_type');
-    const savedPassword = localStorage.getItem('musiclive_password');
+// ==========================================
+// SUPABASE AUTH & USER PROFILE MANAGEMENT
+// ==========================================
+const SUPABASE_PROJECT_URL = 'https://wnioetdrphkdylkoybsu.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_p0VSduH3epzQVUdvAf2kPQ_aoWk_l1T';
+let supabaseAuth = null;
 
-    if (savedName) {
-        document.getElementById('username-input').value = savedName;
-    }
-    if (savedColor) {
-        document.getElementById('name-color-input').value = savedColor;
-    }
-
-    if (savedAdminType) {
-        selectAdmin(savedName);
-        if (savedPassword) {
-            document.getElementById('password-input').value = savedPassword;
+function getSupabaseAuth() {
+    if (!supabaseAuth && typeof supabase !== 'undefined' && supabase.createClient) {
+        try {
+            supabaseAuth = supabase.createClient(SUPABASE_PROJECT_URL, SUPABASE_ANON_KEY, {
+                auth: {
+                    persistSession: true,
+                    autoRefreshToken: true,
+                    detectSessionInUrl: true
+                }
+            });
+        } catch (e) {
+            console.warn('Error creating supabase client:', e);
         }
-        setTimeout(() => joinRoom(), 300);
-    } else if (savedName) {
-        setTimeout(() => joinRoom(), 300);
     }
-})();
-
-
-function selectRole(role) {
-    document.getElementById('role-buttons-wrapper').classList.add('hidden');
-    if (role === 'user') {
-        document.getElementById('login-prompt').innerText = 'Nhập thông tin của bạn';
-        document.getElementById('user-details-wrapper').classList.remove('hidden');
-        document.getElementById('join-btn').classList.remove('hidden');
-        document.getElementById('username-input').readOnly = false;
-        selectedAdminType = null;
-    } else if (role === 'admin') {
-        document.getElementById('login-prompt').innerText = 'Xác thực Quản trị viên';
-        document.getElementById('admin-list-wrapper').classList.remove('hidden');
-    }
+    return supabaseAuth;
 }
 
-function selectAdmin(name) {
-    document.getElementById('user-details-wrapper').classList.remove('hidden');
-    document.getElementById('username-input').value = name;
-    document.getElementById('username-input').readOnly = true;
+function switchAuthTab(tab) {
+    const tabLogin = document.getElementById('tab-login');
+    const tabSignup = document.getElementById('tab-signup');
+    const formLogin = document.getElementById('form-login');
+    const formSignup = document.getElementById('form-signup');
+    const statusEl = document.getElementById('auth-status-msg');
 
-    const pwdInput = document.getElementById('password-input');
-    document.getElementById('password-wrapper').classList.remove('hidden');
-    document.getElementById('join-btn').classList.remove('hidden');
+    if (statusEl) {
+        statusEl.className = 'auth-status-msg hidden';
+        statusEl.innerText = '';
+    }
 
-    if (name === 'nthdat') {
-        selectedAdminType = 'main';
-        pwdInput.placeholder = 'Nhập mật khẩu admin...';
+    if (tab === 'login') {
+        if (tabLogin) tabLogin.classList.add('active');
+        if (tabSignup) tabSignup.classList.remove('active');
+        if (formLogin) formLogin.classList.remove('hidden');
+        if (formSignup) formSignup.classList.add('hidden');
     } else {
-        selectedAdminType = 'sub';
-        pwdInput.placeholder = 'Nhập ngày sinh (vd: 01012001)...';
+        if (tabSignup) tabSignup.classList.add('active');
+        if (tabLogin) tabLogin.classList.remove('active');
+        if (formSignup) formSignup.classList.remove('hidden');
+        if (formLogin) formLogin.classList.add('hidden');
     }
-    pwdInput.focus();
 }
 
-function checkAdminName(name) {
-
+function setAuthStatus(message, type = 'info') {
+    const el = document.getElementById('auth-status-msg');
+    if (!el) return;
+    if (!message) {
+        el.className = 'auth-status-msg hidden';
+        el.innerText = '';
+        return;
+    }
+    el.className = `auth-status-msg ${type}`;
+    el.innerText = message;
 }
 
-function joinRoom() {
-    const name = document.getElementById('username-input').value;
-    const password = document.getElementById('password-input').value;
-    const nameColor = document.getElementById('name-color-input').value;
-    const isAdmin = selectedAdminType !== null;
+async function loginWithGoogle() {
+    const sp = getSupabaseAuth();
+    if (!sp) {
+        setAuthStatus('Supabase chưa sẵn sàng, vui lòng tải lại trang!', 'error');
+        return;
+    }
+    setAuthStatus('Đang chuyển hướng tới đăng nhập Google...', 'info');
+    try {
+        const { error } = await sp.auth.signInWithOAuth({
+            provider: 'google',
+            options: {
+                redirectTo: window.location.origin + window.location.pathname
+            }
+        });
+        if (error) {
+            setAuthStatus(error.message, 'error');
+        }
+    } catch (err) {
+        console.error('Google login error:', err);
+        setAuthStatus(err.message || 'Lỗi đăng nhập Google', 'error');
+    }
+}
 
-    if (!name.trim()) {
-        alert("Vui lòng nhập tên hiển thị!");
+async function handleEmailLogin() {
+    const emailInput = document.getElementById('login-email');
+    const passwordInput = document.getElementById('login-password');
+    const submitBtn = document.getElementById('btn-submit-login');
+
+    const email = (emailInput?.value || '').trim();
+    const password = (passwordInput?.value || '').trim();
+
+    if (!email || !password) {
+        setAuthStatus('Vui lòng nhập đầy đủ Email và Mật khẩu!', 'error');
         return;
     }
 
-    myUsername = name.trim();
-    myNameColor = nameColor;
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerText = 'Đang đăng nhập...';
+    }
+    setAuthStatus('', '');
 
-    localStorage.setItem('musiclive_username', myUsername);
-    localStorage.setItem('musiclive_namecolor', myNameColor);
+    try {
+        const sp = getSupabaseAuth();
+        if (!sp) throw new Error('Supabase client chưa tải xong');
+        const { data, error } = await sp.auth.signInWithPassword({
+            email,
+            password
+        });
+        if (error) {
+            setAuthStatus(error.message || 'Sai email hoặc mật khẩu', 'error');
+            return;
+        }
 
-    if (player && typeof player.playVideo === 'function') {
-        player.playVideo();
+        if (data && data.user) {
+            setAuthStatus('Đăng nhập thành công! Đang vào phòng...', 'success');
+            await handleAuthSuccess(data.user);
+            if (!myQuickLockType) {
+                openQuickLockSetupModal(true);
+            }
+        }
+    } catch (err) {
+        console.error('Email login error:', err);
+        setAuthStatus(err.message || 'Đăng nhập thất bại', 'error');
+    } finally {
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerText = 'Đăng Nhập';
+        }
+    }
+}
+
+async function handleEmailSignUp() {
+    const usernameInput = document.getElementById('signup-username');
+    const emailInput = document.getElementById('signup-email');
+    const passwordInput = document.getElementById('signup-password');
+    const colorInput = document.getElementById('signup-name-color');
+    const submitBtn = document.getElementById('btn-submit-signup');
+
+    const username = (usernameInput?.value || '').trim();
+    const email = (emailInput?.value || '').trim();
+    const password = (passwordInput?.value || '').trim();
+    const color = colorInput?.value || '#3ea6ff';
+
+    if (!username || !email || !password) {
+        setAuthStatus('Vui lòng điền đầy đủ tất cả các trường!', 'error');
+        return;
+    }
+    if (password.length < 6) {
+        setAuthStatus('Mật khẩu phải có ít nhất 6 ký tự!', 'error');
+        return;
     }
 
-    socket.emit('joinRoom', { name, isAdmin, password, nameColor });
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerText = 'Đang đăng ký...';
+    }
+    setAuthStatus('', '');
+
+    try {
+        const sp = getSupabaseAuth();
+        if (!sp) throw new Error('Supabase client chưa tải xong');
+        const { data, error } = await sp.auth.signUp({
+            email,
+            password,
+            options: {
+                data: {
+                    username: username,
+                    name_color: color,
+                    role: 'member'
+                }
+            }
+        });
+
+        if (error) {
+            setAuthStatus(error.message || 'Đăng ký thất bại', 'error');
+            return;
+        }
+
+        if (data && data.user) {
+            // Direct profile upsert to ensure it exists in public.profiles table
+            try {
+                await sp.from('profiles').upsert([{
+                    id: data.user.id,
+                    email: data.user.email,
+                    username: username,
+                    name_color: color,
+                    role: 'member',
+                    updated_at: new Date().toISOString()
+                }]);
+            } catch (pErr) {
+                console.warn('Profiles upsert warning:', pErr);
+            }
+
+            if (data.session) {
+                setAuthStatus('Đăng ký thành công! Đang vào phòng...', 'success');
+                await handleAuthSuccess(data.user, { username, name_color: color, role: 'member' });
+                openQuickLockSetupModal(true);
+            } else {
+                // Try immediate sign-in with password (if email confirmation is turned off)
+                const loginRes = await sp.auth.signInWithPassword({ email, password });
+                if (loginRes.data && loginRes.data.session) {
+                    setAuthStatus('Đăng ký thành công! Đang vào phòng...', 'success');
+                    await handleAuthSuccess(loginRes.data.user, { username, name_color: color, role: 'member' });
+                    openQuickLockSetupModal(true);
+                } else {
+                    setAuthStatus('Đăng ký thành công! Bạn có thể chuyển sang tab Đăng Nhập để vào phòng.', 'success');
+                    switchAuthTab('login');
+                    if (document.getElementById('login-email')) document.getElementById('login-email').value = email;
+                }
+            }
+        }
+    } catch (err) {
+        console.error('Email signup error:', err);
+        setAuthStatus(err.message || 'Đăng ký thất bại', 'error');
+    } finally {
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerText = 'Đăng Ký Tài Khoản';
+        }
+    }
 }
+
+async function handleAuthSuccess(user, fallbackProfile = null) {
+    if (!user) return;
+    currentUserId = user.id;
+    localStorage.setItem('musiclive_user_id', currentUserId);
+
+    const sp = getSupabaseAuth();
+    let profile = fallbackProfile || null;
+
+    if (sp) {
+        try {
+            let profRes = await sp
+                .from('profiles')
+                .select('username, display_name, phone, name_color, role, avatar_url, quick_lock_type, quick_lock_data')
+                .eq('id', user.id)
+                .maybeSingle();
+
+            if (profRes.error && profRes.error.message && profRes.error.message.includes('quick_lock')) {
+                // Table might not have quick_lock columns yet
+                profRes = await sp
+                    .from('profiles')
+                    .select('username, display_name, phone, name_color, role, avatar_url')
+                    .eq('id', user.id)
+                    .maybeSingle();
+            }
+
+            if (profRes.data && !profRes.error) {
+                profile = profRes.data;
+            } else if (!profile) {
+                // First time profile creation fallback (e.g. Google OAuth)
+                const rawMeta = user.user_metadata || {};
+                const initName = rawMeta.full_name || rawMeta.name || (user.email ? user.email.split('@')[0] : 'Người dùng');
+                const initColor = rawMeta.name_color || '#3ea6ff';
+                const initRole = (rawMeta.role || 'member').toLowerCase();
+                const initAvatar = rawMeta.avatar_url || rawMeta.picture || '';
+
+                const { data: createdProf } = await sp.from('profiles').upsert([{
+                    id: user.id,
+                    email: user.email,
+                    username: initName,
+                    display_name: initName,
+                    name_color: initColor,
+                    role: initRole,
+                    avatar_url: initAvatar,
+                    updated_at: new Date().toISOString()
+                }]).select().maybeSingle();
+                if (createdProf) profile = createdProf;
+            }
+        } catch (e) {
+            console.warn('Fetch/create profile error:', e);
+        }
+    }
+
+    if (profile && profile.quick_lock_type) {
+        myQuickLockType = profile.quick_lock_type;
+        myQuickLockData = profile.quick_lock_data;
+        localStorage.setItem('musiclive_quick_lock_type', myQuickLockType);
+        localStorage.setItem('musiclive_quick_lock_data', JSON.stringify(myQuickLockData));
+    }
+
+    const rawMeta = user.user_metadata || {};
+    const rawUsername = profile?.username || rawMeta.username || (user.email ? user.email.split('@')[0] : 'user');
+    const displayName = profile?.display_name 
+        || profile?.username 
+        || rawMeta.full_name 
+        || rawMeta.name 
+        || rawUsername;
+    const color = profile?.name_color || rawMeta.name_color || '#3ea6ff';
+    const role = (profile?.role || rawMeta.role || 'member').toLowerCase();
+    const avatar = profile?.avatar_url || rawMeta.avatar_url || rawMeta.picture || '';
+    const phone = profile?.phone || '';
+
+    myUsername = displayName;
+    myDisplayName = profile?.display_name || displayName;
+    myRawUsername = rawUsername;
+    myPhone = phone;
+    myNameColor = color;
+    myRole = role;
+    myAvatarUrl = avatar;
+
+    localStorage.setItem('musiclive_username', myUsername);
+    localStorage.setItem('musiclive_display_name', myDisplayName);
+    localStorage.setItem('musiclive_raw_username', myRawUsername);
+    localStorage.setItem('musiclive_phone', myPhone);
+    localStorage.setItem('musiclive_avatar_url', myAvatarUrl);
+    localStorage.setItem('musiclive_namecolor', myNameColor);
+    localStorage.setItem('musiclive_user_role', myRole);
+
+    updateNavbarAvatarUI(myAvatarUrl);
+    updateQuickLockStatusUI();
+
+    if (window.location.hash && (window.location.hash.includes('access_token') || window.location.hash.includes('type='))) {
+        history.replaceState(null, '', window.location.pathname + window.location.search);
+    }
+
+    joinRoom();
+    initMessenger();
+}
+
+function updateNavbarAvatarUI(avatarUrl) {
+    const navAvatar = document.getElementById('navbar-avatar');
+    if (!navAvatar) return;
+    if (avatarUrl && avatarUrl.trim()) {
+        navAvatar.src = avatarUrl.trim();
+        navAvatar.classList.remove('hidden');
+    } else {
+        navAvatar.src = '';
+        navAvatar.classList.add('hidden');
+    }
+}
+
+// ==========================================
+// PROFILE & SECURITY SETTINGS MODAL
+// ==========================================
+function openProfileSettingsModal() {
+    const modal = document.getElementById('profile-settings-modal');
+    if (!modal) return;
+
+    // Populate Tab 1: Personal Info
+    const displayNameInput = document.getElementById('profile-display-name');
+    const usernameInput = document.getElementById('profile-username');
+    const phoneInput = document.getElementById('profile-phone');
+    const emailInput = document.getElementById('profile-email');
+    const avatarPreview = document.getElementById('profile-avatar-preview');
+    const avatarUrlInput = document.getElementById('profile-avatar-url');
+    const colorInput = document.getElementById('profile-name-color');
+
+    if (displayNameInput) displayNameInput.value = myDisplayName || myUsername || '';
+    if (usernameInput) usernameInput.value = myRawUsername || '';
+    if (phoneInput) phoneInput.value = myPhone || '';
+    if (colorInput) colorInput.value = myNameColor || '#3ea6ff';
+    if (avatarUrlInput) avatarUrlInput.value = myAvatarUrl || '';
+    if (avatarPreview) {
+        avatarPreview.src = myAvatarUrl || '/assets/images/placeholder.jpg';
+    }
+
+    // Try fetching fresh email and user metadata from Supabase
+    const sp = getSupabaseAuth();
+    if (sp) {
+        sp.auth.getUser().then(({ data: { user } }) => {
+            if (user) {
+                if (emailInput) emailInput.value = user.email || '';
+                if (!usernameInput.value && user.user_metadata?.username) {
+                    usernameInput.value = user.user_metadata.username;
+                }
+            }
+        }).catch(err => console.warn('Get user error:', err));
+    }
+
+    // Reset status messages
+    setProfileStatus('', '');
+    setSecurityStatus('', '');
+
+    // Reset password inputs
+    const newPwd = document.getElementById('profile-new-password');
+    const confirmPwd = document.getElementById('profile-confirm-password');
+    if (newPwd) newPwd.value = '';
+    if (confirmPwd) confirmPwd.value = '';
+
+    pendingAvatarFile = null;
+    updateQuickLockStatusUI();
+    switchProfileTab('personal');
+    modal.classList.remove('hidden');
+}
+
+function closeProfileSettingsModal() {
+    const modal = document.getElementById('profile-settings-modal');
+    if (modal) modal.classList.add('hidden');
+    pendingAvatarFile = null;
+}
+
+function switchProfileTab(tab) {
+    const tabBtnPersonal = document.getElementById('tab-btn-personal');
+    const tabBtnSecurity = document.getElementById('tab-btn-security');
+    const contentPersonal = document.getElementById('profile-tab-personal');
+    const contentSecurity = document.getElementById('profile-tab-security');
+
+    if (tab === 'personal') {
+        if (tabBtnPersonal) tabBtnPersonal.classList.add('active');
+        if (tabBtnSecurity) tabBtnSecurity.classList.remove('active');
+        if (contentPersonal) contentPersonal.classList.remove('hidden');
+        if (contentSecurity) contentSecurity.classList.add('hidden');
+    } else {
+        if (tabBtnSecurity) tabBtnSecurity.classList.add('active');
+        if (tabBtnPersonal) tabBtnPersonal.classList.remove('active');
+        if (contentSecurity) contentSecurity.classList.remove('hidden');
+        if (contentPersonal) contentPersonal.classList.add('hidden');
+    }
+}
+
+function setProfileStatus(msg, type = 'info') {
+    const el = document.getElementById('profile-status-msg');
+    if (!el) return;
+    if (!msg) {
+        el.className = 'auth-status-msg hidden';
+        el.innerText = '';
+        return;
+    }
+    el.className = `auth-status-msg ${type}`;
+    el.innerText = msg;
+}
+
+function setSecurityStatus(msg, type = 'info') {
+    const el = document.getElementById('security-status-msg');
+    if (!el) return;
+    if (!msg) {
+        el.className = 'auth-status-msg hidden';
+        el.innerText = '';
+        return;
+    }
+    el.className = `auth-status-msg ${type}`;
+    el.innerText = msg;
+}
+
+function handleProfileAvatarFileSelect(e) {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+
+    pendingAvatarFile = file;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+        const preview = document.getElementById('profile-avatar-preview');
+        if (preview) preview.src = event.target.result;
+    };
+    reader.readAsDataURL(file);
+}
+
+function updateProfileAvatarUrlPreview(url) {
+    const preview = document.getElementById('profile-avatar-preview');
+    if (preview) {
+        if (url && url.trim()) {
+            preview.src = url.trim();
+        } else {
+            preview.src = myAvatarUrl || '/assets/images/placeholder.jpg';
+        }
+    }
+}
+
+async function uploadAvatarFileToSupabase(file) {
+    if (!file) return '';
+    try {
+        const compressed = await compressImage(file, 400, 400, 0.9);
+        const fileExt = (file.name && file.name.includes('.')) ? (file.name.split('.').pop() || 'jpg') : 'jpg';
+        const fileName = `avatar_${currentUserId || 'user'}_${Date.now()}.${fileExt}`;
+
+        const sp = getSupabaseAuth();
+        if (sp) {
+            const { data, error } = await sp.storage.from('chat_media').upload(fileName, compressed, {
+                cacheControl: '3600',
+                upsert: true
+            });
+            if (!error && data) {
+                const { data: urlData } = sp.storage.from('chat_media').getPublicUrl(fileName);
+                if (urlData && urlData.publicUrl) return urlData.publicUrl;
+            } else if (error) {
+                console.warn('Storage upload error, fallback to DataURL:', error.message);
+            }
+        }
+    } catch (err) {
+        console.warn('Upload avatar failed:', err);
+    }
+
+    return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = () => resolve('');
+        reader.readAsDataURL(file);
+    });
+}
+
+async function saveUserProfile() {
+    const displayNameInput = document.getElementById('profile-display-name');
+    const usernameInput = document.getElementById('profile-username');
+    const phoneInput = document.getElementById('profile-phone');
+    const avatarUrlInput = document.getElementById('profile-avatar-url');
+    const colorInput = document.getElementById('profile-name-color');
+    const saveBtn = document.getElementById('btn-save-profile');
+
+    const displayName = (displayNameInput?.value || '').trim();
+    const username = (usernameInput?.value || '').trim();
+    const phone = (phoneInput?.value || '').trim();
+    let avatarUrl = (avatarUrlInput?.value || '').trim();
+    const nameColor = colorInput?.value || '#3ea6ff';
+
+    if (!displayName) {
+        setProfileStatus('Vui lòng nhập tên hiển thị!', 'error');
+        return;
+    }
+
+    if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size: 18px;">hourglass_top</span> Đang lưu...';
+    }
+    setProfileStatus('', '');
+
+    try {
+        if (pendingAvatarFile) {
+            setProfileStatus('Đang tải ảnh đại diện lên...', 'info');
+            const uploadedUrl = await uploadAvatarFileToSupabase(pendingAvatarFile);
+            if (uploadedUrl) {
+                avatarUrl = uploadedUrl;
+                if (avatarUrlInput) avatarUrlInput.value = avatarUrl;
+            }
+        }
+
+        const sp = getSupabaseAuth();
+        if (sp && currentUserId) {
+            const updatePayload = {
+                id: currentUserId,
+                username: username || displayName,
+                display_name: displayName,
+                phone: phone,
+                avatar_url: avatarUrl,
+                name_color: nameColor,
+                updated_at: new Date().toISOString()
+            };
+
+            const { error } = await sp.from('profiles').upsert([updatePayload]);
+            if (error) {
+                if (error.message && (error.message.includes('display_name') || error.message.includes('phone'))) {
+                    delete updatePayload.display_name;
+                    delete updatePayload.phone;
+                    await sp.from('profiles').upsert([updatePayload]);
+                } else {
+                    throw error;
+                }
+            }
+        }
+
+        // Update local state
+        myDisplayName = displayName;
+        myRawUsername = username || myRawUsername;
+        myUsername = displayName;
+        myPhone = phone;
+        myAvatarUrl = avatarUrl;
+        myNameColor = nameColor;
+
+        localStorage.setItem('musiclive_username', myUsername);
+        localStorage.setItem('musiclive_display_name', myDisplayName);
+        localStorage.setItem('musiclive_raw_username', myRawUsername);
+        localStorage.setItem('musiclive_phone', myPhone);
+        localStorage.setItem('musiclive_avatar_url', myAvatarUrl);
+        localStorage.setItem('musiclive_namecolor', myNameColor);
+
+        // Update Navbar UI
+        const navUser = document.getElementById('navbar-username');
+        if (navUser) {
+            navUser.textContent = myUsername;
+            navUser.style.color = myNameColor;
+        }
+        updateNavbarAvatarUI(myAvatarUrl);
+
+        // Notify socket server
+        if (socket && socket.connected) {
+            socket.emit('updateUserProfile', {
+                userId: currentUserId,
+                displayName: myDisplayName,
+                username: myRawUsername,
+                phone: myPhone,
+                avatarUrl: myAvatarUrl,
+                nameColor: myNameColor
+            });
+        }
+
+        pendingAvatarFile = null;
+        setProfileStatus('Đã lưu thông tin cá nhân thành công!', 'success');
+        if (typeof showToastNotification === 'function') {
+            showToastNotification('🎉 Đã cập nhật thông tin cá nhân thành công!');
+        }
+
+        setTimeout(() => {
+            closeProfileSettingsModal();
+        }, 1200);
+
+    } catch (err) {
+        console.error('Save profile error:', err);
+        setProfileStatus(err.message || 'Lỗi khi lưu thông tin cá nhân', 'error');
+    } finally {
+        if (saveBtn) {
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size: 18px;">check</span> Lưu Thông Tin';
+        }
+    }
+}
+
+async function updateUserPassword() {
+    const newPwdInput = document.getElementById('profile-new-password');
+    const confirmPwdInput = document.getElementById('profile-confirm-password');
+    const submitBtn = document.getElementById('btn-update-password');
+
+    const newPassword = (newPwdInput?.value || '').trim();
+    const confirmPassword = (confirmPwdInput?.value || '').trim();
+
+    if (!newPassword || !confirmPassword) {
+        setSecurityStatus('Vui lòng điền đầy đủ cả 2 ô mật khẩu!', 'error');
+        return;
+    }
+    if (newPassword.length < 6) {
+        setSecurityStatus('Mật khẩu mới phải có ít nhất 6 ký tự!', 'error');
+        return;
+    }
+    if (newPassword !== confirmPassword) {
+        setSecurityStatus('Mật khẩu xác nhận không khớp, vui lòng kiểm tra lại!', 'error');
+        return;
+    }
+
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size: 18px;">hourglass_top</span> Đang cập nhật...';
+    }
+    setSecurityStatus('', '');
+
+    try {
+        const sp = getSupabaseAuth();
+        if (!sp) throw new Error('Supabase client chưa sẵn sàng!');
+
+        const { data, error } = await sp.auth.updateUser({
+            password: newPassword
+        });
+
+        if (error) {
+            setSecurityStatus(error.message || 'Cập nhật mật khẩu thất bại!', 'error');
+            return;
+        }
+
+        setSecurityStatus('🎉 Đã đổi mật khẩu mới thành công!', 'success');
+        if (newPwdInput) newPwdInput.value = '';
+        if (confirmPwdInput) confirmPwdInput.value = '';
+        if (typeof showToastNotification === 'function') {
+            showToastNotification('🔒 Đã đổi mật khẩu thành công!');
+        }
+    } catch (err) {
+        console.error('Update password error:', err);
+        setSecurityStatus(err.message || 'Đổi mật khẩu thất bại', 'error');
+    } finally {
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size: 18px;">save</span> Cập Nhật Mật Khẩu';
+        }
+    }
+}
+
+async function sendPasswordResetEmail() {
+    const emailInput = document.getElementById('profile-email');
+    const sendBtn = document.getElementById('btn-send-reset-email');
+    const email = (emailInput?.value || '').trim();
+
+    if (!email) {
+        setSecurityStatus('Không tìm thấy email tài khoản của bạn!', 'error');
+        return;
+    }
+
+    if (sendBtn) {
+        sendBtn.disabled = true;
+        sendBtn.innerText = 'Đang gửi email...';
+    }
+    setSecurityStatus('', '');
+
+    try {
+        const sp = getSupabaseAuth();
+        if (!sp) throw new Error('Supabase client chưa sẵn sàng!');
+
+        const { error } = await sp.auth.resetPasswordForEmail(email, {
+            redirectTo: window.location.origin + window.location.pathname
+        });
+
+        if (error) {
+            setSecurityStatus(error.message || 'Gửi email đặt lại mật khẩu thất bại', 'error');
+            return;
+        }
+
+        setSecurityStatus(`Đã gửi liên kết đặt lại mật khẩu tới hộp thư [${email}]. Vui lòng kiểm tra email của bạn!`, 'success');
+    } catch (err) {
+        console.error('Send reset email error:', err);
+        setSecurityStatus(err.message || 'Gửi email thất bại', 'error');
+    } finally {
+        if (sendBtn) {
+            sendBtn.disabled = false;
+            sendBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size: 18px;">outgoing_mail</span> Gửi Email Đặt Lại Mật Khẩu';
+        }
+    }
+}
+
+// ==========================================
+// QUICK UNLOCK & QUICK LOCK SETUP SYSTEM
+// ==========================================
+
+const SECURITY_QUESTION_TEMPLATES = [
+    { id: 'dob', text: 'Ngày tháng năm sinh của bạn là gì?' },
+    { id: 'nickname', text: 'Tên ở nhà (biệt danh) của bạn là gì?' },
+    { id: 'father_name', text: 'Tên của bố bạn là gì?' },
+    { id: 'mother_name', text: 'Tên của mẹ bạn là gì?' },
+    { id: 'important_date', text: 'Ngày quan trọng nhất cuộc đời của bạn là ngày nào?' },
+    { id: 'important_person', text: 'Người quan trọng nhất cuộc đời của bạn là ai?' },
+    { id: 'cccd', text: 'Mã số Căn cước công dân (CCCD) của bạn là gì?' }
+];
+
+async function hashQuickLockSecret(val) {
+    if (val === null || val === undefined) return '';
+    const norm = val.toString().trim().toLowerCase().replace(/\s+/g, ' ');
+    if (!norm) return '';
+    try {
+        if (window.crypto && window.crypto.subtle) {
+            const msgBuffer = new TextEncoder().encode(norm);
+            const hashBuffer = await window.crypto.subtle.digest('SHA-256', msgBuffer);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+    } catch (e) {
+        console.warn('Crypto subtle not available, fallback hashing:', e);
+    }
+    let hash = 0;
+    for (let i = 0; i < norm.length; i++) {
+        const char = norm.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash |= 0;
+    }
+    return 'fallback_' + Math.abs(hash).toString(16);
+}
+
+function setUnlockStatus(msg, type = 'info') {
+    const el = document.getElementById('unlock-status-msg');
+    if (!el) return;
+    if (!msg) {
+        el.className = 'auth-status-msg hidden';
+        el.innerText = '';
+        return;
+    }
+    el.className = `auth-status-msg ${type}`;
+    el.innerText = msg;
+}
+
+function setSetupLockStatus(msg, type = 'info') {
+    const el = document.getElementById('setup-lock-status-msg');
+    if (!el) return;
+    if (!msg) {
+        el.className = 'auth-status-msg hidden';
+        el.innerText = '';
+        return;
+    }
+    el.className = `auth-status-msg ${type}`;
+    el.innerText = msg;
+}
+
+function updateQuickLockStatusUI() {
+    const iconEl = document.getElementById('profile-quick-lock-icon');
+    const statusEl = document.getElementById('profile-quick-lock-status');
+    if (!iconEl || !statusEl) return;
+
+    if (myQuickLockType === 'pin') {
+        iconEl.innerText = 'dialpad';
+        statusEl.innerText = 'Đã cài: Mã PIN 6 số';
+    } else if (myQuickLockType === 'pattern') {
+        iconEl.innerText = 'gesture';
+        statusEl.innerText = 'Đã cài: Khóa hình vẽ';
+    } else if (myQuickLockType === 'questions') {
+        iconEl.innerText = 'quiz';
+        statusEl.innerText = 'Đã cài: 3 Câu hỏi bảo mật';
+    } else {
+        iconEl.innerText = 'shield';
+        statusEl.innerText = 'Chưa thiết lập';
+    }
+}
+
+let selectedQuickLockSetupType = 'pin';
+let isFirstTimeLockPrompt = false;
+
+function openQuickLockSetupModal(isFirstTime = false) {
+    isFirstTimeLockPrompt = isFirstTime;
+    const modal = document.getElementById('quick-lock-setup-modal');
+    if (!modal) return;
+
+    const skipBtn = document.getElementById('btn-skip-quick-lock');
+    if (skipBtn) {
+        skipBtn.innerText = isFirstTime ? 'Bỏ qua' : 'Đóng';
+    }
+
+    setSetupLockStatus('', '');
+
+    const initialType = myQuickLockType || 'pin';
+    selectQuickLockType(initialType);
+
+    modal.classList.remove('hidden');
+}
+
+function closeQuickLockSetupModal(isSkip = false) {
+    const modal = document.getElementById('quick-lock-setup-modal');
+    if (modal) modal.classList.add('hidden');
+}
+
+function selectQuickLockType(type) {
+    selectedQuickLockSetupType = type;
+
+    const tabPin = document.getElementById('ql-tab-pin');
+    const tabPattern = document.getElementById('ql-tab-pattern');
+    const tabQuestions = document.getElementById('ql-tab-questions');
+    if (tabPin) tabPin.classList.toggle('active', type === 'pin');
+    if (tabPattern) tabPattern.classList.toggle('active', type === 'pattern');
+    if (tabQuestions) tabQuestions.classList.toggle('active', type === 'questions');
+
+    const formPin = document.getElementById('setup-form-pin');
+    const formPattern = document.getElementById('setup-form-pattern');
+    const formQuestions = document.getElementById('setup-form-questions');
+    if (formPin) formPin.classList.toggle('hidden', type !== 'pin');
+    if (formPattern) formPattern.classList.toggle('hidden', type !== 'pattern');
+    if (formQuestions) formQuestions.classList.toggle('hidden', type !== 'questions');
+
+    setSetupLockStatus('', '');
+
+    if (type === 'pin') {
+        resetSetupPin();
+    } else if (type === 'pattern') {
+        setTimeout(initSetupPatternCanvas, 50);
+        resetSetupPattern();
+    } else if (type === 'questions') {
+        populateSetupQuestions();
+    }
+}
+
+// ------------------------------------------
+// Pattern Lock Engine (Setup + Unlock)
+// ------------------------------------------
+const PATTERN_GRID_NODES = [
+    { index: 0, x: 45, y: 45 },
+    { index: 1, x: 140, y: 45 },
+    { index: 2, x: 235, y: 45 },
+    { index: 3, x: 45, y: 140 },
+    { index: 4, x: 140, y: 140 },
+    { index: 5, x: 235, y: 140 },
+    { index: 6, x: 45, y: 235 },
+    { index: 7, x: 140, y: 235 },
+    { index: 8, x: 235, y: 235 }
+];
+
+const PATTERN_MIDPOINTS = {
+    '0-2': 1, '2-0': 1,
+    '3-5': 4, '5-3': 4,
+    '6-8': 7, '8-6': 7,
+    '0-6': 3, '6-0': 3,
+    '1-7': 4, '7-1': 4,
+    '2-8': 5, '8-2': 5,
+    '0-8': 4, '8-0': 4,
+    '2-6': 4, '6-2': 4
+};
+
+function getPatternNodeAtPos(x, y, radius = 28) {
+    for (let i = 0; i < PATTERN_GRID_NODES.length; i++) {
+        const n = PATTERN_GRID_NODES[i];
+        const dist = Math.hypot(n.x - x, n.y - y);
+        if (dist <= radius) return n.index;
+    }
+    return null;
+}
+
+function drawPatternGrid(canvas, points = [], currentPos = null, state = 'normal') {
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    let primaryColor = '#ff75a0';
+    let ringBgColor = 'rgba(255, 117, 160, 0.25)';
+
+    if (state === 'error') {
+        primaryColor = '#ff4757';
+        ringBgColor = 'rgba(255, 71, 87, 0.3)';
+    } else if (state === 'success') {
+        primaryColor = '#51cf66';
+        ringBgColor = 'rgba(81, 207, 102, 0.3)';
+    }
+
+    // 1. Draw connection lines
+    if (points.length > 0) {
+        ctx.beginPath();
+        const firstNode = PATTERN_GRID_NODES[points[0]];
+        ctx.moveTo(firstNode.x, firstNode.y);
+        for (let i = 1; i < points.length; i++) {
+            const n = PATTERN_GRID_NODES[points[i]];
+            ctx.lineTo(n.x, n.y);
+        }
+        if (currentPos) {
+            ctx.lineTo(currentPos.x, currentPos.y);
+        }
+        ctx.strokeStyle = primaryColor;
+        ctx.lineWidth = 5;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.shadowColor = primaryColor;
+        ctx.shadowBlur = 12;
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+    }
+
+    // 2. Draw all 9 nodes
+    for (let i = 0; i < PATTERN_GRID_NODES.length; i++) {
+        const node = PATTERN_GRID_NODES[i];
+        const isVisited = points.includes(i);
+
+        if (isVisited) {
+            ctx.beginPath();
+            ctx.arc(node.x, node.y, 22, 0, Math.PI * 2);
+            ctx.fillStyle = ringBgColor;
+            ctx.fill();
+            ctx.lineWidth = 2.5;
+            ctx.strokeStyle = primaryColor;
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.arc(node.x, node.y, 7, 0, Math.PI * 2);
+            ctx.fillStyle = primaryColor;
+            ctx.fill();
+        } else {
+            ctx.beginPath();
+            ctx.arc(node.x, node.y, 18, 0, Math.PI * 2);
+            ctx.lineWidth = 1.5;
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.22)';
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.arc(node.x, node.y, 5, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+            ctx.fill();
+        }
+    }
+}
+
+function getPointerCanvasPos(canvas, e) {
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    return {
+        x: (e.clientX - rect.left) * scaleX,
+        y: (e.clientY - rect.top) * scaleY
+    };
+}
+
+// ------------------------------------------
+// Pattern Setup Logic
+// ------------------------------------------
+let setupPatternStep = 1;
+let setupPatternFirst = null;
+let setupPatternConfirmed = null;
+let isDrawingSetupPattern = false;
+let currentSetupPattern = [];
+let setupPatternCanvasInitialized = false;
+
+function initSetupPatternCanvas() {
+    const canvas = document.getElementById('setup-pattern-canvas');
+    if (!canvas || setupPatternCanvasInitialized) {
+        if (canvas) drawPatternGrid(canvas, []);
+        return;
+    }
+
+    setupPatternCanvasInitialized = true;
+
+    const onPointerDown = (e) => {
+        e.preventDefault();
+        try { canvas.setPointerCapture(e.pointerId); } catch (_) {}
+        isDrawingSetupPattern = true;
+        currentSetupPattern = [];
+        const pos = getPointerCanvasPos(canvas, e);
+        const nodeIdx = getPatternNodeAtPos(pos.x, pos.y);
+        if (nodeIdx !== null) {
+            currentSetupPattern.push(nodeIdx);
+        }
+        drawPatternGrid(canvas, currentSetupPattern, pos);
+    };
+
+    const onPointerMove = (e) => {
+        if (!isDrawingSetupPattern) return;
+        e.preventDefault();
+        const pos = getPointerCanvasPos(canvas, e);
+        const nodeIdx = getPatternNodeAtPos(pos.x, pos.y);
+        if (nodeIdx !== null && !currentSetupPattern.includes(nodeIdx)) {
+            if (currentSetupPattern.length > 0) {
+                const lastIdx = currentSetupPattern[currentSetupPattern.length - 1];
+                const key = `${lastIdx}-${nodeIdx}`;
+                if (PATTERN_MIDPOINTS[key] !== undefined) {
+                    const mid = PATTERN_MIDPOINTS[key];
+                    if (!currentSetupPattern.includes(mid)) {
+                        currentSetupPattern.push(mid);
+                    }
+                }
+            }
+            currentSetupPattern.push(nodeIdx);
+        }
+        drawPatternGrid(canvas, currentSetupPattern, pos);
+    };
+
+    const onPointerUp = async (e) => {
+        if (!isDrawingSetupPattern) return;
+        isDrawingSetupPattern = false;
+        try { canvas.releasePointerCapture(e.pointerId); } catch (_) {}
+
+        const stepText = document.getElementById('setup-pattern-step-text');
+
+        if (setupPatternStep === 1) {
+            if (currentSetupPattern.length < 4) {
+                setSetupLockStatus('Hình vẽ phải kết nối ít nhất 4 điểm!', 'error');
+                drawPatternGrid(canvas, currentSetupPattern, null, 'error');
+                canvas.classList.add('shake-anim');
+                setTimeout(() => {
+                    canvas.classList.remove('shake-anim');
+                    currentSetupPattern = [];
+                    drawPatternGrid(canvas, []);
+                }, 600);
+                return;
+            }
+
+            setupPatternFirst = [...currentSetupPattern];
+            setupPatternStep = 2;
+            currentSetupPattern = [];
+            if (stepText) {
+                stepText.innerHTML = 'Bước 2: Vẽ lại hình khóa để xác nhận';
+            }
+            setSetupLockStatus('Đã ghi nhận hình vẽ mẫu! Vui lòng vẽ lại một lần nữa để xác nhận.', 'info');
+            drawPatternGrid(canvas, []);
+        } else if (setupPatternStep === 2) {
+            const isMatch = currentSetupPattern.length === setupPatternFirst.length &&
+                currentSetupPattern.every((v, i) => v === setupPatternFirst[i]);
+
+            if (isMatch) {
+                setupPatternConfirmed = [...currentSetupPattern];
+                if (stepText) {
+                    stepText.innerHTML = '✅ Hình vẽ xác nhận khớp thành công!';
+                }
+                setSetupLockStatus('🎉 Hình vẽ đã xác nhận khớp! Hãy nhấn "Lưu Cài Đặt Khóa" bên dưới.', 'success');
+                drawPatternGrid(canvas, setupPatternConfirmed, null, 'success');
+            } else {
+                if (stepText) {
+                    stepText.innerHTML = '❌ Hình vẽ xác nhận không khớp!';
+                }
+                setSetupLockStatus('Hình vẽ xác nhận không khớp! Vui lòng vẽ lại từ Bước 1.', 'error');
+                drawPatternGrid(canvas, currentSetupPattern, null, 'error');
+                canvas.classList.add('shake-anim');
+                setTimeout(() => {
+                    canvas.classList.remove('shake-anim');
+                    resetSetupPattern();
+                }, 800);
+            }
+        }
+    };
+
+    canvas.addEventListener('pointerdown', onPointerDown);
+    canvas.addEventListener('pointermove', onPointerMove);
+    canvas.addEventListener('pointerup', onPointerUp);
+    canvas.addEventListener('pointercancel', onPointerUp);
+
+    drawPatternGrid(canvas, []);
+}
+
+function resetSetupPattern() {
+    setupPatternStep = 1;
+    setupPatternFirst = null;
+    setupPatternConfirmed = null;
+    currentSetupPattern = [];
+    isDrawingSetupPattern = false;
+
+    const stepText = document.getElementById('setup-pattern-step-text');
+    if (stepText) {
+        stepText.innerHTML = 'Bước 1: Vẽ hình khóa mẫu (kết nối tối thiểu 4 điểm)';
+    }
+    const canvas = document.getElementById('setup-pattern-canvas');
+    if (canvas) {
+        canvas.classList.remove('shake-anim');
+        drawPatternGrid(canvas, []);
+    }
+}
+
+// ------------------------------------------
+// Pattern Unlock Logic
+// ------------------------------------------
+let isDrawingUnlockPattern = false;
+let currentUnlockPattern = [];
+let unlockPatternCanvasInitialized = false;
+
+function initUnlockPatternCanvas() {
+    const canvas = document.getElementById('unlock-pattern-canvas');
+    if (!canvas) return;
+
+    drawPatternGrid(canvas, []);
+
+    if (unlockPatternCanvasInitialized) return;
+    unlockPatternCanvasInitialized = true;
+
+    const onPointerDown = (e) => {
+        e.preventDefault();
+        try { canvas.setPointerCapture(e.pointerId); } catch (_) {}
+        isDrawingUnlockPattern = true;
+        currentUnlockPattern = [];
+        setUnlockStatus('', '');
+        const pos = getPointerCanvasPos(canvas, e);
+        const nodeIdx = getPatternNodeAtPos(pos.x, pos.y);
+        if (nodeIdx !== null) {
+            currentUnlockPattern.push(nodeIdx);
+        }
+        drawPatternGrid(canvas, currentUnlockPattern, pos);
+    };
+
+    const onPointerMove = (e) => {
+        if (!isDrawingUnlockPattern) return;
+        e.preventDefault();
+        const pos = getPointerCanvasPos(canvas, e);
+        const nodeIdx = getPatternNodeAtPos(pos.x, pos.y);
+        if (nodeIdx !== null && !currentUnlockPattern.includes(nodeIdx)) {
+            if (currentUnlockPattern.length > 0) {
+                const lastIdx = currentUnlockPattern[currentUnlockPattern.length - 1];
+                const key = `${lastIdx}-${nodeIdx}`;
+                if (PATTERN_MIDPOINTS[key] !== undefined) {
+                    const mid = PATTERN_MIDPOINTS[key];
+                    if (!currentUnlockPattern.includes(mid)) {
+                        currentUnlockPattern.push(mid);
+                    }
+                }
+            }
+            currentUnlockPattern.push(nodeIdx);
+        }
+        drawPatternGrid(canvas, currentUnlockPattern, pos);
+    };
+
+    const onPointerUp = async (e) => {
+        if (!isDrawingUnlockPattern) return;
+        isDrawingUnlockPattern = false;
+        try { canvas.releasePointerCapture(e.pointerId); } catch (_) {}
+
+        if (currentUnlockPattern.length < 4) {
+            setUnlockStatus('Hình vẽ không hợp lệ (quá ngắn)!', 'error');
+            drawPatternGrid(canvas, currentUnlockPattern, null, 'error');
+            canvas.classList.add('shake-anim');
+            setTimeout(() => {
+                canvas.classList.remove('shake-anim');
+                currentUnlockPattern = [];
+                drawPatternGrid(canvas, []);
+            }, 600);
+            return;
+        }
+
+        const patternStr = currentUnlockPattern.join(',');
+        const hash = await hashQuickLockSecret(patternStr);
+
+        if (myQuickLockData && hash === myQuickLockData.hash) {
+            drawPatternGrid(canvas, currentUnlockPattern, null, 'success');
+            setUnlockStatus('🎉 Mở khóa thành công!', 'success');
+            setTimeout(completeQuickUnlock, 250);
+        } else {
+            drawPatternGrid(canvas, currentUnlockPattern, null, 'error');
+            canvas.classList.add('shake-anim');
+            setUnlockStatus('❌ Hình vẽ không đúng, vui lòng thử lại!', 'error');
+            setTimeout(() => {
+                canvas.classList.remove('shake-anim');
+                currentUnlockPattern = [];
+                drawPatternGrid(canvas, []);
+            }, 700);
+        }
+    };
+
+    canvas.addEventListener('pointerdown', onPointerDown);
+    canvas.addEventListener('pointermove', onPointerMove);
+    canvas.addEventListener('pointerup', onPointerUp);
+    canvas.addEventListener('pointercancel', onPointerUp);
+}
+
+// ------------------------------------------
+// 6-Digit PIN Logic (Randomized Keypad + Keyboard)
+// ------------------------------------------
+
+function getShuffledDigits() {
+    const digits = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+    for (let i = digits.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [digits[i], digits[j]] = [digits[j], digits[i]];
+    }
+    return digits;
+}
+
+function renderKeypadHTML(containerId, onDigitFnName, onClearFnName, onBackspaceFnName) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    const digits = getShuffledDigits();
+    let html = '';
+    for (let i = 0; i < 9; i++) {
+        html += `<button type="button" class="pin-key" onclick="${onDigitFnName}('${digits[i]}')">${digits[i]}</button>`;
+    }
+    // Row 4: Clear, 10th digit, Backspace
+    html += `<button type="button" class="pin-key pin-key-action" onclick="${onClearFnName}()" title="Xóa toàn bộ">
+        <span class="material-symbols-outlined" style="font-size: 18px;">restart_alt</span>
+    </button>`;
+    html += `<button type="button" class="pin-key" onclick="${onDigitFnName}('${digits[9]}')">${digits[9]}</button>`;
+    html += `<button type="button" class="pin-key pin-key-action" onclick="${onBackspaceFnName}()" title="Xóa ký tự vừa nhập">
+        <span class="material-symbols-outlined" style="font-size: 20px;">backspace</span>
+    </button>`;
+
+    container.innerHTML = html;
+}
+
+// --- Unlock PIN Logic ---
+let unlockEnteredPin = '';
+
+function renderUnlockPinKeypad() {
+    renderKeypadHTML('unlock-pin-keypad', 'handlePinKeyClick', 'handlePinKeyClear', 'handlePinKeyBackspace');
+}
+
+function updateUnlockPinDots(state = 'normal') {
+    const container = document.getElementById('unlock-pin-dots');
+    if (!container) return;
+    const dots = container.querySelectorAll('.pin-dot');
+    dots.forEach((dot, idx) => {
+        dot.className = 'pin-dot';
+        if (idx < unlockEnteredPin.length) {
+            dot.classList.add('filled');
+        }
+        if (state === 'error') dot.classList.add('error');
+        if (state === 'success') dot.classList.add('success');
+    });
+}
+
+function handlePinKeyClick(digit) {
+    if (activeQuickUnlockType !== 'pin') return;
+    if (unlockEnteredPin.length >= 6) return;
+
+    unlockEnteredPin += digit.toString();
+    updateUnlockPinDots('normal');
+    setUnlockStatus('', '');
+
+    if (unlockEnteredPin.length === 6) {
+        setTimeout(verifyPinUnlock, 120);
+    }
+}
+
+function handlePinKeyBackspace() {
+    if (activeQuickUnlockType !== 'pin') return;
+    if (unlockEnteredPin.length > 0) {
+        unlockEnteredPin = unlockEnteredPin.slice(0, -1);
+        updateUnlockPinDots('normal');
+    }
+}
+
+function handlePinKeyClear() {
+    if (activeQuickUnlockType !== 'pin') return;
+    unlockEnteredPin = '';
+    updateUnlockPinDots('normal');
+    renderUnlockPinKeypad();
+}
+
+async function verifyPinUnlock() {
+    if (unlockEnteredPin.length !== 6) return;
+
+    const hash = await hashQuickLockSecret(unlockEnteredPin);
+    if (myQuickLockData && hash === myQuickLockData.hash) {
+        updateUnlockPinDots('success');
+        setUnlockStatus('🎉 Mã PIN chính xác!', 'success');
+        setTimeout(completeQuickUnlock, 250);
+    } else {
+        updateUnlockPinDots('error');
+        const container = document.getElementById('unlock-pin-dots');
+        if (container) {
+            container.classList.add('shake-anim');
+        }
+        setUnlockStatus('❌ Mã PIN không chính xác, vui lòng nhập lại!', 'error');
+        setTimeout(() => {
+            if (container) container.classList.remove('shake-anim');
+            unlockEnteredPin = '';
+            updateUnlockPinDots('normal');
+            // Reshuffle keypad on failed attempt (banking style)
+            renderUnlockPinKeypad();
+        }, 700);
+    }
+}
+
+// --- Setup PIN Logic ---
+let setupPinStep = 1;
+let setupPinFirst = '';
+let setupPinConfirmed = '';
+let setupPinCurrent = '';
+
+function renderSetupPinKeypad() {
+    renderKeypadHTML('setup-pin-keypad', 'handleSetupPinKeyClick', 'handleSetupPinKeyClear', 'handleSetupPinKeyBackspace');
+}
+
+function updateSetupPinDots(state = 'normal') {
+    const container = document.getElementById('setup-pin-dots');
+    if (!container) return;
+    const dots = container.querySelectorAll('.pin-dot');
+    dots.forEach((dot, idx) => {
+        dot.className = 'pin-dot';
+        if (idx < setupPinCurrent.length) {
+            dot.classList.add('filled');
+        }
+        if (state === 'error') dot.classList.add('error');
+        if (state === 'success') dot.classList.add('success');
+    });
+}
+
+function resetSetupPin() {
+    setupPinStep = 1;
+    setupPinFirst = '';
+    setupPinConfirmed = '';
+    setupPinCurrent = '';
+    const stepText = document.getElementById('setup-pin-step-text');
+    if (stepText) stepText.innerHTML = 'Bước 1: Nhập mã PIN 6 số mới';
+    setSetupLockStatus('', '');
+    updateSetupPinDots('normal');
+    renderSetupPinKeypad();
+}
+
+function handleSetupPinKeyClick(digit) {
+    if (selectedQuickLockSetupType !== 'pin') return;
+    if (setupPinCurrent.length >= 6) return;
+
+    setupPinCurrent += digit.toString();
+    updateSetupPinDots('normal');
+    setSetupLockStatus('', '');
+
+    if (setupPinCurrent.length === 6) {
+        setTimeout(processSetupPinStepCompletion, 150);
+    }
+}
+
+function handleSetupPinKeyBackspace() {
+    if (selectedQuickLockSetupType !== 'pin') return;
+    if (setupPinCurrent.length > 0) {
+        setupPinCurrent = setupPinCurrent.slice(0, -1);
+        updateSetupPinDots('normal');
+    }
+}
+
+function handleSetupPinKeyClear() {
+    if (selectedQuickLockSetupType !== 'pin') return;
+    setupPinCurrent = '';
+    updateSetupPinDots('normal');
+    renderSetupPinKeypad();
+}
+
+function processSetupPinStepCompletion() {
+    const stepText = document.getElementById('setup-pin-step-text');
+
+    if (setupPinStep === 1) {
+        setupPinFirst = setupPinCurrent;
+        setupPinStep = 2;
+        setupPinCurrent = '';
+        if (stepText) {
+            stepText.innerHTML = 'Bước 2: Nhập lại mã PIN 6 số để xác nhận';
+        }
+        setSetupLockStatus('Đã ghi nhận mã PIN mẫu! Vui lòng nhập lại một lần nữa để xác nhận.', 'info');
+        updateSetupPinDots('normal');
+        // Reshuffle keypad for step 2!
+        renderSetupPinKeypad();
+    } else if (setupPinStep === 2) {
+        if (setupPinCurrent === setupPinFirst) {
+            setupPinConfirmed = setupPinCurrent;
+            if (stepText) {
+                stepText.innerHTML = '✅ Mã PIN xác nhận khớp thành công!';
+            }
+            updateSetupPinDots('success');
+            setSetupLockStatus('🎉 Mã PIN đã xác nhận khớp! Hãy nhấn "Lưu Cài Đặt Khóa" bên dưới.', 'success');
+        } else {
+            if (stepText) {
+                stepText.innerHTML = '❌ Mã PIN xác nhận không khớp!';
+            }
+            updateSetupPinDots('error');
+            const container = document.getElementById('setup-pin-dots');
+            if (container) container.classList.add('shake-anim');
+            setSetupLockStatus('Mã PIN xác nhận không khớp! Vui lòng nhập lại từ Bước 1.', 'error');
+            setTimeout(() => {
+                if (container) container.classList.remove('shake-anim');
+                resetSetupPin();
+            }, 800);
+        }
+    }
+}
+
+// --- Keyboard listener for PIN entry ---
+window.addEventListener('keydown', (e) => {
+    // 1. If unlock modal is active and type is pin
+    const unlockModal = document.getElementById('quick-unlock-modal');
+    if (unlockModal && !unlockModal.classList.contains('hidden') && activeQuickUnlockType === 'pin') {
+        if (e.key >= '0' && e.key <= '9') {
+            e.preventDefault();
+            handlePinKeyClick(e.key);
+        } else if (e.key === 'Backspace') {
+            e.preventDefault();
+            handlePinKeyBackspace();
+        } else if (e.key === 'Escape') {
+            e.preventDefault();
+            handlePinKeyClear();
+        }
+        return;
+    }
+
+    // 2. If setup modal is active and tab is pin
+    const setupModal = document.getElementById('quick-lock-setup-modal');
+    if (setupModal && !setupModal.classList.contains('hidden') && selectedQuickLockSetupType === 'pin') {
+        if (e.key >= '0' && e.key <= '9') {
+            e.preventDefault();
+            handleSetupPinKeyClick(e.key);
+        } else if (e.key === 'Backspace') {
+            e.preventDefault();
+            handleSetupPinKeyBackspace();
+        } else if (e.key === 'Escape') {
+            e.preventDefault();
+            handleSetupPinKeyClear();
+        }
+        return;
+    }
+});
+
+// ------------------------------------------
+// Security Questions Logic (Setup + Unlock)
+// ------------------------------------------
+function populateSetupQuestions() {
+    const s1 = document.getElementById('setup-q1-select');
+    const s2 = document.getElementById('setup-q2-select');
+    const s3 = document.getElementById('setup-q3-select');
+
+    if (!s1 || !s2 || !s3) return;
+
+    const renderOptions = (selectEl, defaultIndex) => {
+        selectEl.innerHTML = '';
+        SECURITY_QUESTION_TEMPLATES.forEach((q, idx) => {
+            const opt = document.createElement('option');
+            opt.value = q.id;
+            opt.textContent = q.text;
+            if (idx === defaultIndex) opt.selected = true;
+            selectEl.appendChild(opt);
+        });
+    };
+
+    renderOptions(s1, 0); // dob
+    renderOptions(s2, 1); // nickname
+    renderOptions(s3, 2); // father_name
+
+    if (myQuickLockType === 'questions' && myQuickLockData?.items?.length === 3) {
+        s1.value = myQuickLockData.items[0].id;
+        s2.value = myQuickLockData.items[1].id;
+        s3.value = myQuickLockData.items[2].id;
+    }
+
+    const a1 = document.getElementById('setup-q1-answer');
+    const a2 = document.getElementById('setup-q2-answer');
+    const a3 = document.getElementById('setup-q3-answer');
+    if (a1) a1.value = '';
+    if (a2) a2.value = '';
+    if (a3) a3.value = '';
+}
+
+function populateUnlockQuestions() {
+    const select = document.getElementById('unlock-question-select');
+    const answerInput = document.getElementById('unlock-question-answer');
+    if (!select) return;
+
+    select.innerHTML = '';
+    if (myQuickLockData?.items && Array.isArray(myQuickLockData.items)) {
+        myQuickLockData.items.forEach(item => {
+            const opt = document.createElement('option');
+            opt.value = item.id;
+            opt.textContent = item.text;
+            select.appendChild(opt);
+        });
+    }
+
+    if (answerInput) {
+        answerInput.value = '';
+        setTimeout(() => answerInput.focus(), 150);
+    }
+}
+
+async function verifyQuestionUnlock() {
+    if (activeQuickUnlockType !== 'questions') return;
+
+    const select = document.getElementById('unlock-question-select');
+    const answerInput = document.getElementById('unlock-question-answer');
+    const qId = select?.value;
+    const answer = (answerInput?.value || '').trim();
+
+    if (!answer) {
+        setUnlockStatus('Vui lòng nhập câu trả lời của bạn!', 'error');
+        if (answerInput) answerInput.focus();
+        return;
+    }
+
+    const item = myQuickLockData?.items?.find(i => i.id === qId);
+    if (!item) {
+        setUnlockStatus('Không tìm thấy thông tin câu hỏi này!', 'error');
+        return;
+    }
+
+    const answerHash = await hashQuickLockSecret(answer);
+    if (answerHash === item.hash) {
+        setUnlockStatus('🎉 Câu trả lời chính xác!', 'success');
+        setTimeout(completeQuickUnlock, 250);
+    } else {
+        setUnlockStatus('❌ Câu trả lời không chính xác, vui lòng thử lại!', 'error');
+        if (answerInput) {
+            answerInput.classList.add('shake-anim');
+            setTimeout(() => answerInput.classList.remove('shake-anim'), 600);
+            answerInput.select();
+        }
+    }
+}
+
+// ------------------------------------------
+// Save Quick Lock Configuration
+// ------------------------------------------
+async function saveQuickLockConfiguration() {
+    const saveBtn = document.getElementById('btn-save-quick-lock');
+    setSetupLockStatus('', '');
+
+    let lockData = null;
+
+    if (selectedQuickLockSetupType === 'pin') {
+        if (!setupPinConfirmed || setupPinConfirmed.length !== 6) {
+            setSetupLockStatus('Vui lòng hoàn tất đủ 2 bước nhập và xác nhận mã PIN 6 số trên bàn phím!', 'error');
+            return;
+        }
+
+        const hash = await hashQuickLockSecret(setupPinConfirmed);
+        lockData = { type: 'pin', hash };
+
+    } else if (selectedQuickLockSetupType === 'pattern') {
+        if (!setupPatternConfirmed || setupPatternConfirmed.length < 4) {
+            setSetupLockStatus('Vui lòng hoàn tất đủ 2 bước vẽ và xác nhận hình khóa!', 'error');
+            return;
+        }
+
+        const patternStr = setupPatternConfirmed.join(',');
+        const hash = await hashQuickLockSecret(patternStr);
+        lockData = { type: 'pattern', hash };
+
+    } else if (selectedQuickLockSetupType === 'questions') {
+        const q1 = document.getElementById('setup-q1-select')?.value;
+        const q2 = document.getElementById('setup-q2-select')?.value;
+        const q3 = document.getElementById('setup-q3-select')?.value;
+
+        const a1 = (document.getElementById('setup-q1-answer')?.value || '').trim();
+        const a2 = (document.getElementById('setup-q2-answer')?.value || '').trim();
+        const a3 = (document.getElementById('setup-q3-answer')?.value || '').trim();
+
+        if (q1 === q2 || q1 === q3 || q2 === q3) {
+            setSetupLockStatus('Vui lòng chọn 3 câu hỏi hoàn toàn khác nhau!', 'error');
+            return;
+        }
+
+        if (!a1 || !a2 || !a3) {
+            setSetupLockStatus('Vui lòng nhập câu trả lời cho cả 3 câu hỏi!', 'error');
+            return;
+        }
+
+        const getQText = (id) => SECURITY_QUESTION_TEMPLATES.find(t => t.id === id)?.text || id;
+        const [h1, h2, h3] = await Promise.all([
+            hashQuickLockSecret(a1),
+            hashQuickLockSecret(a2),
+            hashQuickLockSecret(a3)
+        ]);
+
+        lockData = {
+            type: 'questions',
+            items: [
+                { id: q1, text: getQText(q1), hash: h1 },
+                { id: q2, text: getQText(q2), hash: h2 },
+                { id: q3, text: getQText(q3), hash: h3 }
+            ]
+        };
+    } else {
+        setSetupLockStatus('Phương thức khóa không hợp lệ!', 'error');
+        return;
+    }
+
+    if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size: 18px;">hourglass_top</span> Đang lưu...';
+    }
+
+    try {
+        const sp = getSupabaseAuth();
+        if (sp && currentUserId) {
+            try {
+                const updatePayload = {
+                    id: currentUserId,
+                    quick_lock_type: selectedQuickLockSetupType,
+                    quick_lock_data: lockData,
+                    updated_at: new Date().toISOString()
+                };
+                const { error } = await sp.from('profiles').upsert([updatePayload]);
+                if (error) {
+                    console.warn('Supabase upsert quick_lock failed (columns may need to be added to DB):', error.message);
+                }
+            } catch (e) {
+                console.warn('Supabase upsert error:', e);
+            }
+        }
+
+        localStorage.setItem('musiclive_quick_lock_type', selectedQuickLockSetupType);
+        localStorage.setItem('musiclive_quick_lock_data', JSON.stringify(lockData));
+
+        myQuickLockType = selectedQuickLockSetupType;
+        myQuickLockData = lockData;
+
+        updateQuickLockStatusUI();
+
+        setSetupLockStatus('🎉 Đã lưu phương thức Đăng Nhập Nhanh thành công!', 'success');
+        if (typeof showToastNotification === 'function') {
+            showToastNotification('🔒 Đã kích hoạt Đăng Nhập Nhanh thành công!');
+        }
+
+        setTimeout(() => {
+            closeQuickLockSetupModal();
+        }, 1200);
+
+    } catch (err) {
+        console.error('Save quick lock error:', err);
+        setSetupLockStatus(err.message || 'Lỗi khi lưu cài đặt khóa', 'error');
+    } finally {
+        if (saveBtn) {
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size: 18px;">check</span> Lưu Cài Đặt Khóa';
+        }
+    }
+}
+
+// ------------------------------------------
+// Quick Unlock Screen Lifecycle
+// ------------------------------------------
+let pendingUnlockSessionUser = null;
+let pendingUnlockProfile = null;
+let activeQuickUnlockType = '';
+
+function showQuickUnlockScreen(user, profile) {
+    pendingUnlockSessionUser = user;
+    pendingUnlockProfile = profile;
+
+    const modal = document.getElementById('quick-unlock-modal');
+    if (!modal) return;
+
+    const avatarEl = document.getElementById('unlock-user-avatar');
+    const nameEl = document.getElementById('unlock-user-name');
+    const emailEl = document.getElementById('unlock-user-email');
+
+    const displayName = profile?.display_name || profile?.username || user.user_metadata?.full_name || user.email?.split('@')[0] || 'Người dùng';
+    const avatarUrl = profile?.avatar_url || user.user_metadata?.avatar_url || user.user_metadata?.picture || '/assets/images/placeholder.jpg';
+    const email = user.email || '';
+
+    if (avatarEl) avatarEl.src = avatarUrl;
+    if (nameEl) nameEl.textContent = displayName;
+    if (emailEl) emailEl.textContent = email;
+
+    setUnlockStatus('', '');
+
+    const pinSec = document.getElementById('unlock-pin-section');
+    const patSec = document.getElementById('unlock-pattern-section');
+    const qSec = document.getElementById('unlock-questions-section');
+
+    if (pinSec) pinSec.classList.add('hidden');
+    if (patSec) patSec.classList.add('hidden');
+    if (qSec) qSec.classList.add('hidden');
+
+    activeQuickUnlockType = myQuickLockType;
+
+    const promptText = document.getElementById('unlock-prompt-text');
+
+    if (myQuickLockType === 'pin') {
+        if (pinSec) pinSec.classList.remove('hidden');
+        if (promptText) promptText.textContent = 'Nhập mã PIN 6 số để mở khóa';
+        unlockEnteredPin = '';
+        updateUnlockPinDots('normal');
+        renderUnlockPinKeypad();
+    } else if (myQuickLockType === 'pattern') {
+        if (patSec) patSec.classList.remove('hidden');
+        if (promptText) promptText.textContent = 'Vẽ hình khóa để mở khóa';
+        setTimeout(initUnlockPatternCanvas, 50);
+    } else if (myQuickLockType === 'questions') {
+        if (qSec) qSec.classList.remove('hidden');
+        if (promptText) promptText.textContent = 'Chọn 1 trong 3 câu hỏi bảo mật để mở khóa';
+        populateUnlockQuestions();
+    } else {
+        completeQuickUnlock();
+        return;
+    }
+
+    document.getElementById('login-section')?.classList.add('hidden');
+    document.getElementById('main-room')?.classList.add('hidden');
+    modal.classList.remove('hidden');
+}
+
+async function completeQuickUnlock() {
+    const modal = document.getElementById('quick-unlock-modal');
+    if (modal) modal.classList.add('hidden');
+
+    if (typeof showToastNotification === 'function') {
+        showToastNotification('🔓 Mở khóa thành công!');
+    }
+
+    if (pendingUnlockSessionUser) {
+        await handleAuthSuccess(pendingUnlockSessionUser, pendingUnlockProfile);
+    } else {
+        joinRoom();
+    }
+}
+
+function joinRoom() {
+    const name = myUsername || localStorage.getItem('musiclive_username') || 'Người dùng';
+    const nameColor = myNameColor || localStorage.getItem('musiclive_namecolor') || '#3ea6ff';
+    const userId = currentUserId || localStorage.getItem('musiclive_user_id') || null;
+    const role = myRole || localStorage.getItem('musiclive_user_role') || 'member';
+
+    myUsername = name;
+    myNameColor = nameColor;
+
+    if (player && typeof player.playVideo === 'function') {
+        try { player.playVideo(); } catch (e) {}
+    }
+
+    socket.emit('joinRoom', {
+        name,
+        nameColor,
+        userId,
+        role,
+        isAdmin: (role === 'admin')
+    });
+}
+
+async function initSupabaseAuth() {
+    const sp = getSupabaseAuth();
+    if (!sp) {
+        isAuthInitialized = true;
+        return;
+    }
+
+    try {
+        const { data: { session } } = await sp.auth.getSession();
+        if (session && session.user) {
+            let profile = null;
+            try {
+                let profRes = await sp
+                    .from('profiles')
+                    .select('username, display_name, phone, name_color, role, avatar_url, quick_lock_type, quick_lock_data')
+                    .eq('id', session.user.id)
+                    .maybeSingle();
+
+                if (profRes.error && profRes.error.message && profRes.error.message.includes('quick_lock')) {
+                    profRes = await sp
+                        .from('profiles')
+                        .select('username, display_name, phone, name_color, role, avatar_url')
+                        .eq('id', session.user.id)
+                        .maybeSingle();
+                }
+
+                if (profRes.data && !profRes.error) {
+                    profile = profRes.data;
+                }
+            } catch (pErr) {
+                console.warn('Profile fetch error:', pErr);
+            }
+
+            const qType = profile?.quick_lock_type || localStorage.getItem('musiclive_quick_lock_type');
+            let qData = profile?.quick_lock_data;
+            if (!qData) {
+                try {
+                    const localQData = localStorage.getItem('musiclive_quick_lock_data');
+                    if (localQData) qData = JSON.parse(localQData);
+                } catch (_) {}
+            }
+
+            if (qType && qData) {
+                myQuickLockType = qType;
+                myQuickLockData = qData;
+                localStorage.setItem('musiclive_quick_lock_type', qType);
+                localStorage.setItem('musiclive_quick_lock_data', JSON.stringify(qData));
+
+                // Intercept with Quick Unlock modal!
+                showQuickUnlockScreen(session.user, profile);
+            } else {
+                await handleAuthSuccess(session.user, profile);
+                openQuickLockSetupModal(true);
+            }
+        } else {
+            localStorage.removeItem('musiclive_user_id');
+            localStorage.removeItem('musiclive_user_role');
+            currentUserId = null;
+            myRole = '';
+        }
+    } catch (e) {
+        console.warn('Check Supabase session error:', e);
+    } finally {
+        isAuthInitialized = true;
+    }
+
+    sp.auth.onAuthStateChange(async (event, session) => {
+        if (event === 'SIGNED_IN' && session && session.user) {
+            const mainRoom = document.getElementById('main-room');
+            const unlockModal = document.getElementById('quick-unlock-modal');
+            const isUnlockActive = unlockModal && !unlockModal.classList.contains('hidden');
+
+            if ((!mainRoom || mainRoom.classList.contains('hidden')) && !isUnlockActive) {
+                await handleAuthSuccess(session.user);
+                if (!myQuickLockType) {
+                    openQuickLockSetupModal(true);
+                }
+            }
+        }
+    });
+}
+
+// Initialize Supabase Auth on script execution
+initSupabaseAuth();
 
 socket.on('authResult', (res) => {
     if (res.success) {
         myRole = res.role;
 
+        if (res.userProfile) {
+            if (res.userProfile.displayName) myDisplayName = res.userProfile.displayName;
+            if (res.userProfile.username) myRawUsername = res.userProfile.username;
+            if (res.userProfile.avatarUrl) myAvatarUrl = res.userProfile.avatarUrl;
+        }
+        updateNavbarAvatarUI(myAvatarUrl);
+
         if (myRole === 'admin') {
-            localStorage.setItem('musiclive_admin_type', selectedAdminType || 'main');
-            localStorage.setItem('musiclive_password', document.getElementById('password-input').value);
+            localStorage.setItem('musiclive_admin_type', 'main');
         } else {
             localStorage.removeItem('musiclive_admin_type');
             localStorage.removeItem('musiclive_password');
@@ -751,20 +2524,51 @@ socket.on('authResult', (res) => {
 });
 
 
-function logout() {
+async function logout() {
+    const sp = getSupabaseAuth();
+    if (sp) {
+        try {
+            await sp.auth.signOut();
+        } catch (e) {
+            console.warn('Supabase signOut error:', e);
+        }
+    }
 
     localStorage.removeItem('musiclive_username');
+    localStorage.removeItem('musiclive_display_name');
+    localStorage.removeItem('musiclive_raw_username');
+    localStorage.removeItem('musiclive_phone');
+    localStorage.removeItem('musiclive_avatar_url');
     localStorage.removeItem('musiclive_namecolor');
     localStorage.removeItem('musiclive_admin_type');
     localStorage.removeItem('musiclive_password');
-
+    localStorage.removeItem('musiclive_user_id');
+    localStorage.removeItem('musiclive_user_role');
+    localStorage.removeItem('musiclive_quick_lock_type');
+    localStorage.removeItem('musiclive_quick_lock_data');
 
     myRole = '';
     myUsername = '';
+    myDisplayName = '';
+    myRawUsername = '';
+    myPhone = '';
+    myAvatarUrl = '';
     myNameColor = '#3ea6ff';
+    currentUserId = null;
+    myQuickLockType = '';
+    myQuickLockData = null;
+    unlockEnteredPin = '';
+    currentUnlockPattern = [];
+    activeQuickUnlockType = '';
+    updateNavbarAvatarUI('');
+    updateQuickLockStatusUI();
 
     resetBackgroundsToDefault();
 
+    const unlockModal = document.getElementById('quick-unlock-modal');
+    if (unlockModal) unlockModal.classList.add('hidden');
+    const setupModal = document.getElementById('quick-lock-setup-modal');
+    if (setupModal) setupModal.classList.add('hidden');
 
     document.getElementById('main-room').classList.add('hidden');
     document.getElementById('login-section').classList.remove('hidden');
@@ -772,21 +2576,25 @@ function logout() {
     document.getElementById('navbar-search').classList.add('hidden');
     document.getElementById('menu-btn').classList.add('hidden');
 
-
     document.body.classList.remove('admin-mode');
     document.getElementById('btn-next-song').classList.add('hidden');
     document.getElementById('sync-btn').classList.add('hidden');
 
+    const emailIn = document.getElementById('login-email');
+    const pwdIn = document.getElementById('login-password');
+    const signupUser = document.getElementById('signup-username');
+    const signupEmail = document.getElementById('signup-email');
+    const signupPwd = document.getElementById('signup-password');
 
-    document.getElementById('username-input').value = '';
-    document.getElementById('name-color-input').value = '#3ea6ff';
-    document.getElementById('password-input').value = '';
-    document.getElementById('password-wrapper').classList.add('hidden');
-
+    if (emailIn) emailIn.value = '';
+    if (pwdIn) pwdIn.value = '';
+    if (signupUser) signupUser.value = '';
+    if (signupEmail) signupEmail.value = '';
+    if (signupPwd) signupPwd.value = '';
+    setAuthStatus('', '');
 
     document.getElementById('chat-box-ui').innerHTML = '';
     lastChatSenderId = null;
-
 
     socket.disconnect();
     socket.connect();
@@ -831,6 +2639,7 @@ function cancelReply() {
 }
 
 function sendChat() {
+    stopTyping();
     const input = document.getElementById('chat-input');
     if (input.value.trim() !== "") {
         if (currentReply) {
@@ -844,11 +2653,32 @@ function sendChat() {
     hideGifSuggestions();
 }
 
+function getTikTokVerifiedBadgeHtml(extraClass = '') {
+    return `<span class="tiktok-verified-badge ${extraClass}" title="Xác minh Quản trị viên (Admin Real)"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10" fill="#20D5EC"/><path d="M7.5 12L10.5 15L16.5 9" stroke="#ffffff" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg></span>`;
+}
+
+function isUserAdmin(userOrRole) {
+    if (!userOrRole) return false;
+    if (typeof userOrRole === 'string') {
+        const str = userOrRole.toLowerCase().trim();
+        return str === 'admin' || str.includes('😎');
+    }
+    if (userOrRole.role === 'admin' || userOrRole.role === 'host') return true;
+    if (userOrRole.isAdmin === true) return true;
+    const name = String(userOrRole.displayName || userOrRole.username || userOrRole.name || '');
+    if (name.includes('😎') || name.toLowerCase() === 'admin') return true;
+    return false;
+}
+
 function updatePinnedMessageUI(msg) {
     const container = document.getElementById('pinned-message-container');
     if (msg) {
         container.classList.remove('hidden');
-        document.getElementById('pin-author').innerText = msg.name;
+        const isAdm = isUserAdmin(msg);
+        const badge = isAdm ? getTikTokVerifiedBadgeHtml() : '';
+        const cleanName = escapeHtml((msg.name || '').replace(' 😎', '').trim());
+        const authorEl = document.getElementById('pin-author');
+        if (authorEl) authorEl.innerHTML = `${cleanName}${badge}`;
         document.getElementById('pin-text').innerText = msg.text;
         if (myRole === 'admin') document.getElementById('unpin-btn').classList.remove('hidden');
     } else {
@@ -860,7 +2690,14 @@ socket.on('updatePinnedMessage', updatePinnedMessageUI);
 
 socket.on('messageDeleted', (msgId) => {
     const el = document.getElementById('msg-' + msgId);
-    if (el) el.remove();
+    if (el) {
+        const wasLast = el.classList.contains('group-last');
+        const prev = el.previousElementSibling;
+        el.remove();
+        if (wasLast && prev && prev.classList.contains('chat-message')) {
+            prev.classList.add('group-last');
+        }
+    }
 });
 
 socket.on('viewersUpdate', (count) => {
@@ -962,6 +2799,90 @@ function stringToColor(str) {
     let hash = 0;
     for (let i = 0; i < (str || '').length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
     return colors[Math.abs(hash) % colors.length];
+}
+
+// --- MESSENGER TYPING INDICATOR LOGIC ---
+let myTypingTimeout = null;
+let isCurrentlyTyping = false;
+
+function notifyTyping() {
+    const input = document.getElementById('chat-input');
+    if (!input || !socket || !socket.connected) return;
+
+    if (input.value.trim().length > 0) {
+        if (!isCurrentlyTyping) {
+            isCurrentlyTyping = true;
+            socket.emit('userTyping', true);
+        }
+        clearTimeout(myTypingTimeout);
+        myTypingTimeout = setTimeout(() => {
+            stopTyping();
+        }, 3000);
+    } else {
+        stopTyping();
+    }
+}
+
+function stopTyping() {
+    if (isCurrentlyTyping) {
+        isCurrentlyTyping = false;
+        clearTimeout(myTypingTimeout);
+        if (socket && socket.connected) {
+            socket.emit('userTyping', false);
+        }
+    }
+}
+
+socket.on('typingUsersUpdate', (users) => {
+    const otherTypers = (users || []).filter(u => u.id !== socket.id);
+    renderTypingIndicator(otherTypers);
+});
+
+function renderTypingIndicator(typers) {
+    const container = document.getElementById('chat-typing-indicator');
+    const avatarEl = document.getElementById('typing-avatar');
+    const textEl = document.getElementById('typing-text');
+    const chatBox = document.getElementById('chat-box-ui');
+    if (!container || !avatarEl || !textEl || !chatBox) return;
+
+    if (!typers || typers.length === 0) {
+        container.classList.add('hidden');
+        return;
+    }
+
+    const wasScrolledToBottom = chatBox.scrollHeight - chatBox.clientHeight <= chatBox.scrollTop + 120;
+
+    const firstUser = typers[0];
+    const initial = (firstUser.name || '?').charAt(0).toUpperCase();
+    const color = firstUser.nameColor || stringToColor(firstUser.name || '');
+
+    avatarEl.innerText = initial;
+    avatarEl.style.background = color;
+
+    if (typers.length === 1) {
+        const cleanName = firstUser.name.replace(' 😎', '').trim();
+        textEl.innerText = `${cleanName} đang nhập...`;
+    } else if (typers.length === 2) {
+        const name1 = typers[0].name.replace(' 😎', '').trim();
+        const name2 = typers[1].name.replace(' 😎', '').trim();
+        textEl.innerText = `${name1} và ${name2} đang nhập...`;
+    } else {
+        const name1 = typers[0].name.replace(' 😎', '').trim();
+        textEl.innerText = `${name1} và ${typers.length - 1} người khác đang nhập...`;
+    }
+
+    container.classList.remove('hidden');
+
+    if (wasScrolledToBottom) {
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+}
+
+const chatInputEl = document.getElementById('chat-input');
+if (chatInputEl) {
+    chatInputEl.addEventListener('blur', () => {
+        stopTyping();
+    });
 }
 
 // --- VOICE MESSAGE LOGIC ---
@@ -1865,7 +3786,7 @@ socket.on('newMessage', (data) => {
     }
 
     const chatBox = document.getElementById('chat-box-ui');
-    const isAdminMsg = data.role === 'admin';
+    const isAdminMsg = isUserAdmin(data);
     const cleanDataName = (data.name || '').replace(' 😎', '').trim();
     const cleanMyName = (myUsername || '').replace(' 😎', '').trim();
     const isOwn = !isSystem && (data.senderId === socket.id || (cleanMyName && cleanDataName === cleanMyName));
@@ -1887,8 +3808,8 @@ socket.on('newMessage', (data) => {
     if (isGrouped) msgClass += ' grouped';
     if (!isGrouped) msgClass += ' group-first';
 
-    // Update previous sibling's grouping for rounded corners
-    const prevMsg = chatBox.lastElementChild;
+    // Update previous sibling's grouping for rounded corners and avatar
+    const prevMsg = chatBox.querySelector(':scope > .chat-message:last-of-type') || chatBox.lastElementChild;
     if (prevMsg && isGrouped) {
         prevMsg.classList.remove('group-last');
     }
@@ -1980,9 +3901,12 @@ socket.on('newMessage', (data) => {
         authorStyle = `style="color: ${escapeHtml(data.nameColor)}"`;
     }
 
+    const verifiedBadge = isAdminMsg ? getTikTokVerifiedBadgeHtml() : '';
+    const cleanDisplayName = escapeHtml((data.name || '').replace(' 😎', '').trim());
+
     // Reply quote & Author label text
     let replyHtml = '';
-    let authorTextHtml = finalName;
+    let authorTextHtml = isSystem ? finalName : `${cleanDisplayName}${verifiedBadge}`;
 
     if (data.replyTo) {
         const cleanSender = (data.name || 'Ẩn danh').replace(' 😎', '').trim();
@@ -1993,17 +3917,20 @@ socket.on('newMessage', (data) => {
         const isTargetMe = cleanMyName && cleanTarget.toLowerCase() === cleanMyName.toLowerCase();
         const isSamePerson = cleanSender.toLowerCase() === cleanTarget.toLowerCase();
 
+        const senderBadge = isUserAdmin(data) ? getTikTokVerifiedBadgeHtml() : '';
+        const targetBadge = isUserAdmin(data.replyTo) ? getTikTokVerifiedBadgeHtml() : '';
+
         const safeSenderDisplay = isSenderMe ? 'Bạn' : escapeHtml(cleanSender);
         const safeTargetDisplay = isTargetMe ? 'bạn' : escapeHtml(cleanTarget);
         const safeReplyText = escapeHtml(data.replyTo.text || '');
 
         if (!isSystem) {
             if (isSamePerson) {
-                authorTextHtml = `<strong>${safeSenderDisplay}</strong> đã phản hồi chính mình`;
+                authorTextHtml = `<strong>${safeSenderDisplay}</strong>${senderBadge} đã phản hồi chính mình`;
             } else if (isTargetMe) {
-                authorTextHtml = `<strong>${safeSenderDisplay}</strong> đã phản hồi <strong>bạn</strong>`;
+                authorTextHtml = `<strong>${safeSenderDisplay}</strong>${senderBadge} đã phản hồi <strong>bạn</strong>`;
             } else {
-                authorTextHtml = `<strong>${safeSenderDisplay}</strong> đã phản hồi <strong>${safeTargetDisplay}</strong>`;
+                authorTextHtml = `<strong>${safeSenderDisplay}</strong>${senderBadge} đã phản hồi <strong>${safeTargetDisplay}</strong>${targetBadge}`;
             }
         }
 
@@ -2012,10 +3939,14 @@ socket.on('newMessage', (data) => {
                 </div>`;
     }
 
-    // Avatar (only for other people, first letter of name)
+    // Avatar (only for other people, image if available, otherwise first letter of name)
     const avatarInitial = (data.name || '?').charAt(0).toUpperCase();
     const avatarColor = data.nameColor || stringToColor(data.name || '');
-    const avatarHtml = isSystem ? '' : `<div class="chat-avatar" style="background:${escapeHtml(avatarColor)}">${avatarInitial}</div>`;
+    const avatarHtml = isSystem ? '' : (
+        data.avatarUrl
+            ? `<img class="chat-avatar chat-avatar-img" src="${escapeHtml(data.avatarUrl)}" alt="${avatarInitial}" onerror="this.outerHTML='<div class=\\'chat-avatar\\' style=\\'background:${escapeHtml(avatarColor)}\\'>${avatarInitial}</div>'">`
+            : `<div class="chat-avatar" style="background:${escapeHtml(avatarColor)}">${avatarInitial}</div>`
+    );
 
     // Author label (above bubble / reply quote)
     const authorHtml = isSystem ? '' : `<span class="chat-author" ${authorStyle}>${authorTextHtml}</span>`;
@@ -2129,7 +4060,7 @@ function createPlayer() {
     if (player || !isYoutubeApiLoaded || myRole === '') return;
 
     player = new YT.Player('youtube-player', {
-        height: '100%', width: '100%', videoId: initialVideoId || 'M7lc1UVf-VE',
+        height: '100%', width: '100%', videoId: initialVideoId || '4jjOH2FR6-E',
         playerVars: { 'controls': 1, 'disablekb': 1, 'origin': window.location.origin, 'rel': 0 },
         events: {
             'onReady': () => {
@@ -2834,6 +4765,8 @@ let inlineSuggestTimeout = null;
 let lastSuggestQuery = '';
 
 function onChatInputChange() {
+    notifyTyping();
+
     const input = document.getElementById('chat-input');
     const text = input.value.trim();
 
@@ -4341,7 +6274,7 @@ function applyUserBackgrounds(bgObj) {
     // Chat background
     const chatBox = document.getElementById('chat-box-ui');
     if (chatBox) {
-        chatBox.style.backgroundImage = `linear-gradient(rgba(15, 13, 11, 0.45), rgba(15, 13, 11, 0.45)), url('${chatBgUrl}')`;
+        chatBox.style.backgroundImage = `linear-gradient(rgba(12, 10, 16, 0.6), rgba(12, 10, 16, 0.6)), url('${chatBgUrl}')`;
     }
 
     // Lyric background
@@ -4530,7 +6463,7 @@ function updateChatBgPreview(url) {
     pendingChatBg = (url || '').trim();
     const box = document.getElementById('preview-chat-bg');
     if (box) {
-        box.style.backgroundImage = `url('${pendingChatBg || DEFAULT_CHAT_BG}')`;
+        box.style.backgroundImage = `linear-gradient(rgba(12, 10, 16, 0.6), rgba(12, 10, 16, 0.6)), url('${pendingChatBg || DEFAULT_CHAT_BG}')`;
     }
 }
 
@@ -4541,7 +6474,7 @@ function handleChatBgFileSelect(event) {
     const reader = new FileReader();
     reader.onload = (e) => {
         const box = document.getElementById('preview-chat-bg');
-        if (box) box.style.backgroundImage = `url('${e.target.result}')`;
+        if (box) box.style.backgroundImage = `linear-gradient(rgba(12, 10, 16, 0.6), rgba(12, 10, 16, 0.6)), url('${e.target.result}')`;
     };
     reader.readAsDataURL(file);
 }
@@ -4738,9 +6671,12 @@ function isQuizPackCompleteClient(pack) {
 }
 
 let currentQuizState = null;
+let currentQuizSessionId = null;
 let mySelectedOptionIndex = null;
 let lastRenderedQuestionIndex = -1;
 let myLastAnswerResult = null;
+let userManuallyClosedQuiz = false;
+let myQuizHostToken = localStorage.getItem('my_quiz_host_token') || null;
 
 socket.on('quizRoomUpdate', (state) => {
     currentQuizState = state;
@@ -4770,6 +6706,7 @@ socket.on('quizAnswerProgress', ({ answeredCount, totalPlayersCount }) => {
 });
 
 function openPictureQuizGame() {
+    userManuallyClosedQuiz = false;
     socket.emit('getQuizPacks', (packs) => {
         if (Array.isArray(packs)) currentQuizPacks = packs;
         renderQuizPacksLobby();
@@ -4783,15 +6720,50 @@ function openPictureQuizGame() {
 }
 
 function closePictureQuizGame() {
+    userManuallyClosedQuiz = true;
     document.getElementById('picture-quiz-overlay').classList.add('hidden');
+
+    if (currentQuizState && currentQuizState.active) {
+        socket.emit('endMultiplayerQuiz', { hostToken: myQuizHostToken }, (res) => {
+            if (res && res.success) {
+                myQuizHostToken = null;
+                localStorage.removeItem('my_quiz_host_token');
+            }
+        });
+    }
 }
 
 function returnToQuizLobby() {
-    socket.emit('endMultiplayerQuiz', () => {});
+    userManuallyClosedQuiz = false;
+    currentQuizSessionId = null;
+    lastRenderedQuestionIndex = -1;
+    mySelectedOptionIndex = null;
+    myLastAnswerResult = null;
+    if (currentQuizState && currentQuizState.active) {
+        socket.emit('endMultiplayerQuiz', { hostToken: myQuizHostToken }, (res) => {
+            if (res && res.success) {
+                myQuizHostToken = null;
+                localStorage.removeItem('my_quiz_host_token');
+            }
+        });
+    }
     document.getElementById('quiz-lobby-view').classList.remove('hidden');
     document.getElementById('quiz-game-view').classList.add('hidden');
     document.getElementById('quiz-result-view').classList.add('hidden');
     renderQuizPacksLobby();
+}
+
+function confirmEndQuizGame() {
+    if (confirm("Bạn có chắc chắn muốn kết thúc trò chơi đoán hình ngay lập tức?")) {
+        socket.emit('endMultiplayerQuiz', { hostToken: myQuizHostToken }, (res) => {
+            if (res && res.success) {
+                myQuizHostToken = null;
+                localStorage.removeItem('my_quiz_host_token');
+            } else if (res && !res.success) {
+                alert(res.message || 'Không thể kết thúc trò chơi!');
+            }
+        });
+    }
 }
 
 function renderQuizPacksLobby() {
@@ -4841,9 +6813,15 @@ function renderQuizPacksLobby() {
 }
 
 function startQuizGame(packId) {
-    socket.emit('startMultiplayerQuiz', { packId }, (res) => {
-        if (!res.success) {
-            alert(res.message || 'Không thể bắt đầu trận đấu!');
+    userManuallyClosedQuiz = false;
+    socket.emit('startMultiplayerQuiz', { packId, starterName: myUsername || '' }, (res) => {
+        if (res && res.success) {
+            if (res.hostToken) {
+                myQuizHostToken = res.hostToken;
+                localStorage.setItem('my_quiz_host_token', res.hostToken);
+            }
+        } else {
+            alert((res && res.message) || 'Không thể bắt đầu trận đấu!');
         }
     });
 }
@@ -4898,6 +6876,11 @@ function submitKahootOption(optionIndex) {
 
 function renderMultiplayerQuizState(state) {
     if (!state || !state.active) {
+        currentQuizSessionId = null;
+        lastRenderedQuestionIndex = -1;
+        mySelectedOptionIndex = null;
+        myLastAnswerResult = null;
+        userManuallyClosedQuiz = false;
         document.getElementById('quiz-lobby-view').classList.remove('hidden');
         document.getElementById('quiz-game-view').classList.add('hidden');
         document.getElementById('quiz-result-view').classList.add('hidden');
@@ -4911,8 +6894,23 @@ function renderMultiplayerQuizState(state) {
     }
 
     const overlay = document.getElementById('picture-quiz-overlay');
-    if (overlay.classList.contains('hidden')) {
-        overlay.classList.remove('hidden');
+
+    // Reset state when a brand new game session starts
+    const isNewSession = (currentQuizSessionId !== state.gameSessionId);
+    if (isNewSession) {
+        currentQuizSessionId = state.gameSessionId;
+        userManuallyClosedQuiz = false;
+        lastRenderedQuestionIndex = -1;
+        mySelectedOptionIndex = null;
+        myLastAnswerResult = null;
+    }
+
+    if (userManuallyClosedQuiz) {
+        overlay.classList.add('hidden');
+    } else {
+        if (overlay.classList.contains('hidden')) {
+            overlay.classList.remove('hidden');
+        }
     }
 
     if (state.state === 'question' || state.state === 'reveal') {
@@ -4920,7 +6918,7 @@ function renderMultiplayerQuizState(state) {
         document.getElementById('quiz-result-view').classList.add('hidden');
         document.getElementById('quiz-game-view').classList.remove('hidden');
 
-        // Reset option choice on new question
+        // Reset option choice on new question index
         if (lastRenderedQuestionIndex !== state.currentIndex) {
             lastRenderedQuestionIndex = state.currentIndex;
             mySelectedOptionIndex = null;
@@ -4931,11 +6929,30 @@ function renderMultiplayerQuizState(state) {
         const curQIndex = (state.currentIndex || 0) + 1;
         document.getElementById('quiz-question-counter').innerText = `CÂU ${curQIndex} / ${totalQ}`;
 
+        // End Game button visibility check for Host / Admin
+        const endGameBtn = document.getElementById('quiz-end-game-btn');
+        if (endGameBtn) {
+            const cleanHostName = (state.hostName || '').replace(' 😎', '').trim().toLowerCase();
+            const cleanMyName = (myUsername || '').replace(' 😎', '').trim().toLowerCase();
+            const isHost = (state.hostId && state.hostId === socket.id) ||
+                           (cleanHostName && cleanMyName && cleanHostName === cleanMyName);
+            const isAdmin = (myRole === 'admin');
+            if (isHost || isAdmin) {
+                endGameBtn.classList.remove('hidden');
+            } else {
+                endGameBtn.classList.add('hidden');
+            }
+        }
+
         // Personal Live Score & Rank update
         let myScore = 0;
         let myRankStr = '';
         if (Array.isArray(state.leaderboard)) {
-            const myIdx = state.leaderboard.findIndex(p => (p.id && p.id === socket.id) || (p.name && p.name === myUsername));
+            const cleanMyName = (myUsername || '').replace(' 😎', '').trim().toLowerCase();
+            const myIdx = state.leaderboard.findIndex(p => 
+                (p.id && p.id === socket.id) || 
+                (p.name && (p.name === myUsername || p.name.replace(' 😎', '').trim().toLowerCase() === cleanMyName))
+            );
             if (myIdx !== -1) {
                 myScore = state.leaderboard[myIdx].score || 0;
                 myRankStr = ` (#${myIdx + 1})`;
@@ -5441,4 +7458,1567 @@ function saveQuizAdminPacks() {
             alert((response && response.message) || 'Lỗi khi lưu kho bộ câu hỏi!');
         }
     });
+}
+
+// ========================================================
+// --- MESSENGER & FRIEND SYSTEM (1-ON-1 CHAT) ---
+// ========================================================
+
+let messengerActiveFriend = null;
+let messengerConversations = [];
+let messengerFriends = [];
+let messengerPendingRequests = [];
+let messengerSentRequests = [];
+let messengerOnlineUserIds = new Set();
+let messengerCurrentSubTab = 'chats';
+let messengerFilterQuery = '';
+let messengerTypingTimeout = null;
+let messengerIsTyping = false;
+let messengerTotalUnread = 0;
+let messengerSearchDebounce = null;
+let messengerHistoryCache = new Map();
+
+function initMessenger() {
+    const uid = currentUserId || localStorage.getItem('musiclive_user_id');
+    if (!uid) return;
+    if (typeof socket !== 'undefined' && socket.connected) {
+        socket.emit('messenger:init', { userId: uid });
+    }
+}
+
+function openMessengerTab() {
+    const uid = currentUserId || localStorage.getItem('musiclive_user_id');
+    if (!uid) {
+        const listEl = document.getElementById('messenger-list-container');
+        if (listEl) {
+            listEl.innerHTML = `
+                <div style="text-align: center; color: var(--text-muted); padding: 40px 16px; font-size: 13.5px;">
+                    <span class="material-symbols-outlined" style="font-size: 46px; color: var(--accent); display: block; margin-bottom: 10px;">lock</span>
+                    <div style="color: #fff; font-size: 15px; font-weight: 700; margin-bottom: 6px;">Cần đăng nhập tài khoản</div>
+                    <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px; line-height: 1.4;">Vui lòng đăng nhập để kết bạn và trò chuyện 1-1.</p>
+                    <button type="button" class="messenger-primary-pill-btn" onclick="openLoginOverlayModal()">Đăng nhập ngay</button>
+                </div>
+            `;
+        }
+        return;
+    }
+    initMessenger();
+}
+
+function handleMessengerInitResult(data) {
+    if (!data) return;
+    messengerFriends = data.friends || [];
+    messengerPendingRequests = data.pendingRequests || [];
+    messengerSentRequests = data.sentRequests || [];
+    messengerConversations = data.conversations || [];
+    messengerOnlineUserIds = new Set((data.onlineUserIds || []).map(String));
+
+    messengerFriends.forEach(f => {
+        f.online = messengerOnlineUserIds.has(String(f.id));
+    });
+    messengerConversations.forEach(c => {
+        if (c.friend) c.friend.online = messengerOnlineUserIds.has(String(c.friend.id));
+    });
+
+    updateMessengerBadges();
+    renderMessengerList();
+
+    if (messengerActiveFriend) {
+        const updatedFriend = messengerFriends.find(f => String(f.id) === String(messengerActiveFriend.id)) ||
+            (messengerConversations.find(c => c.friend && String(c.friend.id) === String(messengerActiveFriend.id))?.friend);
+        if (updatedFriend) {
+            messengerActiveFriend = updatedFriend;
+            updateMessengerChatHeader();
+        }
+    }
+}
+
+function updateMessengerBadges() {
+    messengerTotalUnread = messengerConversations.reduce((sum, c) => sum + (c.unreadCount || 0), 0);
+    const navBadge = document.getElementById('navbar-messenger-badge');
+    const sideBadge = document.getElementById('sidebar-messenger-badge');
+    const reqBadge = document.getElementById('messenger-requests-badge');
+    const friendBadge = document.getElementById('messenger-friends-badge');
+
+    if (navBadge) {
+        if (messengerTotalUnread > 0) {
+            navBadge.classList.remove('hidden');
+            navBadge.textContent = messengerTotalUnread > 99 ? '99+' : messengerTotalUnread;
+        } else {
+            navBadge.classList.add('hidden');
+        }
+    }
+
+    if (sideBadge) {
+        if (messengerTotalUnread > 0) {
+            sideBadge.classList.remove('hidden');
+            sideBadge.textContent = messengerTotalUnread > 99 ? '99+' : messengerTotalUnread;
+        } else {
+            sideBadge.classList.add('hidden');
+        }
+    }
+
+    if (reqBadge) {
+        const count = messengerPendingRequests.length;
+        if (count > 0) {
+            reqBadge.classList.remove('hidden');
+            reqBadge.textContent = count;
+        } else {
+            reqBadge.classList.add('hidden');
+        }
+    }
+
+    if (friendBadge) {
+        const fCount = messengerFriends.length;
+        if (fCount > 0) {
+            friendBadge.classList.remove('hidden');
+            friendBadge.textContent = fCount;
+        } else {
+            friendBadge.classList.add('hidden');
+        }
+    }
+}
+
+function switchMessengerTab(subtab) {
+    messengerCurrentSubTab = subtab;
+    document.querySelectorAll('.messenger-tab-btn').forEach(btn => {
+        if (btn.getAttribute('data-subtab') === subtab) btn.classList.add('active');
+        else btn.classList.remove('active');
+    });
+    renderMessengerList();
+}
+
+function handleMessengerFilter(val) {
+    messengerFilterQuery = (val || '').trim().toLowerCase();
+    renderMessengerList();
+}
+
+function formatMessengerTime(isoString) {
+    if (!isoString) return '';
+    try {
+        const d = new Date(isoString);
+        const now = new Date();
+        const diffMs = now - d;
+        const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+        if (diffDays === 0) {
+            return d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+        } else if (diffDays === 1) {
+            return 'Hôm qua';
+        } else if (diffDays < 7) {
+            const days = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
+            return days[d.getDay()];
+        } else {
+            return d.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' });
+        }
+    } catch (e) {
+        return '';
+    }
+}
+
+function formatMessengerDateDivider(isoString) {
+    if (!isoString) return '';
+    try {
+        const d = new Date(isoString);
+        const now = new Date();
+        const diffMs = now - d;
+        const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+        if (diffDays === 0) return 'Hôm nay';
+        if (diffDays === 1) return 'Hôm qua';
+        return d.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    } catch (e) {
+        return '';
+    }
+}
+
+function renderMessengerList() {
+    const listEl = document.getElementById('messenger-list-container');
+    if (!listEl) return;
+
+    const defaultAvatarSvg = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'><rect width='48' height='48' rx='24' fill='%232a2034'/><text x='50%' y='55%' dominant-baseline='middle' text-anchor='middle' fill='%23ff75a0' font-size='18' font-weight='bold'>👤</text></svg>";
+
+    if (messengerCurrentSubTab === 'chats') {
+        let list = messengerConversations;
+        if (messengerFilterQuery) {
+            list = list.filter(c => {
+                const f = c.friend;
+                if (!f) return false;
+                const name = (f.displayName || f.username || '').toLowerCase();
+                return name.includes(messengerFilterQuery);
+            });
+        }
+
+        if (list.length === 0) {
+            listEl.innerHTML = `
+                <div style="text-align: center; color: var(--text-muted); padding: 40px 16px; font-size: 13.5px;">
+                    <span class="material-symbols-outlined" style="font-size: 38px; color: rgba(255,255,255,0.2); display: block; margin-bottom: 8px;">forum</span>
+                    ${messengerFilterQuery ? 'Không tìm thấy đoạn chat phù hợp' : 'Chưa có đoạn chat nào.<br>Hãy bấm "+ Thêm bạn" để kết nối trò chuyện!'}
+                </div>
+            `;
+            return;
+        }
+
+        listEl.innerHTML = list.map(c => {
+            const f = c.friend;
+            if (!f) return '';
+            const isActive = messengerActiveFriend && String(messengerActiveFriend.id) === String(f.id);
+            const isOnline = messengerOnlineUserIds.has(String(f.id));
+            const avatarSrc = f.avatarUrl || defaultAvatarSvg;
+            const timeStr = formatMessengerTime(c.updatedAt);
+            const isUnread = (c.unreadCount || 0) > 0;
+
+            let snippetText = 'Đã kết nối bạn bè';
+            if (c.lastMessage) {
+                const myUid = currentUserId || localStorage.getItem('musiclive_user_id');
+                const isMe = String(c.lastMessage.senderId) === String(myUid);
+                const prefix = isMe ? 'Bạn: ' : '';
+                if (c.lastMessage.mediaType === 'image') {
+                    snippetText = prefix + '📷 [Hình ảnh]';
+                } else if (c.lastMessage.mediaType === 'voice') {
+                    snippetText = prefix + '🎤 [Tin nhắn thoại]';
+                } else {
+                    snippetText = prefix + (c.lastMessage.text || 'Đã gửi một tệp');
+                }
+            }
+
+            const isAdm = isUserAdmin(f);
+            const badgeHtml = isAdm ? getTikTokVerifiedBadgeHtml() : '';
+            const cleanName = escapeHtml((f.displayName || f.username || '').replace(' 😎', '').trim());
+
+            return `
+                <div class="messenger-convo-item ${isActive ? 'active' : ''} ${isUnread ? 'unread' : ''}" onclick="selectMessengerConversation('${f.id}')">
+                    <div class="messenger-avatar-wrap">
+                        <img src="${avatarSrc}" alt="avatar" class="messenger-avatar-img" onerror="this.onerror=null; this.src='${defaultAvatarSvg}';">
+                        <span class="messenger-online-dot ${isOnline ? 'online' : ''}"></span>
+                    </div>
+                    <div class="messenger-convo-info">
+                        <div class="messenger-convo-name-row">
+                            <div class="messenger-convo-name" style="color: ${f.nameColor || '#ffffff'};">${cleanName}${badgeHtml}</div>
+                            <div class="messenger-convo-time">${timeStr}</div>
+                        </div>
+                        <div class="messenger-convo-msg-row">
+                            <div class="messenger-convo-snippet">${escapeHtml(snippetText)}</div>
+                            ${isUnread ? '<span class="messenger-unread-dot"></span>' : ''}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+    } else if (messengerCurrentSubTab === 'friends') {
+        let list = messengerFriends;
+        if (messengerFilterQuery) {
+            list = list.filter(f => {
+                const name = (f.displayName || f.username || '').toLowerCase();
+                return name.includes(messengerFilterQuery);
+            });
+        }
+
+        if (list.length === 0) {
+            listEl.innerHTML = `
+                <div style="text-align: center; color: var(--text-muted); padding: 40px 16px; font-size: 13.5px;">
+                    <span class="material-symbols-outlined" style="font-size: 38px; color: rgba(255,255,255,0.2); display: block; margin-bottom: 8px;">group</span>
+                    ${messengerFilterQuery ? 'Không tìm thấy bạn bè phù hợp' : 'Bạn chưa có người bạn nào.<br>Bấm nút "+ Thêm bạn" phía trên để tìm kiếm!'}
+                </div>
+            `;
+            return;
+        }
+
+        listEl.innerHTML = list.map(f => {
+            const isOnline = messengerOnlineUserIds.has(String(f.id));
+            const avatarSrc = f.avatarUrl || defaultAvatarSvg;
+            const isAdm = isUserAdmin(f);
+            const badgeHtml = isAdm ? getTikTokVerifiedBadgeHtml() : '';
+            const cleanName = escapeHtml((f.displayName || f.username || '').replace(' 😎', '').trim());
+
+            return `
+                <div class="messenger-friend-item" onclick="selectMessengerConversation('${f.id}')">
+                    <div class="messenger-avatar-wrap">
+                        <img src="${avatarSrc}" alt="avatar" class="messenger-avatar-img" onerror="this.onerror=null; this.src='${defaultAvatarSvg}';">
+                        <span class="messenger-online-dot ${isOnline ? 'online' : ''}"></span>
+                    </div>
+                    <div class="messenger-convo-info">
+                        <div class="messenger-convo-name" style="color: ${f.nameColor || '#ffffff'};">${cleanName}${badgeHtml}</div>
+                        <div class="messenger-convo-snippet" style="color: ${isOnline ? '#2ed573' : 'var(--text-muted)'}; font-weight: ${isOnline ? '600' : '400'};">
+                            ${isOnline ? '● Đang hoạt động' : 'Ngoại tuyến'}
+                        </div>
+                    </div>
+                    <div class="messenger-req-actions">
+                        <button type="button" class="messenger-action-icon-btn" onclick="event.stopPropagation(); selectMessengerConversation('${f.id}')" title="Nhắn tin">
+                            <span class="material-symbols-outlined" style="font-size: 18px; color: #0084ff;">chat</span>
+                        </button>
+                        <button type="button" class="messenger-action-icon-btn" onclick="event.stopPropagation(); confirmUnfriend('${f.id}', '${escapeHtml(f.displayName || f.username)}')" title="Hủy kết bạn">
+                            <span class="material-symbols-outlined" style="font-size: 18px; color: #ff6b6b;">person_remove</span>
+                        </button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+    } else if (messengerCurrentSubTab === 'requests') {
+        const list = messengerPendingRequests;
+        if (list.length === 0) {
+            listEl.innerHTML = `
+                <div style="text-align: center; color: var(--text-muted); padding: 40px 16px; font-size: 13.5px;">
+                    <span class="material-symbols-outlined" style="font-size: 38px; color: rgba(255,255,255,0.2); display: block; margin-bottom: 8px;">person_add</span>
+                    Không có lời mời kết bạn nào.
+                </div>
+            `;
+            return;
+        }
+
+        listEl.innerHTML = list.map(req => {
+            const sender = req.sender || {};
+            const avatarSrc = sender.avatarUrl || defaultAvatarSvg;
+            const timeStr = formatMessengerTime(req.createdAt);
+            const isAdm = isUserAdmin(sender);
+            const badgeHtml = isAdm ? getTikTokVerifiedBadgeHtml() : '';
+            const cleanName = escapeHtml((sender.displayName || sender.username || 'Người dùng').replace(' 😎', '').trim());
+
+            return `
+                <div class="messenger-request-item">
+                    <div class="messenger-avatar-wrap">
+                        <img src="${avatarSrc}" alt="avatar" class="messenger-avatar-img" onerror="this.onerror=null; this.src='${defaultAvatarSvg}';">
+                    </div>
+                    <div class="messenger-convo-info">
+                        <div class="messenger-convo-name">${cleanName}${badgeHtml}</div>
+                        <div class="messenger-convo-snippet">Đã gửi lời mời • ${timeStr}</div>
+                    </div>
+                    <div class="messenger-req-actions">
+                        <button type="button" class="messenger-req-btn-accept" onclick="respondFriendRequest('${req.friendshipId}', 'accept')">
+                            <span class="material-symbols-outlined" style="font-size: 15px;">check</span> Chấp nhận
+                        </button>
+                        <button type="button" class="messenger-req-btn-decline" onclick="respondFriendRequest('${req.friendshipId}', 'decline')">
+                            Từ chối
+                        </button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+}
+
+function selectMessengerConversation(friendId, fallbackUser = null) {
+    let friend = (typeof friendId === 'object' && friendId !== null) ? friendId : null;
+    const fIdStr = friend ? String(friend.id) : String(friendId);
+
+    if (!friend) {
+        friend = messengerFriends.find(f => String(f.id) === fIdStr);
+    }
+    if (!friend) {
+        const convo = messengerConversations.find(c => c.friend && String(c.friend.id) === fIdStr);
+        if (convo) friend = convo.friend;
+    }
+    if (!friend && fallbackUser) {
+        friend = fallbackUser;
+    }
+    if (!friend && typeof messengerSearchUserCache !== 'undefined' && messengerSearchUserCache.has(fIdStr)) {
+        friend = messengerSearchUserCache.get(fIdStr);
+    }
+
+    if (!friend) return;
+
+    // Ensure friend is present in messengerFriends so UI list has it
+    if (!messengerFriends.some(f => String(f.id) === String(friend.id))) {
+        messengerFriends.unshift(friend);
+    }
+    // Ensure an entry in messengerConversations so chat list shows this conversation
+    if (!messengerConversations.some(c => c.friend && String(c.friend.id) === String(friend.id))) {
+        messengerConversations.unshift({
+            friend: friend,
+            unreadCount: 0,
+            updatedAt: new Date().toISOString(),
+            lastMessage: null
+        });
+    }
+
+    messengerActiveFriend = friend;
+
+    const container = document.querySelector('.messenger-container');
+    if (container) container.classList.add('chat-active');
+
+    const emptyState = document.getElementById('messenger-empty-state');
+    const chatBox = document.getElementById('messenger-chat-box');
+    if (emptyState) emptyState.classList.add('hidden');
+    if (chatBox) chatBox.classList.remove('hidden');
+
+    updateMessengerChatHeader();
+
+    const convo = messengerConversations.find(c => c.friend && String(c.friend.id) === String(friendId));
+    if (convo) {
+        convo.unreadCount = 0;
+        updateMessengerBadges();
+    }
+    renderMessengerList();
+
+    const uid = currentUserId || localStorage.getItem('musiclive_user_id');
+    if (uid && socket) {
+        socket.emit('messenger:markRead', { userId: uid, friendId: friend.id });
+    }
+
+    loadMessengerChatHistory(friend.id);
+
+    setTimeout(() => {
+        const inp = document.getElementById('messenger-text-input');
+        if (inp) inp.focus();
+    }, 100);
+}
+
+function updateMessengerChatHeader() {
+    if (!messengerActiveFriend) return;
+    const defaultAvatarSvg = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'><rect width='48' height='48' rx='24' fill='%232a2034'/><text x='50%' y='55%' dominant-baseline='middle' text-anchor='middle' fill='%23ff75a0' font-size='18' font-weight='bold'>👤</text></svg>";
+    const isOnline = messengerOnlineUserIds.has(String(messengerActiveFriend.id));
+
+    const avatarEl = document.getElementById('messenger-header-avatar');
+    const dotEl = document.getElementById('messenger-header-online-dot');
+    const nameEl = document.getElementById('messenger-header-name');
+    const statusEl = document.getElementById('messenger-header-status');
+
+    if (avatarEl) {
+        avatarEl.src = messengerActiveFriend.avatarUrl || defaultAvatarSvg;
+        avatarEl.onerror = () => { avatarEl.src = defaultAvatarSvg; };
+    }
+    if (dotEl) {
+        if (isOnline) dotEl.classList.add('online');
+        else dotEl.classList.remove('online');
+    }
+    if (nameEl) {
+        const isAdm = isUserAdmin(messengerActiveFriend);
+        const badge = isAdm ? getTikTokVerifiedBadgeHtml('badge-header') : '';
+        const rawName = messengerActiveFriend.displayName || messengerActiveFriend.username || 'Người dùng';
+        const cleanName = escapeHtml(rawName.replace(' 😎', '').trim());
+        nameEl.innerHTML = `${cleanName}${badge}`;
+        nameEl.style.color = messengerActiveFriend.nameColor || '#ffffff';
+    }
+    if (statusEl) {
+        if (isOnline) {
+            statusEl.textContent = '● Đang hoạt động';
+            statusEl.classList.add('online');
+        } else {
+            statusEl.textContent = 'Ngoại tuyến';
+            statusEl.classList.remove('online');
+        }
+    }
+}
+
+function closeMessengerMobileChat() {
+    const container = document.querySelector('.messenger-container');
+    if (container) container.classList.remove('chat-active');
+}
+
+function loadMessengerChatHistory(friendId) {
+    const messagesArea = document.getElementById('messenger-messages-area');
+    if (!messagesArea) return;
+
+    const fIdStr = String(friendId);
+    if (messengerHistoryCache.has(fIdStr) && messengerHistoryCache.get(fIdStr).length > 0) {
+        renderMessengerMessages(messengerHistoryCache.get(fIdStr));
+    } else {
+        messagesArea.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 30px; font-size: 13px;">Đang tải tin nhắn...</div>';
+    }
+
+    const uid = currentUserId || localStorage.getItem('musiclive_user_id');
+    if (!uid || !socket) return;
+
+    socket.emit('messenger:getHistory', { userId: uid, friendId }, (res) => {
+        if (res && Array.isArray(res.messages)) {
+            const existing = messengerHistoryCache.get(fIdStr) || [];
+            const map = new Map();
+            for (const m of existing) {
+                if (m && m.id) map.set(String(m.id), m);
+            }
+            for (const m of res.messages) {
+                if (m && m.id) map.set(String(m.id), m);
+            }
+            const merged = Array.from(map.values());
+            merged.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+
+            messengerHistoryCache.set(fIdStr, merged);
+            if (messengerActiveFriend && String(messengerActiveFriend.id) === fIdStr) {
+                renderMessengerMessages(merged);
+            }
+        }
+    });
+}
+
+function renderMessengerMessages(messages) {
+    const messagesArea = document.getElementById('messenger-messages-area');
+    if (!messagesArea) return;
+
+    if (!messages || messages.length === 0) {
+        const defaultAvatarSvg = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'><rect width='48' height='48' rx='24' fill='%232a2034'/><text x='50%' y='55%' dominant-baseline='middle' text-anchor='middle' fill='%23ff75a0' font-size='18' font-weight='bold'>👤</text></svg>";
+        const isAdm = messengerActiveFriend ? isUserAdmin(messengerActiveFriend) : false;
+        const badge = isAdm ? getTikTokVerifiedBadgeHtml() : '';
+        const rawFriendName = messengerActiveFriend ? (messengerActiveFriend.displayName || messengerActiveFriend.username) : 'người bạn';
+        const cleanFriendName = escapeHtml(rawFriendName.replace(' 😎', '').trim());
+        const friendAvatar = messengerActiveFriend?.avatarUrl || defaultAvatarSvg;
+
+        messagesArea.innerHTML = `
+            <div style="text-align: center; margin: auto; padding: 40px 16px;">
+                <div style="width: 72px; height: 72px; margin: 0 auto 14px auto; border-radius: 50%; overflow: hidden; border: 2px solid rgba(255,180,210,0.3);">
+                    <img src="${friendAvatar}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.onerror=null; this.src='${defaultAvatarSvg}';">
+                </div>
+                <h4 style="margin: 0 0 6px 0; font-size: 17px; color: #fff; display: inline-flex; align-items: center; justify-content: center; gap: 4px;">${cleanFriendName}${badge}</h4>
+                <p style="margin: 0; font-size: 13px; color: var(--text-muted);">Các bạn đã kết nối trên Messenger. Hãy gửi lời chào đầu tiên! 👋</p>
+            </div>
+        `;
+        return;
+    }
+
+    const defaultAvatarSvg = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'><rect width='48' height='48' rx='24' fill='%232a2034'/><text x='50%' y='55%' dominant-baseline='middle' text-anchor='middle' fill='%23ff75a0' font-size='18' font-weight='bold'>👤</text></svg>";
+    const uid = currentUserId || localStorage.getItem('musiclive_user_id');
+    let html = '';
+    let lastDateStr = '';
+
+    for (let i = 0; i < messages.length; i++) {
+        const m = messages[i];
+        const isMe = String(m.senderId) === String(uid);
+        const dateStr = formatMessengerDateDivider(m.createdAt);
+
+        if (dateStr && dateStr !== lastDateStr) {
+            html += `<div class="messenger-date-divider">${dateStr}</div>`;
+            lastDateStr = dateStr;
+        }
+
+        const isNextSameSender = (i < messages.length - 1) && (String(messages[i + 1].senderId) === String(m.senderId));
+        const isPrevSameSender = (i > 0) && (String(messages[i - 1].senderId) === String(m.senderId)) && (formatMessengerDateDivider(messages[i - 1].createdAt) === dateStr);
+
+        let clusterClass = '';
+        if (isPrevSameSender && isNextSameSender) clusterClass = 'clustered-middle';
+        else if (isPrevSameSender && !isNextSameSender) clusterClass = 'clustered-bottom';
+        else if (!isPrevSameSender && isNextSameSender) clusterClass = 'clustered-top';
+
+        const timeStr = formatMessengerTime(m.createdAt);
+        const msgIdAttr = m.id ? `data-msg-id="${escapeHtml(String(m.id))}"` : '';
+        const bubbleHtml = renderMessengerBubbleContent(m);
+
+        if (isMe) {
+            const isLastMsg = (i === messages.length - 1);
+            const statusHtml = (isLastMsg && m.isRead) ? '<div class="messenger-read-status">Đã xem ✓✓</div>' : '';
+
+            html += `
+                <div class="messenger-msg-row me ${clusterClass}" ${msgIdAttr} title="${timeStr}">
+                    ${bubbleHtml}
+                    ${statusHtml}
+                </div>
+            `;
+        } else {
+            const showAvatar = !isNextSameSender;
+            const friendAvatar = messengerActiveFriend?.avatarUrl || defaultAvatarSvg;
+
+            html += `
+                <div class="messenger-msg-row them ${clusterClass}" ${msgIdAttr} title="${timeStr}">
+                    <div class="messenger-bubble-wrapper">
+                        ${showAvatar 
+                            ? `<img src="${friendAvatar}" alt="avatar" class="messenger-bubble-avatar" onerror="this.onerror=null; this.src='${defaultAvatarSvg}';">` 
+                            : '<div class="messenger-bubble-avatar-spacer"></div>'}
+                        ${bubbleHtml}
+                    </div>
+                </div>
+            `;
+        }
+    }
+
+    messagesArea.innerHTML = html;
+    messagesArea.scrollTop = messagesArea.scrollHeight;
+}
+
+function renderMessengerBubbleContent(m) {
+    const isThumbUp = (m.text === '👍' && !m.mediaUrl);
+    if (m.mediaType === 'image' || (m.mediaUrl && m.mediaType !== 'voice')) {
+        const captionHtml = m.text ? `<div class="messenger-media-caption">${escapeHtml(m.text)}</div>` : '';
+        return `
+            <div class="messenger-bubble media-bubble">
+                <img src="${escapeHtml(m.mediaUrl)}" alt="Hình ảnh" class="messenger-media-img" loading="lazy" onclick="openImageLightbox(this.src)" onload="const ma = document.getElementById('messenger-messages-area'); if(ma) ma.scrollTop = ma.scrollHeight;">
+                ${captionHtml}
+            </div>
+        `;
+    } else if (m.mediaType === 'voice') {
+        const safeAudioUrl = escapeHtml(m.mediaUrl || '');
+        const durationSec = m.duration || 0;
+        const durStr = durationSec > 0 ? formatVoiceDuration(durationSec) : '00:00';
+        return `
+            <div class="messenger-bubble voice-bubble">
+                <div class="messenger-voice-player" id="voice-player-${m.id}" data-src="${safeAudioUrl}">
+                    <button class="messenger-play-btn" id="voice-play-btn-${m.id}" onclick="togglePlayVoice('${m.id}', '${safeAudioUrl}', ${durationSec}, event)" title="Phát/Tạm dừng">
+                        <span class="material-symbols-outlined" style="font-size:18px;">play_arrow</span>
+                    </button>
+                    <div class="messenger-voice-waveform" onclick="seekVoiceAudio('${m.id}', event)" title="Bấm để chuyển thời gian">
+                        <div class="messenger-voice-bars" id="voice-bars-${m.id}">
+                            <span style="height: 40%;"></span>
+                            <span style="height: 70%;"></span>
+                            <span style="height: 45%;"></span>
+                            <span style="height: 90%;"></span>
+                            <span style="height: 100%;"></span>
+                            <span style="height: 60%;"></span>
+                            <span style="height: 80%;"></span>
+                            <span style="height: 50%;"></span>
+                            <span style="height: 95%;"></span>
+                            <span style="height: 70%;"></span>
+                            <span style="height: 40%;"></span>
+                            <span style="height: 65%;"></span>
+                        </div>
+                    </div>
+                    <span class="messenger-voice-time" id="voice-duration-${m.id}">${durStr}</span>
+                </div>
+            </div>
+        `;
+    } else {
+        return `
+            <div class="messenger-bubble ${isThumbUp ? 'thumb-up' : ''}">
+                ${isThumbUp ? '👍' : escapeHtml(m.text || '')}
+            </div>
+        `;
+    }
+}
+
+function appendMessengerMessage(msg) {
+    const messagesArea = document.getElementById('messenger-messages-area');
+    if (!messagesArea || !messengerActiveFriend || !msg) return;
+
+    if (msg.id && messagesArea.querySelector(`[data-msg-id="${msg.id}"]`)) {
+        return;
+    }
+
+    const emptyNotice = messagesArea.querySelector('h4, p');
+    if (emptyNotice && !messagesArea.querySelector('.messenger-msg-row')) {
+        messagesArea.innerHTML = '';
+    }
+
+    // Remove any existing "Đã xem" indicator so only the very latest message can show it
+    const existingStatuses = messagesArea.querySelectorAll('.messenger-read-status');
+    existingStatuses.forEach(el => el.remove());
+
+    const uid = currentUserId || localStorage.getItem('musiclive_user_id');
+    const isMe = String(msg.senderId) === String(uid);
+    const defaultAvatarSvg = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'><rect width='48' height='48' rx='24' fill='%232a2034'/><text x='50%' y='55%' dominant-baseline='middle' text-anchor='middle' fill='%23ff75a0' font-size='18' font-weight='bold'>👤</text></svg>";
+    const timeStr = formatMessengerTime(msg.createdAt);
+
+    const fIdStr = String(messengerActiveFriend.id);
+    if (messengerHistoryCache.has(fIdStr)) {
+        const arr = messengerHistoryCache.get(fIdStr);
+        if (!arr.some(m => String(m.id) === String(msg.id))) {
+            arr.push(msg);
+        }
+    } else {
+        messengerHistoryCache.set(fIdStr, [msg]);
+    }
+
+    let msgRow = document.createElement('div');
+    if (msg.id) {
+        msgRow.setAttribute('data-msg-id', String(msg.id));
+    }
+    const bubbleHtml = renderMessengerBubbleContent(msg);
+
+    if (isMe) {
+        msgRow.className = 'messenger-msg-row me';
+        msgRow.title = timeStr;
+        msgRow.innerHTML = bubbleHtml;
+    } else {
+        msgRow.className = 'messenger-msg-row them';
+        msgRow.title = timeStr;
+        const friendAvatar = messengerActiveFriend.avatarUrl || defaultAvatarSvg;
+        msgRow.innerHTML = `
+            <div class="messenger-bubble-wrapper">
+                <img src="${friendAvatar}" alt="avatar" class="messenger-bubble-avatar" onerror="this.onerror=null; this.src='${defaultAvatarSvg}';">
+                ${bubbleHtml}
+            </div>
+        `;
+    }
+
+    messagesArea.appendChild(msgRow);
+    messagesArea.scrollTop = messagesArea.scrollHeight;
+}
+
+function sendMessengerMessage() {
+    const uid = currentUserId || localStorage.getItem('musiclive_user_id');
+    if (!uid || !messengerActiveFriend || !socket) return;
+
+    const input = document.getElementById('messenger-text-input');
+    if (!input) return;
+
+    let text = input.value.trim();
+    if (!text) {
+        text = '👍';
+    }
+
+    input.value = '';
+    input.style.height = 'auto';
+    const sendIcon = document.getElementById('messenger-send-icon');
+    if (sendIcon) sendIcon.innerText = 'thumb_up';
+
+    if (messengerIsTyping) {
+        messengerIsTyping = false;
+        socket.emit('messenger:typing', { senderId: uid, receiverId: messengerActiveFriend.id, isTyping: false });
+    }
+
+    socket.emit('messenger:sendMessage', {
+        senderId: uid,
+        receiverId: messengerActiveFriend.id,
+        text: text
+    }, (res) => {
+        if (res && res.success && res.message) {
+            appendMessengerMessage(res.message);
+            updateConversationLatestMessage(messengerActiveFriend.id, res.message);
+        }
+    });
+}
+
+function updateConversationLatestMessage(friendId, message) {
+    let convo = messengerConversations.find(c => c.friend && String(c.friend.id) === String(friendId));
+    if (!convo) {
+        const friend = messengerFriends.find(f => String(f.id) === String(friendId)) || messengerActiveFriend;
+        if (friend) {
+            convo = {
+                friend: friend,
+                lastMessage: message,
+                unreadCount: 0,
+                updatedAt: message.createdAt
+            };
+            messengerConversations.unshift(convo);
+        }
+    } else {
+        convo.lastMessage = message;
+        convo.updatedAt = message.createdAt;
+        messengerConversations = messengerConversations.filter(c => c !== convo);
+        messengerConversations.unshift(convo);
+    }
+    renderMessengerList();
+}
+
+function handleMessengerInputTyping(textarea) {
+    textarea.style.height = 'auto';
+    textarea.style.height = Math.min(textarea.scrollHeight, 100) + 'px';
+
+    const text = textarea.value.trim();
+    const sendIcon = document.getElementById('messenger-send-icon');
+    if (sendIcon) {
+        sendIcon.innerText = text.length > 0 ? 'send' : 'thumb_up';
+    }
+
+    const uid = currentUserId || localStorage.getItem('musiclive_user_id');
+    if (!uid || !messengerActiveFriend || !socket) return;
+
+    if (!messengerIsTyping && text.length > 0) {
+        messengerIsTyping = true;
+        socket.emit('messenger:typing', { senderId: uid, receiverId: messengerActiveFriend.id, isTyping: true });
+    }
+
+    clearTimeout(messengerTypingTimeout);
+    messengerTypingTimeout = setTimeout(() => {
+        messengerIsTyping = false;
+        if (messengerActiveFriend && socket) {
+            socket.emit('messenger:typing', { senderId: uid, receiverId: messengerActiveFriend.id, isTyping: false });
+        }
+    }, 2500);
+}
+
+function handleMessengerInputKey(event) {
+    if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault();
+        sendMessengerMessage();
+    }
+}
+
+const MESSENGER_EMOJI_CATEGORIES = {
+    smileys: {
+        name: 'Mặt cười & Cảm xúc',
+        emojis: [
+            '😀','😃','😄','😁','😆','😅','🤣','😂','🙂','🙃','😉','😊','😇','🥰','😍','🤩',
+            '😘','😗','😚','😙','😋','😛','😜','🤪','😝','🤑','🤗','🤭','🤫','🤔','🤐','🤨',
+            '😐','😑','😶','😏','😒','🙄','😬','🤥','😌','😔','😪','🤤','😴','😷','🤒','🤕',
+            '🤢','🤮','🤧','🥵','🥶','🥴','😵','🤯','🤠','🥳','😎','🤓','🧐','😕','😟','🙁',
+            '😮','😯','😲','😳','🥺','😦','😧','😨','😰','😥','😢','😭','😱','😖','😣','😞',
+            '😓','😩','😫','🥱','😤','😡','😠','🤬','😈','👿','💀','☠️','💩','🤡','👻','👽','🤖'
+        ]
+    },
+    gestures: {
+        name: 'Bàn tay & Cử chỉ',
+        emojis: [
+            '👍','👎','👊','✊','🤛','🤜','👏','🙌','👐','🤲','🤝','🙏','✌️','🤞','🤟','🤘',
+            '🤙','👈','👉','👆','👇','☝️','✋','🤚','🖐️','🖖','👋','💅','🤳','💪','🦵',
+            '🦶','👂','👃','👀','👁️','👅','👄','💋'
+        ]
+    },
+    hearts: {
+        name: 'Trái tim & Tình cảm',
+        emojis: [
+            '❤️','🧡','💛','💚','💙','💜','🖤','🤍','🤎','💔','❣️','💕','💞','💓','💗','💖',
+            '💘','💝','💟','💌','🫀','💑','💐','🌹','🥀','🌺','🌷','🌸','🌼','🌻','✨','🌟',
+            '💫','⭐'
+        ]
+    },
+    party: {
+        name: 'Tiệc tùng & Giải trí',
+        emojis: [
+            '🎉','🎊','🎈','🎂','🎁','🎇','🎆','🧨','💥','💯','🔥','🏆','🥇','🥈','🥉','👑',
+            '🎯','🎮','🎲','🎵','🎶','🎤','🎧','🎸','🎹','🎬','🎨','⚽','🏀','🏈','⚾','🎾','🎱'
+        ]
+    },
+    animals: {
+        name: 'Động vật & Thiên nhiên',
+        emojis: [
+            '🐶','🐱','🐭','🐹','🐰','🦊','🐻','🐼','🐨','🐯','🦁','🐮','🐷','🐸','🐵','🐔',
+            '🐧','🐦','🐤','🦆','🦅','🦉','🦇','🐺','🦄','🐝','🐛','🦋','🐌','🐞','🌞','🌙',
+            '⛅','🌈','⚡','❄️','⛄'
+        ]
+    },
+    food: {
+        name: 'Đồ ăn & Thức uống',
+        emojis: [
+            '🍏','🍎','🍐','🍊','🍋','🍌','🍉','🍇','🍓','🫐','🍒','🍑','🥭','🍍','🥥','🥑',
+            '🍕','🍔','🍟','🌭','🍿','🥓','🍳','🥞','🧇','🧀','🥗','🍜','🍣','🍦','🍧','🍨',
+            '🍩','🍪','🎂','🍰','🍫','☕','🧋','🍵','🍺','🍻','🥂','🍷','🍾'
+        ]
+    }
+};
+
+function initMessengerEmojiPicker() {
+    const bodyEl = document.getElementById('messenger-emoji-body');
+    if (!bodyEl || bodyEl.dataset.initialized === 'true') return;
+
+    let html = '';
+    for (const [catKey, catData] of Object.entries(MESSENGER_EMOJI_CATEGORIES)) {
+        html += `<div class="messenger-emoji-category-title" id="emoji-cat-${catKey}">${catData.name}</div>`;
+        html += '<div class="messenger-emoji-grid">';
+        for (const emoji of catData.emojis) {
+            html += `<span onclick="insertMessengerEmoji('${emoji}')" title="${emoji}">${emoji}</span>`;
+        }
+        html += '</div>';
+    }
+    bodyEl.innerHTML = html;
+    bodyEl.dataset.initialized = 'true';
+}
+
+function switchMessengerEmojiCategory(catKey) {
+    initMessengerEmojiPicker();
+    document.querySelectorAll('.messenger-emoji-tab').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.cat === catKey);
+    });
+    const target = document.getElementById('emoji-cat-' + catKey);
+    if (target) {
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+}
+
+function toggleMessengerEmojiPicker(event) {
+    if (event) event.stopPropagation();
+    const picker = document.getElementById('messenger-emoji-picker');
+    if (!picker) return;
+    const isOpening = picker.classList.contains('hidden');
+    if (isOpening) {
+        initMessengerEmojiPicker();
+        picker.classList.remove('hidden');
+    } else {
+        picker.classList.add('hidden');
+    }
+}
+
+function insertMessengerEmoji(emoji) {
+    const input = document.getElementById('messenger-text-input');
+    if (!input) return;
+
+    const start = input.selectionStart;
+    const end = input.selectionEnd;
+    const val = input.value;
+    if (typeof start === 'number' && typeof end === 'number') {
+        input.value = val.substring(0, start) + emoji + val.substring(end);
+        input.selectionStart = input.selectionEnd = start + emoji.length;
+    } else {
+        input.value += emoji;
+    }
+
+    input.focus();
+    handleMessengerInputTyping(input);
+}
+
+function triggerMessengerImageSelect() {
+    const input = document.getElementById('messenger-image-file-input');
+    if (input) input.click();
+}
+
+async function handleMessengerImageSelect(event) {
+    const originalFile = event.target.files && event.target.files[0];
+    if (!originalFile) return;
+    event.target.value = '';
+
+    const uid = currentUserId || localStorage.getItem('musiclive_user_id');
+    if (!uid || !messengerActiveFriend || !socket) return;
+
+    if (!originalFile.type.startsWith('image/')) {
+        alert('Vui lòng chọn tệp hình ảnh!');
+        return;
+    }
+
+    const imgBtn = document.getElementById('btn-messenger-image');
+    const originalBtnHtml = imgBtn ? imgBtn.innerHTML : '';
+    if (imgBtn) {
+        imgBtn.innerHTML = '<span class="material-symbols-outlined spin" style="font-size:20px;">sync</span>';
+        imgBtn.disabled = true;
+    }
+
+    try {
+        const file = await compressImage(originalFile);
+        const fileExt = file.name ? file.name.split('.').pop() : 'jpg';
+        const fileName = `img_dm_${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${fileExt}`;
+        let publicUrl = '';
+
+        if (typeof supabase !== 'undefined' && supabase.createClient) {
+            try {
+                const supabaseStorage = supabase.createClient('https://wnioetdrphkdylkoybsu.supabase.co', 'sb_publishable_p0VSduH3epzQVUdvAf2kPQ_aoWk_l1T');
+                const { data, error } = await supabaseStorage.storage.from('chat_media').upload(fileName, file, {
+                    contentType: file.type,
+                    upsert: false
+                });
+                if (!error && data) {
+                    const { data: urlData } = supabaseStorage.storage.from('chat_media').getPublicUrl(fileName);
+                    publicUrl = urlData ? urlData.publicUrl : '';
+                }
+            } catch (e) { }
+        }
+
+        if (!publicUrl) {
+            publicUrl = await new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
+
+        socket.emit('messenger:sendMessage', {
+            senderId: uid,
+            receiverId: messengerActiveFriend.id,
+            text: '',
+            mediaUrl: publicUrl,
+            mediaType: 'image'
+        }, (res) => {
+            if (res && res.success && res.message) {
+                appendMessengerMessage(res.message);
+                updateConversationLatestMessage(messengerActiveFriend.id, res.message);
+            }
+        });
+    } catch (err) {
+        console.error('Lỗi khi gửi ảnh qua Messenger:', err);
+        alert('Không thể gửi ảnh! Vui lòng thử lại.');
+    } finally {
+        if (imgBtn) {
+            imgBtn.innerHTML = originalBtnHtml;
+            imgBtn.disabled = false;
+        }
+    }
+}
+
+let messengerMediaRecorder = null;
+let messengerAudioChunks = [];
+let messengerVoiceStream = null;
+let messengerVoiceTimerInterval = null;
+let messengerVoiceSeconds = 0;
+
+async function startMessengerVoiceRecording() {
+    const uid = currentUserId || localStorage.getItem('musiclive_user_id');
+    if (!uid || !messengerActiveFriend || !socket) return;
+
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        messengerVoiceStream = stream;
+        messengerAudioChunks = [];
+
+        let options = { audioBitsPerSecond: 128000 };
+        if (typeof MediaRecorder !== 'undefined') {
+            if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
+                options.mimeType = 'audio/webm;codecs=opus';
+            } else if (MediaRecorder.isTypeSupported('audio/ogg;codecs=opus')) {
+                options.mimeType = 'audio/ogg;codecs=opus';
+            } else if (MediaRecorder.isTypeSupported('audio/mp4')) {
+                options.mimeType = 'audio/mp4';
+            }
+        }
+
+        messengerMediaRecorder = new MediaRecorder(stream, options);
+        messengerMediaRecorder.ondataavailable = (e) => {
+            if (e.data && e.data.size > 0) {
+                messengerAudioChunks.push(e.data);
+            }
+        };
+
+        messengerMediaRecorder.start(100);
+        messengerVoiceSeconds = 0;
+
+        const inputWrap = document.getElementById('messenger-input-wrap');
+        const voiceBar = document.getElementById('messenger-voice-bar');
+        const sendBtn = document.getElementById('btn-messenger-send');
+        const timerEl = document.getElementById('messenger-voice-timer');
+
+        if (inputWrap) inputWrap.classList.add('hidden');
+        if (voiceBar) voiceBar.classList.remove('hidden');
+        if (sendBtn) sendBtn.classList.add('hidden');
+        if (timerEl) timerEl.innerText = '00:00';
+
+        if (messengerVoiceTimerInterval) clearInterval(messengerVoiceTimerInterval);
+        messengerVoiceTimerInterval = setInterval(() => {
+            messengerVoiceSeconds++;
+            if (timerEl) timerEl.innerText = formatVoiceDuration(messengerVoiceSeconds);
+            if (messengerVoiceSeconds >= 120) {
+                finishMessengerVoiceRecording();
+            }
+        }, 1000);
+
+    } catch (err) {
+        console.error('Lỗi micro Messenger:', err);
+        alert('Không thể mở micro! Vui lòng cho phép quyền sử dụng micro trên trình duyệt.');
+        cleanupMessengerVoiceState();
+    }
+}
+
+function cleanupMessengerVoiceState() {
+    if (messengerVoiceTimerInterval) {
+        clearInterval(messengerVoiceTimerInterval);
+        messengerVoiceTimerInterval = null;
+    }
+    if (messengerMediaRecorder && messengerMediaRecorder.state !== 'inactive') {
+        try { messengerMediaRecorder.stop(); } catch (e) { }
+    }
+    if (messengerVoiceStream) {
+        messengerVoiceStream.getTracks().forEach(t => t.stop());
+        messengerVoiceStream = null;
+    }
+    messengerMediaRecorder = null;
+    messengerAudioChunks = [];
+    messengerVoiceSeconds = 0;
+
+    const inputWrap = document.getElementById('messenger-input-wrap');
+    const voiceBar = document.getElementById('messenger-voice-bar');
+    const sendBtn = document.getElementById('btn-messenger-send');
+
+    if (inputWrap) inputWrap.classList.remove('hidden');
+    if (voiceBar) voiceBar.classList.add('hidden');
+    if (sendBtn) sendBtn.classList.remove('hidden');
+}
+
+function cancelMessengerVoiceRecording() {
+    cleanupMessengerVoiceState();
+}
+
+async function finishMessengerVoiceRecording() {
+    if (!messengerMediaRecorder || messengerMediaRecorder.state === 'inactive') {
+        cleanupMessengerVoiceState();
+        return;
+    }
+
+    const duration = messengerVoiceSeconds;
+    if (duration < 1) {
+        cleanupMessengerVoiceState();
+        return;
+    }
+
+    messengerMediaRecorder.onstop = async () => {
+        const mimeType = messengerMediaRecorder.mimeType || 'audio/webm';
+        const audioBlob = new Blob(messengerAudioChunks, { type: mimeType });
+        cleanupMessengerVoiceState();
+        await sendMessengerVoiceBlob(audioBlob, duration);
+    };
+
+    try {
+        messengerMediaRecorder.stop();
+    } catch (e) {
+        cleanupMessengerVoiceState();
+    }
+}
+
+async function sendMessengerVoiceBlob(audioBlob, duration) {
+    const uid = currentUserId || localStorage.getItem('musiclive_user_id');
+    if (!uid || !messengerActiveFriend || !socket) return;
+
+    let publicUrl = '';
+    const fileExt = audioBlob.type.includes('mp4') ? 'mp4' : (audioBlob.type.includes('ogg') ? 'ogg' : 'webm');
+    const fileName = `voice_dm_${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${fileExt}`;
+
+    if (typeof supabase !== 'undefined' && supabase.createClient) {
+        try {
+            const supabaseStorage = supabase.createClient('https://wnioetdrphkdylkoybsu.supabase.co', 'sb_publishable_p0VSduH3epzQVUdvAf2kPQ_aoWk_l1T');
+            const { data, error } = await supabaseStorage.storage.from('chat_media').upload(fileName, audioBlob, {
+                contentType: audioBlob.type,
+                upsert: false
+            });
+            if (!error && data) {
+                const { data: urlData } = supabaseStorage.storage.from('chat_media').getPublicUrl(fileName);
+                publicUrl = urlData ? urlData.publicUrl : '';
+            }
+        } catch (e) { }
+    }
+
+    if (!publicUrl) {
+        publicUrl = await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = reject;
+            reader.readAsDataURL(audioBlob);
+        });
+    }
+
+    socket.emit('messenger:sendMessage', {
+        senderId: uid,
+        receiverId: messengerActiveFriend.id,
+        text: '',
+        mediaUrl: publicUrl,
+        mediaType: 'voice',
+        duration: duration
+    }, (res) => {
+        if (res && res.success && res.message) {
+            appendMessengerMessage(res.message);
+            updateConversationLatestMessage(messengerActiveFriend.id, res.message);
+        }
+    });
+}
+
+function toggleMessengerFriendMenu() {
+    const menu = document.getElementById('messenger-friend-menu');
+    if (menu) menu.classList.toggle('hidden');
+}
+
+document.addEventListener('click', (e) => {
+    const menu = document.getElementById('messenger-friend-menu');
+    const btn = document.getElementById('btn-friend-menu');
+    if (menu && !menu.classList.contains('hidden')) {
+        if (btn && !btn.contains(e.target) && !menu.contains(e.target)) {
+            menu.classList.add('hidden');
+        }
+    }
+    const emojiPicker = document.getElementById('messenger-emoji-picker');
+    const emojiBtn = document.getElementById('btn-messenger-emoji');
+    if (emojiPicker && !emojiPicker.classList.contains('hidden')) {
+        if (!emojiPicker.contains(e.target) && (!emojiBtn || !emojiBtn.contains(e.target))) {
+            emojiPicker.classList.add('hidden');
+        }
+    }
+});
+
+function handleUnfriendActiveFriend() {
+    if (!messengerActiveFriend) return;
+    toggleMessengerFriendMenu();
+    confirmUnfriend(messengerActiveFriend.id, messengerActiveFriend.displayName || messengerActiveFriend.username);
+}
+
+function confirmUnfriend(friendId, friendName) {
+    if (!confirm(`Bạn có chắc chắn muốn hủy kết bạn với [${friendName}] không?`)) return;
+
+    const uid = currentUserId || localStorage.getItem('musiclive_user_id');
+    if (!uid || !socket) return;
+
+    socket.emit('messenger:unfriend', { userId: uid, friendId }, (res) => {
+        if (res && res.success) {
+            messengerFriends = messengerFriends.filter(f => String(f.id) !== String(friendId));
+            messengerConversations = messengerConversations.filter(c => c.friend && String(c.friend.id) !== String(friendId));
+            if (messengerActiveFriend && String(messengerActiveFriend.id) === String(friendId)) {
+                messengerActiveFriend = null;
+                const emptyState = document.getElementById('messenger-empty-state');
+                const chatBox = document.getElementById('messenger-chat-box');
+                if (emptyState) emptyState.classList.remove('hidden');
+                if (chatBox) chatBox.classList.add('hidden');
+                closeMessengerMobileChat();
+            }
+            updateMessengerBadges();
+            renderMessengerList();
+            if (typeof showToastNotification === 'function') {
+                showToastNotification(`Đã hủy kết bạn với ${friendName}`);
+            }
+        }
+    });
+}
+
+function playMessengerPopSound() {
+    if (typeof soundEnabled !== 'undefined' && !soundEnabled) return;
+    try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const now = ctx.currentTime;
+
+        const osc1 = ctx.createOscillator();
+        const gain1 = ctx.createGain();
+        osc1.type = 'sine';
+        osc1.frequency.setValueAtTime(587.33, now);
+        gain1.gain.setValueAtTime(0.12, now);
+        gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+        osc1.connect(gain1);
+        gain1.connect(ctx.destination);
+        osc1.start(now);
+        osc1.stop(now + 0.12);
+
+        const osc2 = ctx.createOscillator();
+        const gain2 = ctx.createGain();
+        osc2.type = 'sine';
+        osc2.frequency.setValueAtTime(880, now + 0.08);
+        gain2.gain.setValueAtTime(0.15, now + 0.08);
+        gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+        osc2.connect(gain2);
+        gain2.connect(ctx.destination);
+        osc2.start(now + 0.08);
+        osc2.stop(now + 0.25);
+    } catch (e) { }
+}
+
+let messengerSearchUserCache = new Map();
+let messengerLastSearchQuery = '';
+
+function openAddFriendModal() {
+    const modal = document.getElementById('add-friend-modal');
+    if (!modal) return;
+    modal.classList.remove('hidden');
+    messengerLastSearchQuery = '';
+    const input = document.getElementById('add-friend-search-input');
+    if (input) {
+        input.value = '';
+        input.focus();
+    }
+    const resultsList = document.getElementById('add-friend-results-list');
+    if (resultsList) {
+        resultsList.innerHTML = `
+            <div style="text-align: center; color: var(--text-muted); padding: 40px 16px; font-size: 13.5px;">
+                <span class="material-symbols-outlined" style="font-size: 40px; color: rgba(255,255,255,0.2); display: block; margin-bottom: 8px;">person_search</span>
+                Nhập tên hoặc email người dùng để tìm kiếm và kết bạn
+            </div>
+        `;
+    }
+}
+
+function closeAddFriendModal() {
+    const modal = document.getElementById('add-friend-modal');
+    if (modal) modal.classList.add('hidden');
+}
+
+function handleSearchUsersToAddFriend(query) {
+    const q = (query || '').trim();
+    if (q === messengerLastSearchQuery && q !== '') return;
+    clearTimeout(messengerSearchDebounce);
+
+    const resultsList = document.getElementById('add-friend-results-list');
+    if (!resultsList) return;
+
+    if (!q) {
+        messengerLastSearchQuery = '';
+        resultsList.innerHTML = `
+            <div style="text-align: center; color: var(--text-muted); padding: 40px 16px; font-size: 13.5px;">
+                <span class="material-symbols-outlined" style="font-size: 40px; color: rgba(255,255,255,0.2); display: block; margin-bottom: 8px;">person_search</span>
+                Nhập tên hoặc email người dùng để tìm kiếm và kết bạn
+            </div>
+        `;
+        return;
+    }
+
+    // Keep existing results visible while typing to prevent click target destruction
+    if (!resultsList.querySelector('.messenger-friend-item')) {
+        resultsList.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 30px; font-size: 13px;"><span class="material-symbols-outlined" style="font-size: 20px; animation: spin 1s linear infinite; vertical-align: middle; margin-right: 6px;">sync</span>Đang tìm kiếm...</div>';
+    }
+
+    messengerSearchDebounce = setTimeout(() => {
+        messengerLastSearchQuery = q;
+        const uid = currentUserId || localStorage.getItem('musiclive_user_id');
+        if (!socket) return;
+        socket.emit('messenger:searchUsers', { query: q, currentUserId: uid }, (res) => {
+            renderSearchUsersResults(res?.results || []);
+        });
+    }, 300);
+}
+
+function openDirectChatFromSearch(targetUserId) {
+    const userObj = messengerSearchUserCache.get(String(targetUserId));
+    closeAddFriendModal();
+    showTab('messenger');
+    selectMessengerConversation(targetUserId, userObj);
+}
+
+function renderSearchUsersResults(users) {
+    const resultsList = document.getElementById('add-friend-results-list');
+    if (!resultsList) return;
+
+    if (!users || users.length === 0) {
+        resultsList.innerHTML = `
+            <div style="text-align: center; color: var(--text-muted); padding: 40px 16px; font-size: 13.5px;">
+                <span class="material-symbols-outlined" style="font-size: 38px; color: rgba(255,255,255,0.2); display: block; margin-bottom: 8px;">search_off</span>
+                Không tìm thấy người dùng nào phù hợp.
+            </div>
+        `;
+        return;
+    }
+
+    const defaultAvatarSvg = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'><rect width='48' height='48' rx='24' fill='%232a2034'/><text x='50%' y='55%' dominant-baseline='middle' text-anchor='middle' fill='%23ff75a0' font-size='18' font-weight='bold'>👤</text></svg>";
+
+    users.forEach(u => messengerSearchUserCache.set(String(u.id), u));
+
+    resultsList.innerHTML = users.map(u => {
+        const avatarSrc = u.avatarUrl || defaultAvatarSvg;
+        let actionBtn = '';
+        const isFriend = u.relationship === 'friends';
+
+        if (isFriend) {
+            actionBtn = `
+                <button type="button" class="messenger-action-icon-btn" style="color: #2ed573; border-color: rgba(46,213,115,0.4);" title="Nhắn tin" onclick="event.stopPropagation(); openDirectChatFromSearch('${u.id}')">
+                    <span class="material-symbols-outlined" style="font-size: 18px;">chat</span>
+                </button>
+            `;
+        } else if (u.relationship === 'pending_sent') {
+            actionBtn = `
+                <button type="button" class="settings-btn-secondary" style="font-size: 12px; padding: 6px 10px; opacity: 0.7; cursor: default;" disabled>
+                    <span class="material-symbols-outlined" style="font-size: 14px;">hourglass_empty</span> Đã gửi lời mời
+                </button>
+            `;
+        } else if (u.relationship === 'pending_received') {
+            actionBtn = `
+                <button type="button" class="messenger-req-btn-accept" onclick="event.stopPropagation(); respondFriendRequest('${u.friendshipId}', 'accept'); closeAddFriendModal();">
+                    <span class="material-symbols-outlined" style="font-size: 14px;">check</span> Chấp nhận
+                </button>
+            `;
+        } else {
+            actionBtn = `
+                <button type="button" class="messenger-primary-pill-btn" style="padding: 6px 14px; font-size: 12.5px;" onclick="event.stopPropagation(); sendFriendRequest('${u.id}', this)">
+                    <span class="material-symbols-outlined" style="font-size: 16px;">person_add</span> Kết bạn
+                </button>
+            `;
+        }
+
+        const isAdm = isUserAdmin(u);
+        const badgeHtml = isAdm ? getTikTokVerifiedBadgeHtml() : '';
+        const rawName = u.displayName || u.username || 'Người dùng';
+        const cleanName = escapeHtml(rawName.replace(' 😎', '').trim());
+
+        return `
+            <div class="messenger-friend-item" ${rowClickAttr}>
+                <div class="messenger-avatar-wrap">
+                    <img src="${avatarSrc}" alt="avatar" class="messenger-avatar-img" onerror="this.onerror=null; this.src='${defaultAvatarSvg}';">
+                    <span class="messenger-online-dot ${u.online ? 'online' : ''}"></span>
+                </div>
+                <div class="messenger-convo-info">
+                    <div class="messenger-convo-name" style="color: ${u.nameColor || '#ffffff'};">${cleanName}${badgeHtml}</div>
+                    <div class="messenger-convo-snippet">@${escapeHtml(u.username || 'user')}</div>
+                </div>
+                <div>${actionBtn}</div>
+            </div>
+        `;
+    }).join('');
+}
+
+function sendFriendRequest(targetUserId, btnEl) {
+    const uid = currentUserId || localStorage.getItem('musiclive_user_id');
+    if (!uid || !socket) return;
+
+    if (btnEl) {
+        btnEl.disabled = true;
+        btnEl.innerHTML = '<span class="material-symbols-outlined" style="font-size: 14px;">hourglass_empty</span> Đang gửi...';
+    }
+
+    socket.emit('messenger:sendFriendRequest', { senderId: uid, targetUserId }, (res) => {
+        if (res && res.success) {
+            if (btnEl) {
+                btnEl.outerHTML = `
+                    <button type="button" class="settings-btn-secondary" style="font-size: 12px; padding: 6px 10px; opacity: 0.7; cursor: default;" disabled>
+                        <span class="material-symbols-outlined" style="font-size: 14px;">hourglass_empty</span> Đã gửi lời mời
+                    </button>
+                `;
+            }
+            if (res.action === 'accept') {
+                if (typeof showToastNotification === 'function') {
+                    showToastNotification('🎉 Hai bạn đã chính thức trở thành bạn bè!');
+                }
+            } else {
+                if (typeof showToastNotification === 'function') {
+                    showToastNotification('Đã gửi lời mời kết bạn thành công!');
+                }
+            }
+            initMessenger();
+        } else {
+            alert(res?.error || 'Không thể gửi lời mời kết bạn');
+            if (btnEl) btnEl.disabled = false;
+        }
+    });
+}
+
+function respondFriendRequest(friendshipId, action) {
+    const uid = currentUserId || localStorage.getItem('musiclive_user_id');
+    if (!uid || !socket) return;
+
+    socket.emit('messenger:respondFriendRequest', { friendshipId, action, userId: uid }, (res) => {
+        if (res && res.success) {
+            if (action === 'accept') {
+                if (typeof showToastNotification === 'function') {
+                    showToastNotification('🎉 Đã chấp nhận lời mời kết bạn!');
+                }
+            } else {
+                if (typeof showToastNotification === 'function') {
+                    showToastNotification('Đã từ chối lời mời kết bạn');
+                }
+            }
+            initMessenger();
+        }
+    });
+}
+
+function registerMessengerSocketListeners() {
+    if (!socket) return;
+
+    socket.on('messenger:initResult', handleMessengerInitResult);
+
+    socket.on('messenger:receiveMessage', (msg) => {
+        const uid = currentUserId || localStorage.getItem('musiclive_user_id');
+        if (!uid) return;
+
+        playMessengerPopSound();
+
+        if (messengerActiveFriend && String(messengerActiveFriend.id) === String(msg.senderId)) {
+            appendMessengerMessage(msg);
+            socket.emit('messenger:markRead', { userId: uid, friendId: msg.senderId });
+            updateConversationLatestMessage(msg.senderId, msg);
+        } else {
+            let convo = messengerConversations.find(c => c.friend && String(c.friend.id) === String(msg.senderId));
+            if (convo) {
+                convo.unreadCount = (convo.unreadCount || 0) + 1;
+                convo.lastMessage = msg;
+                convo.updatedAt = msg.createdAt;
+                messengerConversations = messengerConversations.filter(c => c !== convo);
+                messengerConversations.unshift(convo);
+            } else {
+                initMessenger();
+            }
+            updateMessengerBadges();
+            renderMessengerList();
+        }
+    });
+
+    socket.on('messenger:messageSent', (msg) => {
+        const uid = currentUserId || localStorage.getItem('musiclive_user_id');
+        if (!uid) return;
+
+        if (messengerActiveFriend && String(messengerActiveFriend.id) === String(msg.receiverId)) {
+            appendMessengerMessage(msg);
+        }
+        updateConversationLatestMessage(msg.receiverId, msg);
+    });
+
+    socket.on('messenger:historyResult', (data) => {
+        const { friendId, messages } = data || {};
+        if (friendId && Array.isArray(messages)) {
+            const fIdStr = String(friendId);
+            const existing = messengerHistoryCache.get(fIdStr) || [];
+            const map = new Map();
+            for (const m of existing) {
+                if (m && m.id) map.set(String(m.id), m);
+            }
+            for (const m of messages) {
+                if (m && m.id) map.set(String(m.id), m);
+            }
+            const merged = Array.from(map.values());
+            merged.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+
+            messengerHistoryCache.set(fIdStr, merged);
+            if (messengerActiveFriend && String(messengerActiveFriend.id) === fIdStr) {
+                renderMessengerMessages(merged);
+            }
+        }
+    });
+
+    socket.on('messenger:messagesRead', (data) => {
+        const { readerId } = data || {};
+        if (messengerActiveFriend && String(messengerActiveFriend.id) === String(readerId)) {
+            const fIdStr = String(messengerActiveFriend.id);
+            if (messengerHistoryCache.has(fIdStr)) {
+                const arr = messengerHistoryCache.get(fIdStr);
+                arr.forEach(m => {
+                    if (String(m.receiverId) === fIdStr) m.isRead = true;
+                });
+            }
+
+            const messagesArea = document.getElementById('messenger-messages-area');
+            if (!messagesArea) return;
+
+            // Remove any and all existing "Đã xem" indicators to ensure strictly at most 1
+            const existingStatuses = messagesArea.querySelectorAll('.messenger-read-status');
+            existingStatuses.forEach(el => el.remove());
+
+            // Only add "Đã xem" if the very last message in the chat is sent by me
+            const lastRow = messagesArea.querySelector('.messenger-msg-row:last-child');
+            if (lastRow && lastRow.classList.contains('me')) {
+                const statusDiv = document.createElement('div');
+                statusDiv.className = 'messenger-read-status';
+                statusDiv.textContent = 'Đã xem ✓✓';
+                lastRow.appendChild(statusDiv);
+                messagesArea.scrollTop = messagesArea.scrollHeight;
+            }
+        }
+    });
+
+    socket.on('messenger:userTyping', (data) => {
+        const { senderId, isTyping } = data || {};
+        if (messengerActiveFriend && String(messengerActiveFriend.id) === String(senderId)) {
+            const typingEl = document.getElementById('messenger-typing-indicator');
+            const avatarEl = document.getElementById('messenger-typing-avatar');
+            if (typingEl) {
+                if (isTyping) {
+                    if (avatarEl) avatarEl.src = messengerActiveFriend.avatarUrl || "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'><circle cx='12' cy='12' r='12' fill='%232a2034'/></svg>";
+                    typingEl.classList.remove('hidden');
+                    const messagesArea = document.getElementById('messenger-messages-area');
+                    if (messagesArea) messagesArea.scrollTop = messagesArea.scrollHeight;
+                } else {
+                    typingEl.classList.add('hidden');
+                }
+            }
+        }
+    });
+
+    socket.on('messenger:userOnline', (data) => {
+        const { userId, online } = data || {};
+        if (!userId) return;
+        const sId = String(userId);
+        if (online) {
+            messengerOnlineUserIds.add(sId);
+        } else {
+            messengerOnlineUserIds.delete(sId);
+        }
+
+        messengerFriends.forEach(f => {
+            if (String(f.id) === sId) f.online = online;
+        });
+        messengerConversations.forEach(c => {
+            if (c.friend && String(c.friend.id) === sId) c.friend.online = online;
+        });
+
+        if (messengerActiveFriend && String(messengerActiveFriend.id) === sId) {
+            messengerActiveFriend.online = online;
+            updateMessengerChatHeader();
+        }
+
+        renderMessengerList();
+    });
+
+    socket.on('messenger:friendRequestReceived', (data) => {
+        messengerPendingRequests.unshift(data);
+        updateMessengerBadges();
+        renderMessengerList();
+        playMessengerPopSound();
+        if (typeof showToastNotification === 'function') {
+            const senderName = data.sender?.displayName || data.sender?.username || 'Người dùng';
+            showToastNotification(`🔔 [${senderName}] đã gửi cho bạn một lời mời kết bạn!`);
+        }
+    });
+
+    socket.on('messenger:friendRequestAccepted', (data) => {
+        initMessenger();
+        playMessengerPopSound();
+        if (typeof showToastNotification === 'function') {
+            const fName = data.friend?.displayName || data.friend?.username || 'Bạn bè';
+            showToastNotification(`🎉 [${fName}] đã chấp nhận lời mời kết bạn!`);
+        }
+    });
+
+    socket.on('messenger:friendRequestDeclined', (data) => {
+        initMessenger();
+    });
+
+    socket.on('messenger:unfriended', (data) => {
+        initMessenger();
+    });
+}
+
+// Automatically register listeners when script loads
+if (typeof socket !== 'undefined') {
+    registerMessengerSocketListeners();
 }

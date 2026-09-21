@@ -57,71 +57,72 @@
     </script>
 
     <div id="login-section" class="login-overlay">
-        <div class="login-card">
-            <h2>Tham gia luồng trực tiếp</h2>
-            <p id="login-prompt">Chọn vai trò của bạn để tham gia</p>
+        <div class="login-card" style="max-width: 440px; padding: 36px 30px;">
+            <div style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 8px;">
+                <span class="material-symbols-outlined" style="font-size: 32px; color: var(--accent);">headphones</span>
+                <h2 style="margin: 0; font-size: 26px;">2937.ML Live</h2>
+            </div>
+            <p id="login-prompt" style="margin-bottom: 20px; font-size: 14px;">Đăng nhập để trò chuyện và nghe nhạc trực tiếp</p>
 
-            <div id="role-buttons-wrapper" style="display: flex; gap: 12px; margin-bottom: 16px;">
-                <button type="button" class="login-btn" style="flex: 1; background: rgba(255,255,255,0.1);"
-                    onclick="selectRole('user')">
-                    Thành viên
-                </button>
-                <button type="button" class="login-btn" style="flex: 1;" onclick="selectRole('admin')">
-                    Quản trị viên
-                </button>
+            <!-- Google Sign-In Button -->
+            <button type="button" class="google-auth-btn" id="btn-google-login" onclick="loginWithGoogle()" title="Đăng nhập với tài khoản Google">
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M17.64 9.20455C17.64 8.56636 17.5827 7.95273 17.4764 7.36364H9V10.845H13.8436C13.635 11.97 13.0009 12.9232 12.0477 13.5614V15.8195H14.9564C16.6582 14.2527 17.64 11.9455 17.64 9.20455Z" fill="#4285F4"/>
+                    <path d="M9 18C11.43 18 13.4673 17.1941 14.9564 15.8195L12.0477 13.5614C11.2418 14.1014 10.2109 14.4205 9 14.4205C6.65591 14.4205 4.67182 12.8373 3.96409 10.71H0.957275V13.0418C2.43818 15.9832 5.48182 18 9 18Z" fill="#34A853"/>
+                    <path d="M3.96409 10.71C3.78409 10.17 3.68182 9.59318 3.68182 9C3.68182 8.40682 3.78409 7.83 3.96409 7.29V4.95818H0.957275C0.347727 6.17318 0 7.54773 0 9C0 10.4523 0.347727 11.8268 0.957275 13.0418L3.96409 10.71Z" fill="#FBBC05"/>
+                    <path d="M9 3.57955C10.3214 3.57955 11.5077 4.03364 12.4405 4.92545L15.0218 2.34409C13.4632 0.891818 11.4259 0 9 0C5.48182 0 2.43818 2.01682 0.957275 4.95818L3.96409 7.29C4.67182 5.16273 6.65591 3.57955 9 3.57955Z" fill="#EA4335"/>
+                </svg>
+                <span>Đăng nhập bằng Google</span>
+            </button>
+
+            <!-- Divider -->
+            <div class="auth-divider">
+                <span>hoặc với email</span>
             </div>
 
-            <div id="admin-list-wrapper" class="hidden"
-                style="margin-bottom: 16px; background: rgba(0,0,0,0.2); border-radius: 8px; padding: 12px;">
-                <p style="margin-bottom: 12px; font-size: 13px; color: var(--text-muted);">Chọn quyền quản trị:</p>
-                <div style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: center;">
-                    <button type="button" class="action-btn" style="padding: 8px 12px; font-size: 13px;"
-                        onclick="selectAdmin('nthdat')">nthdat</button>
-                    <button type="button" class="action-btn" style="padding: 8px 12px; font-size: 13px;"
-                        onclick="selectAdmin('Doo')">Doo</button>
-                </div>
+            <!-- Tabs: Đăng Nhập / Đăng Ký -->
+            <div class="auth-tabs">
+                <button type="button" id="tab-login" class="auth-tab active" onclick="switchAuthTab('login')">Đăng Nhập</button>
+                <button type="button" id="tab-signup" class="auth-tab" onclick="switchAuthTab('signup')">Đăng Ký</button>
             </div>
 
-            <div id="user-details-wrapper" class="hidden">
-                <input type="text" id="username-input" class="login-input" style="margin-bottom: 16px;"
-                    placeholder="Tên hiển thị..." onkeypress="if(event.key === 'Enter') joinRoom()" required>
+            <!-- Status / Alert Message Banner -->
+            <div id="auth-status-msg" class="auth-status-msg hidden"></div>
 
-                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
-                    <label style="font-size: 14px; color: var(--text-muted); white-space: nowrap;">Màu tên:</label>
-                    <div style="display: flex; gap: 6px; flex-wrap: wrap; flex: 1;">
-                        <input type="color" id="name-color-input" value="#3ea6ff"
-                            style="width: 36px; height: 36px; border: none; border-radius: 8px; cursor: pointer; background: transparent; padding: 0;">
-                        <button type="button" onclick="document.getElementById('name-color-input').value='#3ea6ff'"
-                            style="width: 28px; height: 28px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; background: #3ea6ff;"
-                            title="Xanh dương"></button>
-                        <button type="button" onclick="document.getElementById('name-color-input').value='#ff6b6b'"
-                            style="width: 28px; height: 28px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; background: #ff6b6b;"
-                            title="Đỏ"></button>
-                        <button type="button" onclick="document.getElementById('name-color-input').value='#51cf66'"
-                            style="width: 28px; height: 28px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; background: #51cf66;"
-                            title="Xanh lá"></button>
-                        <button type="button" onclick="document.getElementById('name-color-input').value='#ffd43b'"
-                            style="width: 28px; height: 28px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; background: #ffd43b;"
-                            title="Vàng"></button>
-                        <button type="button" onclick="document.getElementById('name-color-input').value='#cc5de8'"
-                            style="width: 28px; height: 28px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; background: #cc5de8;"
-                            title="Tím"></button>
-                        <button type="button" onclick="document.getElementById('name-color-input').value='#ff922b'"
-                            style="width: 28px; height: 28px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; background: #ff922b;"
-                            title="Cam"></button>
-                        <button type="button" onclick="document.getElementById('name-color-input').value='#f1f1f1'"
-                            style="width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--border-color); cursor: pointer; background: #f1f1f1;"
-                            title="Trắng"></button>
+            <!-- Form Đăng Nhập -->
+            <form id="form-login" onsubmit="event.preventDefault(); handleEmailLogin();">
+                <input type="email" id="login-email" class="login-input" placeholder="Email của bạn..." autocomplete="email" required>
+                <input type="password" id="login-password" class="login-input" placeholder="Mật khẩu..." autocomplete="current-password" required>
+                <button type="submit" id="btn-submit-login" class="login-btn" style="margin-top: 4px;">Đăng Nhập</button>
+            </form>
+
+            <!-- Form Đăng Ký (không cần xác minh) -->
+            <form id="form-signup" class="hidden" onsubmit="event.preventDefault(); handleEmailSignUp();">
+                <input type="text" id="signup-username" class="login-input" placeholder="Tên hiển thị (ví dụ: Dat, Bé Bông...)" autocomplete="nickname" required>
+                <input type="email" id="signup-email" class="login-input" placeholder="Email..." autocomplete="email" required>
+                <input type="password" id="signup-password" class="login-input" placeholder="Mật khẩu (tối thiểu 6 ký tự)..." autocomplete="new-password" required minlength="6">
+
+                <!-- Color selector for chat -->
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 16px; background: rgba(0,0,0,0.2); padding: 8px 12px; border-radius: var(--radius-sm);">
+                    <span style="font-size: 13px; color: var(--text-muted); white-space: nowrap;">Màu tên chat:</span>
+                    <div style="display: flex; gap: 6px; align-items: center;">
+                        <input type="color" id="signup-name-color" value="#3ea6ff"
+                            style="width: 28px; height: 28px; border: none; border-radius: 6px; cursor: pointer; background: transparent; padding: 0;">
+                        <button type="button" onclick="document.getElementById('signup-name-color').value='#3ea6ff'"
+                            style="width: 22px; height: 22px; border-radius: 50%; border: none; cursor: pointer; background: #3ea6ff;" title="Xanh dương"></button>
+                        <button type="button" onclick="document.getElementById('signup-name-color').value='#ff6b6b'"
+                            style="width: 22px; height: 22px; border-radius: 50%; border: none; cursor: pointer; background: #ff6b6b;" title="Đỏ"></button>
+                        <button type="button" onclick="document.getElementById('signup-name-color').value='#51cf66'"
+                            style="width: 22px; height: 22px; border-radius: 50%; border: none; cursor: pointer; background: #51cf66;" title="Xanh lá"></button>
+                        <button type="button" onclick="document.getElementById('signup-name-color').value='#ffd43b'"
+                            style="width: 22px; height: 22px; border-radius: 50%; border: none; cursor: pointer; background: #ffd43b;" title="Vàng"></button>
+                        <button type="button" onclick="document.getElementById('signup-name-color').value='#cc5de8'"
+                            style="width: 22px; height: 22px; border-radius: 50%; border: none; cursor: pointer; background: #cc5de8;" title="Tím"></button>
                     </div>
                 </div>
-            </div>
 
-            <div id="password-wrapper" class="hidden" style="margin-bottom: 16px;">
-                <input type="password" id="password-input" class="login-input" style="margin-bottom: 0;"
-                    placeholder="Mật khẩu / Ngày sinh..." onkeypress="if(event.key === 'Enter') joinRoom()">
-            </div>
-
-            <button id="join-btn" class="login-btn hidden" onclick="joinRoom()">Tham Gia Ngay</button>
+                <button type="submit" id="btn-submit-signup" class="login-btn">Đăng Ký Tài Khoản</button>
+            </form>
         </div>
     </div>
 
@@ -150,14 +151,22 @@
             <button class="mobile-search-trigger-btn" onclick="openMobileSearch()" title="Tìm kiếm">
                 <span class="material-symbols-outlined" style="font-size:20px;">search</span>
             </button>
-            <div class="navbar-user">
+            <button class="settings-btn navbar-messenger-btn" id="navbar-messenger-btn" onclick="showTab('messenger')" title="Tin nhắn Messenger">
+                <span class="material-symbols-outlined">chat</span>
+                <span id="navbar-messenger-badge" class="nav-msg-badge hidden">0</span>
+            </button>
+            <div class="navbar-user" onclick="openProfileSettingsModal()" style="cursor: pointer;" title="Cài đặt thông tin tài khoản">
+                <img id="navbar-avatar" class="navbar-avatar-img hidden" src="" alt="Avatar">
                 <span class="user-dot"></span>
                 <span id="navbar-username"></span>
             </div>
+            <button class="settings-btn" id="btn-profile-settings" onclick="openProfileSettingsModal()" title="Cài đặt thông tin tài khoản">
+                <span class="material-symbols-outlined">manage_accounts</span>
+            </button>
             <button class="settings-btn" onclick="openSettingsModal()" title="Cài đặt giao diện">
                 <span class="material-symbols-outlined">settings</span>
             </button>
-            <button class="logout-btn" onclick="logout()" title="Đăng xuất để đổi tên">
+            <button class="logout-btn" onclick="logout()" title="Đăng xuất">
                 <span class="material-symbols-outlined">logout</span>
             </button>
         </div>
@@ -184,6 +193,11 @@
             <div class="sidebar-item active" onclick="showTab('home')" data-tab="home">
                 <span class="material-symbols-outlined">home</span>
                 <span class="sidebar-label">Trang chủ</span>
+            </div>
+            <div class="sidebar-item" onclick="showTab('messenger')" data-tab="messenger" title="Tin nhắn">
+                <span class="material-symbols-outlined">chat</span>
+                <span class="sidebar-label">Tin nhắn</span>
+                <span id="sidebar-messenger-badge" class="sidebar-msg-badge hidden">0</span>
             </div>
             <div class="sidebar-item" onclick="showTab('history')" data-tab="history">
                 <span class="material-symbols-outlined">history</span>
@@ -441,6 +455,180 @@
             </div>
         </div>
 
+        <!-- MESSENGER COLUMN (1-ON-1 CHAT & FRIENDS) -->
+        <div class="messenger-column hidden" id="messenger-column">
+            <div class="messenger-container">
+                <!-- Left Pane: Conversations & Friends -->
+                <div class="messenger-left-pane" id="messenger-left-pane">
+                    <div class="messenger-left-header">
+                        <div class="messenger-header-title-row">
+                            <h2 class="messenger-header-title">Đoạn chat</h2>
+                            <div class="messenger-header-actions">
+                                <button class="messenger-action-icon-btn" onclick="openAddFriendModal()" title="Thêm bạn bè">
+                                    <span class="material-symbols-outlined">person_add</span>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="messenger-search-bar">
+                            <span class="material-symbols-outlined">search</span>
+                            <input type="text" id="messenger-search-input" placeholder="Tìm bạn bè hoặc tin nhắn..." oninput="handleMessengerFilter(this.value)">
+                        </div>
+                        <div class="messenger-tabs-nav">
+                            <button type="button" class="messenger-tab-btn active" data-subtab="chats" onclick="switchMessengerTab('chats')">
+                                <span class="material-symbols-outlined">forum</span>
+                                <span>Hộp thư</span>
+                            </button>
+                            <button type="button" class="messenger-tab-btn" data-subtab="friends" onclick="switchMessengerTab('friends')">
+                                <span class="material-symbols-outlined">group</span>
+                                <span>Bạn bè</span>
+                                <span id="messenger-friends-badge" class="messenger-tab-badge hidden">0</span>
+                            </button>
+                            <button type="button" class="messenger-tab-btn" data-subtab="requests" onclick="switchMessengerTab('requests')">
+                                <span class="material-symbols-outlined">person_add</span>
+                                <span>Lời mời</span>
+                                <span id="messenger-requests-badge" class="messenger-tab-badge hidden">0</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Messenger List Container -->
+                    <div class="messenger-list-wrapper" id="messenger-list-container">
+                        <div style="text-align: center; color: var(--text-muted); padding: 40px 16px; font-size: 13.5px;">
+                            Đang tải hội thoại...
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Pane: Active 1-on-1 Chat Area -->
+                <div class="messenger-right-pane" id="messenger-right-pane">
+                    <!-- Empty State -->
+                    <div class="messenger-empty-state" id="messenger-empty-state">
+                        <div class="messenger-empty-icon-box">
+                            <span class="material-symbols-outlined">forum</span>
+                        </div>
+                        <h3 style="margin: 0; font-size: 20px; font-weight: 700; color: #fff;">Đoạn chat của bạn</h3>
+                        <p style="margin: 6px 0 16px 0; color: var(--text-muted); font-size: 14px; max-width: 320px; line-height: 1.5;">Chọn một người bạn từ danh sách hoặc kết bạn mới để bắt đầu cuộc trò chuyện 1-1.</p>
+                        <button class="messenger-primary-pill-btn" onclick="openAddFriendModal()">
+                            <span class="material-symbols-outlined" style="font-size: 18px;">person_add</span>
+                            Thêm bạn bè mới
+                        </button>
+                    </div>
+
+                    <!-- Active Chat Box -->
+                    <div class="messenger-chat-box hidden" id="messenger-chat-box">
+                        <!-- Chat Header -->
+                        <div class="messenger-chat-header">
+                            <button class="messenger-back-mobile-btn" onclick="closeMessengerMobileChat()" title="Quay lại danh sách">
+                                <span class="material-symbols-outlined">arrow_back</span>
+                            </button>
+                            <div class="messenger-header-user">
+                                <div class="messenger-avatar-wrap">
+                                    <img id="messenger-header-avatar" src="" alt="Avatar" class="messenger-avatar-img">
+                                    <span id="messenger-header-online-dot" class="messenger-online-dot"></span>
+                                </div>
+                                <div class="messenger-header-info">
+                                    <div id="messenger-header-name" class="messenger-header-name">Tên bạn bè</div>
+                                    <div id="messenger-header-status" class="messenger-header-status">Ngoại tuyến</div>
+                                </div>
+                            </div>
+                            <div class="messenger-header-right-actions">
+                                <div style="position: relative;">
+                                    <button class="messenger-header-icon-btn" id="btn-friend-menu" onclick="toggleMessengerFriendMenu()" title="Tùy chọn">
+                                        <span class="material-symbols-outlined">more_vert</span>
+                                    </button>
+                                    <div id="messenger-friend-menu" class="messenger-dropdown-menu hidden">
+                                        <div class="messenger-menu-item" onclick="handleUnfriendActiveFriend()" style="color: #ff6b6b;">
+                                            <span class="material-symbols-outlined" style="font-size: 18px;">person_remove</span>
+                                            <span>Hủy kết bạn</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Messages Scroll Area -->
+                        <div class="messenger-messages-area" id="messenger-messages-area">
+                            <!-- Messages rendered here -->
+                        </div>
+
+                        <!-- Typing Indicator -->
+                        <div class="messenger-typing-indicator hidden" id="messenger-typing-indicator">
+                            <img id="messenger-typing-avatar" src="" class="messenger-typing-avatar">
+                            <div class="messenger-typing-bubble">
+                                <span class="typing-dot"></span>
+                                <span class="typing-dot"></span>
+                                <span class="typing-dot"></span>
+                            </div>
+                        </div>
+
+                        <!-- Input Area -->
+                        <div class="messenger-input-area">
+                            <div class="messenger-input-tools">
+                                <button type="button" class="messenger-tool-btn" id="btn-messenger-image" onclick="triggerMessengerImageSelect()" title="Gửi hình ảnh">
+                                    <span class="material-symbols-outlined">image</span>
+                                </button>
+                                <input type="file" id="messenger-image-file-input" accept="image/*" class="hidden" onchange="handleMessengerImageSelect(event)">
+
+                                <button type="button" class="messenger-tool-btn" id="btn-messenger-voice" onclick="startMessengerVoiceRecording()" title="Gửi tin nhắn thoại">
+                                    <span class="material-symbols-outlined">mic</span>
+                                </button>
+
+                                <button type="button" class="messenger-tool-btn" id="btn-messenger-emoji" onclick="toggleMessengerEmojiPicker(event)" title="Biểu tượng cảm xúc">
+                                    <span class="material-symbols-outlined">sentiment_satisfied</span>
+                                </button>
+                            </div>
+
+                            <!-- Voice Recording Bar inside input area -->
+                            <div id="messenger-voice-bar" class="messenger-voice-bar hidden">
+                                <div class="messenger-voice-rec-info">
+                                    <span class="voice-rec-dot" id="messenger-voice-dot"></span>
+                                    <span class="messenger-voice-timer" id="messenger-voice-timer">00:00</span>
+                                    <div class="voice-rec-wave" id="messenger-voice-wave">
+                                        <span></span><span></span><span></span><span></span><span></span>
+                                    </div>
+                                </div>
+                                <div class="messenger-voice-actions">
+                                    <button type="button" class="messenger-voice-btn cancel" onclick="cancelMessengerVoiceRecording()" title="Hủy bỏ">
+                                        <span class="material-symbols-outlined" style="font-size:18px;">delete</span>
+                                    </button>
+                                    <button type="button" class="messenger-voice-btn send" onclick="finishMessengerVoiceRecording()" title="Gửi tin nhắn thoại">
+                                        <span class="material-symbols-outlined" style="font-size:18px;">send</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="messenger-input-wrap" id="messenger-input-wrap">
+                                <textarea id="messenger-text-input" class="messenger-text-input" rows="1" placeholder="Nhắn tin..." onkeydown="handleMessengerInputKey(event)" oninput="handleMessengerInputTyping(this)"></textarea>
+                            </div>
+                            <button type="button" class="messenger-send-btn" id="btn-messenger-send" onclick="sendMessengerMessage()" title="Gửi (hoặc Thả like)">
+                                <span class="material-symbols-outlined" id="messenger-send-icon">thumb_up</span>
+                            </button>
+
+                            <!-- Emoji Picker dropdown inside input area -->
+                            <div id="messenger-emoji-picker" class="messenger-emoji-picker hidden" onclick="event.stopPropagation()">
+                                <div class="messenger-emoji-header">
+                                    <div class="messenger-emoji-tabs" id="messenger-emoji-tabs">
+                                        <button type="button" class="messenger-emoji-tab active" data-cat="smileys" onclick="switchMessengerEmojiCategory('smileys')" title="Mặt cười & Cảm xúc">😊</button>
+                                        <button type="button" class="messenger-emoji-tab" data-cat="gestures" onclick="switchMessengerEmojiCategory('gestures')" title="Bàn tay & Cử chỉ">👍</button>
+                                        <button type="button" class="messenger-emoji-tab" data-cat="hearts" onclick="switchMessengerEmojiCategory('hearts')" title="Trái tim & Tình cảm">❤️</button>
+                                        <button type="button" class="messenger-emoji-tab" data-cat="party" onclick="switchMessengerEmojiCategory('party')" title="Tiệc tùng & Giải trí">🎉</button>
+                                        <button type="button" class="messenger-emoji-tab" data-cat="animals" onclick="switchMessengerEmojiCategory('animals')" title="Động vật & Thiên nhiên">🐶</button>
+                                        <button type="button" class="messenger-emoji-tab" data-cat="food" onclick="switchMessengerEmojiCategory('food')" title="Đồ ăn & Thức uống">🍕</button>
+                                    </div>
+                                    <button type="button" class="messenger-emoji-close-btn" onclick="toggleMessengerEmojiPicker(event)" title="Đóng">
+                                        <span class="material-symbols-outlined" style="font-size: 16px;">close</span>
+                                    </button>
+                                </div>
+                                <div class="messenger-emoji-body" id="messenger-emoji-body">
+                                    <!-- Initialized dynamically by JavaScript with comprehensive emojis -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="right-column">
             <div class="chat-header" style="display:flex; justify-content:space-between; align-items:center;">
                 <div class="chat-tabs" style="display:flex; gap: 16px;">
@@ -486,6 +674,17 @@
 
                 <div class="chat-messages" id="chat-box-ui">
 
+                </div>
+
+                <!-- Messenger-style typing indicator -->
+                <div id="chat-typing-indicator" class="chat-typing-indicator hidden">
+                    <div class="typing-avatar" id="typing-avatar">?</div>
+                    <div class="typing-bubble">
+                        <span class="typing-dot"></span>
+                        <span class="typing-dot"></span>
+                        <span class="typing-dot"></span>
+                    </div>
+                    <span class="typing-text" id="typing-text">Đang nhập...</span>
                 </div>
 
                 <div class="chat-input-area" style="position: relative;">
@@ -1124,7 +1323,7 @@
                     </div>
                     <div class="settings-preview-row">
                         <div class="settings-preview-box" id="preview-chat-bg"
-                            style="background-image: url('/assets/images/background-chat.jpeg');">
+                            style="background-image: linear-gradient(rgba(12, 10, 16, 0.6), rgba(12, 10, 16, 0.6)), url('/assets/images/background-chat.jpeg');">
                             <span class="preview-badge">Chat</span>
                         </div>
                         <div class="settings-input-group">
@@ -1230,6 +1429,386 @@
         </div>
     </div>
 
+    <!-- Profile & Security Settings Modal -->
+    <div id="profile-settings-modal" class="draw-overlay hidden" style="z-index: 2000;">
+        <div class="draw-container settings-modal-container" style="max-width: 520px; width: 92%; max-height: 90vh; overflow-y: auto;">
+            <div class="draw-header"
+                style="justify-content: space-between; margin-bottom: 16px; border-bottom: 1px solid rgba(255,180,210,0.2); padding-bottom: 14px;">
+                <div class="draw-header-title" style="display:flex; align-items:center; gap: 10px;">
+                    <span class="material-symbols-outlined" style="color: var(--accent); font-size: 26px;">manage_accounts</span>
+                    <span style="font-family: var(--font-display); font-size: 22px; font-weight: 700; color: #ffffff;">Cài Đặt Thông Tin</span>
+                </div>
+                <button class="settings-close-btn" onclick="closeProfileSettingsModal()" title="Đóng">
+                    <span class="material-symbols-outlined" style="font-size:20px;">close</span>
+                </button>
+            </div>
+
+            <!-- Profile Modal Tabs -->
+            <div class="auth-tabs" style="margin-bottom: 18px;">
+                <button type="button" id="tab-btn-personal" class="auth-tab active" onclick="switchProfileTab('personal')">
+                    <span class="material-symbols-outlined" style="font-size: 18px; vertical-align: middle; margin-right: 4px;">person</span>
+                    Thông Tin Cá Nhân
+                </button>
+                <button type="button" id="tab-btn-security" class="auth-tab" onclick="switchProfileTab('security')">
+                    <span class="material-symbols-outlined" style="font-size: 18px; vertical-align: middle; margin-right: 4px;">lock</span>
+                    Thông Tin Bảo Mật
+                </button>
+            </div>
+
+            <!-- TAB 1: THÔNG TIN CÁ NHÂN -->
+            <div id="profile-tab-personal" class="profile-tab-content">
+                <div id="profile-status-msg" class="auth-status-msg hidden"></div>
+
+                <!-- Avatar Upload Section -->
+                <div style="display: flex; flex-direction: column; align-items: center; gap: 10px; margin-bottom: 20px;">
+                    <div class="profile-avatar-wrapper" style="position: relative; width: 88px; height: 88px;">
+                        <img id="profile-avatar-preview" src="/assets/images/placeholder.jpg" alt="Avatar preview"
+                            style="width: 88px; height: 88px; border-radius: 50%; object-fit: cover; border: 3px solid var(--accent); background: #2b2b36;">
+                        <label for="profile-avatar-file-input" class="avatar-upload-badge" title="Tải ảnh đại diện lên"
+                            style="position: absolute; bottom: 0; right: 0; background: var(--accent); color: #fff; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.5); border: 2px solid #1f1b24;">
+                            <span class="material-symbols-outlined" style="font-size: 18px;">photo_camera</span>
+                        </label>
+                        <input type="file" id="profile-avatar-file-input" accept="image/*" style="display: none;" onchange="handleProfileAvatarFileSelect(event)">
+                    </div>
+                    <span style="font-size: 12px; color: var(--text-muted); text-align: center;">Nhấn icon máy ảnh để tải ảnh lên (hoặc nhập liên kết URL bên dưới)</span>
+                    <div class="settings-input-row" style="width: 100%;">
+                        <span class="material-symbols-outlined input-icon">link</span>
+                        <input type="text" id="profile-avatar-url" placeholder="Hoặc dán link ảnh đại diện (https://...)" oninput="updateProfileAvatarUrlPreview(this.value)">
+                    </div>
+                </div>
+
+                <!-- Personal Information Inputs -->
+                <div style="display: flex; flex-direction: column; gap: 14px;">
+                    <div>
+                        <label style="font-size: 13px; color: var(--text-muted); display: block; margin-bottom: 6px;">Tên hiển thị trong phòng</label>
+                        <div class="settings-input-row">
+                            <span class="material-symbols-outlined input-icon">badge</span>
+                            <input type="text" id="profile-display-name" placeholder="Tên hiển thị của bạn..." required>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label style="font-size: 13px; color: var(--text-muted); display: block; margin-bottom: 6px;">Tên đăng nhập (Username)</label>
+                        <div class="settings-input-row">
+                            <span class="material-symbols-outlined input-icon">alternate_email</span>
+                            <input type="text" id="profile-username" placeholder="Tên đăng nhập tài khoản..." required>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label style="font-size: 13px; color: var(--text-muted); display: block; margin-bottom: 6px;">Số điện thoại</label>
+                        <div class="settings-input-row">
+                            <span class="material-symbols-outlined input-icon">phone</span>
+                            <input type="tel" id="profile-phone" placeholder="Số điện thoại của bạn (vd: 0912345678)...">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label style="font-size: 13px; color: var(--text-muted); display: block; margin-bottom: 6px;">Email tài khoản</label>
+                        <div class="settings-input-row">
+                            <span class="material-symbols-outlined input-icon">mail</span>
+                            <input type="email" id="profile-email" placeholder="Email..." readonly style="opacity: 0.75; cursor: not-allowed;">
+                        </div>
+                    </div>
+
+                    <!-- Color Picker for Chat Name -->
+                    <div>
+                        <label style="font-size: 13px; color: var(--text-muted); display: block; margin-bottom: 6px;">Màu tên hiển thị trong chat</label>
+                        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; background: rgba(0,0,0,0.2); padding: 8px 12px; border-radius: var(--radius-sm);">
+                            <div style="display: flex; gap: 8px; align-items: center;">
+                                <input type="color" id="profile-name-color" value="#3ea6ff"
+                                    style="width: 30px; height: 30px; border: none; border-radius: 6px; cursor: pointer; background: transparent; padding: 0;">
+                                <span style="font-size: 13px; color: var(--text-main);">Màu chữ tên</span>
+                            </div>
+                            <div style="display: flex; gap: 6px; align-items: center;">
+                                <button type="button" onclick="document.getElementById('profile-name-color').value='#3ea6ff'"
+                                    style="width: 22px; height: 22px; border-radius: 50%; border: none; cursor: pointer; background: #3ea6ff;" title="Xanh dương"></button>
+                                <button type="button" onclick="document.getElementById('profile-name-color').value='#ff6b6b'"
+                                    style="width: 22px; height: 22px; border-radius: 50%; border: none; cursor: pointer; background: #ff6b6b;" title="Đỏ"></button>
+                                <button type="button" onclick="document.getElementById('profile-name-color').value='#51cf66'"
+                                    style="width: 22px; height: 22px; border-radius: 50%; border: none; cursor: pointer; background: #51cf66;" title="Xanh lá"></button>
+                                <button type="button" onclick="document.getElementById('profile-name-color').value='#ffd43b'"
+                                    style="width: 22px; height: 22px; border-radius: 50%; border: none; cursor: pointer; background: #ffd43b;" title="Vàng"></button>
+                                <button type="button" onclick="document.getElementById('profile-name-color').value='#cc5de8'"
+                                    style="width: 22px; height: 22px; border-radius: 50%; border: none; cursor: pointer; background: #cc5de8;" title="Tím"></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="settings-modal-footer"
+                    style="margin-top: 20px; padding-top: 14px; border-top: 1px solid rgba(255,180,210,0.2); display: flex; justify-content: flex-end; gap: 10px;">
+                    <button type="button" class="settings-btn-cancel" onclick="closeProfileSettingsModal()">Hủy</button>
+                    <button type="button" id="btn-save-profile" class="settings-btn-save" onclick="saveUserProfile()">
+                        <span class="material-symbols-outlined" style="font-size: 18px;">check</span>
+                        Lưu Thông Tin
+                    </button>
+                </div>
+            </div>
+
+            <!-- TAB 2: THÔNG TIN BẢO MẬT -->
+            <div id="profile-tab-security" class="profile-tab-content hidden">
+                <div id="security-status-msg" class="auth-status-msg hidden"></div>
+
+                <!-- Quick Lock Settings Section -->
+                <div class="settings-section-card" style="margin-bottom: 16px;">
+                    <div class="settings-section-title" style="margin-bottom: 8px;">
+                        <span class="material-symbols-outlined" style="color: var(--accent);">lock_clock</span>
+                        <span>Khóa Đăng Nhập Nhanh</span>
+                    </div>
+                    <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 12px; line-height: 1.4;">
+                        Bảo vệ tài khoản khi mở lại trang web bằng Khóa hình vẽ, Mã PIN 6 số hoặc Câu hỏi bảo mật.
+                    </p>
+                    <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(0,0,0,0.25); padding: 10px 14px; border-radius: var(--radius-sm); margin-bottom: 8px;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span id="profile-quick-lock-icon" class="material-symbols-outlined" style="color: var(--accent); font-size: 22px;">shield</span>
+                            <span id="profile-quick-lock-status" style="font-size: 13px; font-weight: 600; color: var(--text-main);">Chưa thiết lập</span>
+                        </div>
+                        <button type="button" class="settings-btn-save" style="padding: 6px 14px; font-size: 12px;" onclick="openQuickLockSetupModal()">
+                            <span class="material-symbols-outlined" style="font-size: 16px;">tune</span>
+                            Cài Đặt / Đổi
+                        </button>
+                    </div>
+                </div>
+
+                <div class="settings-section-card" style="margin-bottom: 16px;">
+                    <div class="settings-section-title" style="margin-bottom: 12px;">
+                        <span class="material-symbols-outlined" style="color: #ff6b6b;">key</span>
+                        <span>Đổi Mật Khẩu Mới</span>
+                    </div>
+                    <form onsubmit="event.preventDefault(); updateUserPassword();" style="display: flex; flex-direction: column; gap: 12px;">
+                        <div>
+                            <label style="font-size: 13px; color: var(--text-muted); display: block; margin-bottom: 6px;">Mật khẩu mới (tối thiểu 6 ký tự)</label>
+                            <div class="settings-input-row">
+                                <span class="material-symbols-outlined input-icon">lock</span>
+                                <input type="password" id="profile-new-password" placeholder="Nhập mật khẩu mới..." minlength="6" required autocomplete="new-password">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label style="font-size: 13px; color: var(--text-muted); display: block; margin-bottom: 6px;">Xác nhận mật khẩu mới</label>
+                            <div class="settings-input-row">
+                                <span class="material-symbols-outlined input-icon">lock_reset</span>
+                                <input type="password" id="profile-confirm-password" placeholder="Nhập lại mật khẩu mới..." minlength="6" required autocomplete="new-password">
+                            </div>
+                        </div>
+
+                        <button type="submit" id="btn-update-password" class="settings-btn-save" style="margin-top: 6px; width: 100%; justify-content: center;">
+                            <span class="material-symbols-outlined" style="font-size: 18px;">save</span>
+                            Cập Nhật Mật Khẩu
+                        </button>
+                    </form>
+                </div>
+
+                <div class="settings-section-card">
+                    <div class="settings-section-title" style="margin-bottom: 8px;">
+                        <span class="material-symbols-outlined" style="color: #4dabf7;">mark_email_read</span>
+                        <span>Gửi Liên Kết Đặt Lại Mật Khẩu Qua Email</span>
+                    </div>
+                    <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 12px; line-height: 1.4;">
+                        Nếu bạn quên mật khẩu hoặc muốn đặt lại qua email, hệ thống sẽ gửi liên kết xác nhận tới email tài khoản của bạn.
+                    </p>
+                    <button type="button" id="btn-send-reset-email" class="settings-btn-secondary" style="width: 100%; justify-content: center;" onclick="sendPasswordResetEmail()">
+                        <span class="material-symbols-outlined" style="font-size: 18px;">outgoing_mail</span>
+                        Gửi Email Đặt Lại Mật Khẩu
+                    </button>
+                </div>
+
+                <div class="settings-modal-footer"
+                    style="margin-top: 20px; padding-top: 14px; border-top: 1px solid rgba(255,180,210,0.2); display: flex; justify-content: flex-end;">
+                    <button type="button" class="settings-btn-cancel" onclick="closeProfileSettingsModal()">Đóng</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Unlock Modal (Overlay when returning with active session) -->
+    <div id="quick-unlock-modal" class="login-overlay hidden" style="z-index: 9999;">
+        <div class="login-card quick-unlock-card" style="max-width: 400px; padding: 32px 26px; text-align: center;">
+            <div style="display: flex; flex-direction: column; align-items: center; margin-bottom: 16px;">
+                <div class="unlock-avatar-wrapper" style="position: relative; width: 80px; height: 80px; margin-bottom: 12px;">
+                    <img id="unlock-user-avatar" src="/assets/images/placeholder.jpg" alt="Avatar"
+                        style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 3px solid var(--accent); background: #2b2b36; box-shadow: 0 4px 14px rgba(0,0,0,0.4);">
+                </div>
+                <h3 id="unlock-user-name" style="margin: 0 0 4px 0; font-size: 20px; color: var(--text-main);">Người dùng</h3>
+                <span id="unlock-user-email" style="font-size: 12px; color: var(--text-muted);">email@example.com</span>
+            </div>
+
+            <div id="unlock-prompt-text" style="font-size: 14px; color: var(--accent); margin-bottom: 16px; font-weight: 500;">
+                Mở khóa để tiếp tục vào phòng
+            </div>
+
+            <div id="unlock-status-msg" class="auth-status-msg hidden" style="margin-bottom: 14px;"></div>
+
+            <!-- UNLOCK METHOD 1: 6-DIGIT PIN -->
+            <div id="unlock-pin-section" class="quick-unlock-section hidden">
+                <div class="pin-dots-wrapper" id="unlock-pin-dots">
+                    <span class="pin-dot"></span>
+                    <span class="pin-dot"></span>
+                    <span class="pin-dot"></span>
+                    <span class="pin-dot"></span>
+                    <span class="pin-dot"></span>
+                    <span class="pin-dot"></span>
+                </div>
+                <div class="pin-keypad" id="unlock-pin-keypad">
+                    <!-- Rendered dynamically with randomized 0-9 digits -->
+                </div>
+            </div>
+
+            <!-- UNLOCK METHOD 2: PATTERN LOCK -->
+            <div id="unlock-pattern-section" class="quick-unlock-section hidden">
+                <div style="display: flex; justify-content: center; margin-bottom: 8px;">
+                    <canvas id="unlock-pattern-canvas" width="280" height="280" style="touch-action: none; cursor: crosshair; background: rgba(0,0,0,0.25); border-radius: 16px; border: 1px solid rgba(255,255,255,0.08);"></canvas>
+                </div>
+                <span style="font-size: 12px; color: var(--text-muted);">Vẽ hình khóa đã cài đặt để mở khóa</span>
+            </div>
+
+            <!-- UNLOCK METHOD 3: SECURITY QUESTIONS -->
+            <div id="unlock-questions-section" class="quick-unlock-section hidden" style="text-align: left;">
+                <label style="font-size: 13px; color: var(--text-muted); display: block; margin-bottom: 6px;">Chọn 1 trong 3 câu hỏi bảo mật của bạn:</label>
+                <div class="settings-input-row" style="margin-bottom: 12px;">
+                    <span class="material-symbols-outlined input-icon">help</span>
+                    <select id="unlock-question-select" class="login-input" style="padding-left: 38px; cursor: pointer; border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-main);">
+                    </select>
+                </div>
+
+                <label style="font-size: 13px; color: var(--text-muted); display: block; margin-bottom: 6px;">Nhập câu trả lời của bạn:</label>
+                <div class="settings-input-row" style="margin-bottom: 16px;">
+                    <span class="material-symbols-outlined input-icon">key</span>
+                    <input type="text" id="unlock-question-answer" placeholder="Nhập câu trả lời..." autocomplete="off" onkeypress="if(event.key==='Enter') verifyQuestionUnlock()">
+                </div>
+
+                <button type="button" class="login-btn" onclick="verifyQuestionUnlock()" style="width: 100%;">
+                    <span class="material-symbols-outlined" style="font-size: 18px; vertical-align: middle; margin-right: 4px;">lock_open</span>
+                    Mở Khóa
+                </button>
+            </div>
+
+            <div style="margin-top: 20px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.08); display: flex; justify-content: center;">
+                <button type="button" class="settings-btn-cancel" onclick="logout()" style="font-size: 13px;">
+                    <span class="material-symbols-outlined" style="font-size: 16px; vertical-align: middle; margin-right: 4px;">switch_account</span>
+                    Đăng nhập tài khoản khác
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Lock Setup Modal -->
+    <div id="quick-lock-setup-modal" class="draw-overlay hidden" style="z-index: 10000;">
+        <div class="draw-container settings-modal-container" style="max-width: 520px; width: 92%; max-height: 90vh; overflow-y: auto;">
+            <div class="draw-header"
+                style="justify-content: space-between; margin-bottom: 16px; border-bottom: 1px solid rgba(255,180,210,0.2); padding-bottom: 14px;">
+                <div class="draw-header-title" style="display:flex; align-items:center; gap: 10px;">
+                    <span class="material-symbols-outlined" style="color: var(--accent); font-size: 26px;">security</span>
+                    <span style="font-family: var(--font-display); font-size: 22px; font-weight: 700; color: #ffffff;">Cài Đặt Đăng Nhập Nhanh</span>
+                </div>
+                <button class="settings-close-btn" onclick="closeQuickLockSetupModal()" title="Đóng">
+                    <span class="material-symbols-outlined" style="font-size:20px;">close</span>
+                </button>
+            </div>
+
+            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px; line-height: 1.4;">
+                Chọn 1 trong 3 phương thức bảo mật dưới đây để mở khóa nhanh mỗi khi bạn quay lại phòng nghe nhạc:
+            </p>
+
+            <!-- 3 Method Selection Cards -->
+            <div class="quick-lock-type-selector" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px;">
+                <div class="quick-lock-card active" id="ql-tab-pin" onclick="selectQuickLockType('pin')">
+                    <span class="material-symbols-outlined ql-icon">dialpad</span>
+                    <span class="ql-title">Mã PIN 6 số</span>
+                </div>
+                <div class="quick-lock-card" id="ql-tab-pattern" onclick="selectQuickLockType('pattern')">
+                    <span class="material-symbols-outlined ql-icon">gesture</span>
+                    <span class="ql-title">Khóa hình vẽ</span>
+                </div>
+                <div class="quick-lock-card" id="ql-tab-questions" onclick="selectQuickLockType('questions')">
+                    <span class="material-symbols-outlined ql-icon">quiz</span>
+                    <span class="ql-title">3 Câu hỏi</span>
+                </div>
+            </div>
+
+            <div id="setup-lock-status-msg" class="auth-status-msg hidden"></div>
+
+            <!-- SETUP FORM 1: PIN 6 SỐ -->
+            <div id="setup-form-pin" class="setup-lock-form" style="text-align: center;">
+                <div id="setup-pin-step-text" style="font-size: 14px; font-weight: 600; color: var(--accent); margin-bottom: 8px;">
+                    Bước 1: Nhập mã PIN 6 số mới
+                </div>
+                <div class="pin-dots-wrapper" id="setup-pin-dots" style="margin: 8px 0 16px 0;">
+                    <span class="pin-dot"></span>
+                    <span class="pin-dot"></span>
+                    <span class="pin-dot"></span>
+                    <span class="pin-dot"></span>
+                    <span class="pin-dot"></span>
+                    <span class="pin-dot"></span>
+                </div>
+                <div class="pin-keypad" id="setup-pin-keypad">
+                    <!-- Rendered dynamically with randomized 0-9 digits -->
+                </div>
+                <div style="display: flex; justify-content: center; margin-top: 14px;">
+                    <button type="button" class="settings-btn-secondary" onclick="resetSetupPin()" style="font-size: 13px; padding: 6px 14px;">
+                        <span class="material-symbols-outlined" style="font-size: 16px;">refresh</span> Nhập lại từ đầu
+                    </button>
+                </div>
+            </div>
+
+            <!-- SETUP FORM 2: PATTERN KHÓA HÌNH VẼ -->
+            <div id="setup-form-pattern" class="setup-lock-form hidden" style="text-align: center;">
+                <div id="setup-pattern-step-text" style="font-size: 14px; font-weight: 600; color: var(--accent); margin-bottom: 10px;">
+                    Bước 1: Vẽ hình khóa mẫu (kết nối tối thiểu 4 điểm)
+                </div>
+                <div style="display: flex; justify-content: center; margin-bottom: 12px;">
+                    <canvas id="setup-pattern-canvas" width="280" height="280" style="touch-action: none; cursor: crosshair; background: rgba(0,0,0,0.25); border-radius: 16px; border: 1px solid rgba(255,255,255,0.08);"></canvas>
+                </div>
+                <div style="display: flex; justify-content: center; gap: 10px;">
+                    <button type="button" class="settings-btn-secondary" onclick="resetSetupPattern()">
+                        <span class="material-symbols-outlined" style="font-size: 16px;">refresh</span> Vẽ lại
+                    </button>
+                </div>
+            </div>
+
+            <!-- SETUP FORM 3: 3 CÂU HỎI BẢO MẬT -->
+            <div id="setup-form-questions" class="setup-lock-form hidden">
+                <p style="font-size: 12px; color: var(--accent); margin-bottom: 14px;">
+                    💡 Chọn 3 câu hỏi khác nhau và điền câu trả lời. Khi mở khóa, bạn chỉ cần trả lời 1 trong 3 câu này!
+                </p>
+                <div style="display: flex; flex-direction: column; gap: 14px;">
+                    <!-- Question 1 -->
+                    <div style="background: rgba(0,0,0,0.18); padding: 12px; border-radius: var(--radius-sm); border: 1px solid rgba(255,255,255,0.05);">
+                        <label style="font-size: 13px; font-weight: 600; color: var(--text-main); display: block; margin-bottom: 6px;">Câu hỏi 1:</label>
+                        <select id="setup-q1-select" class="login-input" style="margin-bottom: 8px; cursor: pointer;"></select>
+                        <input type="text" id="setup-q1-answer" class="login-input" placeholder="Câu trả lời cho câu hỏi 1..." autocomplete="off">
+                    </div>
+
+                    <!-- Question 2 -->
+                    <div style="background: rgba(0,0,0,0.18); padding: 12px; border-radius: var(--radius-sm); border: 1px solid rgba(255,255,255,0.05);">
+                        <label style="font-size: 13px; font-weight: 600; color: var(--text-main); display: block; margin-bottom: 6px;">Câu hỏi 2:</label>
+                        <select id="setup-q2-select" class="login-input" style="margin-bottom: 8px; cursor: pointer;"></select>
+                        <input type="text" id="setup-q2-answer" class="login-input" placeholder="Câu trả lời cho câu hỏi 2..." autocomplete="off">
+                    </div>
+
+                    <!-- Question 3 -->
+                    <div style="background: rgba(0,0,0,0.18); padding: 12px; border-radius: var(--radius-sm); border: 1px solid rgba(255,255,255,0.05);">
+                        <label style="font-size: 13px; font-weight: 600; color: var(--text-main); display: block; margin-bottom: 6px;">Câu hỏi 3:</label>
+                        <select id="setup-q3-select" class="login-input" style="margin-bottom: 8px; cursor: pointer;"></select>
+                        <input type="text" id="setup-q3-answer" class="login-input" placeholder="Câu trả lời cho câu hỏi 3..." autocomplete="off">
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-modal-footer"
+                style="margin-top: 20px; padding-top: 14px; border-top: 1px solid rgba(255,180,210,0.2); display: flex; justify-content: space-between; align-items: center;">
+                <button type="button" id="btn-skip-quick-lock" class="settings-btn-secondary" onclick="closeQuickLockSetupModal(true)">
+                    Bỏ qua
+                </button>
+                <button type="button" id="btn-save-quick-lock" class="settings-btn-save" onclick="saveQuickLockConfiguration()">
+                    <span class="material-symbols-outlined" style="font-size: 18px;">check</span>
+                    Lưu Cài Đặt Khóa
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- PICTURE QUIZ GAME OVERLAY -->
     <div id="picture-quiz-overlay" class="draw-overlay hidden" style="z-index: 1050;">
         <div class="draw-container settings-modal-container quiz-modal-container" style="max-width: 780px; width: 92%; padding: 24px; max-height: 90vh; overflow-y: auto;">
@@ -1264,7 +1843,12 @@
                 </div>
 
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
-                    <div style="font-size: 15px; font-weight: 800; color: var(--accent); font-family: var(--font-display);" id="quiz-question-counter">CÂU 1 / 5</div>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <div style="font-size: 15px; font-weight: 800; color: var(--accent); font-family: var(--font-display);" id="quiz-question-counter">CÂU 1 / 5</div>
+                        <button id="quiz-end-game-btn" class="caro-btn hidden" style="background: rgba(255, 71, 87, 0.2); color: #ff4757; border: 1px solid rgba(255, 71, 87, 0.4); padding: 4px 10px; font-size: 12px; font-weight: 700; border-radius: 12px;" onclick="confirmEndQuizGame()">
+                            🛑 Hủy Game
+                        </button>
+                    </div>
                     
                     <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
                         <span id="quiz-my-score-badge" style="background: rgba(255,117,160,0.15); border: 1px solid rgba(255,117,160,0.4); padding: 4px 12px; border-radius: 16px; font-size: 13px; font-weight: 800; color: #ff75a0; display: flex; align-items: center; gap: 4px;">
@@ -1361,7 +1945,37 @@
         </div>
     </div>
 
-
+    <!-- ADD FRIEND MODAL -->
+    <div id="add-friend-modal" class="draw-overlay hidden" style="z-index: 2100;">
+        <div class="draw-container settings-modal-container" style="max-width: 480px; width: 92%; max-height: 85vh; display: flex; flex-direction: column;">
+            <div class="settings-modal-header" style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px solid rgba(255, 180, 210, 0.2);">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span class="material-symbols-outlined" style="color: var(--accent); font-size: 26px;">person_add</span>
+                    <h3 style="margin: 0; font-family: var(--font-display); font-size: 20px; font-weight: 700; color: #fff;">Thêm Bạn Bè</h3>
+                </div>
+                <button class="close-btn" onclick="closeAddFriendModal()">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <div style="padding: 16px 0; display: flex; flex-direction: column; gap: 14px; flex: 1; overflow: hidden;">
+                <div style="position: relative; display: flex; align-items: center;">
+                    <span class="material-symbols-outlined" style="position: absolute; left: 12px; color: var(--text-muted); font-size: 20px;">search</span>
+                    <input type="text" id="add-friend-search-input" placeholder="Tìm theo tên hiển thị, username hoặc email..." 
+                        style="width: 100%; padding: 12px 14px 12px 42px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,180,210,0.25); border-radius: 14px; color: #fff; font-size: 14px; outline: none; transition: 0.2s;"
+                        oninput="handleSearchUsersToAddFriend(this.value)">
+                </div>
+                <div id="add-friend-results-list" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; min-height: 220px; max-height: 380px; padding-right: 4px;">
+                    <div style="text-align: center; color: var(--text-muted); padding: 40px 16px; font-size: 13.5px;">
+                        <span class="material-symbols-outlined" style="font-size: 40px; color: rgba(255,255,255,0.2); display: block; margin-bottom: 8px;">person_search</span>
+                        Nhập tên hoặc email người dùng để tìm kiếm và kết bạn
+                    </div>
+                </div>
+            </div>
+            <div class="settings-modal-footer" style="padding-top: 12px; border-top: 1px solid rgba(255,180,210,0.2); display: flex; justify-content: flex-end;">
+                <button class="settings-btn-cancel" onclick="closeAddFriendModal()">Đóng</button>
+            </div>
+        </div>
+    </div>
 
     <!-- Fullscreen Announcement Overlay -->
     <div id="tb-fullscreen-overlay" class="tb-fullscreen-overlay hidden" onclick="closeTbNotification()">
