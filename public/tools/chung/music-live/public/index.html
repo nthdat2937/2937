@@ -15,6 +15,7 @@
     <link rel="stylesheet"
         href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
     <link rel="stylesheet" href="styles.css?v=1.1">
+    <link rel="stylesheet" href="/libs/liquid-glass/glass.css?v=2.1">
 </head>
 
 <body>
@@ -65,7 +66,7 @@
             <p id="login-prompt" style="margin-bottom: 20px; font-size: 14px;">Đăng nhập để trò chuyện và nghe nhạc trực tiếp</p>
 
             <!-- Google Sign-In Button -->
-            <button type="button" class="google-auth-btn" id="btn-google-login" onclick="loginWithGoogle()" title="Đăng nhập với tài khoản Google">
+            <button type="button" class="google-auth-btn liquid-glass-btn pill-btn" id="btn-google-login" onclick="loginWithGoogle()" title="Đăng nhập với tài khoản Google">
                 <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M17.64 9.20455C17.64 8.56636 17.5827 7.95273 17.4764 7.36364H9V10.845H13.8436C13.635 11.97 13.0009 12.9232 12.0477 13.5614V15.8195H14.9564C16.6582 14.2527 17.64 11.9455 17.64 9.20455Z" fill="#4285F4"/>
                     <path d="M9 18C11.43 18 13.4673 17.1941 14.9564 15.8195L12.0477 13.5614C11.2418 14.1014 10.2109 14.4205 9 14.4205C6.65591 14.4205 4.67182 12.8373 3.96409 10.71H0.957275V13.0418C2.43818 15.9832 5.48182 18 9 18Z" fill="#34A853"/>
@@ -82,8 +83,8 @@
 
             <!-- Tabs: Đăng Nhập / Đăng Ký -->
             <div class="auth-tabs" id="auth-tabs-bar">
-                <button type="button" id="tab-login" class="auth-tab active" onclick="switchAuthTab('login')">Đăng Nhập</button>
-                <button type="button" id="tab-signup" class="auth-tab" onclick="switchAuthTab('signup')">Đăng Ký</button>
+                <button type="button" id="tab-login" class="auth-tab liquid-glass-btn pill-btn active" onclick="switchAuthTab('login')">Đăng Nhập</button>
+                <button type="button" id="tab-signup" class="auth-tab liquid-glass-btn pill-btn" onclick="switchAuthTab('signup')">Đăng Ký</button>
             </div>
 
             <!-- Status / Alert Message Banner -->
@@ -93,7 +94,7 @@
             <form id="form-login" onsubmit="event.preventDefault(); handleEmailLogin();">
                 <input type="email" id="login-email" class="login-input" placeholder="Email của bạn..." autocomplete="email" required>
                 <input type="password" id="login-password" class="login-input" placeholder="Mật khẩu..." autocomplete="current-password" required>
-                <button type="submit" id="btn-submit-login" class="login-btn" style="margin-top: 4px;">Đăng Nhập</button>
+                <button type="submit" id="btn-submit-login" class="login-btn liquid-glass-btn pill-btn" style="margin-top: 4px;">Đăng Nhập</button>
             </form>
 
             <!-- Form Đăng Ký -->
@@ -121,7 +122,7 @@
                     </div>
                 </div>
 
-                <button type="submit" id="btn-submit-signup" class="login-btn">Đăng Ký Tài Khoản</button>
+                <button type="submit" id="btn-submit-signup" class="login-btn liquid-glass-btn pill-btn">Đăng Ký Tài Khoản</button>
             </form>
 
             <!-- Form Xác Thực Email (OTP 6 số & Link xác minh) -->
@@ -153,7 +154,7 @@
                         <input type="text" inputmode="numeric" pattern="[0-9]*" class="otp-box" maxlength="1" data-index="5">
                     </div>
 
-                    <button type="button" id="btn-verify-otp" class="login-btn" style="margin-top: 10px;" onclick="handleVerifyOtp()">
+                    <button type="button" id="btn-verify-otp" class="login-btn liquid-glass-btn pill-btn" style="margin-top: 10px;" onclick="handleVerifyOtp()">
                         Xác Minh Mã OTP
                     </button>
                 </div>
@@ -187,6 +188,37 @@
         </div>
     </div>
 
+    <!-- Modal tạo mật khẩu cho tài khoản Google -->
+    <div id="create-password-modal" class="login-overlay hidden" style="z-index: 10001;">
+        <div class="login-card" style="max-width: 420px; padding: 32px 28px;">
+            <div style="text-align: center; margin-bottom: 16px;">
+                <div style="width: 54px; height: 54px; margin: 0 auto 12px auto; border-radius: 50%; background: rgba(62,166,255,0.15); display: flex; align-items: center; justify-content: center;">
+                    <span class="material-symbols-outlined" style="font-size: 28px; color: #3ea6ff;">lock</span>
+                </div>
+                <h3 style="margin: 0 0 6px 0; font-size: 20px;">Tạo mật khẩu</h3>
+                <p style="margin: 0; font-size: 13px; color: var(--text-muted); line-height: 1.5;">
+                    Tài khoản của bạn được tạo bằng Google.<br>
+                    Hãy tạo mật khẩu để có thể đăng nhập bằng email <strong id="create-pw-email" style="color: var(--accent);"></strong>
+                </p>
+            </div>
+
+            <div id="create-pw-status" class="auth-status-msg hidden"></div>
+
+            <form id="form-create-password" onsubmit="event.preventDefault(); handleCreatePassword();">
+                <input type="password" id="create-pw-input" class="login-input" placeholder="Mật khẩu mới (tối thiểu 6 ký tự)..." autocomplete="new-password" required minlength="6">
+                <input type="password" id="create-pw-confirm" class="login-input" placeholder="Nhập lại mật khẩu..." autocomplete="new-password" required minlength="6">
+                <button type="submit" id="btn-create-password" class="login-btn liquid-glass-btn pill-btn" style="margin-top: 6px;">
+                    <span class="material-symbols-outlined" style="font-size: 18px; vertical-align: middle; margin-right: 4px;">check_circle</span>
+                    Tạo Mật Khẩu
+                </button>
+            </form>
+
+            <button type="button" id="btn-skip-create-pw" class="settings-btn-cancel liquid-glass-btn pill-btn" onclick="skipCreatePassword()" style="font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 4px; padding: 8px 16px; margin: 12px auto 0 auto;">
+                Bỏ qua, để sau
+            </button>
+        </div>
+    </div>
+
     <div class="navbar">
         <div style="display:flex; align-items:center; gap: 12px;">
             <button class="menu-btn hidden" id="menu-btn" onclick="toggleSidebar()" title="Trình đơn"
@@ -209,10 +241,10 @@
         </div>
 
         <div id="navbar-right" class="navbar-right hidden">
-            <button class="mobile-search-trigger-btn" onclick="openMobileSearch()" title="Tìm kiếm">
+            <button class="mobile-search-trigger-btn liquid-glass-btn circle-btn" onclick="openMobileSearch()" title="Tìm kiếm">
                 <span class="material-symbols-outlined" style="font-size:20px;">search</span>
             </button>
-            <button class="settings-btn navbar-messenger-btn" id="navbar-messenger-btn" onclick="showTab('messenger')" title="Tin nhắn Messenger">
+            <button class="settings-btn navbar-messenger-btn liquid-glass-btn circle-btn" id="navbar-messenger-btn" onclick="showTab('messenger')" title="Tin nhắn Messenger">
                 <span class="material-symbols-outlined">chat</span>
                 <span id="navbar-messenger-badge" class="nav-msg-badge hidden">0</span>
             </button>
@@ -221,13 +253,13 @@
                 <span class="user-dot"></span>
                 <span id="navbar-username"></span>
             </div>
-            <button class="settings-btn" id="btn-profile-settings" onclick="openProfileSettingsModal()" title="Cài đặt thông tin tài khoản">
+            <button class="settings-btn liquid-glass-btn circle-btn" id="btn-profile-settings" onclick="openProfileSettingsModal()" title="Cài đặt thông tin tài khoản">
                 <span class="material-symbols-outlined">manage_accounts</span>
             </button>
-            <button class="settings-btn" onclick="openSettingsModal()" title="Cài đặt giao diện">
+            <button class="settings-btn liquid-glass-btn circle-btn" onclick="openSettingsModal()" title="Cài đặt giao diện">
                 <span class="material-symbols-outlined">settings</span>
             </button>
-            <button class="logout-btn" onclick="logout()" title="Đăng xuất">
+            <button class="logout-btn liquid-glass-btn circle-btn" onclick="logout()" title="Đăng xuất">
                 <span class="material-symbols-outlined">logout</span>
             </button>
         </div>
@@ -251,28 +283,28 @@
     <div id="main-room" class="main-layout hidden">
 
         <div class="sidebar" id="sidebar">
-            <div class="sidebar-item active" onclick="showTab('home')" data-tab="home">
+            <div class="sidebar-item active liquid-glass-btn" onclick="showTab('home')" data-tab="home">
                 <span class="material-symbols-outlined">home</span>
                 <span class="sidebar-label">Trang chủ</span>
             </div>
-            <div class="sidebar-item" onclick="showTab('messenger')" data-tab="messenger" title="Tin nhắn">
+            <div class="sidebar-item liquid-glass-btn" onclick="showTab('messenger')" data-tab="messenger" title="Tin nhắn">
                 <span class="material-symbols-outlined">chat</span>
                 <span class="sidebar-label">Tin nhắn</span>
                 <span id="sidebar-messenger-badge" class="sidebar-msg-badge hidden">0</span>
             </div>
-            <div class="sidebar-item" onclick="showTab('history')" data-tab="history">
+            <div class="sidebar-item liquid-glass-btn" onclick="showTab('history')" data-tab="history">
                 <span class="material-symbols-outlined">history</span>
                 <span class="sidebar-label">Lịch sử phát</span>
             </div>
-            <div class="sidebar-item" onclick="showTab('top')" data-tab="top">
+            <div class="sidebar-item liquid-glass-btn" onclick="showTab('top')" data-tab="top">
                 <span class="material-symbols-outlined" id="sidebar-top-icon">local_fire_department</span>
                 <span class="sidebar-label" id="sidebar-top-label">Top nhạc</span>
             </div>
-            <div class="sidebar-item" onclick="showTab('feedback')" data-tab="feedback">
+            <div class="sidebar-item liquid-glass-btn" onclick="showTab('feedback')" data-tab="feedback">
                 <span class="material-symbols-outlined">rate_review</span>
                 <span class="sidebar-label">Góp ý</span>
             </div>
-            <div class="sidebar-item hidden" id="sidebar-quiz-admin" onclick="showTab('quiz-admin')" data-tab="quiz-admin" title="Kho Bộ Câu Hỏi (Admin)">
+            <div class="sidebar-item hidden liquid-glass-btn" id="sidebar-quiz-admin" onclick="showTab('quiz-admin')" data-tab="quiz-admin" title="Kho Bộ Câu Hỏi (Admin)">
                 <span class="material-symbols-outlined">folder_managed</span>
                 <span class="sidebar-label">Kho Đoán Hình</span>
             </div>
@@ -281,9 +313,19 @@
         <div class="left-column" id="left-column">
             <div class="video-container" id="player-container">
                 <div id="youtube-player"></div>
+                <button type="button" class="btn-landscape-player-expand liquid-glass-btn pill-btn" id="btn-landscape-player-expand" onclick="toggleLandscapeVideoInfo()" title="Xem to / Hiện thông tin">
+                    <span class="material-symbols-outlined" id="player-expand-icon">open_in_full</span>
+                    <span id="player-expand-text">Xem to</span>
+                </button>
             </div>
 
             <div class="video-info">
+                <div class="landscape-info-collapse-bar">
+                    <button type="button" class="btn-landscape-collapse-info liquid-glass-btn pill-btn" onclick="toggleLandscapeVideoInfo()" title="Thu nhỏ thông tin để mở rộng video">
+                        <span class="material-symbols-outlined">fullscreen</span>
+                        <span>Phóng to video</span>
+                    </button>
+                </div>
                 <h1 class="video-title" id="welcome-title">Thưởng thức âm nhạc cùng mọi người</h1>
 
                 <div class="channel-info">
@@ -304,12 +346,12 @@
                     </div>
 
                     <div id="song-tools" class="admin-tools">
-                        <button id="btn-next-song" class="btn-next hidden" onclick="nextSong()"
+                        <button id="btn-next-song" class="btn-next hidden liquid-glass-btn pill-btn" onclick="nextSong()"
                             style="display:flex;align-items:center;gap:4px;justify-content:center;">
                             <span class="material-symbols-outlined" style="font-size:18px;">skip_next</span>
                             Qua bài
                         </button>
-                        <button id="btn-loop" class="btn-loop hidden" onclick="toggleLoop()"
+                        <button id="btn-loop" class="btn-loop hidden liquid-glass-btn pill-btn" onclick="toggleLoop()"
                             title="Bật/Tắt chế độ lặp lại">
                             <span class="material-symbols-outlined" style="font-size:18px;">repeat</span>
                             Lặp lại
@@ -323,28 +365,35 @@
                         </div>
                     </div>
 
-                    <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
-                        <button id="btn-start-game" class="btn-start-game hidden" onclick="startDrawGame()">
-                            Vẽ & Đoán
+                    <div class="game-buttons-group">
+                        <button id="btn-start-game" class="btn-start-game hidden liquid-glass-btn pill-btn" onclick="startDrawGame()">
+                            <span class="game-btn-icon">🎨</span>
+                            <span>Vẽ & Đoán</span>
                         </button>
-                        <button id="btn-open-picture-quiz" class="btn-start-game" onclick="openPictureQuizGame()" title="Mở Game Đoán Từ Theo Hình">
-                            Đoán Hình
+                        <button id="btn-open-picture-quiz" class="btn-start-game liquid-glass-btn pill-btn" onclick="openPictureQuizGame()" title="Mở Game Đoán Từ Theo Hình">
+                            <span class="game-btn-icon">🖼️</span>
+                            <span>Đoán Hình</span>
                         </button>
-                        <button id="btn-open-caro" class="btn-start-game" onclick="openCaroGame()">
-                            Cờ Caro
+                        <button id="btn-open-caro" class="btn-start-game liquid-glass-btn pill-btn" onclick="openCaroGame()">
+                            <span class="game-btn-icon">⭕</span>
+                            <span>Cờ Caro</span>
                         </button>
-                        <button id="btn-open-chess" class="btn-start-game" onclick="openChessGame()">
-                            Cờ Vua
+                        <button id="btn-open-chess" class="btn-start-game liquid-glass-btn pill-btn" onclick="openChessGame()">
+                            <span class="game-btn-icon">♟️</span>
+                            <span>Cờ Vua</span>
                         </button>
-                        <button id="btn-open-xiangqi" class="btn-start-game" onclick="openXiangqiGame()">
-                            Cờ Tướng
+                        <button id="btn-open-xiangqi" class="btn-start-game liquid-glass-btn pill-btn" onclick="openXiangqiGame()">
+                            <span class="game-btn-icon">🏮</span>
+                            <span>Cờ Tướng</span>
                         </button>
-                        <button id="btn-open-uno" class="btn-start-game" onclick="openUnoGame()">
-                            Uno
+                        <button id="btn-open-uno" class="btn-start-game liquid-glass-btn pill-btn" onclick="openUnoGame()">
+                            <span class="game-btn-icon">🃏</span>
+                            <span>Uno</span>
                         </button>
-                        <button id="btn-open-monkeytype" class="btn-start-game"
+                        <button id="btn-open-monkeytype" class="btn-start-game liquid-glass-btn pill-btn"
                             onclick="window.open('/monkeytype/', '_blank')" title="Mở Monkeytype Luyện Gõ Phím">
-                            Monkeytype
+                            <span class="game-btn-icon">⌨️</span>
+                            <span>Monkeytype</span>
                         </button>
                     </div>
                 </div>
@@ -885,8 +934,8 @@
 
     <div id="chess-challenge-modal" class="draw-overlay hidden" style="z-index: 1000;">
         <div class="draw-container challenge-modal-container"
-            style="max-width: 360px; padding: 0; text-align: center; border: 1px solid var(--border-color); background: var(--panel-bg-solid); box-shadow: var(--shadow-elevated); overflow: hidden; border-radius: var(--radius-lg);">
-            <div style="background: rgba(77, 171, 247, 0.1); padding: 40px 24px 24px 24px;">
+            style="max-width: 360px; padding: 0; text-align: center; overflow: hidden;">
+            <div style="padding: 40px 24px 24px 24px;">
                 <div style="font-size: 56px; margin-bottom: 16px; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));">⚔️
                 </div>
                 <h3
@@ -902,8 +951,8 @@
                 </p>
             </div>
             <div style="padding: 24px; display: flex; gap: 12px; justify-content: center;">
-                <button class="challenge-btn decline-btn" onclick="respondChessChallenge(false)">Từ chối</button>
-                <button class="challenge-btn accept-btn" onclick="respondChessChallenge(true)">Tiếp chiêu</button>
+                <button class="challenge-btn decline-btn liquid-glass-btn pill-btn" onclick="respondChessChallenge(false)">Từ chối</button>
+                <button class="challenge-btn accept-btn liquid-glass-btn pill-btn" onclick="respondChessChallenge(true)">Tiếp chiêu</button>
             </div>
         </div>
     </div>
@@ -917,10 +966,8 @@
                     <span class="material-symbols-outlined" style="color: #fff;">chess</span>
                     Cờ Vua
                 </div>
-                <button
-                    style="background:rgba(255,255,255,0.1); border:none; color:white; cursor:pointer; width: 32px; height: 32px; border-radius: 50%; display:flex; align-items:center; justify-content:center; transition: background 0.2s;"
-                    onclick="closeChessGame()" onmouseover="this.style.background='rgba(255,255,255,0.2)'"
-                    onmouseout="this.style.background='rgba(255,255,255,0.1)'">
+                <button class="draw-close-btn liquid-glass-btn circle-btn"
+                    onclick="closeChessGame()" title="Đóng">
                     <span class="material-symbols-outlined" style="font-size:20px;">close</span>
                 </button>
             </div>
@@ -934,11 +981,11 @@
                     style="padding: 10px 16px; border-radius: var(--radius-md); background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; font-family: var(--font-body); outline: none;">
                     <option value="">-- Chọn đối thủ --</option>
                 </select>
-                <button class="caro-btn" style="color: #000; border-color: var(--accent); background: var(--accent);"
+                <button class="caro-btn liquid-glass-btn pill-btn"
                     onclick="sendChessChallenge()" id="btn-send-challenge">
                     ⚔️ Thách đấu
                 </button>
-                <button class="caro-btn hidden" style="border-color: #ff4757; color: #ff4757;" onclick="leaveChess()"
+                <button class="caro-btn liquid-glass-btn pill-btn hidden" style="border-color: #ff4757; color: #ff4757;" onclick="leaveChess()"
                     id="btn-leave-chess">Rời bàn / Hủy</button>
             </div>
             <div class="caro-board-container hidden" id="chess-board-wrapper">
@@ -953,8 +1000,8 @@
 
     <div id="caro-challenge-modal" class="draw-overlay hidden" style="z-index: 1000;">
         <div class="draw-container challenge-modal-container"
-            style="max-width: 360px; padding: 0; text-align: center; border: 1px solid var(--border-color); background: var(--panel-bg-solid); box-shadow: var(--shadow-elevated); overflow: hidden; border-radius: var(--radius-lg);">
-            <div style="background: rgba(77, 171, 247, 0.1); padding: 40px 24px 24px 24px;">
+            style="max-width: 360px; padding: 0; text-align: center; overflow: hidden;">
+            <div style="padding: 40px 24px 24px 24px;">
                 <div style="font-size: 56px; margin-bottom: 16px; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));">⭕❌
                 </div>
                 <h3
@@ -970,8 +1017,8 @@
                 </p>
             </div>
             <div style="padding: 24px; display: flex; gap: 12px; justify-content: center;">
-                <button class="challenge-btn decline-btn" onclick="respondCaroChallenge(false)">Từ chối</button>
-                <button class="challenge-btn accept-btn" onclick="respondCaroChallenge(true)">Tiếp chiêu</button>
+                <button class="challenge-btn decline-btn liquid-glass-btn pill-btn" onclick="respondCaroChallenge(false)">Từ chối</button>
+                <button class="challenge-btn accept-btn liquid-glass-btn pill-btn" onclick="respondCaroChallenge(true)">Tiếp chiêu</button>
             </div>
         </div>
     </div>
@@ -985,10 +1032,8 @@
                     <span class="material-symbols-outlined" style="color: var(--accent);">grid_4x4</span>
                     Cờ Caro
                 </div>
-                <button
-                    style="background:rgba(255,255,255,0.1); border:none; color:white; cursor:pointer; width: 32px; height: 32px; border-radius: 50%; display:flex; align-items:center; justify-content:center; transition: background 0.2s;"
-                    onclick="closeCaroGame()" onmouseover="this.style.background='rgba(255,255,255,0.2)'"
-                    onmouseout="this.style.background='rgba(255,255,255,0.1)'">
+                <button class="draw-close-btn liquid-glass-btn circle-btn"
+                    onclick="closeCaroGame()" title="Đóng">
                     <span class="material-symbols-outlined" style="font-size:20px;">close</span>
                 </button>
             </div>
@@ -1002,12 +1047,11 @@
                     style="padding: 10px 16px; border-radius: var(--radius-md); background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; font-family: var(--font-body); outline: none;">
                     <option value="">-- Chọn đối thủ --</option>
                 </select>
-                <button class="caro-btn"
-                    style="color: var(--accent); border-color: var(--accent); background: rgba(77,171,247,0.1);"
+                <button class="caro-btn liquid-glass-btn pill-btn"
                     onclick="sendCaroChallenge()" id="btn-send-caro-challenge">
                     ⚔️ Thách đấu
                 </button>
-                <button class="caro-btn hidden" style="border-color: #ff4757; color: #ff4757;" onclick="leaveCaro()"
+                <button class="caro-btn liquid-glass-btn pill-btn hidden" style="border-color: #ff4757; color: #ff4757;" onclick="leaveCaro()"
                     id="btn-leave-caro">Rời bàn / Hủy</button>
             </div>
             <div class="caro-board-container hidden" id="caro-board-wrapper">
@@ -1022,8 +1066,8 @@
 
     <div id="xiangqi-challenge-modal" class="draw-overlay hidden" style="z-index: 1000;">
         <div class="draw-container challenge-modal-container"
-            style="max-width: 360px; padding: 0; text-align: center; border: 1px solid var(--border-color); background: var(--panel-bg-solid); box-shadow: var(--shadow-elevated); overflow: hidden; border-radius: var(--radius-lg);">
-            <div style="background: rgba(211, 47, 47, 0.1); padding: 40px 24px 24px 24px;">
+            style="max-width: 360px; padding: 0; text-align: center; overflow: hidden;">
+            <div style="padding: 40px 24px 24px 24px;">
                 <div style="font-size: 56px; margin-bottom: 16px; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));">🀄
                 </div>
                 <h3
@@ -1039,8 +1083,8 @@
                 </p>
             </div>
             <div style="padding: 24px; display: flex; gap: 12px; justify-content: center;">
-                <button class="challenge-btn decline-btn" onclick="respondXiangqiChallenge(false)">Từ chối</button>
-                <button class="challenge-btn accept-btn" style="background:#d32f2f;"
+                <button class="challenge-btn decline-btn liquid-glass-btn pill-btn" onclick="respondXiangqiChallenge(false)">Từ chối</button>
+                <button class="challenge-btn accept-btn liquid-glass-btn pill-btn" style="background:#d32f2f;"
                     onclick="respondXiangqiChallenge(true)">Tiếp chiêu</button>
             </div>
         </div>
@@ -1055,9 +1099,8 @@
                     <span class="material-symbols-outlined" style="color: #d32f2f;">sports_esports</span>
                     Cờ Tướng
                 </div>
-                <button
-                    style="background:rgba(255,255,255,0.1); border:none; color:white; cursor:pointer; width: 32px; height: 32px; border-radius: 50%; display:flex; align-items:center; justify-content:center; transition: background 0.2s;"
-                    onclick="closeXiangqiGame()">
+                <button class="draw-close-btn liquid-glass-btn circle-btn"
+                    onclick="closeXiangqiGame()" title="Đóng">
                     <span class="material-symbols-outlined" style="font-size:20px;">close</span>
                 </button>
             </div>
@@ -1071,11 +1114,11 @@
                     style="padding: 10px 16px; border-radius: var(--radius-md); background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; outline: none;">
                     <option value="">-- Chọn đối thủ --</option>
                 </select>
-                <button class="caro-btn" style="color: #fff; background: #d32f2f; border-color: #d32f2f;"
+                <button class="caro-btn liquid-glass-btn pill-btn"
                     onclick="sendXiangqiChallenge()" id="btn-send-xiangqi-challenge">
                     ⚔️ Thách đấu
                 </button>
-                <button class="caro-btn hidden" style="border-color: #ff4757; color: #ff4757;" onclick="leaveXiangqi()"
+                <button class="caro-btn liquid-glass-btn pill-btn hidden" style="border-color: #ff4757; color: #ff4757;" onclick="leaveXiangqi()"
                     id="btn-leave-xiangqi">Rời bàn / Hủy</button>
             </div>
             <div class="caro-board-container hidden" id="xiangqi-board-wrapper">
@@ -1097,9 +1140,8 @@
                     <span class="material-symbols-outlined" style="color: #fbbc04;">style</span>
                     UNO Multiplayer
                 </div>
-                <button
-                    style="background:rgba(255,255,255,0.1); border:none; color:white; cursor:pointer; width: 32px; height: 32px; border-radius: 50%; display:flex; align-items:center; justify-content:center; transition: background 0.2s;"
-                    onclick="closeUnoGame()">
+                <button class="draw-close-btn liquid-glass-btn circle-btn"
+                    onclick="closeUnoGame()" title="Đóng">
                     <span class="material-symbols-outlined" style="font-size:20px;">close</span>
                 </button>
             </div>
@@ -1108,9 +1150,9 @@
                 <p>Mọi người đều có thể tham gia ván UNO này!</p>
                 <div id="uno-players-list" style="margin: 20px 0; font-weight: bold; color: var(--accent);">Chưa có ai
                 </div>
-                <button class="caro-btn" style="background: var(--accent); color: #000;" onclick="joinUnoGame()">Tham
+                <button class="caro-btn liquid-glass-btn pill-btn" onclick="joinUnoGame()">Tham
                     gia</button>
-                <button class="caro-btn" style="background: #51cf66; color: #000;" onclick="startUnoGame()">Bắt đầu
+                <button class="caro-btn liquid-glass-btn pill-btn" onclick="startUnoGame()">Bắt đầu
                     Game</button>
             </div>
 
@@ -1165,12 +1207,12 @@
                         </button>
                     </div>
                     <div id="draw-admin-tools-header" class="draw-admin-tools hidden">
-                        <button class="draw-admin-btn end" onclick="endDrawGame()" title="Dừng toàn bộ phòng game">
+                        <button class="draw-admin-btn end liquid-glass-btn pill-btn" onclick="endDrawGame()" title="Dừng toàn bộ phòng game">
                             <span class="material-symbols-outlined" style="font-size:16px;">stop_circle</span>
                             <span>Dừng game</span>
                         </button>
                     </div>
-                    <button class="draw-close-btn"
+                    <button class="draw-close-btn liquid-glass-btn circle-btn"
                         onclick="document.getElementById('draw-game-overlay').classList.add('hidden')"
                         title="Thu nhỏ cửa sổ">
                         <span class="material-symbols-outlined" style="font-size:20px;">expand_more</span>
@@ -1195,7 +1237,7 @@
                         </div>
                     </div>
                     <div id="draw-random-btn-container" class="hidden" style="text-align:center; margin: 12px 0;">
-                        <button class="draw-random-btn" onclick="randomPickDrawer()">
+                        <button class="draw-random-btn liquid-glass-btn pill-btn" onclick="randomPickDrawer()">
                             <span class="material-symbols-outlined" style="font-size:18px;">casino</span>
                             <span>Chọn Ngẫu Nhiên</span>
                         </button>
@@ -1279,7 +1321,7 @@
                     <span class="material-symbols-outlined guess-input-icon">help_center</span>
                     <input type="text" id="draw-guess-input" placeholder="Gõ câu trả lời của bạn ở đây..."
                         onkeypress="if(event.key==='Enter') sendDrawGuess()" autocomplete="off">
-                    <button class="draw-guess-btn" onclick="sendDrawGuess()">
+                    <button class="draw-guess-btn liquid-glass-btn pill-btn" onclick="sendDrawGuess()">
                         <span>Đoán</span>
                         <span class="material-symbols-outlined" style="font-size:16px;">send</span>
                     </button>
@@ -1336,7 +1378,7 @@
                         style="font-family: var(--font-display); font-size: 22px; font-weight: 700; color: #ffffff;">Cài
                         Đặt Giao Diện</span>
                 </div>
-                <button class="settings-close-btn" onclick="closeSettingsModal()" title="Đóng">
+                <button class="settings-close-btn liquid-glass-btn circle-btn" onclick="closeSettingsModal()" title="Đóng">
                     <span class="material-symbols-outlined" style="font-size:20px;">close</span>
                 </button>
             </div>
@@ -1361,13 +1403,13 @@
                                     oninput="updateWebBgPreview(this.value)">
                             </div>
                             <div class="settings-upload-row">
-                                <label for="setting-web-bg-file" class="settings-upload-btn">
+                                <label for="setting-web-bg-file" class="settings-upload-btn liquid-glass-btn pill-btn">
                                     <span class="material-symbols-outlined">cloud_upload</span>
-                                    <span style="font-size: 16px">Tải ảnh lên</span>
+                                    <span>Tải ảnh lên</span>
                                 </label>
                                 <input type="file" id="setting-web-bg-file" accept="image/*" style="display:none;"
                                     onchange="handleWebBgFileSelect(event)">
-                                <button type="button" class="settings-reset-btn" onclick="resetWebBgToDefault()"
+                                <button type="button" class="settings-reset-btn liquid-glass-btn circle-btn" onclick="resetWebBgToDefault()"
                                     title="Khôi phục mặc định">
                                     <span class="material-symbols-outlined">restart_alt</span>
                                 </button>
@@ -1395,13 +1437,13 @@
                                     oninput="updateChatBgPreview(this.value)">
                             </div>
                             <div class="settings-upload-row">
-                                <label for="setting-chat-bg-file" class="settings-upload-btn">
+                                <label for="setting-chat-bg-file" class="settings-upload-btn liquid-glass-btn pill-btn">
                                     <span class="material-symbols-outlined">cloud_upload</span>
-                                    <span style="font-size: 16px">Tải ảnh lên</span>
+                                    <span>Tải ảnh lên</span>
                                 </label>
                                 <input type="file" id="setting-chat-bg-file" accept="image/*" style="display:none;"
                                     onchange="handleChatBgFileSelect(event)">
-                                <button type="button" class="settings-reset-btn" onclick="resetChatBgToDefault()"
+                                <button type="button" class="settings-reset-btn liquid-glass-btn circle-btn" onclick="resetChatBgToDefault()"
                                     title="Khôi phục mặc định">
                                     <span class="material-symbols-outlined">restart_alt</span>
                                 </button>
@@ -1429,13 +1471,13 @@
                                     oninput="updateLyricBgPreview(this.value)">
                             </div>
                             <div class="settings-upload-row">
-                                <label for="setting-lyric-bg-file" class="settings-upload-btn">
+                                <label for="setting-lyric-bg-file" class="settings-upload-btn liquid-glass-btn pill-btn">
                                     <span class="material-symbols-outlined">cloud_upload</span>
-                                    <span style="font-size: 16px">Tải ảnh lên</span>
+                                    <span>Tải ảnh lên</span>
                                 </label>
                                 <input type="file" id="setting-lyric-bg-file" accept="image/*" style="display:none;"
                                     onchange="handleLyricBgFileSelect(event)">
-                                <button type="button" class="settings-reset-btn" onclick="resetLyricBgToDefault()"
+                                <button type="button" class="settings-reset-btn liquid-glass-btn circle-btn" onclick="resetLyricBgToDefault()"
                                     title="Khôi phục mặc định">
                                     <span class="material-symbols-outlined">restart_alt</span>
                                 </button>
@@ -1452,16 +1494,16 @@
                     </div>
                     <div class="settings-top-tab-wrapper" style="display: flex; flex-direction: column; gap: 12px;">
                         <div class="settings-preset-pills">
-                            <button type="button" class="top-tab-preset-btn active" data-preset="default" onclick="selectTopTabPreset('default')">
+                            <button type="button" class="top-tab-preset-btn active liquid-glass-btn pill-btn" data-preset="default" onclick="selectTopTabPreset('default')">
                                 <span class="material-symbols-outlined">local_fire_department</span> Top nhạc
                             </button>
-                            <button type="button" class="top-tab-preset-btn" data-preset="spotify" onclick="selectTopTabPreset('spotify')">
+                            <button type="button" class="top-tab-preset-btn liquid-glass-btn pill-btn" data-preset="spotify" onclick="selectTopTabPreset('spotify')">
                                 <span class="material-symbols-outlined">graphic_eq</span> Spotify
                             </button>
-                            <button type="button" class="top-tab-preset-btn" data-preset="nct" onclick="selectTopTabPreset('nct')">
+                            <button type="button" class="top-tab-preset-btn liquid-glass-btn pill-btn" data-preset="nct" onclick="selectTopTabPreset('nct')">
                                 <span class="material-symbols-outlined">music_note</span> NhạcCủaTui (NCT)
                             </button>
-                            <button type="button" class="top-tab-preset-btn" data-preset="custom" onclick="selectTopTabPreset('custom')">
+                            <button type="button" class="top-tab-preset-btn liquid-glass-btn pill-btn" data-preset="custom" onclick="selectTopTabPreset('custom')">
                                 <span class="material-symbols-outlined">link</span> Web Tùy Chỉnh
                             </button>
                         </div>
@@ -1475,13 +1517,13 @@
 
             <div class="settings-modal-footer"
                 style="margin-top: 20px; padding-top: 14px; border-top: 1px solid rgba(255,180,210,0.2); display: flex; justify-content: space-between; align-items: center;">
-                <button type="button" class="settings-btn-secondary" onclick="resetAllBgsToDefault()">
+                <button type="button" class="settings-btn-secondary liquid-glass-btn pill-btn" onclick="resetAllBgsToDefault()">
                     <span class="material-symbols-outlined" style="font-size: 16px;">refresh</span>
                     Mặc định tất cả
                 </button>
                 <div style="display: flex; gap: 10px;">
-                    <button type="button" class="settings-btn-cancel" onclick="closeSettingsModal()">Hủy</button>
-                    <button type="button" id="save-settings-btn" class="settings-btn-save" onclick="saveUserSettings()">
+                    <button type="button" class="settings-btn-cancel liquid-glass-btn pill-btn" onclick="closeSettingsModal()">Hủy</button>
+                    <button type="button" id="save-settings-btn" class="settings-btn-save liquid-glass-btn pill-btn" onclick="saveUserSettings()">
                         <span class="material-symbols-outlined" style="font-size: 18px;">check</span>
                         Lưu Cài Đặt
                     </button>
@@ -1499,18 +1541,18 @@
                     <span class="material-symbols-outlined" style="color: var(--accent); font-size: 26px;">manage_accounts</span>
                     <span style="font-family: var(--font-display); font-size: 22px; font-weight: 700; color: #ffffff;">Cài Đặt Thông Tin</span>
                 </div>
-                <button class="settings-close-btn" onclick="closeProfileSettingsModal()" title="Đóng">
+                <button class="settings-close-btn liquid-glass-btn circle-btn" onclick="closeProfileSettingsModal()" title="Đóng">
                     <span class="material-symbols-outlined" style="font-size:20px;">close</span>
                 </button>
             </div>
 
             <!-- Profile Modal Tabs -->
             <div class="auth-tabs" style="margin-bottom: 18px;">
-                <button type="button" id="tab-btn-personal" class="auth-tab active" onclick="switchProfileTab('personal')">
+                <button type="button" id="tab-btn-personal" class="auth-tab liquid-glass-btn pill-btn active" onclick="switchProfileTab('personal')">
                     <span class="material-symbols-outlined" style="font-size: 18px; vertical-align: middle; margin-right: 4px;">person</span>
                     Thông Tin Cá Nhân
                 </button>
-                <button type="button" id="tab-btn-security" class="auth-tab" onclick="switchProfileTab('security')">
+                <button type="button" id="tab-btn-security" class="auth-tab liquid-glass-btn pill-btn" onclick="switchProfileTab('security')">
                     <span class="material-symbols-outlined" style="font-size: 18px; vertical-align: middle; margin-right: 4px;">lock</span>
                     Thông Tin Bảo Mật
                 </button>
@@ -1525,8 +1567,8 @@
                     <div class="profile-avatar-wrapper" style="position: relative; width: 88px; height: 88px;">
                         <img id="profile-avatar-preview" src="/assets/images/placeholder.jpg" alt="Avatar preview"
                             style="width: 88px; height: 88px; border-radius: 50%; object-fit: cover; border: 3px solid var(--accent); background: #2b2b36;">
-                        <label for="profile-avatar-file-input" class="avatar-upload-badge" title="Tải ảnh đại diện lên"
-                            style="position: absolute; bottom: 0; right: 0; background: var(--accent); color: #fff; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.5); border: 2px solid #1f1b24;">
+                        <label for="profile-avatar-file-input" class="avatar-upload-badge liquid-glass-btn circle-btn" title="Tải ảnh đại diện lên"
+                            style="position: absolute; bottom: 0; right: 0; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer;">
                             <span class="material-symbols-outlined" style="font-size: 18px;">photo_camera</span>
                         </label>
                         <input type="file" id="profile-avatar-file-input" accept="image/*" style="display: none;" onchange="handleProfileAvatarFileSelect(event)">
@@ -1599,8 +1641,8 @@
 
                 <div class="settings-modal-footer"
                     style="margin-top: 20px; padding-top: 14px; border-top: 1px solid rgba(255,180,210,0.2); display: flex; justify-content: flex-end; gap: 10px;">
-                    <button type="button" class="settings-btn-cancel" onclick="closeProfileSettingsModal()">Hủy</button>
-                    <button type="button" id="btn-save-profile" class="settings-btn-save" onclick="saveUserProfile()">
+                    <button type="button" class="settings-btn-cancel liquid-glass-btn pill-btn" onclick="closeProfileSettingsModal()">Hủy</button>
+                    <button type="button" id="btn-save-profile" class="settings-btn-save liquid-glass-btn pill-btn" onclick="saveUserProfile()">
                         <span class="material-symbols-outlined" style="font-size: 18px;">check</span>
                         Lưu Thông Tin
                     </button>
@@ -1625,7 +1667,7 @@
                             <span id="profile-quick-lock-icon" class="material-symbols-outlined" style="color: var(--accent); font-size: 22px;">shield</span>
                             <span id="profile-quick-lock-status" style="font-size: 13px; font-weight: 600; color: var(--text-main);">Chưa thiết lập</span>
                         </div>
-                        <button type="button" class="settings-btn-save" style="padding: 6px 14px; font-size: 12px;" onclick="openQuickLockSetupModal()">
+                        <button type="button" class="settings-btn-save liquid-glass-btn pill-btn" style="padding: 6px 14px; font-size: 12px;" onclick="openQuickLockSetupModal()">
                             <span class="material-symbols-outlined" style="font-size: 16px;">tune</span>
                             Cài Đặt / Đổi
                         </button>
@@ -1654,7 +1696,7 @@
                             </div>
                         </div>
 
-                        <button type="submit" id="btn-update-password" class="settings-btn-save" style="margin-top: 6px; width: 100%; justify-content: center;">
+                        <button type="submit" id="btn-update-password" class="settings-btn-save liquid-glass-btn pill-btn" style="margin-top: 6px; width: 100%; justify-content: center;">
                             <span class="material-symbols-outlined" style="font-size: 18px;">save</span>
                             Cập Nhật Mật Khẩu
                         </button>
@@ -1669,7 +1711,7 @@
                     <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 12px; line-height: 1.4;">
                         Nếu bạn quên mật khẩu hoặc muốn đặt lại qua email, hệ thống sẽ gửi liên kết xác nhận tới email tài khoản của bạn.
                     </p>
-                    <button type="button" id="btn-send-reset-email" class="settings-btn-secondary" style="width: 100%; justify-content: center;" onclick="sendPasswordResetEmail()">
+                    <button type="button" id="btn-send-reset-email" class="settings-btn-secondary liquid-glass-btn pill-btn" style="width: 100%; justify-content: center;" onclick="sendPasswordResetEmail()">
                         <span class="material-symbols-outlined" style="font-size: 18px;">outgoing_mail</span>
                         Gửi Email Đặt Lại Mật Khẩu
                     </button>
@@ -1677,7 +1719,7 @@
 
                 <div class="settings-modal-footer"
                     style="margin-top: 20px; padding-top: 14px; border-top: 1px solid rgba(255,180,210,0.2); display: flex; justify-content: flex-end;">
-                    <button type="button" class="settings-btn-cancel" onclick="closeProfileSettingsModal()">Đóng</button>
+                    <button type="button" class="settings-btn-cancel liquid-glass-btn pill-btn" onclick="closeProfileSettingsModal()">Đóng</button>
                 </div>
             </div>
         </div>
@@ -1739,14 +1781,14 @@
                     <input type="text" id="unlock-question-answer" placeholder="Nhập câu trả lời..." autocomplete="off" onkeypress="if(event.key==='Enter') verifyQuestionUnlock()">
                 </div>
 
-                <button type="button" class="login-btn" onclick="verifyQuestionUnlock()" style="width: 100%;">
+                <button type="button" class="login-btn liquid-glass-btn pill-btn" onclick="verifyQuestionUnlock()" style="width: 100%;">
                     <span class="material-symbols-outlined" style="font-size: 18px; vertical-align: middle; margin-right: 4px;">lock_open</span>
                     Mở Khóa
                 </button>
             </div>
 
             <div style="margin-top: 20px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.08); display: flex; justify-content: center;">
-                <button type="button" class="settings-btn-cancel" onclick="logout()" style="font-size: 13px;">
+                <button type="button" class="settings-btn-cancel liquid-glass-btn pill-btn" onclick="logout()" style="font-size: 13px;">
                     <span class="material-symbols-outlined" style="font-size: 16px; vertical-align: middle; margin-right: 4px;">switch_account</span>
                     Đăng nhập tài khoản khác
                 </button>
@@ -1763,7 +1805,7 @@
                     <span class="material-symbols-outlined" style="color: var(--accent); font-size: 26px;">security</span>
                     <span style="font-family: var(--font-display); font-size: 22px; font-weight: 700; color: #ffffff;">Cài Đặt Đăng Nhập Nhanh</span>
                 </div>
-                <button class="settings-close-btn" onclick="closeQuickLockSetupModal()" title="Đóng">
+                <button class="settings-close-btn liquid-glass-btn circle-btn" onclick="closeQuickLockSetupModal()" title="Đóng">
                     <span class="material-symbols-outlined" style="font-size:20px;">close</span>
                 </button>
             </div>
@@ -1807,7 +1849,7 @@
                     <!-- Rendered dynamically with randomized 0-9 digits -->
                 </div>
                 <div style="display: flex; justify-content: center; margin-top: 14px;">
-                    <button type="button" class="settings-btn-secondary" onclick="resetSetupPin()" style="font-size: 13px; padding: 6px 14px;">
+                    <button type="button" class="settings-btn-secondary liquid-glass-btn pill-btn" onclick="resetSetupPin()" style="font-size: 13px; padding: 6px 14px;">
                         <span class="material-symbols-outlined" style="font-size: 16px;">refresh</span> Nhập lại từ đầu
                     </button>
                 </div>
@@ -1822,7 +1864,7 @@
                     <canvas id="setup-pattern-canvas" width="280" height="280" style="touch-action: none; cursor: crosshair; background: rgba(0,0,0,0.25); border-radius: 16px; border: 1px solid rgba(255,255,255,0.08);"></canvas>
                 </div>
                 <div style="display: flex; justify-content: center; gap: 10px;">
-                    <button type="button" class="settings-btn-secondary" onclick="resetSetupPattern()">
+                    <button type="button" class="settings-btn-secondary liquid-glass-btn pill-btn" onclick="resetSetupPattern()">
                         <span class="material-symbols-outlined" style="font-size: 16px;">refresh</span> Vẽ lại
                     </button>
                 </div>
@@ -1859,10 +1901,10 @@
 
             <div class="settings-modal-footer"
                 style="margin-top: 20px; padding-top: 14px; border-top: 1px solid rgba(255,180,210,0.2); display: flex; justify-content: space-between; align-items: center;">
-                <button type="button" id="btn-skip-quick-lock" class="settings-btn-secondary" onclick="closeQuickLockSetupModal(true)">
+                <button type="button" id="btn-skip-quick-lock" class="settings-btn-secondary liquid-glass-btn pill-btn" onclick="closeQuickLockSetupModal(true)">
                     Bỏ qua
                 </button>
-                <button type="button" id="btn-save-quick-lock" class="settings-btn-save" onclick="saveQuickLockConfiguration()">
+                <button type="button" id="btn-save-quick-lock" class="settings-btn-save liquid-glass-btn pill-btn" onclick="saveQuickLockConfiguration()">
                     <span class="material-symbols-outlined" style="font-size: 18px;">check</span>
                     Lưu Cài Đặt Khóa
                 </button>
@@ -1879,7 +1921,7 @@
                     <span style="font-family: var(--font-display); font-size: 22px; font-weight: 700; color: #ffffff;">Đoán Từ Theo Hình</span>
                     <span class="draw-live-tag" style="background: linear-gradient(135deg, #ff75a0, #ff4757);">TRẮC NGHIỆM</span>
                 </div>
-                <button class="settings-close-btn" onclick="closePictureQuizGame()" title="Đóng">
+                <button class="settings-close-btn liquid-glass-btn circle-btn" onclick="closePictureQuizGame()" title="Đóng">
                     <span class="material-symbols-outlined" style="font-size:20px;">close</span>
                 </button>
             </div>
@@ -1906,7 +1948,7 @@
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
                     <div style="display: flex; align-items: center; gap: 10px;">
                         <div style="font-size: 15px; font-weight: 800; color: var(--accent); font-family: var(--font-display);" id="quiz-question-counter">CÂU 1 / 5</div>
-                        <button id="quiz-end-game-btn" class="caro-btn hidden" style="background: rgba(255, 71, 87, 0.2); color: #ff4757; border: 1px solid rgba(255, 71, 87, 0.4); padding: 4px 10px; font-size: 12px; font-weight: 700; border-radius: 12px;" onclick="confirmEndQuizGame()">
+                        <button id="quiz-end-game-btn" class="caro-btn liquid-glass-btn pill-btn hidden" style="background: rgba(255, 71, 87, 0.2); color: #ff4757; border: 1px solid rgba(255, 71, 87, 0.4); padding: 4px 10px; font-size: 12px; font-weight: 700; border-radius: 12px;" onclick="confirmEndQuizGame()">
                             🛑 Hủy Game
                         </button>
                     </div>
@@ -2000,7 +2042,7 @@
                 </div>
 
                 <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
-                    <button class="caro-btn" style="background: linear-gradient(135deg, #ff75a0, #ff4757); color: #fff; font-weight: 800; padding: 10px 20px; font-size: 15px;" onclick="returnToQuizLobby()">📋 Chơi Lượt Mới / Chọn Bộ Khác</button>
+                    <button class="caro-btn liquid-glass-btn pill-btn" style="background: linear-gradient(135deg, #ff75a0, #ff4757); color: #fff; font-weight: 800; padding: 10px 20px; font-size: 15px;" onclick="returnToQuizLobby()">📋 Chơi Lượt Mới / Chọn Bộ Khác</button>
                 </div>
             </div>
         </div>
@@ -2014,7 +2056,7 @@
                     <span class="material-symbols-outlined" style="color: var(--accent); font-size: 26px;">person_add</span>
                     <h3 style="margin: 0; font-family: var(--font-display); font-size: 20px; font-weight: 700; color: #fff;">Thêm Bạn Bè</h3>
                 </div>
-                <button class="close-btn" onclick="closeAddFriendModal()">
+                <button class="close-btn liquid-glass-btn circle-btn" onclick="closeAddFriendModal()">
                     <span class="material-symbols-outlined">close</span>
                 </button>
             </div>
@@ -2033,7 +2075,7 @@
                 </div>
             </div>
             <div class="settings-modal-footer" style="padding-top: 12px; border-top: 1px solid rgba(255,180,210,0.2); display: flex; justify-content: flex-end;">
-                <button class="settings-btn-cancel" onclick="closeAddFriendModal()">Đóng</button>
+                <button class="settings-btn-cancel liquid-glass-btn pill-btn" onclick="closeAddFriendModal()">Đóng</button>
             </div>
         </div>
     </div>
@@ -2051,6 +2093,11 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
     <script src="https://www.youtube.com/iframe_api"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <script src="/libs/liquid-glass/container.js"></script>
+    <script src="/libs/liquid-glass/button.js"></script>
+    <script src="/libs/liquid-glass/controls.js"></script>
+    <script src="/libs/liquid-glass/liquid-glass.js"></script>
     <script src="main.js"></script>
 </body>
 

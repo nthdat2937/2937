@@ -59,6 +59,57 @@ function toggleSidebar() {
     if (sb) sb.classList.toggle('mini');
 }
 
+function toggleLandscapeVideoInfo() {
+    const leftCol = document.getElementById('left-column');
+    if (!leftCol) return;
+    const isCollapsed = leftCol.classList.toggle('video-info-collapsed');
+
+    const expandIcon = document.getElementById('player-expand-icon');
+    const expandText = document.getElementById('player-expand-text');
+    const expandBtn = document.getElementById('btn-landscape-player-expand');
+
+    if (isCollapsed) {
+        if (expandIcon) expandIcon.textContent = 'close_fullscreen';
+        if (expandText) expandText.textContent = 'Hiện thông tin';
+        if (expandBtn) expandBtn.title = 'Hiện lại thông tin bài hát';
+        if (typeof showToastNotification === 'function') {
+            showToastNotification('📺 Đã mở rộng video toàn màn hình! Bấm lại để hiện thông tin bài hát.');
+        }
+    } else {
+        if (expandIcon) expandIcon.textContent = 'open_in_full';
+        if (expandText) expandText.textContent = 'Xem to';
+        if (expandBtn) expandBtn.title = 'Phóng to video (ẩn thông tin)';
+    }
+}
+
+function checkResponsiveSidebar() {
+    const sb = document.getElementById('sidebar');
+    if (sb) {
+        if (window.innerWidth >= 900 && window.innerWidth < 1250) {
+            sb.classList.add('mini');
+        } else {
+            sb.classList.remove('mini');
+        }
+    }
+
+    const isMobileLandscape = window.innerWidth > window.innerHeight && window.innerHeight <= 550 && window.innerWidth <= 1024;
+    if (!isMobileLandscape) {
+        const leftCol = document.getElementById('left-column');
+        if (leftCol && leftCol.classList.contains('video-info-collapsed')) {
+            leftCol.classList.remove('video-info-collapsed');
+            const expandIcon = document.getElementById('player-expand-icon');
+            const expandText = document.getElementById('player-expand-text');
+            const expandBtn = document.getElementById('btn-landscape-player-expand');
+            if (expandIcon) expandIcon.textContent = 'open_in_full';
+            if (expandText) expandText.textContent = 'Xem to';
+            if (expandBtn) expandBtn.title = 'Phóng to video (ẩn thông tin)';
+        }
+    }
+}
+window.addEventListener('resize', checkResponsiveSidebar);
+document.addEventListener('DOMContentLoaded', checkResponsiveSidebar);
+
+
 let wasMutedBeforeTopTab = false;
 let isMutedByTopTab = false;
 
@@ -113,6 +164,7 @@ function showTab(tab) {
     if (tab === 'home') {
         miniPlayer.style.transform = '';
         restoreRoomPlayerFromTopTab();
+        setTimeout(() => { if (window.LiquidGlass) window.LiquidGlass.refresh(); }, 80);
     } else {
         document.getElementById('left-column').classList.add('not-home');
         applyMiniPlayerSavedPos();
@@ -1174,6 +1226,99 @@ async function handleAuthSuccess(user, fallbackProfile = null) {
 
     joinRoom();
     initMessenger();
+
+    // Check if this is a Google-only account without a password
+    checkGoogleUserNeedsPassword(user);
+}
+
+function checkGoogleUserNeedsPassword(user) {
+    if (!user || !user.email) return;
+
+    // Check if user has already been asked and skipped/completed
+    const pwSetKey = 'musiclive_pw_set_' + user.id;
+    if (localStorage.getItem(pwSetKey) === 'done' || localStorage.getItem(pwSetKey) === 'skipped') return;
+
+    // Detect Google-only account: has 'google' in providers but NOT 'email'
+    const providers = user.app_metadata?.providers || [];
+    const identities = user.identities || [];
+    const hasGoogle = providers.includes('google') || identities.some(i => i.provider === 'google');
+    const hasEmail = providers.includes('email') || identities.some(i => i.provider === 'email');
+
+    if (hasGoogle && !hasEmail) {
+        // Show the create password modal
+        const modal = document.getElementById('create-password-modal');
+        const emailLabel = document.getElementById('create-pw-email');
+        if (modal) {
+            if (emailLabel) emailLabel.textContent = user.email;
+            modal.classList.remove('hidden');
+            setTimeout(() => { if (window.LiquidGlass) window.LiquidGlass.refresh(); }, 50);
+            document.getElementById('create-pw-input')?.focus();
+        }
+    }
+}
+
+function setCreatePwStatus(msg, type) {
+    const el = document.getElementById('create-pw-status');
+    if (!el) return;
+    el.textContent = msg;
+    el.className = 'auth-status-msg ' + (type || '');
+    el.classList.remove('hidden');
+}
+
+async function handleCreatePassword() {
+    const pw = document.getElementById('create-pw-input')?.value || '';
+    const confirmPw = document.getElementById('create-pw-confirm')?.value || '';
+    const btn = document.getElementById('btn-create-password');
+
+    if (pw.length < 6) {
+        setCreatePwStatus('Mật khẩu phải có ít nhất 6 ký tự!', 'error');
+        return;
+    }
+    if (pw !== confirmPw) {
+        setCreatePwStatus('Mật khẩu nhập lại không khớp!', 'error');
+        return;
+    }
+
+    const sp = getSupabaseAuth();
+    if (!sp) {
+        setCreatePwStatus('Supabase chưa sẵn sàng!', 'error');
+        return;
+    }
+
+    if (btn) btn.disabled = true;
+    setCreatePwStatus('Đang tạo mật khẩu...', 'info');
+
+    try {
+        const { error } = await sp.auth.updateUser({ password: pw });
+        if (error) {
+            setCreatePwStatus(error.message || 'Lỗi tạo mật khẩu', 'error');
+            if (btn) btn.disabled = false;
+            return;
+        }
+
+        // Mark as done
+        const uid = currentUserId || localStorage.getItem('musiclive_user_id');
+        if (uid) localStorage.setItem('musiclive_pw_set_' + uid, 'done');
+
+        setCreatePwStatus('✅ Tạo mật khẩu thành công! Bây giờ bạn có thể đăng nhập bằng email.', 'success');
+
+        setTimeout(() => {
+            const modal = document.getElementById('create-password-modal');
+            if (modal) modal.classList.add('hidden');
+        }, 2000);
+    } catch (err) {
+        console.error('Create password error:', err);
+        setCreatePwStatus(err.message || 'Lỗi không xác định', 'error');
+        if (btn) btn.disabled = false;
+    }
+}
+
+function skipCreatePassword() {
+    const uid = currentUserId || localStorage.getItem('musiclive_user_id');
+    if (uid) localStorage.setItem('musiclive_pw_set_' + uid, 'skipped');
+
+    const modal = document.getElementById('create-password-modal');
+    if (modal) modal.classList.add('hidden');
 }
 
 function updateNavbarAvatarUI(avatarUrl) {
@@ -1240,6 +1385,9 @@ function openProfileSettingsModal() {
     updateQuickLockStatusUI();
     switchProfileTab('personal');
     modal.classList.remove('hidden');
+    setTimeout(() => {
+        if (window.LiquidGlass) window.LiquidGlass.refresh();
+    }, 50);
 }
 
 function closeProfileSettingsModal() {
@@ -1265,6 +1413,10 @@ function switchProfileTab(tab) {
         if (contentSecurity) contentSecurity.classList.remove('hidden');
         if (contentPersonal) contentPersonal.classList.add('hidden');
     }
+
+    setTimeout(() => {
+        if (window.LiquidGlass) window.LiquidGlass.refresh();
+    }, 50);
 }
 
 function setProfileStatus(msg, type = 'info') {
@@ -1660,6 +1812,9 @@ function openQuickLockSetupModal(isFirstTime = false) {
     selectQuickLockType(initialType);
 
     modal.classList.remove('hidden');
+    setTimeout(() => {
+        if (window.LiquidGlass) window.LiquidGlass.refresh();
+    }, 50);
 }
 
 function closeQuickLockSetupModal(isSkip = false) {
@@ -1694,6 +1849,10 @@ function selectQuickLockType(type) {
     } else if (type === 'questions') {
         populateSetupQuestions();
     }
+
+    setTimeout(() => {
+        if (window.LiquidGlass) window.LiquidGlass.refresh();
+    }, 50);
 }
 
 // ------------------------------------------
@@ -2560,6 +2719,7 @@ function showQuickUnlockScreen(user, profile) {
     document.getElementById('login-section')?.classList.add('hidden');
     document.getElementById('main-room')?.classList.add('hidden');
     modal.classList.remove('hidden');
+    setTimeout(() => { if (window.LiquidGlass) window.LiquidGlass.refresh(); }, 50);
 }
 
 async function completeQuickUnlock() {
@@ -2764,6 +2924,7 @@ socket.on('authResult', (res) => {
             document.getElementById('player-container').style.pointerEvents = 'auto';
             const sidebarQuizAdmin = document.getElementById('sidebar-quiz-admin');
             if (sidebarQuizAdmin) sidebarQuizAdmin.classList.remove('hidden');
+            setTimeout(() => { if (window.LiquidGlass) window.LiquidGlass.refresh(); }, 60);
         }
         document.getElementById('sync-btn').classList.remove('hidden');
 
@@ -3468,7 +3629,9 @@ async function toggleVoicePreviewPlay() {
         }
         if (waveElem) waveElem.classList.remove('paused');
     } catch (err) {
-        console.error('Lỗi nghe thử ghi âm:', err);
+        if (err && err.name !== 'AbortError') {
+            console.error('Lỗi nghe thử ghi âm:', err);
+        }
         stopVoicePreviewPlayback();
         if (playBtn) playBtn.disabled = false;
     }
@@ -3794,6 +3957,7 @@ function openImageLightbox(imgSrc) {
         img.src = imgSrc;
         resetLightboxZoom();
         modal.classList.remove('hidden');
+        setTimeout(() => { if (window.LiquidGlass) window.LiquidGlass.refresh(); }, 50);
     }
 }
 
@@ -3917,7 +4081,7 @@ function togglePlayVoice(msgId, audioSrc, totalDuration, event) {
 
     if (currentVoiceId === msgId && currentVoiceAudio) {
         if (currentVoiceAudio.paused) {
-            currentVoiceAudio.play();
+            currentVoiceAudio.play().catch(e => { if (e && e.name !== 'AbortError') console.error(e); });
             mutePlayerForPlayback();
             if (playBtn) playBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size:18px;">pause</span>';
         } else {
@@ -3973,7 +4137,9 @@ function togglePlayVoice(msgId, audioSrc, totalDuration, event) {
     currentVoiceAudio.play().then(() => {
         mutePlayerForPlayback();
     }).catch(err => {
-        console.error('Audio play error:', err);
+        if (err && err.name !== 'AbortError') {
+            console.error('Audio play error:', err);
+        }
         stopCurrentVoiceAudio();
     });
 }
@@ -4074,10 +4240,15 @@ socket.on('newMessage', (data) => {
 
     const chatBox = document.getElementById('chat-box-ui');
     const isAdminMsg = isUserAdmin(data);
-    const cleanDataName = (data.name || '').replace(' 😎', '').trim();
-    const cleanMyName = (myUsername || '').replace(' 😎', '').trim();
-    const isOwn = !isSystem && (data.senderId === socket.id || (cleanMyName && cleanDataName === cleanMyName));
-    const senderKey = isSystem ? '__system__' : (isOwn ? 'own_user' : (data.senderId || data.name || ''));
+    const myUid = currentUserId || localStorage.getItem('musiclive_user_id') || '';
+    // Prioritize userId (stable Supabase user ID) for own-message detection.
+    // Fall back to senderId (socket.id) only for the current session.
+    // Never rely on display name matching — it causes misidentification when names collide.
+    const isOwn = !isSystem && (
+        (data.userId && myUid && String(data.userId) === String(myUid)) ||
+        (!data.userId && (data.senderId === socket.id))
+    );
+    const senderKey = isSystem ? '__system__' : (isOwn ? 'own_user' : (data.userId || data.senderId || data.name || ''));
 
     // Grouping: check if same sender as last message
     const isGrouped = lastChatSenderId === senderKey && !isSystem;
@@ -4352,7 +4523,11 @@ function createPlayer() {
         events: {
             'onReady': () => {
                 isPlayerReady = true;
-                try { if (typeof player.setVolume === 'function') player.setVolume(50); } catch (e) { }
+                const initialVol = getSavedVolume();
+                try {
+                    if (typeof player.setVolume === 'function') player.setVolume(initialVol);
+                    if (initialVol === 0 && typeof player.mute === 'function') player.mute();
+                } catch (e) { }
                 document.getElementById('status').innerText = "Trạng thái: Đang phát trực tiếp 🟢";
                 if (pendingVideoId) {
                     if (typeof player.loadVideoById === 'function') player.loadVideoById(pendingVideoId);
@@ -4387,32 +4562,104 @@ function createPlayer() {
     });
 }
 
-function changeVolume(val) {
-    if (player && player.setVolume) player.setVolume(val);
+function getSavedVolume() {
+    try {
+        const saved = localStorage.getItem('musiclive_saved_volume');
+        if (saved !== null && saved !== '' && !isNaN(saved)) {
+            return Math.min(100, Math.max(0, parseInt(saved, 10)));
+        }
+    } catch (e) {}
+    return 50;
+}
+
+function initSavedVolume() {
+    const vol = getSavedVolume();
+    const slider = document.getElementById('volume-slider');
+    if (slider) slider.value = vol;
     const icon = document.getElementById('volume-icon');
     if (icon) {
-        if (val == 0) icon.innerText = 'volume_off';
+        if (vol === 0) icon.innerText = 'volume_off';
+        else if (vol < 50) icon.innerText = 'volume_down';
+        else icon.innerText = 'volume_up';
+    }
+    if (vol === 0) {
+        isVideoMuted = true;
+        try {
+            const last = localStorage.getItem('musiclive_last_volume');
+            if (last && !isNaN(last)) lastVolume = parseInt(last, 10);
+        } catch (e) {}
+    } else {
+        isVideoMuted = false;
+        lastVolume = vol;
+    }
+}
+
+function changeVolume(val) {
+    val = parseInt(val, 10);
+    if (isNaN(val)) val = 50;
+    val = Math.min(100, Math.max(0, val));
+
+    if (player && typeof player.setVolume === 'function') {
+        try {
+            player.setVolume(val);
+            if (val > 0 && typeof player.unMute === 'function' && player.isMuted()) {
+                player.unMute();
+            }
+        } catch (e) {}
+    }
+    const icon = document.getElementById('volume-icon');
+    if (icon) {
+        if (val === 0) icon.innerText = 'volume_off';
         else if (val < 50) icon.innerText = 'volume_down';
         else icon.innerText = 'volume_up';
     }
-    if (val > 0) isVideoMuted = false;
+    if (val > 0) {
+        isVideoMuted = false;
+        lastVolume = val;
+        try {
+            localStorage.setItem('musiclive_saved_volume', val);
+            localStorage.setItem('musiclive_last_volume', val);
+        } catch (e) {}
+    } else {
+        isVideoMuted = true;
+        try {
+            localStorage.setItem('musiclive_saved_volume', 0);
+        } catch (e) {}
+    }
 }
 
 let isVideoMuted = false;
 let lastVolume = 50;
 function toggleVideoMute() {
     const slider = document.getElementById('volume-slider');
+    if (!slider) return;
     if (isVideoMuted) {
         isVideoMuted = false;
-        slider.value = lastVolume || 50;
-        changeVolume(slider.value);
+        let vol = lastVolume > 0 ? lastVolume : 50;
+        try {
+            const savedLast = localStorage.getItem('musiclive_last_volume');
+            if (savedLast && !isNaN(savedLast) && parseInt(savedLast, 10) > 0) {
+                vol = parseInt(savedLast, 10);
+            }
+        } catch (e) {}
+        slider.value = vol;
+        changeVolume(vol);
     } else {
-        lastVolume = slider.value > 0 ? slider.value : 50;
+        const cur = parseInt(slider.value, 10);
+        lastVolume = cur > 0 ? cur : (getSavedVolume() || 50);
+        try {
+            localStorage.setItem('musiclive_last_volume', lastVolume);
+        } catch (e) {}
         isVideoMuted = true;
         slider.value = 0;
         changeVolume(0);
     }
 }
+
+// Tự động khôi phục âm lượng đã lưu
+initSavedVolume();
+document.addEventListener('DOMContentLoaded', initSavedVolume);
+
 function addSong() {
     const input = document.getElementById('song-input');
     const btn = document.querySelector('.btn-add-search') || document.querySelector('.btn-add');
@@ -4955,8 +5202,11 @@ function togglePicker() {
     pickerVisible = !pickerVisible;
     popup.classList.toggle('hidden', !pickerVisible);
     btn.classList.toggle('active', pickerVisible);
-    if (pickerVisible && currentPickerTab === 'gif') {
-        loadTrendingGifs();
+    if (pickerVisible) {
+        setTimeout(() => { if (window.LiquidGlass) window.LiquidGlass.refresh(); }, 50);
+        if (currentPickerTab === 'gif') {
+            loadTrendingGifs();
+        }
     }
 }
 
@@ -5396,6 +5646,7 @@ function clearDrawCanvas() {
 
 function startDrawGame() {
     document.getElementById('draw-game-overlay').classList.remove('hidden');
+    setTimeout(() => { if (window.LiquidGlass) window.LiquidGlass.refresh(); }, 50);
     if (myRole === 'admin') socket.emit('adminStartDrawGame');
 }
 function endDrawGame() { socket.emit('adminEndDrawGame'); }
@@ -5463,6 +5714,7 @@ function showDrawPanel(panel) {
 socket.on('drawGameStarted', (data) => {
     drawGameActive = true; amIDrawer = false; drawGuessedCorrectly = false;
     document.getElementById('draw-game-overlay').classList.remove('hidden');
+    setTimeout(() => { if (window.LiquidGlass) window.LiquidGlass.refresh(); }, 50);
     if (myRole === 'admin') document.getElementById('draw-admin-tools-header').classList.remove('hidden');
     document.getElementById('draw-drawer-tools').classList.add('hidden');
     document.getElementById('draw-guess-area').classList.add('hidden');
@@ -5665,7 +5917,10 @@ const pieceUnicode = {
     'p': '♟', 'n': '♞', 'b': '♝', 'r': '♜', 'q': '♛', 'k': '♚'
 };
 
-function openChessGame() { document.getElementById('chess-game-overlay').classList.remove('hidden'); }
+function openChessGame() {
+    document.getElementById('chess-game-overlay').classList.remove('hidden');
+    setTimeout(() => { if (window.LiquidGlass) window.LiquidGlass.refresh(); }, 50);
+}
 function closeChessGame() { document.getElementById('chess-game-overlay').classList.add('hidden'); }
 
 function sendChessChallenge() {
@@ -5680,6 +5935,7 @@ socket.on('chessChallengeReceived', ({ challengerId, challengerName }) => {
     currentChallengerId = challengerId;
     document.getElementById('chess-challenger-name').innerText = challengerName;
     document.getElementById('chess-challenge-modal').classList.remove('hidden');
+    setTimeout(() => { if (window.LiquidGlass) window.LiquidGlass.refresh(); }, 50);
 });
 
 function respondChessChallenge(accept) {
@@ -6076,7 +6332,10 @@ function initCaroBoard() {
     }
 }
 
-function openCaroGame() { document.getElementById('caro-game-overlay').classList.remove('hidden'); }
+function openCaroGame() {
+    document.getElementById('caro-game-overlay').classList.remove('hidden');
+    setTimeout(() => { if (window.LiquidGlass) window.LiquidGlass.refresh(); }, 50);
+}
 function closeCaroGame() { document.getElementById('caro-game-overlay').classList.add('hidden'); }
 
 function sendCaroChallenge() {
@@ -6091,6 +6350,7 @@ socket.on('caroChallengeReceived', ({ challengerId, challengerName }) => {
     currentCaroChallengerId = challengerId;
     document.getElementById('caro-challenger-name').innerText = challengerName;
     document.getElementById('caro-challenge-modal').classList.remove('hidden');
+    setTimeout(() => { if (window.LiquidGlass) window.LiquidGlass.refresh(); }, 50);
 });
 
 function respondCaroChallenge(accept) {
@@ -6238,6 +6498,7 @@ socket.on('xiangqiUpdate', (game) => {
 
 function openXiangqiGame() {
     document.getElementById('xiangqi-game-overlay').classList.remove('hidden');
+    setTimeout(() => { if (window.LiquidGlass) window.LiquidGlass.refresh(); }, 50);
 }
 function closeXiangqiGame() {
     document.getElementById('xiangqi-game-overlay').classList.add('hidden');
@@ -6264,6 +6525,7 @@ socket.on('xiangqiChallengeReceived', (data) => {
     window.currentXiangqiChallenger = data.challengerId;
     document.getElementById('xiangqi-challenger-name').innerText = data.challengerName;
     document.getElementById('xiangqi-challenge-modal').classList.remove('hidden');
+    setTimeout(() => { if (window.LiquidGlass) window.LiquidGlass.refresh(); }, 50);
 });
 
 // --- UNO GAME ---
@@ -6316,6 +6578,7 @@ socket.on('unoHand', (hand) => {
 
 function openUnoGame() {
     document.getElementById('uno-game-overlay').classList.remove('hidden');
+    setTimeout(() => { if (window.LiquidGlass) window.LiquidGlass.refresh(); }, 50);
 }
 function closeUnoGame() {
     document.getElementById('uno-game-overlay').classList.add('hidden');
@@ -6668,6 +6931,9 @@ function openSettingsModal() {
     if (topUrlInput) topUrlInput.value = pendingTopTabUrl;
 
     modal.classList.remove('hidden');
+    setTimeout(() => {
+        if (window.LiquidGlass) window.LiquidGlass.refresh();
+    }, 50);
 }
 
 function closeSettingsModal() {
@@ -7002,6 +7268,7 @@ function openPictureQuizGame() {
     socket.emit('getQuizState', (state) => {
         currentQuizState = state;
         document.getElementById('picture-quiz-overlay').classList.remove('hidden');
+        setTimeout(() => { if (window.LiquidGlass) window.LiquidGlass.refresh(); }, 50);
         renderMultiplayerQuizState(state);
     });
 }
@@ -7197,6 +7464,7 @@ function renderMultiplayerQuizState(state) {
     } else {
         if (overlay.classList.contains('hidden')) {
             overlay.classList.remove('hidden');
+            setTimeout(() => { if (window.LiquidGlass) window.LiquidGlass.refresh(); }, 50);
         }
     }
 
@@ -8952,6 +9220,7 @@ function openAddFriendModal() {
     const modal = document.getElementById('add-friend-modal');
     if (!modal) return;
     modal.classList.remove('hidden');
+    setTimeout(() => { if (window.LiquidGlass) window.LiquidGlass.refresh(); }, 50);
     messengerLastSearchQuery = '';
     const input = document.getElementById('add-friend-search-input');
     if (input) {

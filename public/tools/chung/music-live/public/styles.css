@@ -387,8 +387,15 @@
         @media(min-width: 900px) {
             .main-layout {
                 flex-direction: row;
-                padding: 36px;
-                gap: 36px;
+                padding: 16px 20px;
+                gap: 16px;
+            }
+        }
+
+        @media(min-width: 1350px) {
+            .main-layout {
+                padding: 28px 36px;
+                gap: 28px;
             }
         }
 
@@ -411,26 +418,26 @@
             white-space: nowrap;
         }
 
-        .sidebar.mini {
-            width: 72px;
-            padding: 14px 6px;
-        }
-
-        .sidebar.mini .sidebar-item {
-            flex-direction: column;
-            padding: 14px 0;
-            font-size: 0;
-            justify-content: center;
-            border-radius: 12px;
-        }
-
-        .sidebar.mini .sidebar-item .material-symbols-outlined {
-            font-size: 24px;
-        }
-
         @media(min-width: 900px) {
             .sidebar {
                 display: flex;
+            }
+
+            .sidebar.mini {
+                width: 72px;
+                padding: 14px 6px;
+            }
+
+            .sidebar.mini .sidebar-item {
+                flex-direction: column;
+                padding: 14px 0;
+                font-size: 0;
+                justify-content: center;
+                border-radius: 12px;
+            }
+
+            .sidebar.mini .sidebar-item .material-symbols-outlined {
+                font-size: 24px;
             }
 
             .sidebar.mini:hover {
@@ -440,11 +447,11 @@
             }
 
             .sidebar.mini:hover .sidebar-item {
-                flex-direction: row;
-                padding: 12px 16px;
-                font-size: 15px;
-                justify-content: flex-start;
-                border-radius: var(--radius-md);
+                flex-direction: row !important;
+                padding: 12px 16px !important;
+                font-size: 15px !important;
+                justify-content: flex-start !important;
+                border-radius: var(--radius-md) !important;
             }
 
             .sidebar.mini:hover .sidebar-item .material-symbols-outlined {
@@ -452,40 +459,109 @@
             }
         }
 
+        /* Auto-compact sidebar and optimize spacing for tablets & mid screens (900px - 1249px) to prevent squishing video */
+        @media(min-width: 900px) and (max-width: 1249px) {
+            .sidebar:not(.expanded-force) {
+                width: 72px;
+                padding: 14px 6px;
+            }
+
+            .sidebar:not(.expanded-force) .sidebar-item {
+                flex-direction: column;
+                padding: 14px 0;
+                font-size: 0;
+                justify-content: center;
+                border-radius: 12px;
+            }
+
+            .sidebar:not(.expanded-force) .sidebar-item .material-symbols-outlined {
+                font-size: 24px;
+            }
+
+            .sidebar:not(.expanded-force) .sidebar-item .sidebar-label {
+                display: none;
+            }
+
+            .sidebar:not(.expanded-force):hover {
+                width: 220px;
+                padding: 14px 10px;
+                box-shadow: 0 12px 36px rgba(0, 0, 0, 0.5), 0 0 20px rgba(255, 117, 160, 0.2);
+            }
+
+            .sidebar:not(.expanded-force):hover .sidebar-item {
+                flex-direction: row;
+                padding: 12px 16px;
+                font-size: 15px;
+                justify-content: flex-start;
+                border-radius: var(--radius-md);
+            }
+
+            .sidebar:not(.expanded-force):hover .sidebar-item .sidebar-label {
+                display: inline;
+            }
+
+            .sidebar:not(.expanded-force):hover .sidebar-item .material-symbols-outlined {
+                font-size: 20px;
+            }
+
+            .right-column {
+                width: 320px !important;
+            }
+        }
+
+        @media(min-width: 900px) and (max-width: 1080px) {
+            .main-layout {
+                padding: 12px 14px;
+                gap: 12px;
+            }
+
+            .right-column {
+                width: 290px !important;
+            }
+        }
+
         .sidebar-item {
+            position: relative;
+            isolation: isolate;
             display: flex;
             align-items: center;
             gap: 14px;
             padding: 12px 16px;
-            border-radius: var(--radius-md);
+            border-radius: 14px;
             cursor: pointer;
             color: var(--text-main);
             font-size: 15px;
-            transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
             font-family: var(--font-body);
             font-weight: 600;
-            border: 1px solid transparent;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            backdrop-filter: blur(14px) saturate(180%);
+            -webkit-backdrop-filter: blur(14px) saturate(180%);
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15), inset 0 1px 1px rgba(255, 255, 255, 0.25);
+            transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
             user-select: none;
+            margin-bottom: 6px;
         }
 
         .sidebar-item:hover {
-            background: rgba(255, 117, 160, 0.18);
-            border-color: rgba(255, 180, 210, 0.3);
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.06) 100%);
+            border-color: rgba(255, 255, 255, 0.35);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25), 0 0 14px rgba(255, 117, 160, 0.2), inset 0 1px 1.5px rgba(255, 255, 255, 0.5);
             color: #ffffff;
-            transform: translateX(4px);
+            transform: translateX(4px) scale(1.02);
         }
 
         .sidebar-item.active {
-            background: linear-gradient(135deg, rgba(255, 117, 160, 0.38), rgba(184, 165, 191, 0.28));
-            border: 1px solid rgba(255, 117, 160, 0.55);
-            color: #ffffff;
+            background: linear-gradient(135deg, rgba(255, 117, 160, 0.36) 0%, rgba(255, 117, 160, 0.16) 100%) !important;
+            border: 1px solid rgba(255, 180, 210, 0.55) !important;
+            color: #ffffff !important;
             font-weight: 700;
-            box-shadow: 0 4px 16px rgba(255, 117, 160, 0.25);
+            box-shadow: 0 8px 24px rgba(255, 117, 160, 0.32), inset 0 1px 2px rgba(255, 255, 255, 0.65) !important;
         }
 
         .sidebar-item.active .material-symbols-outlined {
             color: var(--accent);
-            transform: scale(1.1);
+            transform: scale(1.12);
             font-variation-settings: 'FILL' 1;
         }
 
@@ -2497,44 +2573,38 @@
         }
 
         .btn-next {
-            background: rgba(255, 255, 255, 0.1);
-            color: var(--text-main) !important;
-            border: none !important;
-            padding: 8px 16px;
-            border-radius: var(--radius-md);
-            font-weight: 500;
+            padding: 8px 18px;
+            border-radius: 9999px;
+            font-weight: 600;
+            font-size: 13.5px;
             cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .btn-next:hover {
-            background: rgba(255, 255, 255, 0.2);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            justify-content: center;
+            transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
         }
 
         /* Loop Toggle Button */
         .btn-loop {
-            background: rgba(255, 255, 255, 0.1);
-            color: var(--text-main) !important;
-            border: none !important;
-            padding: 8px 16px;
-            border-radius: var(--radius-md);
-            font-weight: 500;
+            padding: 8px 18px;
+            border-radius: 9999px;
+            font-weight: 600;
+            font-size: 13.5px;
             cursor: pointer;
-            display: flex;
+            display: inline-flex;
             align-items: center;
             gap: 6px;
             justify-content: center;
-            transition: all 0.2s ease;
+            transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
             position: relative;
         }
 
-        .btn-loop:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-
         .btn-loop.active {
-            background: var(--text-main);
-            color: #0f0f0f !important;
+            background: linear-gradient(135deg, rgba(62, 166, 255, 0.45) 0%, rgba(62, 166, 255, 0.2) 100%) !important;
+            border-color: rgba(62, 166, 255, 0.6) !important;
+            box-shadow: 0 0 16px rgba(62, 166, 255, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.5) !important;
+            color: #ffffff !important;
         }
 
         .btn-loop.active .material-symbols-outlined {
@@ -3249,37 +3319,28 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            text-align: center;
-            width: 145px;
-            aspect-ratio: 1.45;
-            border: none;
-            background: url('/assets/images/button2.png') no-repeat center center / 100% 100% transparent;
-            color: #000000;
-            cursor: pointer;
-            font-size: 16px;
+            gap: 6px;
+            padding: 9px 18px;
+            border-radius: 9999px;
+            font-size: 13.5px;
             font-weight: 700;
-            font-family: 'Itim', 'Comfortaa', 'Nunito', cursive, sans-serif;
+            font-family: inherit;
+            color: #ffffff !important;
+            cursor: pointer;
             text-decoration: none;
             box-sizing: border-box;
-            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.15s ease;
-            text-shadow: none;
-            outline: none;
-            box-shadow: none;
-            filter: none;
-            padding: 16px 10px 0 10px;
             line-height: 1.2;
+            transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.2s ease, box-shadow 0.25s ease;
         }
 
         .btn-start-game:hover {
-            transform: scale(1.08) rotate(3deg);
-            color: #000000;
-            opacity: 0.95;
-            box-shadow: none;
-            filter: none;
+            transform: translateY(-2px) scale(1.03);
+            color: #ffffff !important;
+            opacity: 1;
         }
 
         .btn-start-game:active {
-            transform: scale(0.95) rotate(0deg);
+            transform: translateY(1px) scale(0.97);
         }
 
         /* ===== DRAWING GAME (VẼ & ĐOÁN) CLEAN DARK UI ===== */
@@ -3961,7 +4022,7 @@
 
         /* Default base styles for mobile search button (hidden on desktop) */
         .mobile-search-trigger-btn {
-            display: none;
+            display: none !important;
         }
 
         /* ===== MOBILE PREMIUM UI OVERHAUL ===== */
@@ -4139,39 +4200,56 @@
             }
 
             /* --- Bottom Navigation: YouTube/Instagram Style --- */
-            .sidebar {
+            .sidebar,
+            .sidebar.mini {
                 display: flex !important;
-                position: fixed;
-                bottom: 0;
-                left: 0;
-                right: 0;
-                width: 100%;
-                background: rgba(28, 24, 34, 0.22);
-                backdrop-filter: blur(16px);
-                -webkit-backdrop-filter: blur(16px);
-                border-top: 1px solid rgba(255, 255, 255, 1);
-                border-right: none;
-                flex-direction: row;
-                justify-content: space-around;
-                padding: 4px 0 calc(4px + env(safe-area-inset-bottom, 0px)) 0;
-                margin: 0;
-                z-index: 1000;
-                gap: 0;
+                position: fixed !important;
+                bottom: 0 !important;
+                left: 0 !important;
+                right: 0 !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                height: auto !important;
+                background: rgba(28, 24, 34, 0.92) !important;
+                backdrop-filter: blur(20px) !important;
+                -webkit-backdrop-filter: blur(20px) !important;
+                border: none !important;
+                border-top: 1px solid rgba(255, 180, 210, 0.25) !important;
+                border-radius: 0 !important;
+                flex-direction: row !important;
+                justify-content: space-around !important;
+                align-items: center !important;
+                padding: 4px 2px calc(4px + env(safe-area-inset-bottom, 0px)) 2px !important;
+                margin: 0 !important;
+                z-index: 1000 !important;
+                gap: 0 !important;
+                box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.4) !important;
+                overflow: hidden !important;
             }
 
-            .sidebar-item {
+            .sidebar-item,
+            .sidebar.mini .sidebar-item {
+                flex: 1 1 0 !important;
+                width: auto !important;
+                max-width: 72px !important;
+                min-width: 46px !important;
                 flex-direction: column !important;
+                justify-content: center !important;
+                align-items: center !important;
                 gap: 2px !important;
-                padding: 8px 16px 6px !important;
+                padding: 6px 2px !important;
+                margin: 0 !important;
                 font-size: 10px !important;
                 font-weight: 500 !important;
                 background: transparent !important;
-                border-radius: var(--radius-md);
-                color: rgba(255, 255, 255, 0.5) !important;
+                border: 1px solid transparent !important;
+                border-radius: var(--radius-md) !important;
+                color: rgba(255, 255, 255, 0.6) !important;
                 transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
-                position: relative;
-                min-width: 56px;
-                text-align: center;
+                position: relative !important;
+                text-align: center !important;
+                box-shadow: none !important;
+                transform: none !important;
             }
 
             .sidebar-item .material-symbols-outlined {
@@ -4320,9 +4398,8 @@
 
             /* --- Game Buttons: Compact Row --- */
             .btn-start-game {
-                width: 105px;
-                padding: 11px 6px 0 6px;
-                font-size: 13px;
+                padding: 7px 14px;
+                font-size: 12.5px;
                 margin-top: 2px;
             }
 
@@ -4644,6 +4721,349 @@
             .video-title {
                 font-size: 15px;
             }
+        }
+
+        /* ===== MOBILE LANDSCAPE: SIDEBAR ON RIGHT & SMART 2-COLUMN VIEW ===== */
+        @media (orientation: landscape) and (max-height: 550px) and (max-width: 1024px) {
+            /* 1. Main Layout: Remove bottom nav space, reserve right margin for right sidebar */
+            .main-layout {
+                flex-direction: row !important;
+                padding-top: 0 !important;
+                padding-bottom: env(safe-area-inset-bottom, 0px) !important;
+                padding-right: calc(64px + env(safe-area-inset-right, 0px)) !important;
+                padding-left: env(safe-area-inset-left, 0px) !important;
+                box-sizing: border-box !important;
+                width: 100% !important;
+                height: calc(100vh - 52px) !important;
+                height: calc(100dvh - 52px) !important;
+                overflow: hidden !important;
+            }
+
+            /* 2. Hide toggle button (sidebar is always visible on the right) */
+            .menu-btn {
+                display: none !important;
+            }
+
+            /* 3. Sidebar fixed to the RIGHT edge (cạnh phải) */
+            .sidebar {
+                display: flex !important;
+                position: fixed !important;
+                top: 52px !important;
+                bottom: 0 !important;
+                right: 0 !important;
+                left: auto !important;
+                width: calc(64px + env(safe-area-inset-right, 0px)) !important;
+                height: auto !important;
+                max-height: calc(100vh - 52px) !important;
+                max-height: calc(100dvh - 52px) !important;
+                background: rgba(24, 18, 30, 0.95) !important;
+                backdrop-filter: blur(20px) !important;
+                -webkit-backdrop-filter: blur(20px) !important;
+                border-left: 1px solid rgba(255, 180, 210, 0.25) !important;
+                border-top: none !important;
+                border-bottom: none !important;
+                border-right: none !important;
+                border-radius: 0 !important;
+                flex-direction: column !important;
+                justify-content: flex-start !important;
+                align-items: center !important;
+                padding: 8px 4px !important;
+                padding-right: calc(4px + env(safe-area-inset-right, 0px)) !important;
+                padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px)) !important;
+                gap: 4px !important;
+                z-index: 1000 !important;
+                box-shadow: -4px 0 24px rgba(0, 0, 0, 0.5) !important;
+                overflow-y: auto !important;
+                overflow-x: hidden !important;
+                margin: 0 !important;
+            }
+
+            /* Disable desktop expand-on-hover for sidebar in mobile landscape */
+            .sidebar.mini:hover {
+                width: calc(64px + env(safe-area-inset-right, 0px)) !important;
+                padding: 8px 4px !important;
+                box-shadow: -4px 0 24px rgba(0, 0, 0, 0.5) !important;
+            }
+
+            .sidebar.mini:hover .sidebar-item {
+                flex-direction: column !important;
+                font-size: 9px !important;
+                padding: 6px 2px !important;
+                justify-content: center !important;
+            }
+
+            /* 4. Sidebar items on the right edge */
+            .sidebar-item {
+                flex-direction: column !important;
+                align-items: center !important;
+                justify-content: center !important;
+                width: 56px !important;
+                min-width: 56px !important;
+                max-width: 56px !important;
+                height: auto !important;
+                padding: 6px 2px !important;
+                margin: 0 !important;
+                border-radius: 10px !important;
+                font-size: 9px !important;
+                font-weight: 500 !important;
+                gap: 2px !important;
+                background: transparent !important;
+                color: rgba(255, 255, 255, 0.6) !important;
+                position: relative !important;
+                flex-shrink: 0 !important;
+                transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+            }
+
+            .sidebar-item .material-symbols-outlined {
+                font-size: 20px !important;
+                transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+
+            .sidebar-item .sidebar-label {
+                font-size: 9px !important;
+                font-weight: 600 !important;
+                line-height: 1.1 !important;
+                text-align: center !important;
+                white-space: nowrap !important;
+                max-width: 52px !important;
+                overflow: hidden !important;
+                text-overflow: ellipsis !important;
+                display: block !important;
+            }
+
+            .sidebar-item:active {
+                transform: scale(0.92) !important;
+            }
+
+            .sidebar-item.active {
+                background: rgba(255, 117, 160, 0.16) !important;
+                border: 1px solid rgba(255, 117, 160, 0.35) !important;
+                color: #ffffff !important;
+                font-weight: 600 !important;
+            }
+
+            .sidebar-item.active .material-symbols-outlined {
+                color: var(--accent) !important;
+                font-variation-settings: 'FILL' 1;
+            }
+
+            /* Remove bottom bar top indicator from portrait */
+            .sidebar-item.active::after {
+                display: none !important;
+            }
+
+            /* Position badge on right sidebar item */
+            .sidebar-item .sidebar-msg-badge {
+                position: absolute !important;
+                top: 2px !important;
+                right: 6px !important;
+                font-size: 9px !important;
+                padding: 1px 5px !important;
+                line-height: 1.2 !important;
+                margin-left: 0 !important;
+            }
+
+            /* 5. 2-COLUMN SIDE-BY-SIDE: VIDEO LEFT + INFO RIGHT */
+            .left-column:not(.not-home) {
+                flex: 1 !important;
+                display: flex !important;
+                flex-direction: row !important;
+                align-items: stretch !important;
+                gap: 12px !important;
+                height: 100% !important;
+                min-height: 0 !important;
+                overflow: hidden !important;
+                padding: 8px 12px !important;
+                box-sizing: border-box !important;
+            }
+
+            /* Video player on the left */
+            .left-column:not(.not-home) .video-container {
+                flex: 0 0 52% !important;
+                width: 52% !important;
+                max-width: 52% !important;
+                height: auto !important;
+                aspect-ratio: 16 / 9 !important;
+                max-height: calc(100vh - 68px) !important;
+                max-height: calc(100dvh - 68px) !important;
+                padding-bottom: 0 !important;
+                border-radius: var(--radius-md) !important;
+                overflow: hidden !important;
+                background: #000 !important;
+                align-self: center !important;
+                position: relative !important;
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5) !important;
+                border: 1px solid rgba(255, 180, 210, 0.2) !important;
+            }
+
+            .left-column:not(.not-home) .video-container #youtube-player {
+                position: absolute !important;
+                top: 0 !important;
+                left: 0 !important;
+                width: 100% !important;
+                height: 100% !important;
+                border: none !important;
+            }
+
+            /* Video info on the right: full height, smoothly scrollable, NOT compressed into 30px */
+            .left-column:not(.not-home) .video-info {
+                flex: 1 !important;
+                min-width: 0 !important;
+                height: 100% !important;
+                max-height: calc(100vh - 68px) !important;
+                max-height: calc(100dvh - 68px) !important;
+                overflow-y: auto !important;
+                margin-top: 0 !important;
+                padding: 12px 14px 72px 14px !important;
+                border-radius: var(--radius-md) !important;
+                background: rgba(28, 24, 34, 0.82) !important;
+                backdrop-filter: blur(16px) !important;
+                -webkit-backdrop-filter: blur(16px) !important;
+                border: 1px solid rgba(255, 180, 210, 0.2) !important;
+                box-sizing: border-box !important;
+                -webkit-overflow-scrolling: touch !important;
+            }
+
+            .left-column:not(.not-home) .video-title {
+                font-size: 15px !important;
+                line-height: 1.3 !important;
+                margin: 0 0 8px 0 !important;
+                display: -webkit-box !important;
+                -webkit-line-clamp: 2 !important;
+                -webkit-box-orient: vertical !important;
+                overflow: hidden !important;
+            }
+
+            .left-column:not(.not-home) .channel-info {
+                margin-bottom: 10px !important;
+                gap: 8px !important;
+            }
+
+            .left-column:not(.not-home) .control-box {
+                padding: 10px 12px !important;
+                margin-top: 8px !important;
+            }
+
+            /* 6. Reposition Floating Action Button away from right sidebar */
+            .fab-menu-container {
+                bottom: calc(12px + env(safe-area-inset-bottom, 0px)) !important;
+                right: calc(76px + env(safe-area-inset-right, 0px)) !important;
+                z-index: 1100 !important;
+            }
+
+            /* 7. Mobile chat overlay stays within view before right sidebar */
+            .right-column {
+                right: calc(64px + env(safe-area-inset-right, 0px)) !important;
+            }
+
+            /* 8. Toggle collapse/expand buttons in mobile landscape */
+            .landscape-info-collapse-bar {
+                display: flex !important;
+                justify-content: flex-end !important;
+                margin-bottom: 6px !important;
+            }
+
+            .btn-landscape-collapse-info {
+                display: inline-flex !important;
+                align-items: center !important;
+                gap: 4px !important;
+                padding: 4px 10px !important;
+                border-radius: 14px !important;
+                background: rgba(255, 117, 160, 0.15) !important;
+                border: 1px solid rgba(255, 117, 160, 0.35) !important;
+                color: var(--text-main) !important;
+                font-size: 11px !important;
+                font-weight: 600 !important;
+                cursor: pointer !important;
+                transition: all 0.2s ease !important;
+            }
+
+            .btn-landscape-collapse-info:hover,
+            .btn-landscape-collapse-info:active {
+                background: var(--accent) !important;
+                color: #fff !important;
+            }
+
+            .btn-landscape-collapse-info .material-symbols-outlined {
+                font-size: 15px !important;
+                color: var(--accent) !important;
+            }
+
+            .btn-landscape-collapse-info:hover .material-symbols-outlined,
+            .btn-landscape-collapse-info:active .material-symbols-outlined {
+                color: #fff !important;
+            }
+
+            .btn-landscape-player-expand {
+                display: inline-flex !important;
+                position: absolute !important;
+                top: 8px !important;
+                right: 8px !important;
+                z-index: 100 !important;
+                align-items: center !important;
+                gap: 5px !important;
+                padding: 6px 12px !important;
+                border-radius: 20px !important;
+                background: rgba(24, 18, 30, 0.85) !important;
+                backdrop-filter: blur(12px) !important;
+                -webkit-backdrop-filter: blur(12px) !important;
+                border: 1px solid rgba(255, 180, 210, 0.35) !important;
+                color: #ffffff !important;
+                font-size: 11px !important;
+                font-weight: 600 !important;
+                cursor: pointer !important;
+                box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5) !important;
+                transition: all 0.2s ease !important;
+            }
+
+            .btn-landscape-player-expand:hover,
+            .btn-landscape-player-expand:active {
+                background: rgba(255, 117, 160, 0.3) !important;
+                border-color: var(--accent) !important;
+            }
+
+            .btn-landscape-player-expand .material-symbols-outlined {
+                font-size: 16px !important;
+                color: var(--accent) !important;
+            }
+
+            /* 9. When user collapses video info: video expands to 100% full width */
+            .left-column:not(.not-home).video-info-collapsed {
+                padding: 4px 8px !important;
+            }
+
+            .left-column:not(.not-home).video-info-collapsed .video-info {
+                display: none !important;
+            }
+
+            .left-column:not(.not-home).video-info-collapsed .video-container {
+                flex: 1 1 100% !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                height: 100% !important;
+                max-height: calc(100vh - 56px) !important;
+                max-height: calc(100dvh - 56px) !important;
+                align-self: center !important;
+                border-radius: var(--radius-md) !important;
+            }
+
+            /* 10. General other tabs (Messenger, History, Top...) take full height */
+            .messenger-column,
+            .history-column,
+            .top-column,
+            .feedback-column,
+            .quiz-admin-column {
+                height: 100% !important;
+                overflow-y: auto !important;
+                padding: 8px 12px 20px 12px !important;
+                box-sizing: border-box !important;
+            }
+        }
+
+        /* Base state: hide landscape-only expand buttons in normal desktop and mobile portrait */
+        .btn-landscape-player-expand,
+        .landscape-info-collapse-bar {
+            display: none !important;
         }
 
         /* Clean Transparent Background for Images, GIFs & Videos */
@@ -5854,12 +6274,12 @@
 
         .settings-preview-box .preview-badge {
             position: absolute;
-            bottom: 2px;
-            right: 2px;
+            bottom: 4px;
+            right: 4px;
             background: rgba(0, 0, 0, 0.7);
             color: #fff;
-            font-size: 16px;
-            padding: 1px 4px;
+            font-size: 11px;
+            padding: 2px 6px;
             border-radius: 4px;
             font-weight: 600;
             backdrop-filter: blur(4px);
@@ -5877,6 +6297,7 @@
             position: relative;
             display: flex;
             align-items: center;
+            width: 100%;
         }
 
         .settings-input-row .input-icon {
@@ -5889,15 +6310,16 @@
 
         .settings-input-row input {
             width: 100%;
-            padding: 7px 10px 7px 34px;
+            padding: 8px 10px 8px 34px;
             border-radius: var(--radius-sm);
             background: rgba(0, 0, 0, 0.25);
             border: 1px solid rgba(255, 255, 255, 0.12);
             color: var(--text-main);
-            font-size: 18px;
+            font-size: 14px;
             outline: none;
             font-family: var(--font-body);
             transition: all 0.18s ease;
+            box-sizing: border-box;
         }
 
         .settings-input-row input:focus {
@@ -5910,18 +6332,20 @@
             display: flex;
             gap: 8px;
             align-items: center;
+            width: 100%;
         }
 
         .settings-upload-btn {
             display: inline-flex;
             align-items: center;
+            justify-content: center;
             gap: 6px;
-            padding: 6px 12px;
+            padding: 8px 14px;
             border-radius: var(--radius-sm);
             background: rgba(255, 117, 160, 0.15);
             border: 1px solid rgba(255, 117, 160, 0.3);
             color: var(--text-main);
-            font-size: 12px;
+            font-size: 13px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.2s ease;
@@ -5936,22 +6360,24 @@
         }
 
         .settings-upload-btn .material-symbols-outlined {
-            font-size: 26px;
+            font-size: 20px;
         }
 
         .settings-reset-btn {
             display: inline-flex;
             align-items: center;
+            justify-content: center;
             gap: 6px;
-            padding: 6px 12px;
+            padding: 8px 12px;
             border-radius: var(--radius-sm);
             background: rgba(255, 117, 160, 0.15);
             border: 1px solid rgba(255, 117, 160, 0.3);
             color: var(--text-main);
-            font-size: 12px;
+            font-size: 13px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.2s ease;
+            flex-shrink: 0;
         }
 
         .settings-reset-btn:hover {
@@ -5960,7 +6386,7 @@
         }
 
         .settings-reset-btn .material-symbols-outlined {
-            font-size: 26px;
+            font-size: 20px;
         }
 
         .settings-btn-save {
@@ -5972,7 +6398,7 @@
             background: var(--accent);
             color: #ffffff;
             font-weight: 700;
-            font-size: 15px;
+            font-size: 14px;
             border: none;
             cursor: pointer;
             transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -5990,7 +6416,7 @@
             background: rgba(255, 255, 255, 0.08);
             border: 1px solid rgba(255, 255, 255, 0.12);
             color: var(--text-muted);
-            font-size: 15px;
+            font-size: 14px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.18s ease;
@@ -6010,7 +6436,7 @@
             background: transparent;
             border: 1px solid rgba(255, 180, 210, 0.2);
             color: var(--text-muted);
-            font-size: 15px;
+            font-size: 13px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.18s ease;
@@ -6020,6 +6446,100 @@
             background: rgba(255, 255, 255, 0.08);
             color: #ffffff;
             border-color: rgba(255, 180, 210, 0.4);
+        }
+
+        /* Responsive Mobile Settings Modal (<= 650px) */
+        @media (max-width: 650px) {
+            .settings-modal-container {
+                width: 95% !important;
+                max-width: 95% !important;
+                padding: 16px 12px !important;
+                max-height: 90vh !important;
+                max-height: 90dvh !important;
+                border-radius: 16px !important;
+            }
+
+            .settings-section-card {
+                padding: 12px !important;
+                gap: 10px !important;
+                border-radius: 12px !important;
+            }
+
+            .settings-section-title {
+                font-size: 16px !important;
+            }
+
+            .settings-preview-row {
+                flex-direction: column !important;
+                align-items: stretch !important;
+                gap: 10px !important;
+            }
+
+            .settings-preview-box {
+                width: 100% !important;
+                height: 110px !important;
+                border-radius: 10px !important;
+            }
+
+            .settings-input-group {
+                width: 100% !important;
+                gap: 8px !important;
+            }
+
+            .settings-input-row {
+                width: 100% !important;
+            }
+
+            .settings-input-row input {
+                width: 100% !important;
+                font-size: 13px !important;
+                padding: 8px 10px 8px 32px !important;
+            }
+
+            .settings-upload-row {
+                width: 100% !important;
+                display: flex !important;
+                gap: 8px !important;
+            }
+
+            .settings-upload-btn {
+                flex: 1 !important;
+                justify-content: center !important;
+                padding: 8px 10px !important;
+                font-size: 13px !important;
+            }
+
+            .settings-upload-btn span {
+                font-size: 13px !important;
+            }
+
+            .settings-reset-btn {
+                flex-shrink: 0 !important;
+                padding: 8px 14px !important;
+                justify-content: center !important;
+            }
+
+            .settings-modal-footer {
+                flex-wrap: wrap !important;
+                gap: 8px !important;
+                justify-content: space-between !important;
+            }
+
+            .settings-modal-footer .settings-btn-secondary {
+                font-size: 12px !important;
+                padding: 7px 10px !important;
+            }
+
+            .settings-modal-footer .settings-btn-save,
+            .settings-modal-footer .settings-btn-cancel {
+                font-size: 13px !important;
+                padding: 7px 12px !important;
+            }
+
+            .top-tab-preset-btn {
+                padding: 6px 10px !important;
+                font-size: 12px !important;
+            }
         }
 
         /* --- PICTURE QUIZ STYLES --- */

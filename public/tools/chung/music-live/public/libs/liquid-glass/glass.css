@@ -1,0 +1,1122 @@
+/* =========================================================
+   🍎 Liquid Glass JS - Apple-Inspired Glass Effects
+   Adapted from dashersw/liquid-glass-js with Production Enhancements
+   ========================================================= */
+
+/* Glass Container Styles */
+.glass-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 10px;
+  box-sizing: border-box;
+  isolation: isolate;
+}
+
+.glass-container-circle {
+  aspect-ratio: 1 / 1;
+  flex-shrink: 0;
+  flex-grow: 0;
+}
+
+.glass-container-pill {
+  flex-shrink: 0;
+  flex-grow: 0;
+}
+
+/* Glass Button Styles */
+.glass-button,
+.liquid-glass-btn {
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-sizing: border-box;
+  cursor: pointer;
+  pointer-events: auto;
+  flex-shrink: 0;
+  text-decoration: none;
+  border: 1px solid rgba(255, 255, 255, 0.28) !important;
+  outline: none;
+  font-family: inherit;
+  color: #ffffff !important;
+  
+  /* Apple Vision Pro Liquid Glass Surface */
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0.06) 100%) !important;
+  backdrop-filter: blur(24px) saturate(190%) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(190%) !important;
+  
+  /* Specular Highlight Rim & Dynamic Ambient Shadow */
+  box-shadow: 
+    0 8px 24px rgba(0, 0, 0, 0.28),
+    inset 0 1px 1.5px rgba(255, 255, 255, 0.55),
+    inset 0 -1px 1px rgba(0, 0, 0, 0.15) !important;
+    
+  transition: 
+    transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1),
+    background 0.25s ease,
+    border-color 0.25s ease,
+    box-shadow 0.25s ease,
+    opacity 0.2s ease;
+  user-select: none;
+  -webkit-user-select: none;
+  overflow: hidden;
+}
+
+/* Ensure no opaque WebGL canvas covers the glass surface */
+.glass-button > canvas.glass-canvas,
+.liquid-glass-btn > canvas.glass-canvas {
+  display: none !important;
+}
+
+/* Interactive Cursor Specular Sheen (follows mouse across curved glass) */
+.glass-button::after,
+.liquid-glass-btn::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: inherit;
+  background: radial-gradient(circle 80px at var(--glass-x, 50%) var(--glass-y, 50%), rgba(255, 255, 255, 0.4) 0%, transparent 80%);
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.glass-button:hover::after,
+.liquid-glass-btn:hover::after {
+  opacity: 1;
+}
+
+/* Content inside the button stays on top */
+.glass-button > *:not(.glass-canvas),
+.liquid-glass-btn > *:not(.glass-canvas) {
+  position: relative;
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* Button Shape Variants */
+.glass-button-pill,
+.liquid-glass-btn.pill-btn {
+  border-radius: 9999px !important;
+}
+
+.glass-button-circle,
+.liquid-glass-btn.circle-btn {
+  border-radius: 50% !important;
+  aspect-ratio: 1 / 1;
+  padding: 0 !important;
+}
+
+.glass-button-rounded,
+.liquid-glass-btn.rounded-btn {
+  border-radius: 14px !important;
+}
+
+/* Hover State - Gloss reflection & subtle elevation */
+.glass-button:hover,
+.liquid-glass-btn:hover {
+  transform: translateY(-2px) scale(1.03);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.32) 0%, rgba(255, 255, 255, 0.12) 100%) !important;
+  border-color: rgba(255, 255, 255, 0.5) !important;
+  box-shadow: 
+    0 12px 30px rgba(0, 0, 0, 0.32),
+    0 0 18px rgba(255, 255, 255, 0.25),
+    inset 0 1px 2px rgba(255, 255, 255, 0.75),
+    inset 0 -1px 1px rgba(0, 0, 0, 0.1) !important;
+  color: #ffffff !important;
+}
+
+/* Active State - Pressed glass depression */
+.glass-button:active,
+.liquid-glass-btn:active {
+  transform: translateY(1px) scale(0.97);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.04) 100%) !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
+  box-shadow: 
+    0 4px 12px rgba(0, 0, 0, 0.22),
+    inset 0 2px 4px rgba(0, 0, 0, 0.25),
+    inset 0 1px 1px rgba(255, 255, 255, 0.35) !important;
+}
+
+/* Focused Accessible Outline */
+.glass-button:focus-visible,
+.liquid-glass-btn:focus-visible {
+  outline: 2px solid var(--accent, #3ea6ff);
+  outline-offset: 2px;
+}
+
+/* Standalone Button Text helper */
+.glass-button-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1;
+  pointer-events: none;
+  font-weight: 600;
+  color: white;
+  font-family: system-ui, -apple-system, sans-serif;
+  white-space: nowrap;
+}
+
+/* Game Buttons Group Container */
+.game-buttons-group {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.game-btn-icon {
+  font-size: 15px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* =========================================================
+   Sidebar Liquid Glass Buttons
+   ========================================================= */
+/* Desktop Sidebar (>= 900px) */
+@media (min-width: 900px) {
+  .sidebar-item.liquid-glass-btn {
+    width: 100%;
+    box-sizing: border-box;
+    justify-content: flex-start !important;
+    padding: 12px 16px !important;
+    border-radius: 14px !important;
+    margin-bottom: 6px !important;
+    color: #ffffff !important;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0.04) 100%) !important;
+    backdrop-filter: blur(20px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.22) !important;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18), inset 0 1px 1.5px rgba(255, 255, 255, 0.45) !important;
+    transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
+  }
+
+  .sidebar-item.liquid-glass-btn:hover {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.26) 0%, rgba(255, 255, 255, 0.08) 100%) !important;
+    border-color: rgba(255, 255, 255, 0.45) !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28), 0 0 16px rgba(255, 117, 160, 0.25), inset 0 1px 1.5px rgba(255, 255, 255, 0.6) !important;
+    transform: translateX(4px) scale(1.02) !important;
+    color: #ffffff !important;
+  }
+
+  .sidebar-item.liquid-glass-btn.active {
+    background: linear-gradient(135deg, rgba(255, 117, 160, 0.45) 0%, rgba(255, 117, 160, 0.2) 100%) !important;
+    border: 1px solid rgba(255, 180, 210, 0.7) !important;
+    color: #ffffff !important;
+    font-weight: 700 !important;
+    box-shadow: 0 8px 26px rgba(255, 117, 160, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.8) !important;
+  }
+
+  .sidebar-item.liquid-glass-btn.active .material-symbols-outlined {
+    color: #ffffff !important;
+    transform: scale(1.12);
+    font-variation-settings: 'FILL' 1;
+  }
+
+  /* Sidebar Mini Liquid Glass */
+  .sidebar.mini .sidebar-item.liquid-glass-btn {
+    justify-content: center !important;
+    padding: 12px 0 !important;
+    border-radius: 12px !important;
+  }
+
+  .sidebar.mini:hover .sidebar-item.liquid-glass-btn {
+    justify-content: flex-start !important;
+    padding: 12px 16px !important;
+  }
+}
+
+/* Mobile Portrait Bottom Navigation (< 900px) */
+@media (max-width: 899px) {
+  .sidebar-item.liquid-glass-btn,
+  .sidebar.mini .sidebar-item.liquid-glass-btn {
+    width: auto !important;
+    min-width: 46px !important;
+    max-width: 68px !important;
+    flex: 1 1 0 !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    align-items: center !important;
+    padding: 6px 2px !important;
+    margin: 0 !important;
+    border-radius: 14px !important;
+    background: transparent !important;
+    border: 1px solid transparent !important;
+    box-shadow: none !important;
+    transform: none !important;
+    color: rgba(255, 255, 255, 0.7) !important;
+  }
+
+  .sidebar-item.liquid-glass-btn:hover {
+    background: rgba(255, 255, 255, 0.1) !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+    transform: none !important;
+  }
+
+  .sidebar-item.liquid-glass-btn.active,
+  .sidebar.mini .sidebar-item.liquid-glass-btn.active {
+    background: linear-gradient(135deg, rgba(255, 117, 160, 0.42) 0%, rgba(255, 117, 160, 0.18) 100%) !important;
+    border: 1px solid rgba(255, 180, 210, 0.6) !important;
+    box-shadow: 0 4px 16px rgba(255, 117, 160, 0.35), inset 0 1px 1.5px rgba(255, 255, 255, 0.6) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    color: #ffffff !important;
+  }
+
+  .sidebar-item.liquid-glass-btn.active .material-symbols-outlined {
+    color: #ffffff !important;
+    font-variation-settings: 'FILL' 1;
+  }
+
+  .sidebar-item .sidebar-label,
+  .sidebar.mini .sidebar-item .sidebar-label {
+    display: block !important;
+    font-size: 9.5px !important;
+    font-weight: 600 !important;
+    line-height: 1.1 !important;
+    text-align: center !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    max-width: 100% !important;
+  }
+}
+
+/* Mobile Landscape Right Sidebar */
+@media (orientation: landscape) and (max-height: 550px) and (max-width: 1024px) {
+  .sidebar-item.liquid-glass-btn {
+    width: 56px !important;
+    min-width: 56px !important;
+    max-width: 56px !important;
+    height: auto !important;
+    flex-direction: column !important;
+    padding: 6px 2px !important;
+    margin: 0 !important;
+    border-radius: 10px !important;
+    justify-content: center !important;
+    align-items: center !important;
+  }
+}
+
+/* Top Navbar Liquid Glass Circle Buttons - Common Styling */
+.settings-btn.liquid-glass-btn,
+.navbar-messenger-btn.liquid-glass-btn,
+.logout-btn.liquid-glass-btn,
+.mobile-search-trigger-btn.liquid-glass-btn {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.06) 100%) !important;
+  backdrop-filter: blur(20px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.28) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.22), inset 0 1px 1.5px rgba(255, 255, 255, 0.5) !important;
+  color: #ffffff !important;
+  border-radius: 50% !important;
+  width: 40px !important;
+  height: 40px !important;
+  min-width: 40px !important;
+  min-height: 40px !important;
+  padding: 0 !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
+}
+
+/* Header buttons always visible */
+.settings-btn.liquid-glass-btn,
+.navbar-messenger-btn.liquid-glass-btn,
+.logout-btn.liquid-glass-btn {
+  display: inline-flex !important;
+}
+
+/* Visibility Control: Mobile Search Icon Button (Never on desktop, only on mobile <= 899px) */
+.mobile-search-trigger-btn,
+.mobile-search-trigger-btn.liquid-glass-btn,
+.mobile-search-trigger-btn.liquid-glass-btn.circle-btn {
+  display: none !important;
+}
+
+@media (max-width: 899px) {
+  .mobile-search-trigger-btn,
+  .mobile-search-trigger-btn.liquid-glass-btn,
+  .mobile-search-trigger-btn.liquid-glass-btn.circle-btn {
+    display: inline-flex !important;
+  }
+}
+
+.settings-btn.liquid-glass-btn:hover,
+.navbar-messenger-btn.liquid-glass-btn:hover,
+.mobile-search-trigger-btn.liquid-glass-btn:hover {
+  background: linear-gradient(135deg, rgba(255, 117, 160, 0.4) 0%, rgba(255, 117, 160, 0.16) 100%) !important;
+  border-color: rgba(255, 180, 210, 0.7) !important;
+  box-shadow: 0 6px 20px rgba(255, 117, 160, 0.35), inset 0 1px 2px rgba(255, 255, 255, 0.75) !important;
+  transform: translateY(-2px) scale(1.08) !important;
+  color: #ffffff !important;
+}
+
+.logout-btn.liquid-glass-btn:hover {
+  background: linear-gradient(135deg, rgba(255, 71, 87, 0.45) 0%, rgba(255, 71, 87, 0.2) 100%) !important;
+  border-color: rgba(255, 110, 125, 0.7) !important;
+  box-shadow: 0 6px 20px rgba(255, 71, 87, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.75) !important;
+  transform: translateY(-2px) scale(1.08) !important;
+  color: #ffffff !important;
+}
+
+/* Visibility Control: Landscape-Only Video Expand Button (Never on desktop or portrait) */
+.btn-landscape-player-expand,
+.landscape-info-collapse-bar {
+  display: none !important;
+}
+
+@media (orientation: landscape) and (max-height: 550px) and (max-width: 1024px) {
+  .btn-landscape-player-expand {
+    display: inline-flex !important;
+  }
+  .landscape-info-collapse-bar {
+    display: flex !important;
+  }
+}
+
+/* =========================================================
+   Apple Vision Pro Liquid Glass Surfaces for All Modals & Games
+   (Settings, Games, Auth, Pickers, Lightbox, Overlays)
+   ========================================================= */
+
+/* Backdrop Overlays with Frosted Liquid Glass */
+.draw-overlay,
+.login-overlay,
+.image-lightbox-modal {
+  background: rgba(10, 8, 18, 0.48) !important;
+  backdrop-filter: blur(20px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+}
+
+.settings-modal-container,
+.draw-container,
+.challenge-modal-container,
+.login-card,
+.picker-overlay,
+.messenger-emoji-picker,
+.quiz-modal-container {
+  background: linear-gradient(135deg, rgba(32, 26, 44, 0.72) 0%, rgba(18, 14, 28, 0.8) 100%) !important;
+  backdrop-filter: blur(36px) saturate(210%) brightness(1.08) !important;
+  -webkit-backdrop-filter: blur(36px) saturate(210%) brightness(1.08) !important;
+  border: 1px solid rgba(255, 255, 255, 0.28) !important;
+  box-shadow: 
+    0 24px 64px rgba(0, 0, 0, 0.55), 
+    0 0 32px rgba(255, 117, 160, 0.2),
+    inset 0 1.5px 2px rgba(255, 255, 255, 0.55),
+    inset 0 -1px 2px rgba(0, 0, 0, 0.2) !important;
+  border-radius: 24px !important;
+}
+
+.settings-section-card {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18), inset 0 1px 1px rgba(255, 255, 255, 0.25) !important;
+  transition: all 0.22s ease;
+}
+
+.settings-section-card:hover {
+  border-color: rgba(255, 255, 255, 0.32) !important;
+  box-shadow: 0 8px 26px rgba(0, 0, 0, 0.24), inset 0 1px 1.5px rgba(255, 255, 255, 0.4) !important;
+}
+
+.settings-input-row input {
+  background: rgba(0, 0, 0, 0.32) !important;
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
+  border-radius: 12px !important;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.4), inset 0 -1px 1px rgba(255, 255, 255, 0.05) !important;
+  color: #ffffff !important;
+}
+
+.settings-input-row input:focus {
+  border-color: rgba(255, 117, 160, 0.6) !important;
+  background: rgba(0, 0, 0, 0.45) !important;
+  box-shadow: 0 0 14px rgba(255, 117, 160, 0.3), inset 0 1px 2px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* Auth Tabs & Modal Tabs in Profile/Security */
+.auth-tab {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.03) 100%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border-radius: 9999px !important;
+  color: var(--text-muted) !important;
+  padding: 9px 18px !important;
+  font-weight: 600 !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15), inset 0 1px 1px rgba(255, 255, 255, 0.25) !important;
+  transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
+  cursor: pointer;
+}
+
+.auth-tab:hover {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.06) 100%) !important;
+  border-color: rgba(255, 255, 255, 0.35) !important;
+  color: #ffffff !important;
+  transform: translateY(-1px) scale(1.02) !important;
+}
+
+.auth-tab.active {
+  background: linear-gradient(135deg, rgba(255, 117, 160, 0.4) 0%, rgba(255, 117, 160, 0.18) 100%) !important;
+  border-color: rgba(255, 180, 210, 0.6) !important;
+  color: #ffffff !important;
+  box-shadow: 0 6px 18px rgba(255, 117, 160, 0.35), inset 0 1px 2px rgba(255, 255, 255, 0.6) !important;
+}
+
+/* Preset pills in Giao diện */
+.top-tab-preset-btn {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.03) 100%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border-radius: 9999px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15), inset 0 1px 1px rgba(255, 255, 255, 0.25) !important;
+}
+
+.top-tab-preset-btn:hover {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.06) 100%) !important;
+  border-color: rgba(255, 255, 255, 0.35) !important;
+  color: #ffffff !important;
+  transform: translateY(-1px) scale(1.02) !important;
+}
+
+.top-tab-preset-btn.active {
+  background: linear-gradient(135deg, rgba(255, 117, 160, 0.45) 0%, rgba(255, 117, 160, 0.2) 100%) !important;
+  border-color: rgba(255, 180, 210, 0.6) !important;
+  color: #ffffff !important;
+  box-shadow: 0 6px 18px rgba(255, 117, 160, 0.35), inset 0 1px 2px rgba(255, 255, 255, 0.6) !important;
+}
+
+/* Upload, Reset & Action buttons in Settings */
+.settings-upload-btn {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0.04) 100%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.22) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border-radius: 9999px !important;
+  padding: 8px 16px !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18), inset 0 1px 1px rgba(255, 255, 255, 0.35) !important;
+}
+
+.settings-upload-btn:hover {
+  background: linear-gradient(135deg, rgba(255, 117, 160, 0.32) 0%, rgba(255, 117, 160, 0.12) 100%) !important;
+  border-color: rgba(255, 180, 210, 0.5) !important;
+  color: #ffffff !important;
+  transform: translateY(-2px) scale(1.03) !important;
+}
+
+.settings-reset-btn {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.04) 100%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border-radius: 50% !important;
+  width: 36px !important;
+  height: 36px !important;
+  padding: 0 !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.3) !important;
+}
+
+.settings-reset-btn:hover {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.24) 0%, rgba(255, 255, 255, 0.08) 100%) !important;
+  border-color: rgba(255, 255, 255, 0.4) !important;
+  transform: translateY(-1px) scale(1.05) !important;
+}
+
+.settings-close-btn {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.04) 100%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border-radius: 50% !important;
+  width: 36px !important;
+  height: 36px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.3) !important;
+}
+
+.settings-close-btn:hover {
+  background: linear-gradient(135deg, rgba(255, 71, 87, 0.35) 0%, rgba(255, 71, 87, 0.15) 100%) !important;
+  border-color: rgba(255, 71, 87, 0.5) !important;
+  color: #ff6b6b !important;
+  transform: scale(1.08) !important;
+}
+
+.settings-btn-save {
+  background: linear-gradient(135deg, rgba(255, 117, 160, 0.5) 0%, rgba(255, 117, 160, 0.25) 100%) !important;
+  border: 1px solid rgba(255, 180, 210, 0.6) !important;
+  backdrop-filter: blur(16px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
+  border-radius: 9999px !important;
+  padding: 9px 22px !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  box-shadow: 0 6px 20px rgba(255, 117, 160, 0.35), inset 0 1px 2px rgba(255, 255, 255, 0.7) !important;
+}
+
+.settings-btn-save:hover {
+  transform: translateY(-2px) scale(1.03) !important;
+  background: linear-gradient(135deg, rgba(255, 117, 160, 0.65) 0%, rgba(255, 117, 160, 0.35) 100%) !important;
+  border-color: rgba(255, 220, 235, 0.8) !important;
+  box-shadow: 0 10px 28px rgba(255, 117, 160, 0.45), 0 0 16px rgba(255, 117, 160, 0.3), inset 0 1px 2px rgba(255, 255, 255, 0.85) !important;
+}
+
+.settings-btn-cancel {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.04) 100%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border-radius: 9999px !important;
+  padding: 9px 20px !important;
+  color: var(--text-muted) !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15), inset 0 1px 1px rgba(255, 255, 255, 0.25) !important;
+}
+
+.settings-btn-cancel:hover {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0.07) 100%) !important;
+  border-color: rgba(255, 255, 255, 0.35) !important;
+  color: #ffffff !important;
+  transform: translateY(-1px) scale(1.02) !important;
+}
+
+.settings-btn-secondary {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.03) 100%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border-radius: 9999px !important;
+  padding: 9px 18px !important;
+  color: var(--text-main) !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15), inset 0 1px 1px rgba(255, 255, 255, 0.25) !important;
+}
+
+.settings-btn-secondary:hover {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.06) 100%) !important;
+  border-color: rgba(255, 255, 255, 0.35) !important;
+  color: #ffffff !important;
+  transform: translateY(-1px) scale(1.02) !important;
+}
+
+.avatar-upload-badge.liquid-glass-btn {
+  background: linear-gradient(135deg, rgba(255, 117, 160, 0.75) 0%, rgba(255, 117, 160, 0.4) 100%) !important;
+  border: 1px solid rgba(255, 200, 220, 0.7) !important;
+  backdrop-filter: blur(14px) !important;
+  -webkit-backdrop-filter: blur(14px) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35), inset 0 1px 1.5px rgba(255, 255, 255, 0.6) !important;
+  transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
+}
+
+.avatar-upload-badge.liquid-glass-btn:hover {
+  transform: scale(1.12) !important;
+  background: linear-gradient(135deg, rgba(255, 117, 160, 0.95) 0%, rgba(255, 117, 160, 0.6) 100%) !important;
+  box-shadow: 0 6px 18px rgba(255, 117, 160, 0.5), inset 0 1px 2px rgba(255, 255, 255, 0.8) !important;
+}
+
+.quick-lock-card {
+  backdrop-filter: blur(14px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(14px) saturate(180%) !important;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18), inset 0 1px 1px rgba(255, 255, 255, 0.25) !important;
+}
+
+.quick-lock-card:hover {
+  background: linear-gradient(135deg, rgba(255, 117, 160, 0.18) 0%, rgba(255, 117, 160, 0.06) 100%) !important;
+  border-color: rgba(255, 180, 210, 0.45) !important;
+  transform: translateY(-2px) scale(1.02) !important;
+  box-shadow: 0 6px 18px rgba(255, 117, 160, 0.25), inset 0 1px 1.5px rgba(255, 255, 255, 0.4) !important;
+}
+
+.quick-lock-card.active {
+  background: linear-gradient(135deg, rgba(255, 117, 160, 0.4) 0%, rgba(123, 97, 255, 0.3) 100%) !important;
+  border-color: rgba(255, 180, 210, 0.65) !important;
+  box-shadow: 0 8px 24px rgba(255, 117, 160, 0.35), inset 0 1px 2px rgba(255, 255, 255, 0.6) !important;
+}
+
+/* =========================================================
+   Game Challenge Modals & Action Buttons
+   ========================================================= */
+.challenge-modal-container {
+  overflow: hidden !important;
+}
+
+.challenge-modal-container > div:first-child {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12) !important;
+  backdrop-filter: blur(14px) !important;
+  -webkit-backdrop-filter: blur(14px) !important;
+}
+
+.challenge-btn {
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 24px !important;
+  border-radius: 9999px !important;
+  font-weight: 700 !important;
+  font-size: 14.5px !important;
+  cursor: pointer !important;
+  text-decoration: none !important;
+  border: 1px solid rgba(255, 255, 255, 0.22) !important;
+  backdrop-filter: blur(16px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
+  transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
+  user-select: none;
+}
+
+.challenge-btn.decline-btn {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.04) 100%) !important;
+  color: var(--text-muted) !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.25) !important;
+}
+
+.challenge-btn.decline-btn:hover {
+  background: linear-gradient(135deg, rgba(255, 71, 87, 0.35) 0%, rgba(255, 71, 87, 0.12) 100%) !important;
+  border-color: rgba(255, 71, 87, 0.55) !important;
+  color: #ff6b6b !important;
+  transform: translateY(-2px) scale(1.03) !important;
+  box-shadow: 0 8px 24px rgba(255, 71, 87, 0.25), inset 0 1px 1.5px rgba(255, 255, 255, 0.45) !important;
+}
+
+.challenge-btn.accept-btn {
+  background: linear-gradient(135deg, rgba(255, 117, 160, 0.5) 0%, rgba(255, 117, 160, 0.22) 100%) !important;
+  border-color: rgba(255, 180, 210, 0.6) !important;
+  color: #ffffff !important;
+  box-shadow: 0 6px 20px rgba(255, 117, 160, 0.35), inset 0 1px 2px rgba(255, 255, 255, 0.7) !important;
+}
+
+.challenge-btn.accept-btn:hover {
+  background: linear-gradient(135deg, rgba(255, 117, 160, 0.72) 0%, rgba(255, 117, 160, 0.38) 100%) !important;
+  border-color: rgba(255, 220, 235, 0.85) !important;
+  transform: translateY(-2px) scale(1.04) !important;
+  box-shadow: 0 10px 28px rgba(255, 117, 160, 0.45), 0 0 18px rgba(255, 117, 160, 0.35), inset 0 1px 2px rgba(255, 255, 255, 0.85) !important;
+}
+
+/* =========================================================
+   All Game Action Buttons (Caro, Chess, Xiangqi, Uno, Quiz)
+   ========================================================= */
+.caro-btn {
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 9px 20px !important;
+  border-radius: 9999px !important;
+  font-weight: 700 !important;
+  font-size: 14px !important;
+  cursor: pointer;
+  border: 1px solid rgba(255, 255, 255, 0.25) !important;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0.05) 100%) !important;
+  backdrop-filter: blur(16px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25), inset 0 1px 1.5px rgba(255, 255, 255, 0.45) !important;
+  color: #ffffff !important;
+  transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
+  user-select: none;
+}
+
+.caro-btn:hover {
+  transform: translateY(-2px) scale(1.03) !important;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.28) 0%, rgba(255, 255, 255, 0.09) 100%) !important;
+  border-color: rgba(255, 255, 255, 0.45) !important;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.32), 0 0 16px rgba(255, 255, 255, 0.2), inset 0 1px 2px rgba(255, 255, 255, 0.65) !important;
+  color: #ffffff !important;
+}
+
+.caro-btn:active {
+  transform: translateY(1px) scale(0.97) !important;
+}
+
+/* Modal & Game Header Close Buttons */
+.draw-close-btn,
+.draw-header button:not(.draw-admin-btn),
+.close-btn {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.04) 100%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border-radius: 50% !important;
+  width: 36px !important;
+  height: 36px !important;
+  padding: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.3) !important;
+  transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
+  cursor: pointer;
+}
+
+.draw-close-btn:hover,
+.draw-header button:not(.draw-admin-btn):hover,
+.close-btn:hover {
+  background: linear-gradient(135deg, rgba(255, 71, 87, 0.35) 0%, rgba(255, 71, 87, 0.15) 100%) !important;
+  border-color: rgba(255, 71, 87, 0.5) !important;
+  color: #ff6b6b !important;
+  transform: scale(1.08) !important;
+}
+
+/* =========================================================
+   Draw & Guess Game Liquid Glass Controls
+   ========================================================= */
+.draw-admin-btn {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.04) 100%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border-radius: 9999px !important;
+  padding: 6px 14px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15), inset 0 1px 1px rgba(255, 255, 255, 0.25) !important;
+  transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
+  color: #ffffff !important;
+}
+
+.draw-admin-btn:hover {
+  transform: translateY(-1px) scale(1.03) !important;
+  border-color: rgba(255, 255, 255, 0.4) !important;
+}
+
+.draw-admin-btn.end:hover {
+  background: linear-gradient(135deg, rgba(255, 71, 87, 0.4) 0%, rgba(255, 71, 87, 0.15) 100%) !important;
+  border-color: rgba(255, 71, 87, 0.6) !important;
+  color: #ff6b6b !important;
+}
+
+.draw-random-btn {
+  background: linear-gradient(135deg, rgba(255, 117, 160, 0.45) 0%, rgba(255, 117, 160, 0.2) 100%) !important;
+  border: 1px solid rgba(255, 180, 210, 0.6) !important;
+  backdrop-filter: blur(14px) !important;
+  -webkit-backdrop-filter: blur(14px) !important;
+  border-radius: 9999px !important;
+  padding: 10px 24px !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  box-shadow: 0 6px 20px rgba(255, 117, 160, 0.35), inset 0 1px 2px rgba(255, 255, 255, 0.6) !important;
+  transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
+  cursor: pointer;
+}
+
+.draw-random-btn:hover {
+  transform: translateY(-2px) scale(1.04) !important;
+  background: linear-gradient(135deg, rgba(255, 117, 160, 0.65) 0%, rgba(255, 117, 160, 0.32) 100%) !important;
+  box-shadow: 0 10px 28px rgba(255, 117, 160, 0.45), inset 0 1px 2px rgba(255, 255, 255, 0.8) !important;
+}
+
+.draw-tool-btn {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.03) 100%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border-radius: 12px !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15), inset 0 1px 1px rgba(255, 255, 255, 0.2) !important;
+  transition: all 0.2s ease !important;
+  cursor: pointer;
+}
+
+.draw-tool-btn:hover {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0.07) 100%) !important;
+  border-color: rgba(255, 255, 255, 0.35) !important;
+  transform: translateY(-1px) scale(1.04) !important;
+}
+
+.draw-tool-btn.active {
+  background: linear-gradient(135deg, rgba(255, 117, 160, 0.4) 0%, rgba(255, 117, 160, 0.15) 100%) !important;
+  border-color: rgba(255, 180, 210, 0.6) !important;
+  box-shadow: 0 4px 14px rgba(255, 117, 160, 0.3), inset 0 1px 1.5px rgba(255, 255, 255, 0.5) !important;
+}
+
+.draw-guess-btn {
+  background: linear-gradient(135deg, rgba(255, 117, 160, 0.55) 0%, rgba(255, 117, 160, 0.25) 100%) !important;
+  border: 1px solid rgba(255, 180, 210, 0.6) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border-radius: 9999px !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  box-shadow: 0 4px 14px rgba(255, 117, 160, 0.35), inset 0 1px 1.5px rgba(255, 255, 255, 0.6) !important;
+  transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
+  cursor: pointer;
+}
+
+.draw-guess-btn:hover {
+  transform: scale(1.05) !important;
+  background: linear-gradient(135deg, rgba(255, 117, 160, 0.75) 0%, rgba(255, 117, 160, 0.38) 100%) !important;
+  box-shadow: 0 6px 20px rgba(255, 117, 160, 0.45), inset 0 1px 2px rgba(255, 255, 255, 0.8) !important;
+}
+
+.draw-timer-badge {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.04) 100%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border-radius: 9999px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15), inset 0 1px 1px rgba(255, 255, 255, 0.25) !important;
+}
+
+/* =========================================================
+   Uno Game Liquid Glass
+   ========================================================= */
+#uno-deck,
+#uno-pass,
+#uno-discard {
+  backdrop-filter: blur(16px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.35) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), inset 0 1.5px 2px rgba(255, 255, 255, 0.5) !important;
+  border-radius: 14px !important;
+  transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
+}
+
+#uno-deck:hover,
+#uno-pass:hover {
+  transform: translateY(-4px) scale(1.05) !important;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5), 0 0 16px rgba(255, 255, 255, 0.2), inset 0 1.5px 2px rgba(255, 255, 255, 0.7) !important;
+  border-color: rgba(255, 255, 255, 0.6) !important;
+}
+
+/* =========================================================
+   Picture Quiz Liquid Glass
+   ========================================================= */
+.quiz-pack-card {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
+  backdrop-filter: blur(16px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
+  border-radius: 18px !important;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2), inset 0 1px 1.5px rgba(255, 255, 255, 0.3) !important;
+  transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
+}
+
+.quiz-pack-card:hover {
+  transform: translateY(-3px) scale(1.02) !important;
+  background: linear-gradient(135deg, rgba(255, 117, 160, 0.16) 0%, rgba(255, 117, 160, 0.04) 100%) !important;
+  border-color: rgba(255, 180, 210, 0.5) !important;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.3), 0 0 18px rgba(255, 117, 160, 0.2), inset 0 1.5px 2px rgba(255, 255, 255, 0.5) !important;
+}
+
+.quiz-kahoot-opt {
+  position: relative;
+  backdrop-filter: blur(16px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.3) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3), inset 0 1.5px 2px rgba(255, 255, 255, 0.5) !important;
+  transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
+}
+
+.quiz-kahoot-opt:hover {
+  transform: translateY(-2px) scale(1.02) !important;
+  border-color: rgba(255, 255, 255, 0.6) !important;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4), inset 0 1.5px 2px rgba(255, 255, 255, 0.75) !important;
+}
+
+.quiz-kahoot-opt:active {
+  transform: translateY(1px) scale(0.98) !important;
+}
+
+/* =========================================================
+   Login, Signup & Security Form Glass Controls
+   ========================================================= */
+.login-btn {
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 24px !important;
+  border-radius: 9999px !important;
+  font-weight: 700 !important;
+  font-size: 15px !important;
+  cursor: pointer !important;
+  border: 1px solid rgba(255, 180, 210, 0.6) !important;
+  background: linear-gradient(135deg, rgba(255, 117, 160, 0.5) 0%, rgba(255, 117, 160, 0.25) 100%) !important;
+  backdrop-filter: blur(16px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
+  color: #ffffff !important;
+  box-shadow: 0 6px 20px rgba(255, 117, 160, 0.35), inset 0 1.5px 2px rgba(255, 255, 255, 0.7) !important;
+  transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
+  text-decoration: none;
+}
+
+.login-btn:hover {
+  transform: translateY(-2px) scale(1.03) !important;
+  background: linear-gradient(135deg, rgba(255, 117, 160, 0.7) 0%, rgba(255, 117, 160, 0.35) 100%) !important;
+  border-color: rgba(255, 220, 235, 0.85) !important;
+  box-shadow: 0 10px 28px rgba(255, 117, 160, 0.48), 0 0 18px rgba(255, 117, 160, 0.3), inset 0 1.5px 2px rgba(255, 255, 255, 0.9) !important;
+}
+
+.login-btn:active {
+  transform: translateY(1px) scale(0.97) !important;
+}
+
+.google-auth-btn {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 11px 20px !important;
+  border-radius: 9999px !important;
+  border: 1px solid rgba(255, 255, 255, 0.22) !important;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0.04) 100%) !important;
+  backdrop-filter: blur(16px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2), inset 0 1px 1.5px rgba(255, 255, 255, 0.4) !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+  transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
+  cursor: pointer;
+}
+
+.google-auth-btn:hover {
+  transform: translateY(-2px) scale(1.02) !important;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.24) 0%, rgba(255, 255, 255, 0.08) 100%) !important;
+  border-color: rgba(255, 255, 255, 0.4) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3), inset 0 1px 2px rgba(255, 255, 255, 0.6) !important;
+}
+
+.login-input {
+  background: rgba(0, 0, 0, 0.35) !important;
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
+  border-radius: 12px !important;
+  color: #ffffff !important;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.4), inset 0 -1px 1px rgba(255, 255, 255, 0.05) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  transition: all 0.2s ease !important;
+}
+
+.login-input:focus {
+  border-color: rgba(255, 117, 160, 0.6) !important;
+  background: rgba(0, 0, 0, 0.5) !important;
+  box-shadow: 0 0 14px rgba(255, 117, 160, 0.3), inset 0 1px 2px rgba(0, 0, 0, 0.4) !important;
+}
+
+.otp-box {
+  background: rgba(0, 0, 0, 0.35) !important;
+  border: 1px solid rgba(255, 255, 255, 0.22) !important;
+  border-radius: 12px !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.25) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+  transition: all 0.2s ease !important;
+}
+
+.otp-box:focus {
+  border-color: rgba(255, 117, 160, 0.7) !important;
+  background: rgba(0, 0, 0, 0.55) !important;
+  box-shadow: 0 0 16px rgba(255, 117, 160, 0.35), inset 0 1px 2px rgba(0, 0, 0, 0.4) !important;
+  transform: scale(1.05) !important;
+}
+
+.otp-input-card,
+.otp-link-card {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.07) 0%, rgba(255, 255, 255, 0.02) 100%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  backdrop-filter: blur(14px) !important;
+  -webkit-backdrop-filter: blur(14px) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.25) !important;
+}
+
+/* =========================================================
+   Lightbox Modal Toolbar
+   ========================================================= */
+.lightbox-toolbar {
+  background: linear-gradient(135deg, rgba(28, 22, 38, 0.78) 0%, rgba(16, 12, 24, 0.88) 100%) !important;
+  backdrop-filter: blur(28px) saturate(200%) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(200%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.22) !important;
+  border-radius: 9999px !important;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.5), inset 0 1px 1.5px rgba(255, 255, 255, 0.4) !important;
+  padding: 6px 12px !important;
+}
+
+.lightbox-toolbar button {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.03) 100%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
+  border-radius: 50% !important;
+  width: 36px !important;
+  height: 36px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  color: #ffffff !important;
+  transition: all 0.2s ease !important;
+  cursor: pointer;
+}
+
+.lightbox-toolbar button:hover {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.24) 0%, rgba(255, 255, 255, 0.08) 100%) !important;
+  border-color: rgba(255, 255, 255, 0.4) !important;
+  transform: scale(1.1) !important;
+}
+
+.lightbox-close-btn:hover {
+  background: linear-gradient(135deg, rgba(255, 71, 87, 0.4) 0%, rgba(255, 71, 87, 0.15) 100%) !important;
+  color: #ff6b6b !important;
+}
+
+/* =========================================================
+   Emoji / GIF Picker Popup & Tabs
+   ========================================================= */
+.picker-tabs .picker-tab {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.03) 100%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border-radius: 9999px !important;
+  color: var(--text-muted) !important;
+  padding: 6px 14px !important;
+  font-weight: 600 !important;
+  transition: all 0.2s ease !important;
+  cursor: pointer;
+}
+
+.picker-tabs .picker-tab.active {
+  background: linear-gradient(135deg, rgba(255, 117, 160, 0.4) 0%, rgba(255, 117, 160, 0.18) 100%) !important;
+  border-color: rgba(255, 180, 210, 0.6) !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 14px rgba(255, 117, 160, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.5) !important;
+}
+
+.gif-search-bar input {
+  background: rgba(0, 0, 0, 0.35) !important;
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
+  border-radius: 9999px !important;
+  color: #ffffff !important;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Messenger Emoji Picker */
+.messenger-emoji-picker {
+  border-radius: 18px !important;
+}
+

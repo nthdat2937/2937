@@ -38,6 +38,7 @@ async function saveMessageToSupabase(msgObj) {
         const payload = {
             id: String(msgObj.id),
             sender_id: msgObj.senderId ? String(msgObj.senderId) : null,
+            user_id: msgObj.userId ? String(msgObj.userId) : null,
             name: msgObj.name || null,
             name_color: msgObj.nameColor || null,
             text: msgObj.text || null,
@@ -54,7 +55,14 @@ async function saveMessageToSupabase(msgObj) {
 
         const { error } = await supabase.from('chat_messages').insert([payload]);
         if (error) {
-            if (error.message && error.message.includes('avatar_url')) {
+            if (error.message && error.message.includes('user_id')) {
+                delete payload.user_id;
+                const { error: e2 } = await supabase.from('chat_messages').insert([payload]);
+                if (e2 && e2.message && e2.message.includes('avatar_url')) {
+                    delete payload.avatar_url;
+                    await supabase.from('chat_messages').insert([payload]);
+                }
+            } else if (error.message && error.message.includes('avatar_url')) {
                 delete payload.avatar_url;
                 await supabase.from('chat_messages').insert([payload]);
             } else {
@@ -86,6 +94,7 @@ async function getRecentChatHistory() {
             return {
                 id: m.id,
                 senderId: m.sender_id,
+                userId: m.user_id || '',
                 name: m.name,
                 nameColor: m.name_color,
                 text: m.text,
@@ -1750,12 +1759,14 @@ io.on('connection', (socket) => {
         const senderRole = socket.role || 'member';
         const senderColor = socket.nameColor || '#aaaaaa';
         const senderAvatar = socket.avatarUrl || '';
+        const senderUserId = socket.userId || '';
         const replyTo = (typeof msg === 'object' && msg.replyTo) ? msg.replyTo : null;
 
         if (typeof msg === 'object' && msg.type === 'gif' && msg.gifUrl) {
             const gifMsgObj = {
                 id: msgId,
                 senderId: socket.id,
+                userId: senderUserId,
                 name: senderName,
                 nameColor: senderColor,
                 avatarUrl: senderAvatar,
@@ -1773,6 +1784,7 @@ io.on('connection', (socket) => {
             const voiceMsgObj = {
                 id: msgId,
                 senderId: socket.id,
+                userId: senderUserId,
                 name: senderName,
                 nameColor: senderColor,
                 avatarUrl: senderAvatar,
@@ -1792,6 +1804,7 @@ io.on('connection', (socket) => {
             const mediaMsgObj = {
                 id: msgId,
                 senderId: socket.id,
+                userId: senderUserId,
                 name: senderName,
                 nameColor: senderColor,
                 avatarUrl: senderAvatar,
@@ -1871,7 +1884,7 @@ io.on('connection', (socket) => {
             }
 
             const textMsgObj = {
-                id: msgId, senderId: socket.id, name: senderName,
+                id: msgId, senderId: socket.id, userId: senderUserId, name: senderName,
                 nameColor: senderColor, avatarUrl: senderAvatar, text: textMsg, role: senderRole,
                 replyTo: replyTo, type: 'text'
             };
