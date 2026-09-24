@@ -304,12 +304,30 @@ async function searchMessengerUsers(query, currentUserId) {
 
     if (supabase) {
         try {
-            const { data, error } = await supabase
+            // Try searching with email column first
+            let data = null, error = null;
+            const result1 = await supabase
                 .from('profiles')
                 .select('id, username, display_name, avatar_url, name_color, role, email')
                 .neq('id', currentUserId)
                 .or(`username.ilike.%${q}%,display_name.ilike.%${q}%,email.ilike.%${q}%`)
                 .limit(25);
+            data = result1.data;
+            error = result1.error;
+
+            // If query failed (e.g. email column doesn't exist), retry without email
+            if (error) {
+                console.warn('searchMessengerUsers: email column query failed, retrying without email:', error.message);
+                const result2 = await supabase
+                    .from('profiles')
+                    .select('id, username, display_name, avatar_url, name_color, role')
+                    .neq('id', currentUserId)
+                    .or(`username.ilike.%${q}%,display_name.ilike.%${q}%`)
+                    .limit(25);
+                data = result2.data;
+                error = result2.error;
+            }
+
             if (!error && data) {
                 list = data.map(u => ({
                     id: u.id,
@@ -331,6 +349,8 @@ async function searchMessengerUsers(query, currentUserId) {
                         }
                     }
                 }
+            } else if (error) {
+                console.error('searchMessengerUsers Supabase error (both attempts):', error.message);
             }
         } catch (err) {
             console.error('searchMessengerUsers Supabase error:', err.message);

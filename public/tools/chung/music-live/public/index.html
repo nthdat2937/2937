@@ -76,12 +76,12 @@
             </button>
 
             <!-- Divider -->
-            <div class="auth-divider">
+            <div class="auth-divider" id="auth-divider-wrap">
                 <span>hoặc với email</span>
             </div>
 
             <!-- Tabs: Đăng Nhập / Đăng Ký -->
-            <div class="auth-tabs">
+            <div class="auth-tabs" id="auth-tabs-bar">
                 <button type="button" id="tab-login" class="auth-tab active" onclick="switchAuthTab('login')">Đăng Nhập</button>
                 <button type="button" id="tab-signup" class="auth-tab" onclick="switchAuthTab('signup')">Đăng Ký</button>
             </div>
@@ -96,7 +96,7 @@
                 <button type="submit" id="btn-submit-login" class="login-btn" style="margin-top: 4px;">Đăng Nhập</button>
             </form>
 
-            <!-- Form Đăng Ký (không cần xác minh) -->
+            <!-- Form Đăng Ký -->
             <form id="form-signup" class="hidden" onsubmit="event.preventDefault(); handleEmailSignUp();">
                 <input type="text" id="signup-username" class="login-input" placeholder="Tên hiển thị (ví dụ: Dat, Bé Bông...)" autocomplete="nickname" required>
                 <input type="email" id="signup-email" class="login-input" placeholder="Email..." autocomplete="email" required>
@@ -123,6 +123,67 @@
 
                 <button type="submit" id="btn-submit-signup" class="login-btn">Đăng Ký Tài Khoản</button>
             </form>
+
+            <!-- Form Xác Thực Email (OTP 6 số & Link xác minh) -->
+            <div id="form-verify-otp" class="hidden">
+                <div style="text-align: center; margin-bottom: 16px;">
+                    <div style="width: 50px; height: 50px; margin: 0 auto 10px auto; border-radius: 50%; background: rgba(255,117,160,0.15); display: flex; align-items: center; justify-content: center;">
+                        <span class="material-symbols-outlined" style="font-size: 26px; color: var(--accent);">mark_email_read</span>
+                    </div>
+                    <h3 style="margin: 0 0 6px 0; font-size: 19px; color: #fff;">Xác Thực Địa Chỉ Email</h3>
+                    <p style="margin: 0; font-size: 13px; color: var(--text-muted); line-height: 1.4;">
+                        Mã xác thực đã được gửi tới:<br>
+                        <strong id="otp-target-email" style="color: #fff; word-break: break-all;"></strong>
+                    </p>
+                </div>
+
+                <!-- Lựa chọn 1: Nhập mã OTP trực tiếp -->
+                <div class="otp-input-card">
+                    <div style="font-size: 12.5px; font-weight: 600; color: #ff75a0; margin-bottom: 8px; display: flex; align-items: center; justify-content: center; gap: 5px;">
+                        <span class="material-symbols-outlined" style="font-size: 16px;">pin</span>
+                        <span>Lựa chọn 1: Nhập mã OTP từ email</span>
+                    </div>
+                    
+                    <div class="otp-boxes-wrapper" id="otp-boxes-wrapper">
+                        <input type="text" inputmode="numeric" pattern="[0-9]*" class="otp-box" maxlength="1" data-index="0" autocomplete="one-time-code">
+                        <input type="text" inputmode="numeric" pattern="[0-9]*" class="otp-box" maxlength="1" data-index="1">
+                        <input type="text" inputmode="numeric" pattern="[0-9]*" class="otp-box" maxlength="1" data-index="2">
+                        <input type="text" inputmode="numeric" pattern="[0-9]*" class="otp-box" maxlength="1" data-index="3">
+                        <input type="text" inputmode="numeric" pattern="[0-9]*" class="otp-box" maxlength="1" data-index="4">
+                        <input type="text" inputmode="numeric" pattern="[0-9]*" class="otp-box" maxlength="1" data-index="5">
+                    </div>
+
+                    <button type="button" id="btn-verify-otp" class="login-btn" style="margin-top: 10px;" onclick="handleVerifyOtp()">
+                        Xác Minh Mã OTP
+                    </button>
+                </div>
+
+                <!-- Lựa chọn 2: Bấm vào link trong email -->
+                <div class="otp-link-card">
+                    <div style="display: flex; align-items: flex-start; gap: 10px;">
+                        <span class="material-symbols-outlined" style="font-size: 22px; color: #4dabf7; flex-shrink: 0; margin-top: 2px;">open_in_new</span>
+                        <div style="font-size: 12.5px; line-height: 1.45; color: rgba(255,255,255,0.85);">
+                            <strong style="color: #4dabf7; display: block; margin-bottom: 2px;">Lựa chọn 2: Bấm vào link trong email</strong>
+                            Bạn cũng có thể mở hộp thư và nhấn nút <strong>"Xác Minh Email"</strong> trong thư để tự động đăng nhập mà không cần nhập số.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Gửi lại mã & Quay lại -->
+                <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 14px; text-align: center;">
+                    <div style="font-size: 13px; color: var(--text-muted);">
+                        Chưa nhận được mã?
+                        <button type="button" id="btn-resend-otp" onclick="handleResendOtp()" style="background: none; border: none; color: var(--accent); font-weight: 600; cursor: pointer; padding: 0 4px; text-decoration: underline;">
+                            Gửi lại mã
+                        </button>
+                        <span id="otp-resend-timer" style="font-size: 12px; color: var(--text-muted); display: none;">(60s)</span>
+                    </div>
+
+                    <button type="button" onclick="switchAuthTab('signup')" style="background: none; border: none; color: var(--text-muted); font-size: 13px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 4px; padding: 6px;">
+                        <span class="material-symbols-outlined" style="font-size: 16px;">arrow_back</span> Đổi email / Quay lại
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 

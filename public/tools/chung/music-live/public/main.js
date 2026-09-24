@@ -606,17 +606,51 @@ function getSupabaseAuth() {
     return supabaseAuth;
 }
 
+let pendingVerification = {
+    email: '',
+    password: '',
+    username: '',
+    color: '#3ea6ff'
+};
+let otpResendCountdown = 0;
+let otpResendInterval = null;
+
 function switchAuthTab(tab) {
     const tabLogin = document.getElementById('tab-login');
     const tabSignup = document.getElementById('tab-signup');
     const formLogin = document.getElementById('form-login');
     const formSignup = document.getElementById('form-signup');
+    const formVerifyOtp = document.getElementById('form-verify-otp');
+    const btnGoogleLogin = document.getElementById('btn-google-login');
+    const authDividerWrap = document.getElementById('auth-divider-wrap');
+    const authTabsBar = document.getElementById('auth-tabs-bar');
+    const loginPrompt = document.getElementById('login-prompt');
     const statusEl = document.getElementById('auth-status-msg');
 
     if (statusEl) {
         statusEl.className = 'auth-status-msg hidden';
         statusEl.innerText = '';
     }
+
+    if (tab === 'verify-otp') {
+        if (formLogin) formLogin.classList.add('hidden');
+        if (formSignup) formSignup.classList.add('hidden');
+        if (formVerifyOtp) formVerifyOtp.classList.remove('hidden');
+        if (btnGoogleLogin) btnGoogleLogin.classList.add('hidden');
+        if (authDividerWrap) authDividerWrap.classList.add('hidden');
+        if (authTabsBar) authTabsBar.classList.add('hidden');
+        if (loginPrompt) loginPrompt.classList.add('hidden');
+        const firstOtp = document.querySelector('.otp-box');
+        if (firstOtp) setTimeout(() => firstOtp.focus(), 150);
+        return;
+    }
+
+    // Restore standard view for login / signup
+    if (btnGoogleLogin) btnGoogleLogin.classList.remove('hidden');
+    if (authDividerWrap) authDividerWrap.classList.remove('hidden');
+    if (authTabsBar) authTabsBar.classList.remove('hidden');
+    if (loginPrompt) loginPrompt.classList.remove('hidden');
+    if (formVerifyOtp) formVerifyOtp.classList.add('hidden');
 
     if (tab === 'login') {
         if (tabLogin) tabLogin.classList.add('active');
@@ -641,6 +675,233 @@ function setAuthStatus(message, type = 'info') {
     }
     el.className = `auth-status-msg ${type}`;
     el.innerText = message;
+}
+
+function showOtpVerificationScreen(email) {
+    const targetEmailEl = document.getElementById('otp-target-email');
+    if (targetEmailEl) targetEmailEl.textContent = email;
+
+    // Clear all OTP boxes
+    document.querySelectorAll('.otp-box').forEach(b => b.value = '');
+
+    switchAuthTab('verify-otp');
+    startOtpResendCountdown(60);
+    setAuthStatus('Mã xác thực đã được gửi tới email của bạn. Vui lòng kiểm tra hộp thư (cả mục Thư rác/Spam)!', 'info');
+}
+
+function startOtpResendCountdown(seconds = 60) {
+    clearInterval(otpResendInterval);
+    otpResendCountdown = seconds;
+    const btn = document.getElementById('btn-resend-otp');
+    const timerEl = document.getElementById('otp-resend-timer');
+
+    if (btn) {
+        btn.disabled = true;
+        btn.style.opacity = '0.6';
+        btn.style.cursor = 'not-allowed';
+    }
+    if (timerEl) {
+        timerEl.style.display = 'inline';
+        timerEl.textContent = `(${otpResendCountdown}s)`;
+    }
+
+    otpResendInterval = setInterval(() => {
+        otpResendCountdown--;
+        if (otpResendCountdown <= 0) {
+            clearInterval(otpResendInterval);
+            if (btn) {
+                btn.disabled = false;
+                btn.style.opacity = '1';
+                btn.style.cursor = 'pointer';
+            }
+            if (timerEl) timerEl.style.display = 'none';
+        } else {
+            if (timerEl) timerEl.textContent = `(${otpResendCountdown}s)`;
+        }
+    }, 1000);
+}
+
+async function handleResendOtp() {
+    if (otpResendCountdown > 0) return;
+    const email = pendingVerification.email;
+    if (!email) {
+        setAuthStatus('Không tìm thấy email cần gửi lại mã. Vui lòng đăng ký lại!', 'error');
+        return;
+    }
+    const btn = document.getElementById('btn-resend-otp');
+    if (btn) btn.innerText = 'Đang gửi lại...';
+
+    try {
+        const sp = getSupabaseAuth();
+        if (!sp) throw new Error('Supabase client chưa tải xong');
+        const { error } = await sp.auth.resend({
+            type: 'signup',
+            email: email,
+            options: {
+                emailRedirectTo: window.location.origin + window.location.pathname
+            }
+        });
+        if (error) {
+            const errMsg = (error.message || '').toLowerCase();
+            if (errMsg.includes('504') || errMsg.includes('gateway timeout') || error.status === 504) {
+                setAuthStatus('Lỗi 504 Gateway Timeout: Supabase không gửi được email (do hết hạn mức hoặc lỗi SMTP).', 'error');
+            } else {
+                setAuthStatus(error.message || 'Không thể gửi lại mã, vui lòng thử lại sau', 'error');
+            }
+        } else {
+            setAuthStatus('Đã gửi lại mã xác minh mới tới ' + email + '!', 'success');
+            startOtpResendCountdown(60);
+        }
+    } catch (e) {
+        const errMsg = (e?.message || '').toLowerCase();
+        if (errMsg.includes('504') || errMsg.includes('gateway timeout') || e?.status === 504) {
+            setAuthStatus('Lỗi 504 Gateway Timeout: Supabase không gửi được email (do hết hạn mức hoặc lỗi SMTP).', 'error');
+        } else {
+            setAuthStatus(e.message || 'Lỗi gửi lại mã', 'error');
+        }
+    } finally {
+        if (btn) btn.innerText = 'Gửi lại mã';
+    }
+}
+
+async function handleVerifyOtp() {
+    const boxes = Array.from(document.querySelectorAll('.otp-box'));
+    const token = boxes.map(b => b.value.trim()).join('');
+    const email = pendingVerification.email;
+
+    if (!email) {
+        setAuthStatus('Không tìm thấy thông tin email. Vui lòng đăng ký lại!', 'error');
+        return;
+    }
+    if (token.length < 6) {
+        setAuthStatus('Vui lòng nhập đầy đủ các chữ số mã xác minh!', 'error');
+        const firstEmpty = boxes.find(b => !b.value.trim());
+        if (firstEmpty) firstEmpty.focus();
+        return;
+    }
+
+    const btn = document.getElementById('btn-verify-otp');
+    if (btn) {
+        btn.disabled = true;
+        btn.innerText = 'Đang xác minh...';
+    }
+    setAuthStatus('', '');
+
+    try {
+        const sp = getSupabaseAuth();
+        if (!sp) throw new Error('Supabase client chưa tải xong');
+
+        // Try type: 'signup' first
+        let res = await sp.auth.verifyOtp({
+            email,
+            token,
+            type: 'signup'
+        });
+
+        // Fallback to type: 'email' if 'signup' failed
+        if (res.error) {
+            const res2 = await sp.auth.verifyOtp({
+                email,
+                token,
+                type: 'email'
+            });
+            if (!res2.error) {
+                res = res2;
+            }
+        }
+
+        if (res.error) {
+            setAuthStatus('Mã xác thực không đúng hoặc đã hết hạn. Vui lòng kiểm tra lại hoặc bấm "Gửi lại mã"!', 'error');
+            return;
+        }
+
+        if (res.data && res.data.user) {
+            setAuthStatus('Xác thực email thành công! Đang vào phòng...', 'success');
+
+            // Direct profile upsert to ensure it exists in public.profiles table
+            try {
+                await sp.from('profiles').upsert([{
+                    id: res.data.user.id,
+                    email: res.data.user.email,
+                    username: pendingVerification.username || res.data.user.user_metadata?.username || res.data.user.email.split('@')[0],
+                    name_color: pendingVerification.color || res.data.user.user_metadata?.name_color || '#3ea6ff',
+                    role: 'member',
+                    updated_at: new Date().toISOString()
+                }]);
+            } catch (pErr) {
+                console.warn('Profiles upsert warning after OTP verify:', pErr);
+            }
+
+            await handleAuthSuccess(res.data.user, {
+                username: pendingVerification.username || res.data.user.email.split('@')[0],
+                name_color: pendingVerification.color || '#3ea6ff',
+                role: 'member'
+            });
+            openQuickLockSetupModal(true);
+        }
+    } catch (err) {
+        console.error('Verify OTP error:', err);
+        setAuthStatus(err.message || 'Xác thực OTP thất bại', 'error');
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerText = 'Xác Minh Mã OTP';
+        }
+    }
+}
+
+function setupOtpInputHandlers() {
+    const boxes = Array.from(document.querySelectorAll('.otp-box'));
+    boxes.forEach((box, idx) => {
+        box.addEventListener('input', (e) => {
+            const val = e.target.value.replace(/\D/g, '');
+            e.target.value = val ? val[val.length - 1] : '';
+            if (val && idx < boxes.length - 1) {
+                boxes[idx + 1].focus();
+            }
+            // Auto-submit if all boxes are filled (either 6 or 8 digits)
+            const fullCode = boxes.map(b => b.value.trim()).join('');
+            if (fullCode.length === boxes.length) {
+                handleVerifyOtp();
+            }
+        });
+
+        box.addEventListener('keydown', (e) => {
+            if (e.key === 'Backspace') {
+                if (!e.target.value && idx > 0) {
+                    boxes[idx - 1].focus();
+                    boxes[idx - 1].value = '';
+                    e.preventDefault();
+                }
+            } else if (e.key === 'ArrowLeft' && idx > 0) {
+                boxes[idx - 1].focus();
+            } else if (e.key === 'ArrowRight' && idx < boxes.length - 1) {
+                boxes[idx + 1].focus();
+            } else if (e.key === 'Enter') {
+                handleVerifyOtp();
+            }
+        });
+
+        box.addEventListener('paste', (e) => {
+            e.preventDefault();
+            const pasted = (e.clipboardData || window.clipboardData).getData('text');
+            const digits = (pasted || '').trim().replace(/\D/g, '').slice(0, boxes.length);
+            if (digits) {
+                digits.split('').forEach((d, i) => {
+                    if (boxes[i]) boxes[i].value = d;
+                });
+                const nextIdx = Math.min(digits.length, boxes.length - 1);
+                boxes[nextIdx].focus();
+                if (digits.length >= 6) {
+                    handleVerifyOtp();
+                }
+            }
+        });
+
+        box.addEventListener('focus', () => {
+            box.select();
+        });
+    });
 }
 
 async function loginWithGoogle() {
@@ -693,6 +954,13 @@ async function handleEmailLogin() {
             password
         });
         if (error) {
+            const errMsg = (error.message || '').toLowerCase();
+            if (errMsg.includes('not confirmed') || errMsg.includes('unconfirmed')) {
+                pendingVerification = { email, password, username: '', color: '#3ea6ff' };
+                showOtpVerificationScreen(email);
+                setAuthStatus('Email của bạn chưa được xác minh. Vui lòng nhập mã 6 số từ email hoặc bấm vào liên kết trong email để kích hoạt tài khoản!', 'info');
+                return;
+            }
             setAuthStatus(error.message || 'Sai email hoặc mật khẩu', 'error');
             return;
         }
@@ -753,50 +1021,54 @@ async function handleEmailSignUp() {
                     username: username,
                     name_color: color,
                     role: 'member'
-                }
+                },
+                emailRedirectTo: window.location.origin + window.location.pathname
             }
         });
 
         if (error) {
+            const errMsg = (error.message || '').toLowerCase();
+            if (errMsg.includes('504') || errMsg.includes('gateway timeout') || error.status === 504) {
+                setAuthStatus('Lỗi 504 Gateway Timeout: Supabase bị nghẽn gửi mail (hết hạn mức miễn phí 3 mail/giờ hoặc lỗi SMTP). Vui lòng cấu hình Custom SMTP hoặc tạm tắt "Confirm email" trong Supabase!', 'error');
+                return;
+            }
             setAuthStatus(error.message || 'Đăng ký thất bại', 'error');
             return;
         }
 
         if (data && data.user) {
-            // Direct profile upsert to ensure it exists in public.profiles table
-            try {
-                await sp.from('profiles').upsert([{
-                    id: data.user.id,
-                    email: data.user.email,
-                    username: username,
-                    name_color: color,
-                    role: 'member',
-                    updated_at: new Date().toISOString()
-                }]);
-            } catch (pErr) {
-                console.warn('Profiles upsert warning:', pErr);
-            }
+            pendingVerification = { email, password, username, color };
 
             if (data.session) {
+                // Email confirmation is turned off in Supabase
+                try {
+                    await sp.from('profiles').upsert([{
+                        id: data.user.id,
+                        email: data.user.email,
+                        username: username,
+                        name_color: color,
+                        role: 'member',
+                        updated_at: new Date().toISOString()
+                    }]);
+                } catch (pErr) {
+                    console.warn('Profiles upsert warning:', pErr);
+                }
+
                 setAuthStatus('Đăng ký thành công! Đang vào phòng...', 'success');
                 await handleAuthSuccess(data.user, { username, name_color: color, role: 'member' });
                 openQuickLockSetupModal(true);
             } else {
-                // Try immediate sign-in with password (if email confirmation is turned off)
-                const loginRes = await sp.auth.signInWithPassword({ email, password });
-                if (loginRes.data && loginRes.data.session) {
-                    setAuthStatus('Đăng ký thành công! Đang vào phòng...', 'success');
-                    await handleAuthSuccess(loginRes.data.user, { username, name_color: color, role: 'member' });
-                    openQuickLockSetupModal(true);
-                } else {
-                    setAuthStatus('Đăng ký thành công! Bạn có thể chuyển sang tab Đăng Nhập để vào phòng.', 'success');
-                    switchAuthTab('login');
-                    if (document.getElementById('login-email')) document.getElementById('login-email').value = email;
-                }
+                // Email confirmation is turned ON in Supabase -> Show OTP verification screen!
+                showOtpVerificationScreen(email);
             }
         }
     } catch (err) {
         console.error('Email signup error:', err);
+        const errMsg = (err?.message || '').toLowerCase();
+        if (errMsg.includes('504') || errMsg.includes('gateway timeout') || err?.status === 504) {
+            setAuthStatus('Lỗi 504 Gateway Timeout: Supabase bị nghẽn gửi mail (hết hạn mức miễn phí 3 mail/giờ hoặc lỗi SMTP). Vui lòng cấu hình Custom SMTP hoặc tạm tắt "Confirm email" trong Supabase!', 'error');
+            return;
+        }
         setAuthStatus(err.message || 'Đăng ký thất bại', 'error');
     } finally {
         if (submitBtn) {
@@ -2328,6 +2600,8 @@ function joinRoom() {
 }
 
 async function initSupabaseAuth() {
+    setupOtpInputHandlers();
+
     const sp = getSupabaseAuth();
     if (!sp) {
         isAuthInitialized = true;
@@ -2335,6 +2609,12 @@ async function initSupabaseAuth() {
     }
 
     try {
+        // Detect if user arrived via email confirmation link
+        const isFromEmailConfirm = window.location.hash && (window.location.hash.includes('access_token') || window.location.hash.includes('type=signup'));
+        if (isFromEmailConfirm) {
+            setAuthStatus('Đang xác thực liên kết email...', 'info');
+        }
+
         const { data: { session } } = await sp.auth.getSession();
         if (session && session.user) {
             let profile = null;
@@ -2398,6 +2678,13 @@ async function initSupabaseAuth() {
             const mainRoom = document.getElementById('main-room');
             const unlockModal = document.getElementById('quick-unlock-modal');
             const isUnlockActive = unlockModal && !unlockModal.classList.contains('hidden');
+
+            if (window.location.hash && (window.location.hash.includes('access_token') || window.location.hash.includes('type=signup'))) {
+                try {
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                } catch (_) {}
+                setAuthStatus('Xác thực email thành công! Đang vào phòng...', 'success');
+            }
 
             if ((!mainRoom || mainRoom.classList.contains('hidden')) && !isUnlockActive) {
                 await handleAuthSuccess(session.user);
@@ -8777,6 +9064,7 @@ function renderSearchUsersResults(users) {
             `;
         }
 
+        const rowClickAttr = isFriend ? `onclick="openDirectChatFromSearch('${u.id}')" style="cursor: pointer;"` : '';
         const isAdm = isUserAdmin(u);
         const badgeHtml = isAdm ? getTikTokVerifiedBadgeHtml() : '';
         const rawName = u.displayName || u.username || 'Người dùng';
