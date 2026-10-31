@@ -54,9 +54,35 @@ try {
 }
 
 
+// null = tự động theo kích thước màn hình; true/false = người dùng đã tự thu gọn/mở rộng
+let userSidebarMiniPref = null;
+try {
+    const savedPref = localStorage.getItem('musiclive_sidebar_mini');
+    if (savedPref === 'true' || savedPref === 'false') userSidebarMiniPref = savedPref === 'true';
+} catch (_) {}
+
+function applySidebarMiniState(isMini) {
+    const sb = document.getElementById('sidebar');
+    if (!sb) return;
+    sb.classList.toggle('mini', isMini);
+    // .expanded-force vô hiệu hóa chế độ tự thu gọn ở màn hình 900px–1249px trong styles.css
+    sb.classList.toggle('expanded-force', !isMini);
+    const menuBtn = document.getElementById('menu-btn');
+    if (menuBtn) {
+        menuBtn.setAttribute('aria-expanded', String(!isMini));
+        menuBtn.title = isMini ? 'Mở rộng thanh bên' : 'Thu gọn thanh bên';
+    }
+}
+
 function toggleSidebar() {
     const sb = document.getElementById('sidebar');
-    if (sb) sb.classList.toggle('mini');
+    if (!sb) return;
+    const nextMini = !sb.classList.contains('mini');
+    userSidebarMiniPref = nextMini;
+    try {
+        localStorage.setItem('musiclive_sidebar_mini', String(nextMini));
+    } catch (_) {}
+    applySidebarMiniState(nextMini);
 }
 
 function toggleLandscapeVideoInfo() {
@@ -82,13 +108,109 @@ function toggleLandscapeVideoInfo() {
     }
 }
 
+// ============================================================
+// CHẾ ĐỘ TẬP TRUNG (FOCUS MODE)
+// ============================================================
+function toggleFocusMode(forceState) {
+    const isCurrentlyFocus = document.body.classList.contains('focus-mode');
+    const newState = typeof forceState === 'boolean' ? forceState : !isCurrentlyFocus;
+
+    const btn = document.getElementById('workspace-focus-tab');
+    const label = document.getElementById('focus-mode-label');
+    const icon = document.getElementById('focus-mode-icon');
+
+    if (newState) {
+        if (typeof showTab === 'function') {
+            showTab('home');
+        }
+        document.body.classList.add('focus-mode');
+        try {
+            localStorage.setItem('musiclive_focus_mode', 'true');
+        } catch (_) {}
+
+        if (btn) {
+            btn.classList.add('active');
+            btn.setAttribute('aria-pressed', 'true');
+            btn.title = 'Thoát chế độ tập trung (Esc)';
+        }
+        if (label) {
+            label.textContent = 'Đang tập trung';
+        }
+        if (icon) {
+            icon.textContent = 'filter_center_focus';
+        }
+
+        if (typeof showToastNotification === 'function') {
+            showToastNotification('🎯 Đã bật chế độ tập trung (Nhấn Esc hoặc bấm lại nút để thoát)');
+        }
+    } else {
+        document.body.classList.remove('focus-mode');
+        try {
+            localStorage.removeItem('musiclive_focus_mode');
+        } catch (_) {}
+
+        if (btn) {
+            btn.classList.remove('active');
+            btn.setAttribute('aria-pressed', 'false');
+            btn.title = 'Bật/Tắt chế độ tập trung (Esc)';
+        }
+        if (label) {
+            label.textContent = 'Tập trung';
+        }
+        if (icon) {
+            icon.textContent = 'center_focus_strong';
+        }
+
+        if (typeof showToastNotification === 'function') {
+            showToastNotification('✨ Đã thoát chế độ tập trung');
+        }
+    }
+
+    if (window.LiquidGlass && typeof window.LiquidGlass.refresh === 'function') {
+        window.LiquidGlass.refresh();
+    }
+}
+window.toggleFocusMode = toggleFocusMode;
+
+// Lắng nghe phím Esc để thoát chế độ tập trung
+window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && document.body.classList.contains('focus-mode')) {
+        const tag = document.activeElement ? document.activeElement.tagName.toLowerCase() : '';
+        if (tag === 'input' || tag === 'textarea') {
+            document.activeElement.blur();
+            return;
+        }
+        toggleFocusMode(false);
+    }
+});
+
+// Khôi phục chế độ tập trung nếu đã lưu
+function initFocusMode() {
+    try {
+        if (localStorage.getItem('musiclive_focus_mode') === 'true') {
+            const loginSec = document.getElementById('login-section');
+            if (!loginSec || loginSec.classList.contains('hidden')) {
+                toggleFocusMode(true);
+            }
+        }
+    } catch (_) {}
+}
+document.addEventListener('DOMContentLoaded', initFocusMode);
+
 function checkResponsiveSidebar() {
+    // Desktop already has a chat column; leave the mobile overlay and mini-player mode.
+    if (window.innerWidth >= 900 && chatBubbleOpen) {
+        toggleChatBubble();
+    }
     const sb = document.getElementById('sidebar');
     if (sb) {
-        if (window.innerWidth >= 900 && window.innerWidth < 1250) {
-            sb.classList.add('mini');
+        if (window.innerWidth < 900) {
+            // Mobile: thanh điều hướng dưới đáy, không dùng chế độ mini
+            sb.classList.remove('mini', 'expanded-force');
+        } else if (userSidebarMiniPref !== null) {
+            applySidebarMiniState(userSidebarMiniPref);
         } else {
-            sb.classList.remove('mini');
+            applySidebarMiniState(window.innerWidth < 1250);
         }
     }
 
@@ -144,9 +266,24 @@ function restoreRoomPlayerFromTopTab() {
 }
 
 function showTab(tab) {
-    document.querySelectorAll('.sidebar-item').forEach(el => el.classList.remove('active'));
+    // Tài khoản Member chỉ được truy cập Trang chủ; tài khoản Premium & Admin mới truy cập được các tab khác
+    if (tab !== 'home' && typeof isCurrentUserPremium === 'function' && !isCurrentUserPremium()) {
+        if (typeof openPremiumModal === 'function') openPremiumModal(true);
+        if (typeof showToastNotification === 'function') {
+            showToastNotification('👑 Tài khoản Member chỉ truy cập được Trang chủ! Hãy nâng cấp Premium để mở khóa toàn bộ tính năng.');
+        }
+        return;
+    }
+
+    document.querySelectorAll('.sidebar-item').forEach(el => {
+        el.classList.remove('active');
+        el.removeAttribute('aria-current');
+    });
     const activeTab = document.querySelector(`.sidebar-item[data-tab="${tab}"]`);
-    if (activeTab) activeTab.classList.add('active');
+    if (activeTab) {
+        activeTab.classList.add('active');
+        activeTab.setAttribute('aria-current', 'page');
+    }
 
     document.getElementById('left-column').classList.remove('not-home');
     document.getElementById('left-column').classList.remove('hidden');
@@ -156,6 +293,8 @@ function showTab(tab) {
     if (fbCol) fbCol.classList.add('hidden');
     const quizAdminCol = document.getElementById('quiz-admin-column');
     if (quizAdminCol) quizAdminCol.classList.add('hidden');
+    const premAdminCol = document.getElementById('premium-admin-column');
+    if (premAdminCol) premAdminCol.classList.add('hidden');
     const msgCol = document.getElementById('messenger-column');
     if (msgCol) msgCol.classList.add('hidden');
     const rightCol = document.querySelector('.right-column');
@@ -163,10 +302,19 @@ function showTab(tab) {
 
     if (tab === 'home') {
         miniPlayer.style.transform = '';
+        if (typeof isAutoPipEnabled !== 'undefined' && isAutoPipEnabled) {
+            const videoTab = document.getElementById('workspace-video-tab');
+            if (videoTab && videoTab.getAttribute('aria-selected') === 'true') {
+                toggleMiniPlayer(false);
+            }
+        }
         restoreRoomPlayerFromTopTab();
         setTimeout(() => { if (window.LiquidGlass) window.LiquidGlass.refresh(); }, 80);
     } else {
         document.getElementById('left-column').classList.add('not-home');
+        if (typeof isAutoPipEnabled !== 'undefined' && isAutoPipEnabled) {
+            toggleMiniPlayer(true);
+        }
         applyMiniPlayerSavedPos();
         if (tab === 'messenger') {
             if (msgCol) msgCol.classList.remove('hidden');
@@ -186,9 +334,27 @@ function showTab(tab) {
             restoreRoomPlayerFromTopTab();
             loadFeedbackHistory();
         } else if (tab === 'quiz-admin') {
+            if (myRole !== 'admin') {
+                if (typeof showToastNotification === 'function') {
+                    showToastNotification('🛡️ Chỉ Quản trị viên (Admin) mới có quyền truy cập Kho Đoán Hình!');
+                }
+                showTab('home');
+                return;
+            }
             if (quizAdminCol) quizAdminCol.classList.remove('hidden');
             restoreRoomPlayerFromTopTab();
             openQuizAdminTab();
+        } else if (tab === 'premium-admin') {
+            if (myRole !== 'admin') {
+                if (typeof showToastNotification === 'function') {
+                    showToastNotification('🛡️ Chỉ Quản trị viên (Admin) mới có quyền truy cập Bảng Quản Lý VIP!');
+                }
+                showTab('home');
+                return;
+            }
+            if (premAdminCol) premAdminCol.classList.remove('hidden');
+            restoreRoomPlayerFromTopTab();
+            if (typeof loadPremiumAdminData === 'function') loadPremiumAdminData();
         }
     }
 }
@@ -320,7 +486,7 @@ async function loadTopNhac(forceReload = false) {
     if (headerActions) {
         if (tabType !== 'default' && tabUrl) {
             headerActions.innerHTML = `
-                <a href="${escapeHtml(tabUrl)}" target="_blank" rel="noopener noreferrer" style="display:inline-flex; align-items:center; gap:6px; padding:6px 14px; border-radius:18px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,180,210,0.2); color:var(--accent); font-size:13px; font-weight:600; text-decoration:none; transition:all 0.2s;" title="Mở trang web ở cửa sổ mới">
+                <a href="${escapeHtml(tabUrl)}" target="_blank" rel="noopener noreferrer" style="display:inline-flex; align-items:center; gap:6px; padding:6px 14px; border-radius:18px; background:rgba(255,255,255,0.08); border:1px solid rgba(176, 224, 250,0.2); color:var(--accent); font-size:13px; font-weight:600; text-decoration:none; transition:all 0.2s;" title="Mở trang web ở cửa sổ mới">
                     <span class="material-symbols-outlined" style="font-size:16px;">open_in_new</span>
                     <span>Mở tab mới</span>
                 </a>
@@ -599,7 +765,7 @@ async function loadFeedbackHistory() {
     } catch (err) {
         console.error(err);
         list.innerHTML = `
-            <div class="fb-state-card" style="border-color: rgba(255, 117, 160, 0.3);">
+            <div class="fb-state-card" style="border-color: rgba(135, 206, 250, 0.3);">
                 <span class="material-symbols-outlined fb-state-icon" style="color: var(--accent);">wifi_off</span>
                 <h4 class="fb-state-title">Không thể tải dữ liệu</h4>
                 <p class="fb-state-desc" style="margin-bottom: 16px;">Đã xảy ra sự cố khi kết nối tới máy chủ lưu trữ.</p>
@@ -1324,12 +1490,25 @@ function skipCreatePassword() {
 function updateNavbarAvatarUI(avatarUrl) {
     const navAvatar = document.getElementById('navbar-avatar');
     if (!navAvatar) return;
-    if (avatarUrl && avatarUrl.trim()) {
-        navAvatar.src = avatarUrl.trim();
+    const cleanUrl = (avatarUrl || '').trim();
+    navAvatar.setAttribute('referrerpolicy', 'no-referrer');
+    if (cleanUrl) {
+        navAvatar.dataset.triedProxy = '';
+        navAvatar.onerror = function() {
+            if (!this.dataset.triedProxy && !cleanUrl.startsWith('/') && !cleanUrl.startsWith('data:')) {
+                this.dataset.triedProxy = '1';
+                this.src = `/api/avatar-proxy?url=${encodeURIComponent(cleanUrl)}`;
+            } else {
+                this.onerror = null;
+                this.src = '/assets/images/placeholder.svg';
+            }
+        };
+        navAvatar.src = cleanUrl;
         navAvatar.classList.remove('hidden');
     } else {
-        navAvatar.src = '';
-        navAvatar.classList.add('hidden');
+        navAvatar.onerror = null;
+        navAvatar.src = '/assets/images/placeholder.svg';
+        navAvatar.classList.remove('hidden');
     }
 }
 
@@ -1355,7 +1534,19 @@ function openProfileSettingsModal() {
     if (colorInput) colorInput.value = myNameColor || '#3ea6ff';
     if (avatarUrlInput) avatarUrlInput.value = myAvatarUrl || '';
     if (avatarPreview) {
-        avatarPreview.src = myAvatarUrl || '/assets/images/placeholder.jpg';
+        avatarPreview.setAttribute('referrerpolicy', 'no-referrer');
+        const cleanAvatar = (myAvatarUrl || '').trim();
+        avatarPreview.dataset.triedProxy = '';
+        avatarPreview.onerror = function() {
+            if (!this.dataset.triedProxy && cleanAvatar && !cleanAvatar.startsWith('/') && !cleanAvatar.startsWith('data:')) {
+                this.dataset.triedProxy = '1';
+                this.src = `/api/avatar-proxy?url=${encodeURIComponent(cleanAvatar)}`;
+            } else {
+                this.onerror = null;
+                this.src = '/assets/images/placeholder.svg';
+            }
+        };
+        avatarPreview.src = cleanAvatar || '/assets/images/placeholder.svg';
     }
 
     // Try fetching fresh email and user metadata from Supabase
@@ -1451,7 +1642,11 @@ function handleProfileAvatarFileSelect(e) {
     const reader = new FileReader();
     reader.onload = (event) => {
         const preview = document.getElementById('profile-avatar-preview');
-        if (preview) preview.src = event.target.result;
+        if (preview) {
+            preview.setAttribute('referrerpolicy', 'no-referrer');
+            preview.onerror = null;
+            preview.src = event.target.result;
+        }
     };
     reader.readAsDataURL(file);
 }
@@ -1459,11 +1654,19 @@ function handleProfileAvatarFileSelect(e) {
 function updateProfileAvatarUrlPreview(url) {
     const preview = document.getElementById('profile-avatar-preview');
     if (preview) {
-        if (url && url.trim()) {
-            preview.src = url.trim();
-        } else {
-            preview.src = myAvatarUrl || '/assets/images/placeholder.jpg';
-        }
+        preview.setAttribute('referrerpolicy', 'no-referrer');
+        const cleanUrl = (url || '').trim();
+        preview.dataset.triedProxy = '';
+        preview.onerror = function() {
+            if (!this.dataset.triedProxy && cleanUrl && !cleanUrl.startsWith('/') && !cleanUrl.startsWith('data:')) {
+                this.dataset.triedProxy = '1';
+                this.src = `/api/avatar-proxy?url=${encodeURIComponent(cleanUrl)}`;
+            } else {
+                this.onerror = null;
+                this.src = '/assets/images/placeholder.svg';
+            }
+        };
+        preview.src = cleanUrl || (myAvatarUrl || '/assets/images/placeholder.svg');
     }
 }
 
@@ -1471,9 +1674,33 @@ async function uploadAvatarFileToSupabase(file) {
     if (!file) return '';
     try {
         const compressed = await compressImage(file, 400, 400, 0.9);
+        const base64Data = await new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = () => resolve('');
+            reader.readAsDataURL(compressed);
+        });
+
+        // 1. Lưu trực tiếp lên server (/api/upload-avatar) để không phụ thuộc vào bucket Supabase
+        if (base64Data) {
+            try {
+                const res = await fetch('/api/upload-avatar', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ image: base64Data, userId: currentUserId })
+                });
+                if (res.ok) {
+                    const json = await res.json();
+                    if (json && json.avatarUrl) return json.avatarUrl;
+                }
+            } catch (localErr) {
+                console.warn('Lỗi upload avatar server, thử sang Supabase:', localErr);
+            }
+        }
+
+        // 2. Thử Supabase storage nếu có bucket
         const fileExt = (file.name && file.name.includes('.')) ? (file.name.split('.').pop() || 'jpg') : 'jpg';
         const fileName = `avatar_${currentUserId || 'user'}_${Date.now()}.${fileExt}`;
-
         const sp = getSupabaseAuth();
         if (sp) {
             const { data, error } = await sp.storage.from('chat_media').upload(fileName, compressed, {
@@ -1483,10 +1710,11 @@ async function uploadAvatarFileToSupabase(file) {
             if (!error && data) {
                 const { data: urlData } = sp.storage.from('chat_media').getPublicUrl(fileName);
                 if (urlData && urlData.publicUrl) return urlData.publicUrl;
-            } else if (error) {
-                console.warn('Storage upload error, fallback to DataURL:', error.message);
             }
         }
+
+        // 3. Fallback DataURL
+        if (base64Data) return base64Data;
     } catch (err) {
         console.warn('Upload avatar failed:', err);
     }
@@ -1897,8 +2125,8 @@ function drawPatternGrid(canvas, points = [], currentPos = null, state = 'normal
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    let primaryColor = '#ff75a0';
-    let ringBgColor = 'rgba(255, 117, 160, 0.25)';
+    let primaryColor = '#87cefa';
+    let ringBgColor = 'rgba(135, 206, 250, 0.25)';
 
     if (state === 'error') {
         primaryColor = '#ff4757';
@@ -2676,10 +2904,23 @@ function showQuickUnlockScreen(user, profile) {
     const emailEl = document.getElementById('unlock-user-email');
 
     const displayName = profile?.display_name || profile?.username || user.user_metadata?.full_name || user.email?.split('@')[0] || 'Người dùng';
-    const avatarUrl = profile?.avatar_url || user.user_metadata?.avatar_url || user.user_metadata?.picture || '/assets/images/placeholder.jpg';
+    const avatarUrl = (profile?.avatar_url || user.user_metadata?.avatar_url || user.user_metadata?.picture || '').trim();
     const email = user.email || '';
 
-    if (avatarEl) avatarEl.src = avatarUrl;
+    if (avatarEl) {
+        avatarEl.setAttribute('referrerpolicy', 'no-referrer');
+        avatarEl.dataset.triedProxy = '';
+        avatarEl.onerror = function() {
+            if (!this.dataset.triedProxy && avatarUrl && !avatarUrl.startsWith('/') && !avatarUrl.startsWith('data:')) {
+                this.dataset.triedProxy = '1';
+                this.src = `/api/avatar-proxy?url=${encodeURIComponent(avatarUrl)}`;
+            } else {
+                this.onerror = null;
+                this.src = '/assets/images/placeholder.svg';
+            }
+        };
+        avatarEl.src = avatarUrl || '/assets/images/placeholder.svg';
+    }
     if (nameEl) nameEl.textContent = displayName;
     if (emailEl) emailEl.textContent = email;
 
@@ -2750,12 +2991,19 @@ function joinRoom() {
         try { player.playVideo(); } catch (e) {}
     }
 
+    const savedPremiumFlag = (
+        localStorage.getItem('musiclive_premium_' + (userId || name.toLowerCase())) === 'true' ||
+        role === 'admin' ||
+        role === 'premium'
+    );
+
     socket.emit('joinRoom', {
         name,
         nameColor,
         userId,
         role,
-        isAdmin: (role === 'admin')
+        isAdmin: (role === 'admin'),
+        isPremium: savedPremiumFlag
     });
 }
 
@@ -2862,6 +3110,10 @@ initSupabaseAuth();
 socket.on('authResult', (res) => {
     if (res.success) {
         myRole = res.role;
+        window.myIsPremium = Boolean(res.isPremium || myRole === 'admin' || myRole === 'premium');
+        if (typeof applyPremiumAccessUI === 'function') {
+            applyPremiumAccessUI();
+        }
 
         if (res.userProfile) {
             if (res.userProfile.displayName) myDisplayName = res.userProfile.displayName;
@@ -2879,6 +3131,7 @@ socket.on('authResult', (res) => {
 
         document.getElementById('login-section').classList.add('hidden');
         document.getElementById('main-room').classList.remove('hidden');
+        initFocusMode();
         if (res.quizPublicState && res.quizPublicState.active) {
             currentQuizState = res.quizPublicState;
             renderMultiplayerQuizState(currentQuizState);
@@ -2918,15 +3171,40 @@ socket.on('authResult', (res) => {
 
         if (myRole === 'admin') {
             document.body.classList.add('admin-mode');
-            document.getElementById('btn-next-song').classList.remove('hidden');
-            document.getElementById('btn-loop').classList.remove('hidden');
-            document.getElementById('btn-start-game').classList.remove('hidden');
-            document.getElementById('player-container').style.pointerEvents = 'auto';
+            document.getElementById('btn-next-song')?.classList.remove('hidden');
+            document.getElementById('btn-loop')?.classList.remove('hidden');
+            const djRadioBtn = document.getElementById('btn-dj-radio');
+            if (djRadioBtn) djRadioBtn.classList.remove('hidden');
+            document.getElementById('btn-start-game')?.classList.remove('hidden');
+            if (document.getElementById('player-container')) document.getElementById('player-container').style.pointerEvents = 'auto';
             const sidebarQuizAdmin = document.getElementById('sidebar-quiz-admin');
             if (sidebarQuizAdmin) sidebarQuizAdmin.classList.remove('hidden');
+            const sidebarPremAdmin = document.getElementById('sidebar-premium-admin');
+            if (sidebarPremAdmin) sidebarPremAdmin.classList.remove('hidden');
+            if (typeof loadPremiumAdminData === 'function') loadPremiumAdminData();
             setTimeout(() => { if (window.LiquidGlass) window.LiquidGlass.refresh(); }, 60);
+        } else {
+            document.body.classList.remove('admin-mode');
+            document.getElementById('btn-next-song')?.classList.add('hidden');
+            document.getElementById('btn-loop')?.classList.add('hidden');
+            document.getElementById('btn-dj-radio')?.classList.add('hidden');
+            document.getElementById('btn-start-game')?.classList.add('hidden');
+            document.getElementById('sidebar-quiz-admin')?.classList.add('hidden');
+            document.getElementById('sidebar-premium-admin')?.classList.add('hidden');
+            const premAdminCol = document.getElementById('premium-admin-column');
+            if (premAdminCol && !premAdminCol.classList.contains('hidden')) {
+                showTab('home');
+            }
         }
         document.getElementById('sync-btn').classList.remove('hidden');
+
+        if (res.djRadioMode !== undefined && typeof updateDjRadioUI === 'function') {
+            updateDjRadioUI(res.djRadioMode);
+        }
+
+        if (res.currentVideoId && typeof extractAndApplySongTheme === 'function') {
+            extractAndApplySongTheme(res.currentVideoId);
+        }
 
 
         if (res.drawGame && res.drawGame.active && res.drawGame.state === 'playing') {
@@ -2942,6 +3220,9 @@ socket.on('authResult', (res) => {
         }
 
         initialVideoId = res.currentVideoId;
+        // Video mặc định = bài phát gần nhất trong lịch sử: chỉ nạp sẵn (không tự phát)
+        const isCueOnly = !!res.isLastPlayedFallback;
+        window.pendingCueOnly = isCueOnly;
         if (!player) {
             createPlayer();
         } else if (typeof player.loadVideoById === 'function') {
@@ -2949,8 +3230,12 @@ socket.on('authResult', (res) => {
                 window.ignoreNextStateChange = true;
                 window.lastSyncTime = Date.now() + 2000;
                 if (isPlayerReady) {
-                    player.loadVideoById(initialVideoId);
-                    setTimeout(() => socket.emit('requestSync'), 1000);
+                    if (isCueOnly && typeof player.cueVideoById === 'function') {
+                        player.cueVideoById(initialVideoId);
+                    } else {
+                        player.loadVideoById(initialVideoId);
+                        setTimeout(() => socket.emit('requestSync'), 1000);
+                    }
                 } else {
                     pendingVideoId = initialVideoId;
                 }
@@ -3025,8 +3310,13 @@ async function logout() {
     document.getElementById('menu-btn').classList.add('hidden');
 
     document.body.classList.remove('admin-mode');
-    document.getElementById('btn-next-song').classList.add('hidden');
-    document.getElementById('sync-btn').classList.add('hidden');
+    document.getElementById('btn-next-song')?.classList.add('hidden');
+    document.getElementById('btn-loop')?.classList.add('hidden');
+    document.getElementById('btn-dj-radio')?.classList.add('hidden');
+    document.getElementById('btn-start-game')?.classList.add('hidden');
+    document.getElementById('sidebar-quiz-admin')?.classList.add('hidden');
+    document.getElementById('sidebar-premium-admin')?.classList.add('hidden');
+    document.getElementById('sync-btn')?.classList.add('hidden');
 
     const emailIn = document.getElementById('login-email');
     const pwdIn = document.getElementById('login-password');
@@ -4334,6 +4624,37 @@ socket.on('newMessage', (data) => {
                 <span class="messenger-voice-time" id="voice-duration-${data.id}">${formattedDur}</span>
             </div>
         `;
+    } else if (data.type === 'dedication') {
+        const themeClass = ['ice', 'star', 'fire', 'sakura'].includes(data.theme) ? data.theme : 'ice';
+        const songHtml = data.songTitle ? `<div class="chat-ded-song"><span class="material-symbols-outlined" style="font-size:14px;">music_note</span><span>${escapeHtml(data.songTitle)}</span></div>` : '';
+        contentHtml = `
+            <div class="chat-dedication-card theme-${themeClass}">
+                <div class="chat-ded-badge">💌 LỜI CHÚC TRỰC TIẾP</div>
+                <div class="chat-ded-text">${escapeHtml(data.text || '')}</div>
+                ${songHtml}
+            </div>
+        `;
+    } else if (data.type === 'poll' && data.pollData) {
+        contentHtml = typeof buildPollCardHtml === 'function' ? buildPollCardHtml(data.pollData) : `<span class="chat-text">${escapeHtml(data.text || '')}</span>`;
+    } else if (data.type === 'song_card' && data.songCard) {
+        const sc = data.songCard;
+        const thumbUrl = sc.videoId ? `https://img.youtube.com/vi/${escapeHtml(sc.videoId)}/mqdefault.jpg` : '/assets/images/background-chat.jpeg';
+        const safeTheme = ['midnight', 'vinyl', 'aurora'].includes(sc.theme) ? sc.theme : 'midnight';
+        contentHtml = `
+            <div class="chat-song-card theme-${safeTheme}">
+                <div class="chat-sc-top">
+                    <img src="${thumbUrl}" alt="cover" class="chat-sc-thumb" referrerpolicy="no-referrer">
+                    <div class="chat-sc-meta">
+                        <span class="chat-sc-badge">📸 THẺ BÀI HÁT • 2937.ML</span>
+                        <div class="chat-sc-title">${escapeHtml(sc.songTitle || '2937.ML Live')}</div>
+                    </div>
+                </div>
+                <blockquote class="chat-sc-quote">“${escapeHtml(sc.quote || '')}”</blockquote>
+                <div class="chat-sc-footer">
+                    <span>Chia sẻ bởi <strong>${escapeHtml(sc.listenerName || 'Thành viên')}</strong></span>
+                </div>
+            </div>
+        `;
     } else {
         let safeText = escapeHtml(data.text || '');
         if (isSystem) {
@@ -4359,7 +4680,9 @@ socket.on('newMessage', (data) => {
         authorStyle = `style="color: ${escapeHtml(data.nameColor)}"`;
     }
 
-    const verifiedBadge = isAdminMsg ? getTikTokVerifiedBadgeHtml() : '';
+    const isVipMsg = Boolean(data.isPremium || data.role === 'premium' || isAdminMsg);
+    const vipCrownHtml = (!isAdminMsg && isVipMsg) ? '<span class="chat-vip-badge" title="Thành viên Premium">👑 VIP</span>' : '';
+    const verifiedBadge = isAdminMsg ? getTikTokVerifiedBadgeHtml() : vipCrownHtml;
     const cleanDisplayName = escapeHtml((data.name || '').replace(' 😎', '').trim());
 
     // Reply quote & Author label text
@@ -4402,7 +4725,7 @@ socket.on('newMessage', (data) => {
     const avatarColor = data.nameColor || stringToColor(data.name || '');
     const avatarHtml = isSystem ? '' : (
         data.avatarUrl
-            ? `<img class="chat-avatar chat-avatar-img" src="${escapeHtml(data.avatarUrl)}" alt="${avatarInitial}" onerror="this.outerHTML='<div class=\\'chat-avatar\\' style=\\'background:${escapeHtml(avatarColor)}\\'>${avatarInitial}</div>'">`
+            ? `<img class="chat-avatar chat-avatar-img" referrerpolicy="no-referrer" src="${escapeHtml(data.avatarUrl)}" alt="${avatarInitial}" onerror="if(!this.dataset.p && !this.src.startsWith('/') && !this.src.startsWith('data:')){this.dataset.p='1'; this.src='/api/avatar-proxy?url=' + encodeURIComponent('${escapeHtml(data.avatarUrl)}');}else{this.outerHTML='<div class=\\'chat-avatar\\' style=\\'background:${escapeHtml(avatarColor)}\\'>${avatarInitial}</div>';}">`
             : `<div class="chat-avatar" style="background:${escapeHtml(avatarColor)}">${avatarInitial}</div>`
     );
 
@@ -4530,10 +4853,14 @@ function createPlayer() {
                 } catch (e) { }
                 document.getElementById('status').innerText = "Trạng thái: Đang phát trực tiếp 🟢";
                 if (pendingVideoId) {
-                    if (typeof player.loadVideoById === 'function') player.loadVideoById(pendingVideoId);
+                    if (window.pendingCueOnly && typeof player.cueVideoById === 'function') {
+                        player.cueVideoById(pendingVideoId);
+                    } else if (typeof player.loadVideoById === 'function') {
+                        player.loadVideoById(pendingVideoId);
+                        setTimeout(() => socket.emit('requestSync'), 1000);
+                    }
                     pendingVideoId = null;
-                    setTimeout(() => socket.emit('requestSync'), 1000);
-                } else if (initialVideoId) {
+                } else if (initialVideoId && !window.pendingCueOnly) {
                     setTimeout(() => socket.emit('requestSync'), 1000);
                 }
             },
@@ -4994,6 +5321,7 @@ function nextSong() { socket.emit('adminNextSong'); }
 
 socket.on('updatePlaylist', (list) => { updatePlaylistUI(list); });
 socket.on('changeVideo', (data) => {
+    window.pendingCueOnly = false;
     const vidId = data.id || data;
     const vidTitle = data.title || 'Trạm Nhạc Live';
 
@@ -5014,10 +5342,14 @@ socket.on('changeVideo', (data) => {
         }
     }
     window.currentVideoId = vidId;
+    window.currentVideoTitle = vidTitle;
     initialVideoId = vidId;
     document.title = vidTitle;
     document.getElementById('welcome-title').innerText = vidTitle;
+    const miniTitle = document.getElementById('mini-player-title');
+    if (miniTitle) miniTitle.textContent = vidTitle;
     fetchLyrics(vidTitle);
+    extractAndApplySongTheme(vidId);
 });
 socket.on('stopVideo', () => {
     if (player && typeof player.stopVideo === 'function') {
@@ -5027,10 +5359,14 @@ socket.on('stopVideo', () => {
     }
     initialVideoId = '';
     window.currentVideoId = '';
+    window.currentVideoTitle = '';
     document.title = 'Trạm Nhạc Live';
     document.getElementById('welcome-title').innerText = 'Chưa có bài hát nào';
+    const miniTitle = document.getElementById('mini-player-title');
+    if (miniTitle) miniTitle.textContent = 'Chưa có bài hát nào';
     document.getElementById('lyric-content').innerHTML = '<div class="lyric-loading">Chưa có bài hát nào</div>';
     stopLyricSync();
+    resetDynamicSongTheme();
 });
 socket.on('loopModeUpdate', (mode) => {
     isLoopMode = mode;
@@ -5040,6 +5376,206 @@ socket.on('loopModeUpdate', (mode) => {
 function toggleLoop() {
     socket.emit('adminToggleLoop');
 }
+
+// ==========================================
+// 1. DJ RADIO CONTROLLER
+// ==========================================
+let isDjRadioActive = true;
+
+function updateDjRadioUI(state) {
+    isDjRadioActive = !!state;
+    const btn = document.getElementById('btn-dj-radio');
+    const label = document.getElementById('dj-radio-label');
+    if (btn) btn.classList.toggle('active', isDjRadioActive);
+    if (label) label.textContent = isDjRadioActive ? 'DJ Radio: Bật' : 'DJ Radio: Tắt';
+}
+
+function toggleDjRadio() {
+    socket.emit('toggleDjRadio');
+}
+
+socket.on('djRadioUpdate', (state) => {
+    updateDjRadioUI(state);
+});
+
+// ==========================================
+// 2. LIVE FLOATING REACTIONS
+// ==========================================
+let lastReactionSentTime = 0;
+
+function triggerFloatingReaction(emoji) {
+    if (!emoji) return;
+    const now = Date.now();
+    // Bắn đúng 1 biểu tượng tại máy người gửi (zero latency)
+    spawnFloatingReaction(emoji);
+
+    // Giới hạn tần suất gửi lên server để tránh spam
+    if (now - lastReactionSentTime > 100) {
+        lastReactionSentTime = now;
+        if (socket && socket.connected) {
+            socket.emit('liveReaction', { emoji });
+        }
+    }
+}
+
+function spawnFloatingReaction(emoji) {
+    const stream = document.getElementById('floating-reactions-stream');
+    if (!stream) return;
+
+    const el = document.createElement('div');
+    el.className = 'floating-reaction-item';
+    el.textContent = emoji;
+
+    // Vị trí ngẫu nhiên dọc theo cạnh dưới của khung video (6% đến 90%)
+    const startLeft = 6 + Math.random() * 84;
+    const sway = (Math.random() * 70 - 35); // Độ lắc lượn ngang (-35px đến +35px)
+    const rot = (Math.random() * 50 - 25);  // Góc nghiêng xoay (-25deg đến +25deg)
+    const scale = 0.9 + Math.random() * 0.35; // Kích thước biến thiên nhẹ tự nhiên
+
+    el.style.left = `${startLeft}%`;
+    el.style.setProperty('--sway', `${sway}px`);
+    el.style.setProperty('--rot', `${rot}deg`);
+    el.style.setProperty('--scale', `${scale}`);
+
+    stream.appendChild(el);
+    setTimeout(() => {
+        if (el.parentNode) el.parentNode.removeChild(el);
+    }, 2400);
+}
+
+socket.on('newLiveReaction', (data) => {
+    if (data && data.emoji) {
+        spawnFloatingReaction(data.emoji);
+    }
+});
+
+// ==========================================
+// 3. THEME ĐỔI MÀU THEO BÌA BÀI HÁT (DYNAMIC GLOW)
+// ==========================================
+let isDynamicGlowEnabled = localStorage.getItem('musiclive_dynamic_glow') !== 'false';
+
+function toggleDynamicGlowSetting(checked) {
+    isDynamicGlowEnabled = !!checked;
+    localStorage.setItem('musiclive_dynamic_glow', String(isDynamicGlowEnabled));
+    const glowEl = document.getElementById('dynamic-ambient-glow');
+    if (glowEl) glowEl.style.display = isDynamicGlowEnabled ? 'block' : 'none';
+    if (isDynamicGlowEnabled && window.currentVideoId) {
+        extractAndApplySongTheme(window.currentVideoId);
+    } else {
+        resetDynamicSongTheme();
+    }
+}
+
+function extractAndApplySongTheme(videoId) {
+    if (!videoId || !isDynamicGlowEnabled) return;
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = function () {
+        try {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = 32;
+            canvas.height = 32;
+            ctx.drawImage(img, 0, 0, 32, 32);
+            const p = ctx.getImageData(0, 0, 32, 32).data;
+
+            let maxSat = 0, bestR = 255, bestG = 117, bestB = 160;
+            let sumR = 0, sumG = 0, sumB = 0, validPixels = 0;
+
+            for (let i = 0; i < p.length; i += 4) {
+                const r = p[i], g = p[i + 1], b = p[i + 2];
+                const max = Math.max(r, g, b), min = Math.min(r, g, b);
+                const sat = max === 0 ? 0 : (max - min) / max;
+                const lum = 0.299 * r + 0.587 * g + 0.114 * b;
+
+                // Chọn màu có độ bão hòa tươi tắn, không quá tối hoặc quá cháy trắng
+                if (lum > 25 && lum < 235 && sat > 0.15) {
+                    sumR += r; sumG += g; sumB += b;
+                    validPixels++;
+                    if (sat > maxSat) {
+                        maxSat = sat;
+                        bestR = r; bestG = g; bestB = b;
+                    }
+                }
+            }
+
+            let finalR = bestR, finalG = bestG, finalB = bestB;
+            if (validPixels > 0) {
+                finalR = Math.round(bestR * 0.7 + (sumR / validPixels) * 0.3);
+                finalG = Math.round(bestG * 0.7 + (sumG / validPixels) * 0.3);
+                finalB = Math.round(bestB * 0.7 + (sumB / validPixels) * 0.3);
+            }
+
+            document.documentElement.style.setProperty('--song-accent-rgb', `${finalR}, ${finalG}, ${finalB}`);
+            document.documentElement.style.setProperty('--song-accent-color', `rgb(${finalR}, ${finalG}, ${finalB})`);
+
+            const glowEl = document.getElementById('dynamic-ambient-glow');
+            if (glowEl && isDynamicGlowEnabled) {
+                glowEl.style.background = `radial-gradient(circle at 45% 15%, rgba(${finalR}, ${finalG}, ${finalB}, 0.26) 0%, rgba(${finalR}, ${finalG}, ${finalB}, 0.08) 50%, transparent 80%)`;
+            }
+        } catch (e) {
+            console.warn('Lỗi phân tích màu bìa bài hát:', e);
+        }
+    };
+    img.src = `/api/avatar-proxy?url=${encodeURIComponent('https://img.youtube.com/vi/' + videoId + '/mqdefault.jpg')}`;
+}
+
+function resetDynamicSongTheme() {
+    document.documentElement.style.removeProperty('--song-accent-rgb');
+    document.documentElement.style.removeProperty('--song-accent-color');
+    const glowEl = document.getElementById('dynamic-ambient-glow');
+    if (glowEl) glowEl.style.background = 'none';
+}
+
+// ==========================================
+// 4. CHẾ ĐỘ CỬA SỔ NỔI MINI-PLAYER (PICTURE-IN-PICTURE)
+// ==========================================
+let isMiniPlayerActive = false;
+let isAutoPipEnabled = localStorage.getItem('musiclive_auto_pip') !== 'false';
+
+function toggleAutoPipSetting(checked) {
+    isAutoPipEnabled = !!checked;
+    localStorage.setItem('musiclive_auto_pip', String(isAutoPipEnabled));
+}
+
+function toggleMiniPlayer(forceState) {
+    const playerEl = document.getElementById('player-container');
+    const pipBtn = document.getElementById('btn-toggle-pip');
+    const pipIcon = document.getElementById('pip-btn-icon');
+    const pipLabel = document.getElementById('pip-btn-label');
+    const miniTitle = document.getElementById('mini-player-title');
+
+    if (!playerEl) return;
+
+    if (forceState !== undefined) {
+        isMiniPlayerActive = !!forceState;
+    } else {
+        isMiniPlayerActive = !isMiniPlayerActive;
+    }
+
+    playerEl.classList.toggle('is-mini-player', isMiniPlayerActive);
+    if (pipBtn) pipBtn.classList.toggle('active', isMiniPlayerActive);
+    if (pipIcon) pipIcon.textContent = isMiniPlayerActive ? 'close_fullscreen' : 'picture_in_picture_alt';
+    if (pipLabel) pipLabel.textContent = isMiniPlayerActive ? 'Phóng to' : 'Mini Player';
+    if (miniTitle) miniTitle.textContent = window.currentVideoTitle || 'Đang phát nhạc';
+
+    if (isMiniPlayerActive) {
+        applyMiniPlayerSavedPos();
+        clampMiniPlayerPosition();
+    } else {
+        playerEl.style.transform = '';
+    }
+}
+
+// Hook vào sự kiện chuyển tab không gian (Pomodoro, Phòng học, Video)
+window.onWorkspaceViewChanged = function(view) {
+    if (!isAutoPipEnabled) return;
+    if (view === 'pomodoro' || view === 'study') {
+        toggleMiniPlayer(true);
+    } else if (view === 'video') {
+        toggleMiniPlayer(false);
+    }
+};
 
 function updateLoopUI() {
     const btn = document.getElementById('btn-loop');
@@ -5378,22 +5914,35 @@ function switchRightTab(tabName) {
     const chatFab = document.getElementById('chat-bubble-btn');
     const lyricFab = document.getElementById('lyric-bubble-btn');
 
+    if (tabChat && tabLyric) {
+        tabChat.classList.toggle('active', tabName === 'chat');
+        tabLyric.classList.toggle('active', tabName === 'lyric');
+    }
+
     if (tabName === 'chat') {
-        tabChat.style.fontWeight = '600';
-        tabChat.style.color = 'var(--accent)';
-        tabLyric.style.fontWeight = '500';
-        tabLyric.style.color = 'var(--text-muted)';
-        chatArea.classList.remove('hidden');
-        lyricArea.classList.add('hidden');
+        if (tabChat) {
+            tabChat.style.fontWeight = '700';
+            tabChat.style.color = '#ffffff';
+        }
+        if (tabLyric) {
+            tabLyric.style.fontWeight = '500';
+            tabLyric.style.color = 'var(--sp-text-sub, var(--text-muted))';
+        }
+        if (chatArea) chatArea.classList.remove('hidden');
+        if (lyricArea) lyricArea.classList.add('hidden');
         if (chatFab) chatFab.classList.add('active-tab');
         if (lyricFab) lyricFab.classList.remove('active-tab');
     } else {
-        tabLyric.style.fontWeight = '600';
-        tabLyric.style.color = 'var(--accent)';
-        tabChat.style.fontWeight = '500';
-        tabChat.style.color = 'var(--text-muted)';
-        lyricArea.classList.remove('hidden');
-        chatArea.classList.add('hidden');
+        if (tabLyric) {
+            tabLyric.style.fontWeight = '700';
+            tabLyric.style.color = '#ffffff';
+        }
+        if (tabChat) {
+            tabChat.style.fontWeight = '500';
+            tabChat.style.color = 'var(--sp-text-sub, var(--text-muted))';
+        }
+        if (lyricArea) lyricArea.classList.remove('hidden');
+        if (chatArea) chatArea.classList.add('hidden');
         if (chatFab) chatFab.classList.remove('active-tab');
         if (lyricFab) lyricFab.classList.add('active-tab');
     }
@@ -6086,89 +6635,244 @@ let parsedLyrics = [];
 let lrcSearchResults = [];
 let currentLrcIndex = 0;
 
-async function fetchLyrics(title) {
+let currentLyricTitle = '';
+let lyricRequestId = 0;
+const LYRIC_OVERRIDE_KEY = 'musiclive_lyric_overrides';
+
+function stripDiacritics(s) {
+    return String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D');
+}
+
+function normalizeLyricKey(s) {
+    return stripDiacritics(s).toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+}
+
+function getLyricOverrides() {
+    try { return JSON.parse(localStorage.getItem(LYRIC_OVERRIDE_KEY) || '{}') || {}; } catch (_) { return {}; }
+}
+
+function saveLyricOverride(title, query) {
+    try {
+        const o = getLyricOverrides();
+        o[normalizeLyricKey(title)] = query;
+        localStorage.setItem(LYRIC_OVERRIDE_KEY, JSON.stringify(o));
+    } catch (_) { }
+}
+
+const LYRIC_NOISE_RE = /\b(official\s*(music\s*)?(video|audio|mv|lyric\s*video|visualizer)?|music\s*video|lyrics?\s*video|lyrics?|audio|m\/v|mv|vietsub|engsub|eng\s*sub|karaoke|visualizer|full\s*(album|version)|4k|hd|1080p|studio\s*version|hq)\b/gi;
+
+function lyricClean(s) {
+    return String(s || '').replace(/[^\p{L}\p{N}\s]/gu, ' ').replace(/\s+/g, ' ').trim();
+}
+
+function lyricStripFeat(s) {
+    return String(s || '').replace(/\b(ft|feat|featuring)\b\.?.*$/i, '').trim();
+}
+
+function lyricPrimaryArtist(s) {
+    return String(s || '').split(/\s*(?:,|&|\bx\b|\bft\b\.?|\bfeat\b\.?|\bfeaturing\b|\bvà\b|\band\b)\s*/i)[0].trim();
+}
+
+// Tách tiêu đề YouTube thành các phần: "Ca sĩ - Tên bài | Album ..." và bản đã làm sạch
+function parseLyricTitle(title) {
+    const t = String(title || '')
+        .replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}]/gu, ' ')
+        .replace(/\(.*?\)|\[.*?\]|\{.*?\}|【.*?】|「.*?」|『.*?』/g, ' ')
+        .replace(LYRIC_NOISE_RE, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+    const parts = t.split(/\s+[-–—:]\s+|\s*[|｜~]\s*/)
+        .map(p => p.replace(/["'“”‘’]/g, '').trim())
+        .filter(Boolean);
+    return { parts, base: lyricClean(parts.join(' ')) };
+}
+
+// Tạo danh sách truy vấn LRCLIB từ chính xác -> nới lỏng dần
+function buildLyricQueries(title) {
+    const { parts, base } = parseLyricTitle(title);
+    const list = [];
+    const seen = new Set();
+    const add = (params) => {
+        const clean = {};
+        Object.keys(params).forEach(k => { if (params[k]) clean[k] = params[k]; });
+        if (!Object.keys(clean).length) return;
+        const k = JSON.stringify(clean);
+        if (seen.has(k)) return;
+        seen.add(k);
+        list.push(clean);
+    };
+
+    if (parts.length >= 2) {
+        const artist = lyricPrimaryArtist(parts[0]);
+        const track = lyricStripFeat(parts[1]);
+        add({ track_name: track, artist_name: artist });
+        add({ q: lyricClean(`${artist} ${track}`) });
+        add({ q: base });
+        // Trường hợp tiêu đề dạng "Tên bài - Ca sĩ"
+        add({ track_name: lyricStripFeat(parts[0]), artist_name: lyricPrimaryArtist(parts[1]) });
+        add({ q: lyricClean(track) });
+        add({ q: lyricClean(lyricStripFeat(parts[0])) });
+    } else {
+        add({ q: base });
+        add({ q: lyricClean(lyricStripFeat(base)) });
+    }
+
+    // Bản không dấu (nhiều bài trên LRCLIB lưu tên không dấu) và bản rút gọn
+    list.slice().forEach(p => {
+        if (p.q) add({ q: stripDiacritics(p.q) });
+        if (p.track_name) add({ track_name: stripDiacritics(p.track_name), artist_name: p.artist_name ? stripDiacritics(p.artist_name) : undefined });
+    });
+    const words = base.split(' ');
+    if (words.length > 4) add({ q: words.slice(0, 4).join(' ') });
+
+    return list.slice(0, 10);
+}
+
+async function lrclibSearch(params) {
+    const res = await fetch(`https://lrclib.net/api/search?${new URLSearchParams(params).toString()}`);
+    if (!res.ok) return [];
+    const data = await res.json();
+    return Array.isArray(data) ? data.filter(i => i && (i.syncedLyrics || i.plainLyrics)) : [];
+}
+
+// Kết quả có tên bài khớp với tiêu đề video không (tránh lấy nhầm lời bài khác)
+function isLyricRelevant(item, titleKey) {
+    const tn = normalizeLyricKey(item.trackName || item.name || '');
+    if (!tn) return false;
+    if (titleKey.includes(tn)) return true;
+    const tokens = tn.split(' ').filter(w => w.length > 1);
+    if (!tokens.length) return false;
+    const titleWords = titleKey.split(' ');
+    const hit = tokens.filter(w => titleWords.includes(w)).length;
+    return hit / tokens.length >= 0.6;
+}
+
+function pickBestLyric(results, videoDuration) {
+    let found = null;
+    if (videoDuration > 0) {
+        let minDiff = Infinity;
+        for (const item of results) {
+            if (item.syncedLyrics && item.duration) {
+                const diff = Math.abs(item.duration - videoDuration);
+                if (diff < minDiff) { minDiff = diff; found = item; }
+            }
+        }
+    }
+    if (!found) found = results.find(item => item.syncedLyrics);
+    if (!found && results.length > 0) found = results[0];
+    return found;
+}
+
+function renderLyricNotFound(title, message) {
+    lrcSearchResults = [];
+    stopLyricSync();
+    const { parts } = parseLyricTitle(title || currentLyricTitle);
+    const defaultQuery = parts.slice(0, 2).join(' - ');
+    document.getElementById('lyric-content').innerHTML = `
+        <div class="lyric-loading">${escapeHtml(message || 'Không tìm thấy lời bài hát')}</div>
+        <form class="lyric-manual-form" onsubmit="return submitManualLyricSearch(event)">
+            <input type="text" id="lyric-manual-input" value="${escapeHtml(defaultQuery)}" placeholder="Nhập: tên bài hát - ca sĩ" autocomplete="off">
+            <button type="submit">Tìm lời</button>
+        </form>
+        <div class="lyric-manual-hint">Thử nhập tên bài + ca sĩ (có hoặc không dấu). Kết quả đúng sẽ được nhớ cho bài này.</div>`;
+}
+
+function submitManualLyricSearch(e) {
+    if (e && e.preventDefault) e.preventDefault();
+    const input = document.getElementById('lyric-manual-input');
+    const q = input ? input.value.trim() : '';
+    if (q) fetchLyrics(currentLyricTitle, { manualQuery: q });
+    return false;
+}
+
+function promptManualLyricSearch() {
+    const { parts } = parseLyricTitle(currentLyricTitle);
+    const q = prompt('Nhập tên bài hát (và ca sĩ) để tìm lời trên LRCLIB:', parts.slice(0, 2).join(' - '));
+    if (q && q.trim()) fetchLyrics(currentLyricTitle, { manualQuery: q.trim() });
+}
+
+async function fetchLyrics(title, opts = {}) {
+    const reqId = ++lyricRequestId;
+    if (title) currentLyricTitle = title;
+    title = title || currentLyricTitle || '';
     document.getElementById('lyric-box').classList.remove('hidden');
     document.getElementById('lyric-content').innerHTML = '<div class="lyric-loading">Đang tìm lời bài hát...</div>';
     const reportBtn = document.getElementById('lyric-report-btn');
     if (reportBtn) reportBtn.classList.add('hidden');
 
     try {
-        let cleanTitle = title.replace(/\(.*?\)|\[.*?\]|\{.*?\}/g, ' ')
-            .replace(/\b(official|music video|lyric|lyrics|audio|mv|vietsub|4k|hd|studio version)\b/gi, ' ')
-            .replace(/[-|~"']/g, ' ')
-            .replace(/\s+/g, ' ')
-            .trim();
-
-        if (cleanTitle.length < 2) cleanTitle = title.split('-')[0].trim();
-
-        console.log("--- LYRIC SEARCH DEBUG ---");
-        console.log("Original Title:", title);
-        console.log("Clean Title for Search:", cleanTitle);
-        const searchUrl = `https://lrclib.net/api/search?q=${encodeURIComponent(cleanTitle)}`;
-        console.log("API URL:", searchUrl);
-
-        let res = await fetch(searchUrl);
-        let data = await res.json();
-
-        console.log("Results found:", data ? data.length : 0);
-
-        if ((!data || data.length === 0) && cleanTitle.match(/\b(ft|feat)\b/i)) {
-            let noFeatTitle = cleanTitle.replace(/\b(ft\.?|feat\.?)\b.*/gi, '').trim();
-            console.log("Retry without 'feat':", noFeatTitle);
-            res = await fetch(`https://lrclib.net/api/search?q=${encodeURIComponent(noFeatTitle)}`);
-            data = await res.json();
-            console.log("Retry Results found:", data ? data.length : 0);
+        const manualQuery = (opts.manualQuery || '').trim();
+        let queries = [];
+        if (manualQuery) {
+            queries.push({ params: { q: manualQuery }, trusted: true });
+            const plain = stripDiacritics(manualQuery);
+            if (plain !== manualQuery) queries.push({ params: { q: plain }, trusted: true });
+        } else {
+            const saved = getLyricOverrides()[normalizeLyricKey(title)];
+            if (saved) queries.push({ params: { q: saved }, trusted: true });
+            buildLyricQueries(title).forEach(p => queries.push({ params: p, trusted: false }));
         }
 
-        if (data && data.length > 0) {
-            lrcSearchResults = data.filter(item => item.syncedLyrics || item.plainLyrics);
+        console.log('--- LYRIC SEARCH ---', title, queries.map(q => q.params));
 
-            let videoDuration = 0;
-            for (let i = 0; i < 10; i++) {
-                if (player && typeof player.getDuration === 'function') {
-                    videoDuration = player.getDuration();
-                    if (videoDuration > 0) break;
-                }
-                await new Promise(r => setTimeout(r, 150));
+        const titleKey = normalizeLyricKey(title);
+        const collected = [];
+        const loose = [];
+        const seenIds = new Set();
+
+        for (const query of queries) {
+            let results = [];
+            try {
+                results = await lrclibSearch(query.params);
+            } catch (err) {
+                console.warn('LRCLIB query failed:', query.params, err);
             }
+            if (reqId !== lyricRequestId) return;
 
-            console.log("YouTube Video Duration:", videoDuration, "seconds");
-
-            let found = null;
-            if (videoDuration > 0) {
-                let minDiff = Infinity;
-                for (let item of lrcSearchResults) {
-                    if (item.syncedLyrics && item.duration) {
-                        let diff = Math.abs(item.duration - videoDuration);
-                        if (diff < minDiff) {
-                            minDiff = diff;
-                            found = item;
-                        }
-                    }
-                }
+            for (const item of results) {
+                const key = item.id != null ? item.id : `${item.trackName}|${item.artistName}|${item.duration}`;
+                if (seenIds.has(key)) continue;
+                seenIds.add(key);
+                if (query.trusted || isLyricRelevant(item, titleKey)) collected.push(item);
+                else loose.push(item);
             }
+            // Dừng khi đã có bản lyric đồng bộ phù hợp
+            if (collected.some(i => i.syncedLyrics)) break;
+        }
 
-            if (!found) found = lrcSearchResults.find(item => item.syncedLyrics);
-            if (!found && lrcSearchResults.length > 0) found = lrcSearchResults[0];
+        lrcSearchResults = collected.length ? collected : loose.slice(0, 10);
+        console.log('Lyric results:', lrcSearchResults.length);
 
-            if (found) {
-                currentLrcIndex = lrcSearchResults.indexOf(found);
-                if (currentLrcIndex === -1) currentLrcIndex = 0;
-                applyLyricItem(found);
-            } else {
-                document.getElementById('lyric-content').innerHTML = '<div class="lyric-loading">Không tìm thấy lời bài hát</div>';
-                stopLyricSync();
+        if (!lrcSearchResults.length) {
+            renderLyricNotFound(title);
+            return;
+        }
+
+        let videoDuration = 0;
+        for (let i = 0; i < 10; i++) {
+            if (player && typeof player.getDuration === 'function') {
+                videoDuration = player.getDuration();
+                if (videoDuration > 0) break;
+            }
+            await new Promise(r => setTimeout(r, 150));
+        }
+        if (reqId !== lyricRequestId) return;
+
+        const found = pickBestLyric(lrcSearchResults, videoDuration);
+        if (found) {
+            currentLrcIndex = Math.max(0, lrcSearchResults.indexOf(found));
+            applyLyricItem(found);
+            if (manualQuery) {
+                saveLyricOverride(title, manualQuery);
+                showToastNotification('✅ Đã tìm thấy lời bài hát và ghi nhớ cho bài này');
             }
         } else {
-            lrcSearchResults = [];
-            document.getElementById('lyric-content').innerHTML = '<div class="lyric-loading">Không tìm thấy lời bài hát</div>';
-            stopLyricSync();
+            renderLyricNotFound(title);
         }
     } catch (e) {
-        console.error("Lỗi khi tải lyric", e);
-        lrcSearchResults = [];
-        document.getElementById('lyric-content').innerHTML = '<div class="lyric-loading">Lỗi khi tải lời bài hát</div>';
-        stopLyricSync();
+        console.error('Lỗi khi tải lyric', e);
+        if (reqId !== lyricRequestId) return;
+        renderLyricNotFound(title, 'Lỗi khi tải lời bài hát');
     }
 }
 
@@ -6675,7 +7379,7 @@ function resetMiniPlayerDrag() {
 }
 
 function clampMiniPlayerPosition() {
-    if (!document.getElementById('left-column').classList.contains('not-home') && !document.getElementById('left-column').classList.contains('mobile-mini')) {
+    if (!document.getElementById('left-column').classList.contains('not-home') && !document.getElementById('left-column').classList.contains('mobile-mini') && !miniPlayer.classList.contains('is-mini-player')) {
         return;
     }
     const rect = miniPlayer.getBoundingClientRect();
@@ -6683,12 +7387,15 @@ function clampMiniPlayerPosition() {
 
     const currentUnX = rect.left - miniDragX;
     const currentUnY = rect.top - miniDragY;
-    const margin = 4;
+    const margin = 8;
+    const bottomBar = document.getElementById('spotify-bottom-bar');
+    const bottomBarH = (bottomBar && !bottomBar.classList.contains('hidden') && bottomBar.offsetHeight > 0) ? bottomBar.offsetHeight : 80;
+    const bottomOffset = bottomBarH + margin;
 
     const minX = -currentUnX + margin;
     const maxX = window.innerWidth - currentUnX - rect.width - margin;
     const minY = -currentUnY + margin;
-    const maxY = window.innerHeight - currentUnY - rect.height - margin;
+    const maxY = window.innerHeight - currentUnY - rect.height - bottomOffset;
 
     miniDragX = Math.min(Math.max(miniDragX, minX), Math.max(minX, maxX));
     miniDragY = Math.min(Math.max(miniDragY, minY), Math.max(minY, maxY));
@@ -6699,6 +7406,12 @@ window.addEventListener('resize', clampMiniPlayerPosition);
 
 dragHandle.addEventListener('mousedown', startMiniDrag);
 dragHandle.addEventListener('touchstart', startMiniDrag, { passive: false });
+
+const miniDragArea = document.getElementById('mini-player-drag-area');
+if (miniDragArea) {
+    miniDragArea.addEventListener('mousedown', startMiniDrag);
+    miniDragArea.addEventListener('touchstart', startMiniDrag, { passive: false });
+}
 
 function startMiniDrag(e) {
     if (e.type === 'mousedown' && e.button !== 0) return;
@@ -7349,7 +8062,7 @@ function renderQuizPacksLobby() {
             : `<span class="quiz-pack-badge not-ready">⚠️ ${validItems.length}/4 câu (Chưa đủ)</span>`;
 
         const playBtnHtml = isComplete
-            ? `<button class="caro-btn" style="width: 100%; background: linear-gradient(135deg, #ff75a0, #ff4757); color: #fff; font-weight: 800; border: none; margin-top: 6px;" onclick="startQuizGame('${pack.id}')">🚀 Bắt Đầu Trận Đấu (Multiplayer)</button>`
+            ? `<button class="caro-btn" style="width: 100%; background: linear-gradient(135deg, #87cefa, #ff4757); color: #fff; font-weight: 800; border: none; margin-top: 6px;" onclick="startQuizGame('${pack.id}')">🚀 Bắt Đầu Trận Đấu (Multiplayer)</button>`
             : `<button class="caro-btn" style="width: 100%; background: rgba(255,255,255,0.05); color: var(--text-muted); border: 1px solid rgba(255,255,255,0.1); cursor: not-allowed; margin-top: 6px;" disabled>⚠️ Cần tối thiểu 4 câu để chơi</button>`;
 
         card.innerHTML = `
@@ -7876,13 +8589,13 @@ function renderAdminPackItemsContainer() {
         const thumbSrc = item.imageUrl || '/assets/images/background-chat.jpeg';
 
         itemCard.innerHTML = `
-            <img src="${thumbSrc}" id="thumb-preview-${item.id}" alt="Item image" style="width: 54px; height: 54px; object-fit: cover; border-radius: 12px; border: 1.5px solid rgba(255,180,210,0.3); background: #000;" onerror="this.src='/assets/images/background-chat.jpeg'">
+            <img src="${thumbSrc}" id="thumb-preview-${item.id}" alt="Item image" style="width: 54px; height: 54px; object-fit: cover; border-radius: 12px; border: 1.5px solid rgba(176, 224, 250,0.3); background: #000;" onerror="this.src='/assets/images/background-chat.jpeg'">
             <div style="flex: 1; display: flex; flex-direction: column; gap: 8px;">
-                <input type="text" class="login-input" style="padding: 8px 12px; font-size: 13px; font-weight: 700; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,180,210,0.2); border-radius: 10px; color: #fff;" placeholder="Tên đáp án đúng (Ví dụ: Cờ Việt Nam)..." value="${item.name || ''}" oninput="updateAdminItemName('${item.id}', this.value)">
+                <input type="text" class="login-input" style="padding: 8px 12px; font-size: 13px; font-weight: 700; background: rgba(0,0,0,0.3); border: 1px solid rgba(176, 224, 250,0.2); border-radius: 10px; color: #fff;" placeholder="Tên đáp án đúng (Ví dụ: Cờ Việt Nam)..." value="${item.name || ''}" oninput="updateAdminItemName('${item.id}', this.value)">
                 
                 <div style="display: flex; gap: 8px; align-items: center;">
-                    <input type="text" class="login-input" style="padding: 6px 10px; font-size: 12px; flex: 1; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,180,210,0.15); border-radius: 8px; color: var(--text-muted);" placeholder="Link URL ảnh (https://...)..." value="${item.imageUrl || ''}" oninput="updateAdminItemImageUrl('${item.id}', this.value)">
-                    <label class="action-btn" style="padding: 6px 12px; font-size: 12px; cursor: pointer; white-space: nowrap; background: rgba(255,117,160,0.2); border: 1px solid rgba(255,117,160,0.4); color: #ff75a0; font-weight: 700; border-radius: 8px;">
+                    <input type="text" class="login-input" style="padding: 6px 10px; font-size: 12px; flex: 1; background: rgba(0,0,0,0.3); border: 1px solid rgba(176, 224, 250,0.15); border-radius: 8px; color: var(--text-muted);" placeholder="Link URL ảnh (https://...)..." value="${item.imageUrl || ''}" oninput="updateAdminItemImageUrl('${item.id}', this.value)">
+                    <label class="action-btn" style="padding: 6px 12px; font-size: 12px; cursor: pointer; white-space: nowrap; background: rgba(135, 206, 250,0.2); border: 1px solid rgba(135, 206, 250,0.4); color: #87cefa; font-weight: 700; border-radius: 8px;">
                         📷 Tải ảnh
                         <input type="file" accept="image/*" style="display: none;" onchange="handleAdminItemFileUpload(event, '${item.id}')">
                     </label>
@@ -8191,7 +8904,7 @@ function renderMessengerList() {
     const listEl = document.getElementById('messenger-list-container');
     if (!listEl) return;
 
-    const defaultAvatarSvg = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'><rect width='48' height='48' rx='24' fill='%232a2034'/><text x='50%' y='55%' dominant-baseline='middle' text-anchor='middle' fill='%23ff75a0' font-size='18' font-weight='bold'>👤</text></svg>";
+    const defaultAvatarSvg = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'><rect width='48' height='48' rx='24' fill='%231c2632'/><text x='50%' y='55%' dominant-baseline='middle' text-anchor='middle' fill='%2387cefa' font-size='18' font-weight='bold'>👤</text></svg>";
 
     if (messengerCurrentSubTab === 'chats') {
         let list = messengerConversations;
@@ -8244,7 +8957,7 @@ function renderMessengerList() {
             return `
                 <div class="messenger-convo-item ${isActive ? 'active' : ''} ${isUnread ? 'unread' : ''}" onclick="selectMessengerConversation('${f.id}')">
                     <div class="messenger-avatar-wrap">
-                        <img src="${avatarSrc}" alt="avatar" class="messenger-avatar-img" onerror="this.onerror=null; this.src='${defaultAvatarSvg}';">
+                        <img src="${avatarSrc}" alt="avatar" class="messenger-avatar-img" referrerpolicy="no-referrer" onerror="this.onerror=null; this.src='${defaultAvatarSvg}';">
                         <span class="messenger-online-dot ${isOnline ? 'online' : ''}"></span>
                     </div>
                     <div class="messenger-convo-info">
@@ -8290,7 +9003,7 @@ function renderMessengerList() {
             return `
                 <div class="messenger-friend-item" onclick="selectMessengerConversation('${f.id}')">
                     <div class="messenger-avatar-wrap">
-                        <img src="${avatarSrc}" alt="avatar" class="messenger-avatar-img" onerror="this.onerror=null; this.src='${defaultAvatarSvg}';">
+                        <img src="${avatarSrc}" alt="avatar" class="messenger-avatar-img" referrerpolicy="no-referrer" onerror="this.onerror=null; this.src='${defaultAvatarSvg}';">
                         <span class="messenger-online-dot ${isOnline ? 'online' : ''}"></span>
                     </div>
                     <div class="messenger-convo-info">
@@ -8334,7 +9047,7 @@ function renderMessengerList() {
             return `
                 <div class="messenger-request-item">
                     <div class="messenger-avatar-wrap">
-                        <img src="${avatarSrc}" alt="avatar" class="messenger-avatar-img" onerror="this.onerror=null; this.src='${defaultAvatarSvg}';">
+                        <img src="${avatarSrc}" alt="avatar" class="messenger-avatar-img" referrerpolicy="no-referrer" onerror="this.onerror=null; this.src='${defaultAvatarSvg}';">
                     </div>
                     <div class="messenger-convo-info">
                         <div class="messenger-convo-name">${cleanName}${badgeHtml}</div>
@@ -8422,7 +9135,7 @@ function selectMessengerConversation(friendId, fallbackUser = null) {
 
 function updateMessengerChatHeader() {
     if (!messengerActiveFriend) return;
-    const defaultAvatarSvg = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'><rect width='48' height='48' rx='24' fill='%232a2034'/><text x='50%' y='55%' dominant-baseline='middle' text-anchor='middle' fill='%23ff75a0' font-size='18' font-weight='bold'>👤</text></svg>";
+    const defaultAvatarSvg = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'><rect width='48' height='48' rx='24' fill='%231c2632'/><text x='50%' y='55%' dominant-baseline='middle' text-anchor='middle' fill='%2387cefa' font-size='18' font-weight='bold'>👤</text></svg>";
     const isOnline = messengerOnlineUserIds.has(String(messengerActiveFriend.id));
 
     const avatarEl = document.getElementById('messenger-header-avatar');
@@ -8431,8 +9144,19 @@ function updateMessengerChatHeader() {
     const statusEl = document.getElementById('messenger-header-status');
 
     if (avatarEl) {
-        avatarEl.src = messengerActiveFriend.avatarUrl || defaultAvatarSvg;
-        avatarEl.onerror = () => { avatarEl.src = defaultAvatarSvg; };
+        avatarEl.setAttribute('referrerpolicy', 'no-referrer');
+        const fAvatar = (messengerActiveFriend.avatarUrl || '').trim();
+        avatarEl.dataset.triedProxy = '';
+        avatarEl.onerror = function() {
+            if (!this.dataset.triedProxy && fAvatar && !fAvatar.startsWith('/') && !fAvatar.startsWith('data:')) {
+                this.dataset.triedProxy = '1';
+                this.src = `/api/avatar-proxy?url=${encodeURIComponent(fAvatar)}`;
+            } else {
+                this.onerror = null;
+                this.src = defaultAvatarSvg;
+            }
+        };
+        avatarEl.src = fAvatar || defaultAvatarSvg;
     }
     if (dotEl) {
         if (isOnline) dotEl.classList.add('online');
@@ -8502,7 +9226,7 @@ function renderMessengerMessages(messages) {
     if (!messagesArea) return;
 
     if (!messages || messages.length === 0) {
-        const defaultAvatarSvg = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'><rect width='48' height='48' rx='24' fill='%232a2034'/><text x='50%' y='55%' dominant-baseline='middle' text-anchor='middle' fill='%23ff75a0' font-size='18' font-weight='bold'>👤</text></svg>";
+        const defaultAvatarSvg = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'><rect width='48' height='48' rx='24' fill='%231c2632'/><text x='50%' y='55%' dominant-baseline='middle' text-anchor='middle' fill='%2387cefa' font-size='18' font-weight='bold'>👤</text></svg>";
         const isAdm = messengerActiveFriend ? isUserAdmin(messengerActiveFriend) : false;
         const badge = isAdm ? getTikTokVerifiedBadgeHtml() : '';
         const rawFriendName = messengerActiveFriend ? (messengerActiveFriend.displayName || messengerActiveFriend.username) : 'người bạn';
@@ -8511,7 +9235,7 @@ function renderMessengerMessages(messages) {
 
         messagesArea.innerHTML = `
             <div style="text-align: center; margin: auto; padding: 40px 16px;">
-                <div style="width: 72px; height: 72px; margin: 0 auto 14px auto; border-radius: 50%; overflow: hidden; border: 2px solid rgba(255,180,210,0.3);">
+                <div style="width: 72px; height: 72px; margin: 0 auto 14px auto; border-radius: 50%; overflow: hidden; border: 2px solid rgba(176, 224, 250,0.3);">
                     <img src="${friendAvatar}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.onerror=null; this.src='${defaultAvatarSvg}';">
                 </div>
                 <h4 style="margin: 0 0 6px 0; font-size: 17px; color: #fff; display: inline-flex; align-items: center; justify-content: center; gap: 4px;">${cleanFriendName}${badge}</h4>
@@ -8521,7 +9245,7 @@ function renderMessengerMessages(messages) {
         return;
     }
 
-    const defaultAvatarSvg = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'><rect width='48' height='48' rx='24' fill='%232a2034'/><text x='50%' y='55%' dominant-baseline='middle' text-anchor='middle' fill='%23ff75a0' font-size='18' font-weight='bold'>👤</text></svg>";
+    const defaultAvatarSvg = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'><rect width='48' height='48' rx='24' fill='%231c2632'/><text x='50%' y='55%' dominant-baseline='middle' text-anchor='middle' fill='%2387cefa' font-size='18' font-weight='bold'>👤</text></svg>";
     const uid = currentUserId || localStorage.getItem('musiclive_user_id');
     let html = '';
     let lastDateStr = '';
@@ -8566,7 +9290,7 @@ function renderMessengerMessages(messages) {
                 <div class="messenger-msg-row them ${clusterClass}" ${msgIdAttr} title="${timeStr}">
                     <div class="messenger-bubble-wrapper">
                         ${showAvatar 
-                            ? `<img src="${friendAvatar}" alt="avatar" class="messenger-bubble-avatar" onerror="this.onerror=null; this.src='${defaultAvatarSvg}';">` 
+                            ? `<img src="${friendAvatar}" alt="avatar" class="messenger-bubble-avatar" referrerpolicy="no-referrer" onerror="this.onerror=null; this.src='${defaultAvatarSvg}';">` 
                             : '<div class="messenger-bubble-avatar-spacer"></div>'}
                         ${bubbleHtml}
                     </div>
@@ -8647,7 +9371,7 @@ function appendMessengerMessage(msg) {
 
     const uid = currentUserId || localStorage.getItem('musiclive_user_id');
     const isMe = String(msg.senderId) === String(uid);
-    const defaultAvatarSvg = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'><rect width='48' height='48' rx='24' fill='%232a2034'/><text x='50%' y='55%' dominant-baseline='middle' text-anchor='middle' fill='%23ff75a0' font-size='18' font-weight='bold'>👤</text></svg>";
+    const defaultAvatarSvg = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'><rect width='48' height='48' rx='24' fill='%231c2632'/><text x='50%' y='55%' dominant-baseline='middle' text-anchor='middle' fill='%2387cefa' font-size='18' font-weight='bold'>👤</text></svg>";
     const timeStr = formatMessengerTime(msg.createdAt);
 
     const fIdStr = String(messengerActiveFriend.id);
@@ -8676,7 +9400,7 @@ function appendMessengerMessage(msg) {
         const friendAvatar = messengerActiveFriend.avatarUrl || defaultAvatarSvg;
         msgRow.innerHTML = `
             <div class="messenger-bubble-wrapper">
-                <img src="${friendAvatar}" alt="avatar" class="messenger-bubble-avatar" onerror="this.onerror=null; this.src='${defaultAvatarSvg}';">
+                <img src="${friendAvatar}" alt="avatar" class="messenger-bubble-avatar" referrerpolicy="no-referrer" onerror="this.onerror=null; this.src='${defaultAvatarSvg}';">
                 ${bubbleHtml}
             </div>
         `;
@@ -9298,7 +10022,7 @@ function renderSearchUsersResults(users) {
         return;
     }
 
-    const defaultAvatarSvg = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'><rect width='48' height='48' rx='24' fill='%232a2034'/><text x='50%' y='55%' dominant-baseline='middle' text-anchor='middle' fill='%23ff75a0' font-size='18' font-weight='bold'>👤</text></svg>";
+    const defaultAvatarSvg = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'><rect width='48' height='48' rx='24' fill='%231c2632'/><text x='50%' y='55%' dominant-baseline='middle' text-anchor='middle' fill='%2387cefa' font-size='18' font-weight='bold'>👤</text></svg>";
 
     users.forEach(u => messengerSearchUserCache.set(String(u.id), u));
 
@@ -9342,7 +10066,7 @@ function renderSearchUsersResults(users) {
         return `
             <div class="messenger-friend-item" ${rowClickAttr}>
                 <div class="messenger-avatar-wrap">
-                    <img src="${avatarSrc}" alt="avatar" class="messenger-avatar-img" onerror="this.onerror=null; this.src='${defaultAvatarSvg}';">
+                    <img src="${avatarSrc}" alt="avatar" class="messenger-avatar-img" referrerpolicy="no-referrer" onerror="this.onerror=null; this.src='${defaultAvatarSvg}';">
                     <span class="messenger-online-dot ${u.online ? 'online' : ''}"></span>
                 </div>
                 <div class="messenger-convo-info">
@@ -9510,7 +10234,10 @@ function registerMessengerSocketListeners() {
             const avatarEl = document.getElementById('messenger-typing-avatar');
             if (typingEl) {
                 if (isTyping) {
-                    if (avatarEl) avatarEl.src = messengerActiveFriend.avatarUrl || "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'><circle cx='12' cy='12' r='12' fill='%232a2034'/></svg>";
+                    if (avatarEl) {
+                        avatarEl.setAttribute('referrerpolicy', 'no-referrer');
+                        avatarEl.src = messengerActiveFriend.avatarUrl || "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'><circle cx='12' cy='12' r='12' fill='%231c2632'/></svg>";
+                    }
                     typingEl.classList.remove('hidden');
                     const messagesArea = document.getElementById('messenger-messages-area');
                     if (messagesArea) messagesArea.scrollTop = messagesArea.scrollHeight;
@@ -9578,4 +10305,1277 @@ function registerMessengerSocketListeners() {
 // Automatically register listeners when script loads
 if (typeof socket !== 'undefined') {
     registerMessengerSocketListeners();
+}
+
+
+/* ==========================================================================
+   PREMIUM ACCOUNT SYSTEM & LIVE ROOM INTERACTION SUITE
+   (1. Premium Gating, 2. Live Dedication, 3. Live Poll, 4. Shareable Song Card)
+   ========================================================================== */
+
+window.myIsPremium = false;
+let selectedDedicationTheme = 'ice';
+let selectedSongCardTheme = 'midnight';
+let liveDedicationTimer = null;
+let cachedSongCoverImg = null;
+let cachedSongCoverVid = '';
+
+function isCurrentUserPremium() {
+    if (typeof myRole !== 'undefined' && (myRole === 'admin' || myRole === 'premium')) return true;
+    if (window.myIsPremium) return true;
+    return false;
+}
+
+function applyPremiumAccessUI() {
+    const isPrem = isCurrentUserPremium();
+    window.myIsPremium = isPrem;
+    const isAdmin = (myRole === 'admin');
+
+    // Hiện mục Quản lý VIP và Kho Đoán hình ở Sidebar - CHỈ DÀNH CHO ADMIN
+    const sidebarPremAdmin = document.getElementById('sidebar-premium-admin');
+    if (sidebarPremAdmin) {
+        sidebarPremAdmin.classList.toggle('hidden', !isAdmin);
+    }
+    const sidebarQuizAdmin = document.getElementById('sidebar-quiz-admin');
+    if (sidebarQuizAdmin) {
+        sidebarQuizAdmin.classList.toggle('hidden', !isAdmin);
+    }
+
+    if (!isAdmin) {
+        const premAdminCol = document.getElementById('premium-admin-column');
+        if (premAdminCol && !premAdminCol.classList.contains('hidden')) {
+            showTab('home');
+        }
+        const quizAdminCol = document.getElementById('quiz-admin-column');
+        if (quizAdminCol && !quizAdminCol.classList.contains('hidden')) {
+            showTab('home');
+        }
+    }
+
+    // Ẩn/Hiện các tab ngoài Trang chủ tùy theo quyền Member hay Premium
+    const restrictedTabs = ['messenger', 'history', 'top', 'feedback'];
+    restrictedTabs.forEach(tabName => {
+        const sbItem = document.querySelector(`.sidebar-item[data-tab="${tabName}"]`);
+        if (sbItem) {
+            sbItem.classList.toggle('premium-hidden-tab', !isPrem);
+        }
+    });
+
+    const navMsgBtn = document.getElementById('navbar-messenger-btn');
+    if (navMsgBtn) {
+        navMsgBtn.classList.toggle('premium-hidden-tab', !isPrem);
+    }
+
+    // Cập nhật nút Nâng cấp Premium ở Sidebar & Navbar
+    const sbUpgrade = document.getElementById('sidebar-upgrade-premium');
+    const sbPremLabel = document.getElementById('sidebar-premium-label');
+    if (sbUpgrade) {
+        sbUpgrade.classList.toggle('is-premium-active', isPrem);
+        if (sbPremLabel) {
+            sbPremLabel.textContent = isPrem
+                ? (myRole === 'admin' ? 'Admin Premium' : 'Đã mở khóa VIP')
+                : 'Nâng cấp Premium';
+        }
+    }
+
+    const navPremBtn = document.getElementById('navbar-premium-btn');
+    const navPremLabel = document.getElementById('navbar-premium-label');
+    if (navPremBtn) {
+        navPremBtn.classList.toggle('is-premium-active', isPrem);
+        if (navPremLabel) {
+            navPremLabel.textContent = isPrem
+                ? (myRole === 'admin' ? 'ADMIN VIP' : 'PREMIUM')
+                : 'Nâng cấp Premium';
+        }
+    }
+
+    // Nếu là Member mà đang đứng ở tab khác ngoài Trang chủ -> đưa về Trang chủ
+    if (!isPrem) {
+        const homeCol = document.getElementById('left-column');
+        if (homeCol && homeCol.classList.contains('not-home')) {
+            showTab('home');
+        }
+    }
+}
+
+function openDialogSafe(dialogEl) {
+    if (!dialogEl) return;
+    if (typeof dialogEl.showModal === 'function') {
+        if (!dialogEl.open) dialogEl.showModal();
+    } else {
+        dialogEl.setAttribute('open', '');
+    }
+}
+
+function closeDialogSafe(dialogEl) {
+    if (!dialogEl) return;
+    if (typeof dialogEl.close === 'function' && dialogEl.open) {
+        dialogEl.close();
+    } else {
+        dialogEl.removeAttribute('open');
+    }
+}
+
+// Đóng <dialog> khi bấm ra vùng backdrop bên ngoài
+document.addEventListener('click', (e) => {
+    const dlg = e.target;
+    if (dlg && dlg.tagName === 'DIALOG' && dlg.classList.contains('modern-app-dialog')) {
+        const rect = dlg.getBoundingClientRect();
+        const clickedInDialog = (
+            rect.top <= e.clientY && e.clientY <= rect.top + rect.height &&
+            rect.left <= e.clientX && e.clientX <= rect.left + rect.width
+        );
+        if (!clickedInDialog) {
+            closeDialogSafe(dlg);
+        }
+    }
+});
+
+let currentVietqrPublicConfig = {
+    bankId: 'MB',
+    bankName: 'MB Bank (Ngân hàng Quân Đội)',
+    accountNo: '0987654321',
+    accountName: 'CHU TRAM NHAC 2937 ML',
+    amount: 29000,
+    template: 'compact2',
+    transferPrefix: 'VIP2937'
+};
+let currentMyPendingRequest = null;
+
+function buildClientVietqrUrl(cfg, transferContent) {
+    const bankId = encodeURIComponent(String(cfg.bankId || 'MB').trim().toUpperCase());
+    const accNo = encodeURIComponent(String(cfg.accountNo || '0987654321').replace(/\s+/g, '').trim());
+    const tpl = encodeURIComponent(['compact2', 'compact', 'qr_only', 'print'].includes(cfg.template) ? cfg.template : 'compact2');
+    const amount = Math.max(1000, Number(cfg.amount) || 29000);
+    const addInfo = encodeURIComponent(String(transferContent || 'VIP2937 MEMBER').trim());
+    const accName = encodeURIComponent(String(cfg.accountName || 'CHU TRAM NHAC 2937 ML').trim().toUpperCase());
+    return `https://img.vietqr.io/image/${bankId}-${accNo}-${tpl}.png?amount=${amount}&addInfo=${addInfo}&accountName=${accName}`;
+}
+
+function getClientDefaultTransferContent() {
+    const prefix = String(currentVietqrPublicConfig.transferPrefix || 'VIP2937').toUpperCase();
+    const rawName = (typeof myUsername !== 'undefined' && myUsername) || localStorage.getItem('musiclive_username') || 'MEMBER';
+    const cleanSlug = String(rawName)
+        .replace(/😎/g, '')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/đ/g, 'd')
+        .replace(/Đ/g, 'D')
+        .replace(/[^a-zA-Z0-9]/g, '')
+        .toUpperCase()
+        .slice(0, 14) || 'MEMBER';
+    const uid = (typeof currentUserId !== 'undefined' && currentUserId) || localStorage.getItem('musiclive_user_id') || '';
+    const shortSuffix = uid ? String(uid).replace(/[^a-zA-Z0-9]/g, '').slice(0, 4).toUpperCase() : '';
+    return `${prefix} ${cleanSlug}${shortSuffix ? ' ' + shortSuffix : ''}`.trim();
+}
+
+function renderVietqrCheckoutBox(cfg, transferContent, pendingReq) {
+    if (cfg && typeof cfg === 'object') {
+        currentVietqrPublicConfig = { ...currentVietqrPublicConfig, ...cfg };
+    }
+    if (pendingReq !== undefined) {
+        currentMyPendingRequest = pendingReq;
+    }
+
+    const finalContent = (currentMyPendingRequest && currentMyPendingRequest.transferContent)
+        || transferContent
+        || getClientDefaultTransferContent();
+    const qrUrl = buildClientVietqrUrl(currentVietqrPublicConfig, finalContent);
+    const amountNum = Math.max(1000, Number(currentVietqrPublicConfig.amount) || 29000);
+
+    const qrImg = document.getElementById('vietqr-checkout-img');
+    if (qrImg) qrImg.src = qrUrl;
+
+    const bankNameEl = document.getElementById('vietqr-bank-name');
+    if (bankNameEl) bankNameEl.textContent = currentVietqrPublicConfig.bankName || currentVietqrPublicConfig.bankId || 'MB Bank';
+
+    const accNoEl = document.getElementById('vietqr-account-no');
+    if (accNoEl) accNoEl.textContent = currentVietqrPublicConfig.accountNo || '';
+
+    const accNameEl = document.getElementById('vietqr-account-name');
+    if (accNameEl) accNameEl.textContent = currentVietqrPublicConfig.accountName || '';
+
+    const amountEl = document.getElementById('vietqr-amount-text');
+    if (amountEl) amountEl.textContent = amountNum.toLocaleString('vi-VN') + ' VNĐ';
+
+    const contentEl = document.getElementById('vietqr-transfer-content');
+    if (contentEl) contentEl.textContent = finalContent;
+
+    const pendingBox = document.getElementById('vietqr-pending-status-box');
+    const confirmBtn = document.getElementById('btn-confirm-vietqr-payment');
+    const isPending = Boolean(currentMyPendingRequest && currentMyPendingRequest.status === 'pending');
+
+    if (pendingBox) pendingBox.classList.toggle('hidden', !isPending);
+    if (confirmBtn) {
+        confirmBtn.disabled = isPending;
+        confirmBtn.innerHTML = isPending
+            ? '<span class="material-symbols-outlined">schedule</span><span>Đã Gửi Yêu Cầu — Đang Chờ Xác Nhận Giao Dịch</span>'
+            : '<span class="material-symbols-outlined">verified_user</span><span>Tôi Đã Chuyển Khoản — Gửi Yêu Cầu Kích Hoạt VIP</span>';
+    }
+}
+
+function copyVietqrField(elementId, label) {
+    const el = document.getElementById(elementId);
+    const text = el ? el.textContent.trim() : '';
+    if (!text) return;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).catch(() => {});
+    }
+    if (typeof showToastNotification === 'function') {
+        showToastNotification(`📋 Đã sao chép ${label}: ${text}`);
+    }
+}
+
+function copyVietqrRawAmount() {
+    const amount = String(Number(currentVietqrPublicConfig.amount) || 29000);
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(amount).catch(() => {});
+    }
+    if (typeof showToastNotification === 'function') {
+        showToastNotification(`📋 Đã sao chép số tiền: ${Number(amount).toLocaleString('vi-VN')}đ`);
+    }
+}
+
+function openPremiumModal() {
+    const dlg = document.getElementById('premium-upgrade-modal');
+    if (!dlg) return;
+    const isPrem = isCurrentUserPremium();
+    const tierText = document.getElementById('premium-current-tier-text');
+    const actionBox = document.getElementById('premium-upgrade-action-box');
+    const activeBox = document.getElementById('premium-already-active-box');
+    const statusMsg = document.getElementById('premium-status-msg');
+
+    if (statusMsg) statusMsg.classList.add('hidden');
+    if (tierText) {
+        tierText.textContent = isPrem
+            ? (myRole === 'admin' ? 'Trạng thái: 👑 Quản trị viên (Mặc định Premium)' : 'Trạng thái: 👑 Tài khoản Premium')
+            : 'Trạng thái: Tài khoản Member (Chỉ truy cập Trang chủ)';
+    }
+    if (actionBox) actionBox.classList.toggle('hidden', isPrem);
+    if (activeBox) activeBox.classList.toggle('hidden', !isPrem);
+
+    if (!isPrem) {
+        renderVietqrCheckoutBox(currentVietqrPublicConfig, getClientDefaultTransferContent(), currentMyPendingRequest);
+        if (typeof socket !== 'undefined' && socket) {
+            socket.emit('premium:getPublicConfig', null, (res) => {
+                if (res && res.success) {
+                    renderVietqrCheckoutBox(res.vietqrConfig, res.transferContent, res.pendingRequest);
+                }
+            });
+        }
+    }
+
+    openDialogSafe(dlg);
+}
+
+function closePremiumModal() {
+    closeDialogSafe(document.getElementById('premium-upgrade-modal'));
+}
+
+const localLivePolls = new Map();
+
+function emitLocalChatMessage(payload) {
+    if (!payload) return;
+    if (payload.id && document.getElementById('msg-' + payload.id)) return;
+    try {
+        const listeners = (typeof socket !== 'undefined' && socket && typeof socket.listeners === 'function')
+            ? socket.listeners('newMessage')
+            : [];
+        if (listeners && listeners.length > 0) {
+            listeners.forEach(fn => fn(payload));
+        }
+    } catch (err) {
+        console.warn('emitLocalChatMessage error:', err);
+    }
+}
+
+function getLocalCurrentUserMeta() {
+    const uid = (typeof currentUserId !== 'undefined' && currentUserId) || localStorage.getItem('musiclive_user_id') || '';
+    const rawName = (typeof myUsername !== 'undefined' && myUsername) || localStorage.getItem('musiclive_username') || 'Thành viên';
+    const nameColor = (typeof myNameColor !== 'undefined' && myNameColor) || localStorage.getItem('musiclive_name_color') || '#87cefa';
+    const avatarUrl = (typeof myAvatarUrl !== 'undefined' && myAvatarUrl) || localStorage.getItem('musiclive_avatar_url') || '';
+    const role = (typeof myRole !== 'undefined' && myRole) || 'member';
+    return {
+        senderId: (typeof socket !== 'undefined' && socket && socket.id) || 'local',
+        userId: uid,
+        name: role === 'admin' && !String(rawName).includes('😎') ? (rawName + ' 😎') : rawName,
+        nameColor,
+        avatarUrl,
+        role,
+        isPremium: isCurrentUserPremium()
+    };
+}
+
+function submitPremiumBankPaymentRequest() {
+    const statusMsg = document.getElementById('premium-status-msg');
+    const uid = (typeof currentUserId !== 'undefined' && currentUserId) || localStorage.getItem('musiclive_user_id') || '';
+    const uname = ((typeof myUsername !== 'undefined' && myUsername) || localStorage.getItem('musiclive_username') || 'Thành viên').replace(/😎/g, '').trim();
+
+    if (typeof socket === 'undefined' || !socket) return;
+
+    socket.emit('premium:requestPayment', { userId: uid, username: uname }, (res) => {
+        if (res && res.success) {
+            currentMyPendingRequest = res.request;
+            renderVietqrCheckoutBox(res.vietqrConfig || currentVietqrPublicConfig, res.request?.transferContent, res.request);
+            if (statusMsg) {
+                statusMsg.textContent = '✅ Đã gửi xác nhận chuyển khoản! Hệ thống / Admin sẽ kiểm tra và nâng cấp tài khoản của bạn lên PREMIUM ngay.';
+                statusMsg.classList.remove('hidden');
+            }
+            if (typeof showToastNotification === 'function') {
+                showToastNotification('⏳ Đã gửi yêu cầu xác nhận chuyển khoản VietQR tới Admin!');
+            }
+        }
+    });
+}
+
+socket.on('premiumStatusUpdated', (data) => {
+    if (!data) return;
+    const isPrem = Boolean(data.isPremium || data.role === 'admin' || data.role === 'premium');
+    window.myIsPremium = isPrem;
+    if (data.role) {
+        myRole = data.role;
+    } else {
+        myRole = isPrem ? 'premium' : 'member';
+    }
+    const uid = (typeof currentUserId !== 'undefined' && currentUserId) || localStorage.getItem('musiclive_user_id') || '';
+    const uname = ((typeof myUsername !== 'undefined' && myUsername) || '').replace(/😎/g, '').trim().toLowerCase();
+    try {
+        if (isPrem) {
+            if (uid) localStorage.setItem('musiclive_premium_' + uid, 'true');
+            if (uname) localStorage.setItem('musiclive_premium_' + uname, 'true');
+        } else {
+            if (uid) localStorage.removeItem('musiclive_premium_' + uid);
+            if (uname) localStorage.removeItem('musiclive_premium_' + uname);
+        }
+        localStorage.setItem('musiclive_user_role', myRole);
+    } catch (_) {}
+
+    if (isPrem) {
+        currentMyPendingRequest = null;
+        if (typeof triggerFloatingReaction === 'function') triggerFloatingReaction('👑');
+        if (typeof showToastNotification === 'function') {
+            showToastNotification('👑 Chúc mừng! Tài khoản của bạn đã được kích hoạt 2937.ML PREMIUM!');
+        }
+    } else {
+        if (typeof showToastNotification === 'function') {
+            showToastNotification('ℹ️ Tài khoản của bạn đã được chuyển về hạng Member.');
+        }
+    }
+
+    applyPremiumAccessUI();
+    const dlg = document.getElementById('premium-upgrade-modal');
+    if (dlg && dlg.open) {
+        openPremiumModal();
+    }
+});
+
+socket.on('premiumPaymentRejected', (data) => {
+    currentMyPendingRequest = null;
+    renderVietqrCheckoutBox(currentVietqrPublicConfig, getClientDefaultTransferContent(), null);
+    const statusMsg = document.getElementById('premium-status-msg');
+    const reason = (data && data.reason) || 'Chưa nhận được giao dịch chuyển khoản hợp lệ.';
+    if (statusMsg) {
+        statusMsg.textContent = '❌ Yêu cầu xác nhận chưa được duyệt: ' + reason;
+        statusMsg.classList.remove('hidden');
+    }
+    if (typeof showToastNotification === 'function') {
+        showToastNotification('⚠️ Yêu cầu xác nhận chuyển khoản VIP bị từ chối: ' + reason);
+    }
+});
+
+socket.on('premium:configUpdated', (cfg) => {
+    if (cfg && typeof cfg === 'object') {
+        currentVietqrPublicConfig = { ...currentVietqrPublicConfig, ...cfg };
+        const dlg = document.getElementById('premium-upgrade-modal');
+        if (dlg && dlg.open && !isCurrentUserPremium()) {
+            renderVietqrCheckoutBox(currentVietqrPublicConfig, getClientDefaultTransferContent(), currentMyPendingRequest);
+        }
+    }
+});
+
+// ============================================================
+// BẢNG QUẢN LÝ TÀI KHOẢN PREMIUM & VIETQR DÀNH CHO ADMIN
+// ============================================================
+let adminPremiumUsersCache = [];
+let adminPremiumRequestsCache = [];
+let adminUsersRoleFilter = 'all';
+
+function loadPremiumAdminData(showToastOnDone) {
+    if (typeof socket === 'undefined' || !socket || myRole !== 'admin') return;
+    socket.emit('premium:adminGetData', null, (res) => {
+        if (res && res.success) {
+            applyAdminPremiumState(res);
+            if (showToastOnDone && typeof showToastNotification === 'function') {
+                showToastNotification('✅ Đã cập nhật dữ liệu Bảng Quản Lý VIP!');
+            }
+        }
+    });
+}
+
+function applyAdminPremiumState(payload) {
+    if (!payload) return;
+    if (payload.vietqrConfig) {
+        currentVietqrPublicConfig = { ...currentVietqrPublicConfig, ...payload.vietqrConfig };
+        populateAdminVietqrConfigForm(currentVietqrPublicConfig);
+    }
+    adminPremiumRequestsCache = Array.isArray(payload.paymentRequests) ? payload.paymentRequests : [];
+    adminPremiumUsersCache = Array.isArray(payload.users) ? payload.users : [];
+
+    // Cập nhật thống kê nhanh
+    const vipCount = adminPremiumUsersCache.filter(u => u.role === 'premium' || u.role === 'admin' || u.isPremium).length;
+    const pendingReqs = adminPremiumRequestsCache.filter(r => r.status === 'pending');
+    const priceNum = Math.max(1000, Number(currentVietqrPublicConfig.amount) || 29000);
+
+    const vipStatEl = document.getElementById('admin-stat-vip-count');
+    if (vipStatEl) vipStatEl.textContent = String(vipCount);
+
+    const pendingStatEl = document.getElementById('admin-stat-pending-count');
+    if (pendingStatEl) pendingStatEl.textContent = String(pendingReqs.length);
+
+    const priceStatEl = document.getElementById('admin-stat-price-display');
+    if (priceStatEl) priceStatEl.textContent = priceNum.toLocaleString('vi-VN') + 'đ';
+
+    const pillEl = document.getElementById('admin-pending-pill-count');
+    if (pillEl) pillEl.textContent = `${pendingReqs.length} chờ duyệt`;
+
+    const sbBadge = document.getElementById('sidebar-premium-pending-badge');
+    if (sbBadge) {
+        sbBadge.textContent = String(pendingReqs.length);
+        sbBadge.classList.toggle('hidden', pendingReqs.length === 0);
+    }
+
+    renderAdminPendingRequestsList(pendingReqs);
+    renderAdminPremiumUsersTable();
+}
+
+function populateAdminVietqrConfigForm(cfg) {
+    const bankSel = document.getElementById('admin-vietqr-bank-id');
+    const accNoInput = document.getElementById('admin-vietqr-account-no');
+    const accNameInput = document.getElementById('admin-vietqr-account-name');
+    const amountInput = document.getElementById('admin-vietqr-amount');
+    const prefixInput = document.getElementById('admin-vietqr-prefix');
+    const tplSel = document.getElementById('admin-vietqr-template');
+
+    // Chỉ gán giá trị nếu người dùng không đang gõ trực tiếp trong ô đó
+    if (bankSel && document.activeElement !== bankSel) bankSel.value = cfg.bankId || 'MB';
+    if (accNoInput && document.activeElement !== accNoInput) accNoInput.value = cfg.accountNo || '';
+    if (accNameInput && document.activeElement !== accNameInput) accNameInput.value = cfg.accountName || '';
+    if (amountInput && document.activeElement !== amountInput) amountInput.value = cfg.amount || 29000;
+    if (prefixInput && document.activeElement !== prefixInput) prefixInput.value = cfg.transferPrefix || 'VIP2937';
+    if (tplSel && document.activeElement !== tplSel) tplSel.value = cfg.template || 'compact2';
+
+    previewAdminVietqrConfig();
+}
+
+function previewAdminVietqrConfig() {
+    const bankSel = document.getElementById('admin-vietqr-bank-id');
+    const accNoInput = document.getElementById('admin-vietqr-account-no');
+    const accNameInput = document.getElementById('admin-vietqr-account-name');
+    const amountInput = document.getElementById('admin-vietqr-amount');
+    const prefixInput = document.getElementById('admin-vietqr-prefix');
+    const tplSel = document.getElementById('admin-vietqr-template');
+
+    const bankId = bankSel ? bankSel.value : 'MB';
+    const accountNo = accNoInput ? accNoInput.value.trim() : '0987654321';
+    const accountName = accNameInput ? accNameInput.value.trim().toUpperCase() : 'CHU TRAM NHAC 2937 ML';
+    const amount = Math.max(1000, Number(amountInput ? amountInput.value : 29000) || 29000);
+    const prefix = (prefixInput ? prefixInput.value.trim().toUpperCase() : 'VIP2937') || 'VIP2937';
+    const template = tplSel ? tplSel.value : 'compact2';
+
+    const previewImg = document.getElementById('admin-vietqr-preview-img');
+    const previewCap = document.getElementById('admin-vietqr-preview-caption');
+    const qrUrl = buildClientVietqrUrl({ bankId, accountNo, accountName, amount, template }, `${prefix} TEN_THANH_VIEN`);
+
+    if (previewImg) previewImg.src = qrUrl;
+    if (previewCap) previewCap.textContent = `${bankId} • ${accountNo || 'Chưa nhập STK'} • ${amount.toLocaleString('vi-VN')}đ`;
+}
+
+function saveAdminVietqrConfig() {
+    if (typeof socket === 'undefined' || !socket || myRole !== 'admin') return;
+    const bankSel = document.getElementById('admin-vietqr-bank-id');
+    const selectedOpt = bankSel && bankSel.options[bankSel.selectedIndex];
+    const bankId = bankSel ? bankSel.value : 'MB';
+    const bankName = (selectedOpt && selectedOpt.getAttribute('data-name')) || bankId;
+    const accountNo = document.getElementById('admin-vietqr-account-no')?.value.trim() || '';
+    const accountName = document.getElementById('admin-vietqr-account-name')?.value.trim().toUpperCase() || '';
+    const amount = Math.max(1000, Number(document.getElementById('admin-vietqr-amount')?.value) || 29000);
+    const transferPrefix = document.getElementById('admin-vietqr-prefix')?.value.trim().toUpperCase() || 'VIP2937';
+    const template = document.getElementById('admin-vietqr-template')?.value || 'compact2';
+
+    socket.emit('premium:adminSaveConfig', {
+        bankId,
+        bankName,
+        accountNo,
+        accountName,
+        amount,
+        transferPrefix,
+        template
+    }, (res) => {
+        if (res && res.success) {
+            if (typeof showToastNotification === 'function') {
+                showToastNotification('💾 Đã lưu cấu hình tài khoản ngân hàng VietQR thành công!');
+            }
+        }
+    });
+}
+
+function renderAdminPendingRequestsList(pendingReqs) {
+    const container = document.getElementById('admin-premium-requests-list');
+    if (!container) return;
+
+    if (!Array.isArray(pendingReqs) || pendingReqs.length === 0) {
+        container.innerHTML = '<div class="admin-empty-placeholder">Hiện không có yêu cầu thanh toán nào đang chờ duyệt.</div>';
+        return;
+    }
+
+    container.innerHTML = pendingReqs.map(req => {
+        const timeStr = req.createdAt ? new Date(req.createdAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '';
+        const amountStr = Number(req.amount || 29000).toLocaleString('vi-VN') + 'đ';
+        return `
+            <div class="admin-req-item">
+                <div class="admin-req-info">
+                    <div class="admin-req-user">
+                        <span class="material-symbols-outlined">person</span>
+                        <strong>${escapeHtml(req.username || 'Thành viên')}</strong>
+                        <span class="admin-req-time">Lúc ${escapeHtml(timeStr)}</span>
+                    </div>
+                    <div class="admin-req-details">
+                        <span>Số tiền: <strong class="req-amount">${escapeHtml(amountStr)}</strong></span>
+                        <span>•</span>
+                        <span>Nội dung CK: <code class="req-code">${escapeHtml(req.transferContent || '')}</code></span>
+                    </div>
+                </div>
+                <div class="admin-req-actions">
+                    <button type="button" class="admin-btn-approve" onclick="approvePremiumRequest('${escapeHtml(req.id)}')">
+                        <span class="material-symbols-outlined">check_circle</span>
+                        <span>Duyệt Lên VIP</span>
+                    </button>
+                    <button type="button" class="admin-btn-reject" onclick="rejectPremiumRequest('${escapeHtml(req.id)}')">
+                        <span class="material-symbols-outlined">cancel</span>
+                        <span>Từ Chối</span>
+                    </button>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function approvePremiumRequest(requestId) {
+    if (!requestId || typeof socket === 'undefined' || !socket) return;
+    socket.emit('premium:adminApproveRequest', { requestId }, (res) => {
+        if (res && res.success && typeof showToastNotification === 'function') {
+            showToastNotification(`👑 Đã duyệt nâng cấp VIP cho [${res.request?.username || 'Thành viên'}]!`);
+        }
+    });
+}
+
+function rejectPremiumRequest(requestId) {
+    if (!requestId || typeof socket === 'undefined' || !socket) return;
+    socket.emit('premium:adminRejectRequest', {
+        requestId,
+        reason: 'Admin chưa tìm thấy giao dịch chuyển khoản tương ứng. Vui lòng kiểm tra lại nội dung chuyển khoản!'
+    }, (res) => {
+        if (res && res.success && typeof showToastNotification === 'function') {
+            showToastNotification(`❌ Đã từ chối yêu cầu của [${res.request?.username || 'Thành viên'}].`);
+        }
+    });
+}
+
+function setAdminUsersRoleFilter(filter) {
+    adminUsersRoleFilter = filter || 'all';
+    document.querySelectorAll('#admin-users-filter-pills .ded-theme-pill').forEach(btn => {
+        btn.classList.toggle('active', btn.getAttribute('data-role-filter') === adminUsersRoleFilter);
+    });
+    renderAdminPremiumUsersTable();
+}
+
+function renderAdminPremiumUsersTable() {
+    const tbody = document.getElementById('admin-premium-users-tbody');
+    if (!tbody) return;
+
+    const searchQ = (document.getElementById('admin-users-search-input')?.value || '').trim().toLowerCase();
+    const filtered = adminPremiumUsersCache.filter(u => {
+        if (adminUsersRoleFilter === 'premium' && u.role !== 'premium') return false;
+        if (adminUsersRoleFilter === 'member' && u.role !== 'member') return false;
+        if (adminUsersRoleFilter === 'admin' && u.role !== 'admin') return false;
+        if (adminUsersRoleFilter === 'online' && !u.online) return false;
+        if (searchQ) {
+            const hay = `${u.username || ''} ${u.displayName || ''} ${u.email || ''} ${u.note || ''} ${u.userId || ''}`.toLowerCase();
+            if (!hay.includes(searchQ)) return false;
+        }
+        return true;
+    });
+
+    if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 28px; color: var(--text-muted);">Không tìm thấy tài khoản nào khớp bộ lọc.</td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = filtered.map(u => {
+        const safeName = escapeHtml(u.username || u.displayName || 'Thành viên');
+        const safeEmailOrId = escapeHtml(u.email || (u.userId ? ('ID: ' + String(u.userId).slice(0, 12) + '...') : 'Khách / Phòng Live'));
+        const safeNote = escapeHtml(u.note || (u.role === 'admin' ? 'Mặc định Admin sở hữu đặc quyền VIP' : '—'));
+        const initial = (u.username || 'U').charAt(0).toUpperCase();
+
+        let roleBadgeHtml = '';
+        if (u.role === 'admin') {
+            roleBadgeHtml = `<span class="role-pill role-admin"><span class="material-symbols-outlined">shield_person</span> Admin (VIP)</span>`;
+        } else if (u.role === 'premium') {
+            roleBadgeHtml = `<span class="role-pill role-premium"><span class="material-symbols-outlined">workspace_premium</span> Premium VIP</span>`;
+        } else {
+            roleBadgeHtml = `<span class="role-pill role-member"><span class="material-symbols-outlined">person</span> Member</span>`;
+        }
+
+        const onlineHtml = u.online
+            ? `<span class="online-status-chip online"><span class="dot"></span> Đang online</span>`
+            : `<span class="online-status-chip offline"><span class="dot"></span> Ngoại tuyến</span>`;
+
+        const jsSafeUid = (u.userId || '').replace(/'/g, "\\'");
+        const jsSafeUname = (u.username || '').replace(/'/g, "\\'");
+
+        let actionBtnHtml = '';
+        if (u.role === 'admin') {
+            actionBtnHtml = `<span class="admin-immutable-tag">Mặc định Vĩnh viễn</span>`;
+        } else if (u.role === 'premium') {
+            actionBtnHtml = `
+                <button type="button" class="admin-table-btn revoke" onclick="toggleUserPremiumRole('${jsSafeUid}', '${jsSafeUname}', false)">
+                    <span class="material-symbols-outlined">person_remove</span>
+                    <span>Hạ về Member</span>
+                </button>
+            `;
+        } else {
+            actionBtnHtml = `
+                <button type="button" class="admin-table-btn grant" onclick="toggleUserPremiumRole('${jsSafeUid}', '${jsSafeUname}', true)">
+                    <span class="material-symbols-outlined">workspace_premium</span>
+                    <span>Nâng lên VIP</span>
+                </button>
+            `;
+        }
+
+        return `
+            <tr>
+                <th scope="row">
+                    <div class="table-user-cell">
+                        <div class="table-user-avatar" style="background: ${escapeHtml(u.nameColor || '#87cefa')}">${escapeHtml(initial)}</div>
+                        <div>
+                            <div class="table-user-name">${safeName}</div>
+                        </div>
+                    </div>
+                </th>
+                <td>${safeEmailOrId}</td>
+                <td>${roleBadgeHtml}</td>
+                <td>${onlineHtml}</td>
+                <td class="table-note-cell">${safeNote}</td>
+                <td>${actionBtnHtml}</td>
+            </tr>
+        `;
+    }).join('');
+}
+
+function toggleUserPremiumRole(userId, username, makePremium) {
+    if (typeof socket === 'undefined' || !socket || myRole !== 'admin') return;
+    socket.emit('premium:adminSetUserStatus', {
+        userId,
+        username,
+        isPremium: Boolean(makePremium),
+        note: makePremium ? 'Cấp quyền VIP trực tiếp từ Bảng Admin' : 'Thu hồi về Member bởi Admin'
+    }, (res) => {
+        if (res && res.success && typeof showToastNotification === 'function') {
+            showToastNotification(
+                makePremium
+                    ? `👑 Đã nâng cấp [${username}] lên tài khoản PREMIUM!`
+                    : `ℹ️ Đã chuyển [${username}] về tài khoản Member.`
+            );
+        }
+    });
+}
+
+function manualGrantPremiumByInput() {
+    if (typeof socket === 'undefined' || !socket || myRole !== 'admin') return;
+    const userInput = document.getElementById('admin-manual-user-input');
+    const noteInput = document.getElementById('admin-manual-note-input');
+    const rawVal = userInput ? userInput.value.trim() : '';
+    const noteVal = noteInput ? noteInput.value.trim() : '';
+    if (!rawVal) return;
+
+    const isEmail = rawVal.includes('@');
+    socket.emit('premium:adminSetUserStatus', {
+        username: isEmail ? '' : rawVal,
+        email: isEmail ? rawVal : '',
+        isPremium: true,
+        note: noteVal || 'Cấp VIP thủ công bởi Admin'
+    }, (res) => {
+        if (res && res.success) {
+            if (userInput) userInput.value = '';
+            if (noteInput) noteInput.value = '';
+            if (typeof showToastNotification === 'function') {
+                showToastNotification(`👑 Đã cấp quyền PREMIUM cho [${res.record?.username || rawVal}]!`);
+            }
+        } else if (res && res.message && typeof showToastNotification === 'function') {
+            showToastNotification('⚠️ ' + res.message);
+        }
+    });
+}
+
+socket.on('premium:adminStateUpdated', (payload) => {
+    if (myRole === 'admin') {
+        applyAdminPremiumState(payload);
+    }
+});
+
+socket.on('premium:newPaymentRequest', (reqObj) => {
+    if (myRole === 'admin' && reqObj) {
+        if (typeof showToastNotification === 'function') {
+            showToastNotification(`💳 [${reqObj.username}] vừa gửi yêu cầu duyệt chuyển khoản VIP (${Number(reqObj.amount || 29000).toLocaleString('vi-VN')}đ)!`);
+        }
+    }
+});
+
+// ============================================================
+// 2. LIVE DEDICATION / SUPERCHAT ÂM NHẠC
+// ============================================================
+function openDedicationModal() {
+    const dlg = document.getElementById('dedication-modal');
+    if (!dlg) return;
+    openDialogSafe(dlg);
+    const input = document.getElementById('dedication-text-input');
+    if (input) setTimeout(() => input.focus(), 60);
+}
+
+function closeDedicationModal() {
+    closeDialogSafe(document.getElementById('dedication-modal'));
+}
+
+function selectDedicationTheme(theme) {
+    selectedDedicationTheme = theme;
+    document.querySelectorAll('#dedication-theme-pills .ded-theme-pill').forEach(btn => {
+        btn.classList.toggle('active', btn.getAttribute('data-theme') === theme);
+    });
+}
+
+function displayLiveDedicationBanner(data) {
+    if (!data || !data.text) return;
+    const banner = document.getElementById('live-dedication-banner');
+    const senderEl = document.getElementById('live-ded-sender');
+    const bodyEl = document.getElementById('live-ded-body');
+    const songEl = document.getElementById('live-ded-song');
+    const iconEl = document.getElementById('live-ded-icon');
+    const fillEl = document.getElementById('live-ded-progress-fill');
+
+    const themeIcons = { ice: '❄️', star: '✨', fire: '🔥', sakura: '🌸' };
+    if (banner) {
+        banner.className = 'live-dedication-banner theme-' + (data.theme || 'ice');
+        if (iconEl) iconEl.textContent = themeIcons[data.theme] || '💌';
+        if (senderEl) {
+            senderEl.textContent = (data.name || 'Thành viên').replace(/😎/g, '').trim();
+            senderEl.style.color = data.nameColor || '#87cefa';
+        }
+        if (bodyEl) bodyEl.textContent = '“' + data.text + '”';
+        if (songEl) {
+            songEl.textContent = data.songTitle ? ('🎵 Đang phát: ' + data.songTitle) : '';
+            songEl.style.display = data.songTitle ? 'block' : 'none';
+        }
+        if (fillEl) {
+            fillEl.style.transition = 'none';
+            fillEl.style.width = '100%';
+            void fillEl.offsetWidth;
+            fillEl.style.transition = 'width 15s linear';
+            fillEl.style.width = '0%';
+        }
+    }
+
+    if (typeof spawnFloatingReaction === 'function') {
+        spawnFloatingReaction(themeIcons[data.theme] || '💙');
+    }
+
+    if (liveDedicationTimer) clearTimeout(liveDedicationTimer);
+    liveDedicationTimer = setTimeout(() => {
+        closeLiveDedicationBanner();
+    }, 15000);
+}
+
+function submitLiveDedication() {
+    const input = document.getElementById('dedication-text-input');
+    const attachSong = document.getElementById('dedication-attach-song');
+    const text = input ? input.value.trim() : '';
+    if (!text) return;
+
+    const currentSong = (document.getElementById('welcome-title')?.textContent || '').trim();
+    const songTitle = (attachSong && attachSong.checked) ? currentSong : '';
+    const msgId = 'ded-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7);
+    const meta = getLocalCurrentUserMeta();
+
+    const dedicationPayload = {
+        id: msgId,
+        ...meta,
+        text,
+        theme: selectedDedicationTheme,
+        songTitle,
+        type: 'dedication',
+        createdAt: Date.now()
+    };
+
+    if (input) input.value = '';
+    closeDedicationModal();
+
+    // Hiển thị ngay lập tức trên sân khấu & trong khung chat (chống trùng bằng msgId)
+    displayLiveDedicationBanner(dedicationPayload);
+    emitLocalChatMessage(dedicationPayload);
+
+    if (typeof socket !== 'undefined' && socket) {
+        socket.emit('sendDedication', {
+            id: msgId,
+            text,
+            theme: selectedDedicationTheme,
+            songTitle
+        });
+    }
+}
+
+function closeLiveDedicationBanner() {
+    const banner = document.getElementById('live-dedication-banner');
+    if (banner) banner.classList.add('hidden');
+    if (liveDedicationTimer) {
+        clearTimeout(liveDedicationTimer);
+        liveDedicationTimer = null;
+    }
+}
+
+socket.on('liveDedication', (data) => {
+    displayLiveDedicationBanner(data);
+});
+
+// ============================================================
+// 3. THĂM DÒ Ý KIẾN TRỰC TIẾP TRONG CHAT (LIVE POLL)
+// ============================================================
+function openPollModal() {
+    const dlg = document.getElementById('poll-modal');
+    if (!dlg) return;
+    openDialogSafe(dlg);
+    const qInput = document.getElementById('poll-question-input');
+    if (qInput) setTimeout(() => qInput.focus(), 60);
+}
+
+function closePollModal() {
+    closeDialogSafe(document.getElementById('poll-modal'));
+}
+
+function addPollOptionInput() {
+    const container = document.getElementById('poll-options-container');
+    const addBtn = document.getElementById('btn-add-poll-opt');
+    if (!container) return;
+    const count = container.querySelectorAll('.poll-opt-input').length;
+    if (count >= 4) return;
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.className = 'modern-dialog-input poll-opt-input';
+    input.maxLength = 70;
+    input.placeholder = `Phương án ${count + 1} (không bắt buộc)`;
+    container.appendChild(input);
+    if (count + 1 >= 4 && addBtn) addBtn.classList.add('hidden');
+}
+
+function computeLocalPublicPollState(pollObj) {
+    const totalVotes = pollObj.options.reduce((sum, opt) => sum + opt.voters.size, 0);
+    return {
+        id: pollObj.id,
+        question: pollObj.question,
+        authorName: pollObj.authorName,
+        authorColor: pollObj.authorColor,
+        createdAt: pollObj.createdAt,
+        totalVotes,
+        options: pollObj.options.map((opt, idx) => ({
+            index: idx,
+            text: opt.text,
+            count: opt.voters.size,
+            percent: totalVotes > 0 ? Math.round((opt.voters.size / totalVotes) * 100) : 0,
+            voterIds: Array.from(opt.voters)
+        }))
+    };
+}
+
+function submitLivePoll() {
+    const qInput = document.getElementById('poll-question-input');
+    const optInputs = document.querySelectorAll('#poll-options-container .poll-opt-input');
+    const question = qInput ? qInput.value.trim() : '';
+    const options = Array.from(optInputs).map(el => el.value.trim()).filter(Boolean);
+
+    if (!question || options.length < 2) {
+        if (typeof showToastNotification === 'function') {
+            showToastNotification('⚠️ Vui lòng nhập câu hỏi và ít nhất 2 phương án trả lời!');
+        }
+        return;
+    }
+
+    const pollId = 'poll-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7);
+    const meta = getLocalCurrentUserMeta();
+    const localPollObj = {
+        id: pollId,
+        question,
+        authorName: meta.name,
+        authorColor: meta.nameColor,
+        createdAt: Date.now(),
+        options: options.map(text => ({ text, voters: new Set() }))
+    };
+    localLivePolls.set(pollId, localPollObj);
+    const publicPoll = computeLocalPublicPollState(localPollObj);
+
+    if (qInput) qInput.value = '';
+    optInputs.forEach(el => { el.value = ''; });
+    closePollModal();
+
+    emitLocalChatMessage({
+        id: pollId,
+        ...meta,
+        text: `📊 Bình chọn: ${question}`,
+        type: 'poll',
+        pollData: publicPoll
+    });
+
+    if (typeof socket !== 'undefined' && socket) {
+        socket.emit('createPoll', { id: pollId, question, options });
+    }
+}
+
+function buildPollCardHtml(poll) {
+    if (!poll || !Array.isArray(poll.options)) return '';
+    // Đồng bộ vào bộ nhớ local để bấm vote luôn phản hồi tức thì
+    if (poll.id && !localLivePolls.has(poll.id)) {
+        localLivePolls.set(poll.id, {
+            id: poll.id,
+            question: poll.question,
+            authorName: poll.authorName || 'Thành viên',
+            authorColor: poll.authorColor || '#87cefa',
+            createdAt: poll.createdAt || Date.now(),
+            options: poll.options.map(o => ({
+                text: o.text,
+                voters: new Set(Array.isArray(o.voterIds) ? o.voterIds : [])
+            }))
+        });
+    }
+    const myVoterKey = String((typeof currentUserId !== 'undefined' && currentUserId) || localStorage.getItem('musiclive_user_id') || (typeof socket !== 'undefined' && socket && socket.id) || 'local');
+    const optionsHtml = poll.options.map((opt) => {
+        const isVoted = Array.isArray(opt.voterIds) && opt.voterIds.includes(myVoterKey);
+        const pct = Number(opt.percent) || 0;
+        const cnt = Number(opt.count) || 0;
+        return `
+            <button type="button" class="chat-poll-opt-btn ${isVoted ? 'voted' : ''}" onclick="voteLivePoll('${escapeHtml(poll.id)}', ${opt.index})">
+                <span class="chat-poll-opt-fill" style="width: ${pct}%;"></span>
+                <span class="chat-poll-opt-label">${escapeHtml(opt.text)}</span>
+                <span class="chat-poll-opt-stat">${cnt} phiếu • ${pct}%</span>
+            </button>
+        `;
+    }).join('');
+
+    return `
+        <div class="chat-poll-card" id="poll-card-${escapeHtml(poll.id)}">
+            <div class="chat-poll-header">
+                <span class="chat-poll-badge">📊 BÌNH CHỌN TRỰC TIẾP</span>
+                <span class="chat-poll-total">${Number(poll.totalVotes) || 0} lượt bình chọn</span>
+            </div>
+            <div class="chat-poll-question">${escapeHtml(poll.question)}</div>
+            <div class="chat-poll-options">${optionsHtml}</div>
+        </div>
+    `;
+}
+
+function applyPollUpdateToDOM(poll) {
+    if (!poll || !poll.id) return;
+    if (localLivePolls.has(poll.id) && Array.isArray(poll.options)) {
+        const localObj = localLivePolls.get(poll.id);
+        localObj.options = poll.options.map(o => ({
+            text: o.text,
+            voters: new Set(Array.isArray(o.voterIds) ? o.voterIds : [])
+        }));
+    }
+    const cardEl = document.getElementById('poll-card-' + poll.id);
+    if (cardEl && cardEl.parentElement) {
+        const temp = document.createElement('div');
+        temp.innerHTML = buildPollCardHtml(poll);
+        const newCard = temp.firstElementChild;
+        if (newCard) cardEl.replaceWith(newCard);
+    }
+}
+
+function voteLivePoll(pollId, optionIndex) {
+    if (!pollId) return;
+    const idx = Number(optionIndex);
+    // Cập nhật tức thì trên giao diện người bấm
+    if (localLivePolls.has(pollId)) {
+        const pollObj = localLivePolls.get(pollId);
+        if (Number.isInteger(idx) && idx >= 0 && idx < pollObj.options.length) {
+            const voterKey = String((typeof currentUserId !== 'undefined' && currentUserId) || localStorage.getItem('musiclive_user_id') || (typeof socket !== 'undefined' && socket && socket.id) || 'local');
+            const alreadyInTarget = pollObj.options[idx].voters.has(voterKey);
+            pollObj.options.forEach(opt => opt.voters.delete(voterKey));
+            if (!alreadyInTarget) {
+                pollObj.options[idx].voters.add(voterKey);
+            }
+            applyPollUpdateToDOM(computeLocalPublicPollState(pollObj));
+        }
+    }
+    if (typeof socket !== 'undefined' && socket) {
+        socket.emit('votePoll', { pollId, optionIndex: idx });
+    }
+}
+
+socket.on('pollUpdated', (poll) => {
+    applyPollUpdateToDOM(poll);
+});
+
+// ============================================================
+// 4. CHIA SẺ KHOẢNH KHẮC / THẺ BÀI HÁT (SHAREABLE SONG CARD)
+// ============================================================
+function openSongCardModal() {
+    const dlg = document.getElementById('song-card-modal');
+    if (!dlg) return;
+
+    const quoteInput = document.getElementById('song-card-quote-input');
+    const activeLyricEl = document.querySelector('#lyric-content .lyric-line.active');
+    if (quoteInput && !quoteInput.value.trim()) {
+        if (activeLyricEl && activeLyricEl.textContent.trim()) {
+            quoteInput.value = activeLyricEl.textContent.trim();
+        } else {
+            quoteInput.value = 'Âm nhạc kết nối mọi khoảnh khắc tại 2937.ML Live ✨';
+        }
+    }
+
+    openDialogSafe(dlg);
+
+    // Tải trước ảnh bìa bài hát qua proxy cùng tên miền để không bị lỗi CORS khi xuất ảnh PNG từ Canvas
+    const vid = window.currentVideoId || '';
+    if (vid && vid !== cachedSongCoverVid) {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => {
+            cachedSongCoverImg = img;
+            cachedSongCoverVid = vid;
+            renderSongCardCanvas();
+        };
+        img.onerror = () => {
+            cachedSongCoverImg = null;
+            renderSongCardCanvas();
+        };
+        img.src = `/api/avatar-proxy?url=${encodeURIComponent('https://img.youtube.com/vi/' + vid + '/hqdefault.jpg')}`;
+    }
+    renderSongCardCanvas();
+}
+
+function closeSongCardModal() {
+    closeDialogSafe(document.getElementById('song-card-modal'));
+}
+
+function selectSongCardTheme(theme) {
+    selectedSongCardTheme = theme;
+    document.querySelectorAll('#song-card-theme-pills .ded-theme-pill').forEach(btn => {
+        btn.classList.toggle('active', btn.getAttribute('data-card-theme') === theme);
+    });
+    renderSongCardCanvas();
+}
+
+function wrapCanvasText(ctx, text, maxWidth, maxLines) {
+    const words = String(text || '').split(/\s+/);
+    const lines = [];
+    let currentLine = words[0] || '';
+    for (let i = 1; i < words.length; i++) {
+        const testLine = currentLine + ' ' + words[i];
+        if (ctx.measureText(testLine).width <= maxWidth) {
+            currentLine = testLine;
+        } else {
+            lines.push(currentLine);
+            currentLine = words[i];
+            if (lines.length >= maxLines - 1) break;
+        }
+    }
+    lines.push(currentLine);
+    return lines.slice(0, maxLines);
+}
+
+function renderSongCardCanvas() {
+    const canvas = document.getElementById('song-card-canvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const W = canvas.width;
+    const H = canvas.height;
+
+    const songTitle = (document.getElementById('welcome-title')?.textContent || '2937.ML Trạm Nhạc Trực Tuyến').trim();
+    const quoteText = (document.getElementById('song-card-quote-input')?.value || 'Âm nhạc kết nối mọi khoảnh khắc tại 2937.ML Live ✨').trim();
+    const listenerName = ((typeof myUsername !== 'undefined' && myUsername) || 'Thành viên').replace(/😎/g, '').trim();
+
+    // 1. Vẽ nền theo chủ đề
+    const bgGrad = ctx.createLinearGradient(0, 0, W, H);
+    if (selectedSongCardTheme === 'vinyl') {
+        bgGrad.addColorStop(0, '#090d14');
+        bgGrad.addColorStop(0.5, '#131d2b');
+        bgGrad.addColorStop(1, '#06090e');
+    } else if (selectedSongCardTheme === 'aurora') {
+        bgGrad.addColorStop(0, '#071929');
+        bgGrad.addColorStop(0.5, '#13314c');
+        bgGrad.addColorStop(1, '#08121e');
+    } else {
+        bgGrad.addColorStop(0, '#07111c');
+        bgGrad.addColorStop(0.55, '#0f2236');
+        bgGrad.addColorStop(1, '#050910');
+    }
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0, 0, W, H);
+
+    // Vầng sáng Light Blue trang trí
+    const glow = ctx.createRadialGradient(W * 0.5, 220, 20, W * 0.5, 220, 340);
+    glow.addColorStop(0, 'rgba(135, 206, 250, 0.28)');
+    glow.addColorStop(1, 'rgba(135, 206, 250, 0)');
+    ctx.fillStyle = glow;
+    ctx.fillRect(0, 0, W, H);
+
+    // Khung thẻ kính mờ bên trong
+    ctx.save();
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.04)';
+    ctx.strokeStyle = 'rgba(176, 224, 250, 0.25)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.roundRect(40, 40, W - 80, H - 80, 32);
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+
+    // 2. Vẽ bìa bài hát (hoặc đĩa than Vinyl)
+    const artY = 92;
+    const artW = 480;
+    const artH = 270;
+    const artX = (W - artW) / 2;
+
+    ctx.save();
+    if (selectedSongCardTheme === 'vinyl') {
+        // Vẽ đĩa than tròn ở giữa
+        const cx = W / 2;
+        const cy = artY + artH / 2;
+        const r = 132;
+        ctx.beginPath();
+        ctx.arc(cx, cy, r + 8, 0, Math.PI * 2);
+        ctx.fillStyle = '#05080c';
+        ctx.fill();
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = 'rgba(135, 206, 250, 0.45)';
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(cx, cy, r - 24, 0, Math.PI * 2);
+        ctx.clip();
+        if (cachedSongCoverImg) {
+            ctx.drawImage(cachedSongCoverImg, cx - r, cy - r, r * 2, r * 2);
+        } else {
+            ctx.fillStyle = '#182838';
+            ctx.fillRect(cx - r, cy - r, r * 2, r * 2);
+        }
+        ctx.restore();
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(cx, cy, 22, 0, Math.PI * 2);
+        ctx.fillStyle = '#07111c';
+        ctx.fill();
+        ctx.lineWidth = 4;
+        ctx.strokeStyle = '#87cefa';
+        ctx.stroke();
+    } else {
+        ctx.beginPath();
+        ctx.roundRect(artX, artY, artW, artH, 22);
+        ctx.clip();
+        if (cachedSongCoverImg) {
+            ctx.drawImage(cachedSongCoverImg, artX, artY, artW, artH);
+        } else {
+            ctx.fillStyle = '#142232';
+            ctx.fillRect(artX, artY, artW, artH);
+        }
+    }
+    ctx.restore();
+
+    // 3. Tên bài hát
+    ctx.save();
+    ctx.fillStyle = '#87cefa';
+    ctx.font = '700 17px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('🎵 ĐANG PHÁT TRÊN 2937.ML LIVE', W / 2, 412);
+
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '800 26px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+    const titleLines = wrapCanvasText(ctx, songTitle, W - 160, 2);
+    titleLines.forEach((line, idx) => {
+        ctx.fillText(line, W / 2, 452 + idx * 34);
+    });
+
+    // Đường kẻ phân cách Light Blue
+    ctx.strokeStyle = 'rgba(135, 206, 250, 0.35)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(W / 2 - 60, 520);
+    ctx.lineTo(W / 2 + 60, 520);
+    ctx.stroke();
+
+    // 4. Câu Lyric / Tâm đắc
+    ctx.fillStyle = '#e6f4ff';
+    ctx.font = 'italic 700 28px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+    const quoteLines = wrapCanvasText(ctx, '“' + quoteText + '”', W - 160, 4);
+    quoteLines.forEach((line, idx) => {
+        ctx.fillText(line, W / 2, 580 + idx * 40);
+    });
+
+    // 5. Chân thẻ (Người chia sẻ & thương hiệu)
+    ctx.fillStyle = '#b4c3d1';
+    ctx.font = '600 18px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+    ctx.fillText(`Người nghe: ${listenerName}  •  2937.ML Trạm Nhạc Trực Tuyến`, W / 2, H - 78);
+    ctx.restore();
+}
+
+function downloadSongCardImage() {
+    renderSongCardCanvas();
+    const canvas = document.getElementById('song-card-canvas');
+    if (!canvas) return;
+    try {
+        const link = document.createElement('a');
+        link.download = '2937ML-SongCard-' + Date.now() + '.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+        if (typeof showToastNotification === 'function') {
+            showToastNotification('📸 Đã tải Thẻ Bài Hát về máy!');
+        }
+    } catch (err) {
+        console.warn('Download canvas fallback:', err);
+    }
+}
+
+function shareSongCardToChat() {
+    const songTitle = (document.getElementById('welcome-title')?.textContent || '2937.ML Live').trim();
+    const quote = (document.getElementById('song-card-quote-input')?.value || 'Âm nhạc kết nối mọi khoảnh khắc tại 2937.ML Live ✨').trim();
+    const videoId = window.currentVideoId || '';
+    const msgId = 'scard-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7);
+    const meta = getLocalCurrentUserMeta();
+
+    closeSongCardModal();
+
+    emitLocalChatMessage({
+        id: msgId,
+        ...meta,
+        text: `🎵 Đã chia sẻ Thẻ Bài Hát: ${songTitle}`,
+        type: 'song_card',
+        songCard: {
+            songTitle,
+            quote,
+            videoId,
+            theme: selectedSongCardTheme,
+            listenerName: (meta.name || 'Thành viên').replace(/😎/g, '').trim()
+        }
+    });
+
+    if (typeof showToastNotification === 'function') {
+        showToastNotification('🎵 Đã chia sẻ Thẻ Bài Hát vào phòng chat!');
+    }
+
+    if (typeof socket !== 'undefined' && socket) {
+        socket.emit('shareSongCard', {
+            id: msgId,
+            songTitle,
+            quote,
+            videoId,
+            theme: selectedSongCardTheme
+        });
+    }
 }

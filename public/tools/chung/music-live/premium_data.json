@@ -1,0 +1,112 @@
+{
+  "vietqrConfig": {
+    "bankId": "MB",
+    "bankName": "MB Bank (Ngân hàng Quân Đội)",
+    "accountNo": "10934537548",
+    "accountName": "NGUYEN THANH DAT",
+    "amount": 299000,
+    "template": "compact2",
+    "transferPrefix": "VIP2937"
+  },
+  "users": {
+    "b1233f12-7195-4357-85cf-5aa0edcace30": {
+      "key": "b1233f12-7195-4357-85cf-5aa0edcace30",
+      "userId": "b1233f12-7195-4357-85cf-5aa0edcace30",
+      "username": "Thành Đạt",
+      "displayName": "Thành Đạt",
+      "email": "dat018565@gmail.com",
+      "role": "member",
+      "note": "Thu hồi về Member bởi Admin",
+      "updatedAt": 1793469107882,
+      "updatedBy": "nthdat"
+    },
+    "7ffc2ea5-14fe-47ea-baff-fd3368f97f79": {
+      "key": "7ffc2ea5-14fe-47ea-baff-fd3368f97f79",
+      "userId": "7ffc2ea5-14fe-47ea-baff-fd3368f97f79",
+      "username": "VN Tdat",
+      "displayName": "VN Tdat",
+      "email": "",
+      "role": "member",
+      "note": "Thu hồi về Member bởi Admin",
+      "updatedAt": 1793467297341,
+      "updatedBy": "nthdat"
+    }
+  },
+  "paymentRequests": [
+    {
+      "id": "pay-1793469147009-OLI1",
+      "userId": "b1233f12-7195-4357-85cf-5aa0edcace30",
+      "username": "Thành Đạt",
+      "displayName": "Thành Đạt",
+      "amount": 299000,
+      "transferContent": "VIP2937 THANHDAT B123",
+      "status": "rejected",
+      "createdAt": 1793469147009,
+      "processedAt": 1793469148298,
+      "processedBy": "nthdat",
+      "rejectReason": "Admin chưa tìm thấy giao dịch chuyển khoản tương ứng. Vui lòng kiểm tra lại nội dung chuyển khoản!"
+    },
+    {
+      "id": "pay-1793469144295-CJ5F",
+      "userId": "b1233f12-7195-4357-85cf-5aa0edcace30",
+      "username": "Thành Đạt",
+      "displayName": "Thành Đạt",
+      "amount": 299000,
+      "transferContent": "VIP2937 THANHDAT B123",
+      "status": "rejected",
+      "createdAt": 1793469144295,
+      "processedAt": 1793469145471,
+      "processedBy": "nthdat",
+      "rejectReason": "Admin chưa tìm thấy giao dịch chuyển khoản tương ứng. Vui lòng kiểm tra lại nội dung chuyển khoản!"
+    },
+    {
+      "id": "pay-1793469129437-FNTV",
+      "userId": "b1233f12-7195-4357-85cf-5aa0edcace30",
+      "username": "Thành Đạt",
+      "displayName": "Thành Đạt",
+      "amount": 299000,
+      "transferContent": "VIP2937 THANHDAT B123",
+      "status": "rejected",
+      "createdAt": 1793469129437,
+      "processedAt": 1793469138436,
+      "processedBy": "nthdat",
+      "rejectReason": "Admin chưa tìm thấy giao dịch chuyển khoản tương ứng. Vui lòng kiểm tra lại nội dung chuyển khoản!"
+    },
+    {
+      "id": "pay-1793468705226-UHNR",
+      "userId": "b1233f12-7195-4357-85cf-5aa0edcace30",
+      "username": "Thành Đạt",
+      "displayName": "Thành Đạt",
+      "amount": 299000,
+      "transferContent": "VIP2937 THANHDAT B123",
+      "status": "approved",
+      "createdAt": 1793468705228,
+      "processedAt": 1793468711615,
+      "processedBy": "nthdat"
+    },
+    {
+      "id": "pay-1793468510446-1HWK",
+      "userId": "b1233f12-7195-4357-85cf-5aa0edcace30",
+      "username": "Thành Đạt",
+      "displayName": "Thành Đạt",
+      "amount": 29000,
+      "transferContent": "VIP2937 THANHDAT B123",
+      "status": "approved",
+      "createdAt": 1793468510447,
+      "processedAt": 1793468518895,
+      "processedBy": "nthdat"
+    },
+    {
+      "id": "pay-1793467255106-LWKQ",
+      "userId": "b1233f12-7195-4357-85cf-5aa0edcace30",
+      "username": "Thành Đạt",
+      "displayName": "Thành Đạt",
+      "amount": 29000,
+      "transferContent": "VIP2937 THANHDAT B123",
+      "status": "approved",
+      "createdAt": 1793467255106,
+      "processedAt": 1793467284682,
+      "processedBy": "nthdat"
+    }
+  ]
+}

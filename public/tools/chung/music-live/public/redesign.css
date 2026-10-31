@@ -1,0 +1,5148 @@
+/* ==========================================================================
+   2937.ML REDESIGN - SPOTIFY PRO AESTHETIC THEME
+   Engineered for modern, scientific, high-contrast, professional music experience.
+   All functional logic and element IDs preserved.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. DESIGN TOKENS & SYSTEM VARIABLES
+   -------------------------------------------------------------------------- */
+:root {
+    /* Spotify Core Palette */
+    --sp-black: #05080c;
+    --sp-base: #0c1117;
+    --sp-card: #111821;
+    --sp-card-hover: #1a2430;
+    --sp-card-active: #1f2b38;
+    --sp-elevated: #1d2935;
+    --sp-highlight: #2a3a4a;
+    --sp-border: rgba(255, 255, 255, 0.08);
+    --sp-border-strong: rgba(255, 255, 255, 0.16);
+    --sp-border-focus: rgba(255, 255, 255, 0.35);
+
+    /* Typography Colors */
+    --sp-text-main: #ffffff;
+    --sp-text-sub: #b4c3d1;
+    --sp-text-muted: #7b8a99;
+
+    /* Brand Light Blue (giữ tên biến --sp-green để không phá các rule cũ) */
+    --brand-rgb: 135, 206, 250;
+    --sp-green: #87cefa;
+    --sp-green-hover: #a6dcfc;
+    --sp-green-active: #5bb8f2;
+    --sp-green-glow: rgba(var(--brand-rgb), 0.32);
+
+    /* Màu chủ đạo cố định: Light Blue */
+    --accent: #87cefa !important;
+    --accent-soft: rgba(var(--brand-rgb), 0.15) !important;
+    --primary: #87cefa !important;
+    --primary-foreground: #04121c !important;
+
+    /* System Layout Variables Overrides */
+    --bg-color: var(--sp-base) !important;
+    --panel-bg: var(--sp-card) !important;
+    --panel-bg-solid: var(--sp-elevated) !important;
+    --text-main: var(--sp-text-main) !important;
+    --text-muted: var(--sp-text-sub) !important;
+    --border-color: var(--sp-border) !important;
+    --border-color-strong: var(--sp-border-strong) !important;
+    --background: var(--sp-base) !important;
+    --foreground: var(--sp-text-main) !important;
+    --card: var(--sp-card) !important;
+    --card-foreground: var(--sp-text-main) !important;
+    --popover: var(--sp-elevated) !important;
+    --popover-foreground: var(--sp-text-main) !important;
+    --secondary: var(--sp-card-hover) !important;
+    --secondary-foreground: var(--sp-text-main) !important;
+    --muted: var(--sp-card-hover) !important;
+    --muted-foreground: var(--sp-text-sub) !important;
+    --destructive: #e91429 !important;
+    --border: var(--sp-border) !important;
+    --input: var(--sp-card-hover) !important;
+    --ring: var(--sp-green-glow) !important;
+
+    /* Geometry & Shadows */
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+    --radius-pill: 500px;
+    --radius: 8px !important;
+
+    --shadow-soft: 0 4px 16px rgba(0, 0, 0, 0.5) !important;
+    --shadow-elevated: 0 12px 36px rgba(0, 0, 0, 0.7) !important;
+
+    /* Clean Modern System Fonts */
+    --font-display: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+    --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+    --font-mono: 'JetBrains Mono', SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace !important;
+
+    /* Spotify Bottom Player Bar Height */
+    --bottom-player-height: 80px;
+}
+
+/* --------------------------------------------------------------------------
+   2. GLOBAL RESETS & SCROLLBAR
+   -------------------------------------------------------------------------- */
+body {
+    background-color: var(--sp-black) !important;
+    /* background-image KHÔNG bị chặn: applyUserBackgrounds() đặt ảnh nền website (web_bg) inline */
+    background-size: cover !important;
+    background-position: center center !important;
+    background-repeat: no-repeat !important;
+    background-attachment: fixed !important;
+    color: var(--sp-text-main) !important;
+    font-family: var(--font-body) !important;
+    letter-spacing: -0.01em;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Ambient Glow Layer Integration */
+.dynamic-ambient-glow {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 480px;
+    background: radial-gradient(ellipse at 50% -10%, rgba(var(--brand-rgb), 0.22) 0%, rgba(18, 18, 18, 0) 70%);
+    pointer-events: none;
+    z-index: 0;
+    transition: background 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Custom Spotify Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.35);
+}
+
+/* --------------------------------------------------------------------------
+   3. TOP NAVIGATION BAR (SPOTIFY HEADER)
+   -------------------------------------------------------------------------- */
+.navbar {
+    height: 64px !important;
+    background: var(--sp-black) !important;
+    border-bottom: 1px solid var(--sp-border) !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4) !important;
+    padding: 0 24px !important;
+    z-index: 900 !important;
+}
+
+.logo {
+    font-family: var(--font-display) !important;
+    font-size: 20px !important;
+    font-weight: 800 !important;
+    color: var(--sp-text-main) !important;
+    letter-spacing: -0.03em !important;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.live-badge {
+    background: var(--sp-green) !important;
+    color: #000000 !important;
+    font-size: 10px !important;
+    font-weight: 800 !important;
+    padding: 2px 7px !important;
+    border-radius: 4px !important;
+    letter-spacing: 0.05em !important;
+    box-shadow: 0 0 10px var(--sp-green-glow);
+}
+
+/* Centered Spotify Search Bar */
+.navbar-search {
+    flex: 1;
+    max-width: 480px;
+    margin: 0 auto;
+}
+
+.search-bar-wrapper {
+    background: var(--sp-card-hover) !important;
+    border: 1px solid transparent !important;
+    border-radius: var(--radius-pill) !important;
+    height: 42px !important;
+    padding: 0 16px 0 44px !important;
+    position: relative;
+    transition: all 0.2s ease;
+}
+
+.search-bar-wrapper:hover {
+    background: var(--sp-elevated) !important;
+    border-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+.search-bar-wrapper:focus-within {
+    background: var(--sp-elevated) !important;
+    border-color: #ffffff !important;
+    box-shadow: 0 0 0 1px #ffffff !important;
+}
+
+.search-bar-wrapper .search-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--sp-text-sub) !important;
+    font-size: 20px !important;
+}
+
+.search-bar-wrapper input {
+    width: 100%;
+    background: transparent !important;
+    border: none !important;
+    color: var(--sp-text-main) !important;
+    font-size: 13.5px !important;
+    font-weight: 500 !important;
+    outline: none !important;
+    padding: 0 !important;
+}
+
+.search-bar-wrapper input::placeholder {
+    color: var(--sp-text-muted);
+}
+
+.btn-add-search {
+    background: transparent !important;
+    border: none !important;
+    color: var(--sp-text-sub) !important;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.15s;
+}
+
+.btn-add-search:hover {
+    color: var(--sp-text-main) !important;
+}
+
+/* Search Dropdown */
+.search-suggestions-dropdown {
+    background: var(--sp-elevated) !important;
+    border: 1px solid var(--sp-border-strong) !important;
+    border-radius: var(--radius-md) !important;
+    box-shadow: var(--shadow-elevated) !important;
+    margin-top: 8px;
+    overflow: hidden;
+}
+
+.search-suggestion-item {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--sp-border);
+    transition: background 0.15s;
+    cursor: pointer;
+}
+
+.search-suggestion-item:hover {
+    background: var(--sp-card-hover) !important;
+}
+
+/* Navbar Right Buttons & User Pill */
+.navbar-right {
+    display: flex;
+    align-items: center;
+    gap: 8px !important;
+}
+
+.navbar-user {
+    background: var(--sp-card-hover) !important;
+    border: 1px solid var(--sp-border) !important;
+    border-radius: var(--radius-pill) !important;
+    padding: 4px 14px 4px 6px !important;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: background 0.2s, transform 0.15s;
+    cursor: pointer;
+}
+
+.navbar-user:hover {
+    background: var(--sp-elevated) !important;
+    transform: scale(1.02);
+}
+
+.navbar-avatar-img {
+    width: 28px !important;
+    height: 28px !important;
+    border-radius: 50% !important;
+    object-fit: cover !important;
+    border: 1.5px solid var(--sp-green) !important;
+}
+
+.user-dot {
+    width: 6px !important;
+    height: 6px !important;
+    background: var(--sp-green) !important;
+    border-radius: 50% !important;
+    box-shadow: 0 0 6px var(--sp-green);
+}
+
+#navbar-username {
+    font-size: 13px !important;
+    font-weight: 700 !important;
+    color: var(--sp-text-main) !important;
+}
+
+/* Sleek Icon Buttons in Navbar */
+.navbar .circle-btn,
+.navbar .settings-btn,
+.navbar .logout-btn {
+    width: 38px !important;
+    height: 38px !important;
+    border-radius: 50% !important;
+    background: var(--sp-card-hover) !important;
+    border: 1px solid var(--sp-border) !important;
+    color: var(--sp-text-sub) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    transition: all 0.2s ease !important;
+    cursor: pointer;
+}
+
+.navbar .circle-btn:hover,
+.navbar .settings-btn:hover,
+.navbar .logout-btn:hover {
+    background: var(--sp-elevated) !important;
+    color: var(--sp-text-main) !important;
+    transform: scale(1.06);
+    border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+.nav-msg-badge,
+.sidebar-msg-badge {
+    background: var(--sp-green) !important;
+    color: #000000 !important;
+    font-size: 10px !important;
+    font-weight: 800 !important;
+    border-radius: var(--radius-pill) !important;
+}
+
+/* --------------------------------------------------------------------------
+   4. APP SHELL LAYOUT (SPOTIFY 3-PANEL GRID + FIXED BOTTOM BAR)
+   -------------------------------------------------------------------------- */
+.main-layout {
+    height: calc(100vh - 64px - var(--bottom-player-height)) !important;
+    max-height: calc(100vh - 64px - var(--bottom-player-height)) !important;
+    margin-bottom: var(--bottom-player-height) !important;
+    padding: 16px 20px 0 20px !important;
+    gap: 16px !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+    position: relative;
+    z-index: 1;
+}
+
+@media (min-width: 1400px) {
+    .main-layout {
+        padding: 20px 24px 0 24px !important;
+        gap: 20px !important;
+    }
+}
+
+/* --------------------------------------------------------------------------
+   5. LEFT SIDEBAR (SPOTIFY NAVIGATION / LIBRARY PANEL)
+   -------------------------------------------------------------------------- */
+/* Desktop sidebar (>= 900px). Mobile keeps the bottom navigation from styles.css. */
+@media (min-width: 900px) {
+    .sidebar {
+        padding: 14px 10px !important;
+        width: 240px !important;
+        min-width: 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 4px !important;
+        overflow-x: hidden !important;
+        overflow-y: auto !important;
+        transition: width 0.28s cubic-bezier(0.22, 1, 0.36, 1), padding 0.28s cubic-bezier(0.22, 1, 0.36, 1) !important;
+    }
+
+    .sidebar-item {
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        justify-content: flex-start !important;
+        gap: 14px !important;
+        padding: 10px 14px !important;
+        margin: 0 !important;
+        border-radius: 12px !important;
+        color: var(--sp-text-sub) !important;
+        font-size: 14px !important;
+        font-weight: 700 !important;
+        background: transparent !important;
+        border: 1px solid transparent !important;
+        box-shadow: none !important;
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+        transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.2s ease !important;
+        cursor: pointer;
+        position: relative;
+        overflow: visible;
+        white-space: nowrap;
+    }
+
+    .sidebar-item .sidebar-label {
+        display: inline !important;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .sidebar-item .material-symbols-outlined {
+        font-size: 22px !important;
+        color: var(--sp-text-sub) !important;
+        transition: color 0.2s ease, transform 0.2s ease;
+        flex-shrink: 0;
+    }
+
+    .sidebar-item:hover {
+        color: var(--sp-text-main) !important;
+        background: rgba(255, 255, 255, 0.07) !important;
+    }
+
+    .sidebar-item:hover .material-symbols-outlined {
+        color: var(--sp-text-main) !important;
+        transform: scale(1.08);
+    }
+
+    .sidebar-item.active {
+        color: var(--sp-text-main) !important;
+        background: linear-gradient(90deg, color-mix(in oklab, var(--accent), transparent 80%), rgba(255, 255, 255, 0.04)) !important;
+        border-color: color-mix(in oklab, var(--accent), transparent 65%) !important;
+    }
+
+    .sidebar-item.active .material-symbols-outlined {
+        color: var(--accent) !important;
+        font-variation-settings: 'FILL' 1;
+    }
+
+    .sidebar-item.active::after {
+        display: none !important;
+    }
+
+    .sidebar-item.active::before {
+        content: '';
+        position: absolute;
+        left: -1px;
+        top: 9px;
+        bottom: 9px;
+        width: 3px;
+        border-radius: 0 4px 4px 0;
+        background: var(--accent);
+        box-shadow: 0 0 10px var(--accent);
+    }
+
+    .sidebar-item .sidebar-msg-badge {
+        margin-left: auto !important;
+    }
+
+    /* ---- Collapsed icon rail (.sidebar.mini) ---- */
+    .sidebar.mini,
+    .sidebar.mini:hover {
+        width: 76px !important;
+        padding: 14px 10px !important;
+        align-items: center !important;
+    }
+
+    .sidebar.mini .sidebar-item,
+    .sidebar.mini:hover .sidebar-item {
+        width: 52px !important;
+        height: 48px !important;
+        min-height: 48px !important;
+        padding: 0 !important;
+        gap: 0 !important;
+        flex-direction: row !important;
+        justify-content: center !important;
+        font-size: 0 !important;
+        border-radius: 14px !important;
+    }
+
+    .sidebar.mini .sidebar-item .sidebar-label,
+    .sidebar.mini:hover .sidebar-item .sidebar-label {
+        display: none !important;
+    }
+
+    .sidebar.mini .sidebar-item .material-symbols-outlined {
+        font-size: 24px !important;
+    }
+
+    .sidebar.mini .sidebar-item.active::before {
+        top: 12px;
+        bottom: 12px;
+    }
+
+    .sidebar.mini .sidebar-item .sidebar-msg-badge {
+        position: absolute !important;
+        top: 4px !important;
+        right: 4px !important;
+        margin: 0 !important;
+        font-size: 9px !important;
+        padding: 1px 5px !important;
+        line-height: 1.2 !important;
+    }
+}
+
+/* Menu toggle button in navbar */
+.menu-btn {
+    width: 40px !important;
+    height: 40px !important;
+    border-radius: 50% !important;
+    transition: background-color 0.2s ease, transform 0.2s ease !important;
+}
+
+.menu-btn:hover {
+    background: rgba(255, 255, 255, 0.1) !important;
+}
+
+.menu-btn:active {
+    transform: scale(0.92);
+}
+
+/* --------------------------------------------------------------------------
+   6. CENTER WORKSPACE (.left-column, Tabs, Player, Tracklist, Games)
+   -------------------------------------------------------------------------- */
+.left-column:not(.not-home),
+.history-column,
+.messenger-column {
+    background: var(--sp-card) !important;
+    border: 1px solid var(--sp-border) !important;
+    border-radius: var(--radius-lg) !important;
+    padding: 20px !important;
+    overflow-y: auto !important;
+    position: relative;
+    box-sizing: border-box !important;
+    scrollbar-gutter: stable;
+}
+
+/* When leaving home tab, collapse left-column seamlessly so only floating mini-player remains */
+.left-column.not-home,
+.left-column.mobile-mini {
+    position: absolute !important;
+    width: 0 !important;
+    height: 0 !important;
+    min-width: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: none !important;
+    background: transparent !important;
+    overflow: visible !important;
+    box-shadow: none !important;
+    z-index: 1050 !important;
+    pointer-events: none !important;
+}
+
+.left-column.not-home .video-container,
+.left-column.mobile-mini .video-container {
+    pointer-events: auto !important;
+}
+
+.left-column.not-home .video-info,
+.left-column.not-home .workspace-tabs,
+.left-column.not-home .control-box {
+    display: none !important;
+}
+
+/* Workspace Pill Tabs (Video, Pomodoro, Study Room, Focus) */
+.workspace-tabs {
+    display: inline-flex !important;
+    align-items: center !important;
+    background: var(--sp-base) !important;
+    border: 1px solid var(--sp-border) !important;
+    border-radius: var(--radius-pill) !important;
+    padding: 4px !important;
+    gap: 4px !important;
+    margin-bottom: 16px !important;
+    width: fit-content;
+}
+
+.workspace-tabs button,
+.workspace-tabs [role="tab"] {
+    background: transparent !important;
+    border: none !important;
+    color: var(--sp-text-sub) !important;
+    font-size: 13.5px !important;
+    font-weight: 700 !important;
+    padding: 8px 18px !important;
+    border-radius: var(--radius-pill) !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+}
+
+.workspace-tabs button .material-symbols-outlined,
+.workspace-tabs [role="tab"] .material-symbols-outlined {
+    font-size: 18px !important;
+}
+
+.workspace-tabs button:hover,
+.workspace-tabs [role="tab"]:hover {
+    color: var(--sp-text-main) !important;
+}
+
+.workspace-tabs button[aria-selected="true"],
+.workspace-tabs [role="tab"][aria-selected="true"],
+.workspace-tabs button.active {
+    background: var(--sp-elevated) !important;
+    color: var(--sp-text-main) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4) !important;
+}
+
+.workspace-focus-btn {
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+}
+.workspace-focus-btn[aria-pressed="true"] {
+    background: var(--sp-green) !important;
+    color: #000000 !important;
+    font-weight: 800 !important;
+}
+.workspace-focus-btn[aria-pressed="true"] .material-symbols-outlined {
+    color: #000000 !important;
+}
+
+/* Video Player Container */
+.video-container {
+    background: var(--sp-black) !important;
+    border: 1px solid var(--sp-border) !important;
+    border-radius: var(--radius-md) !important;
+    overflow: hidden !important;
+    box-shadow: var(--shadow-soft) !important;
+    position: relative;
+    width: 100%;
+}
+
+/* Picture-in-Picture Mini-Player Mode */
+.video-container.is-mini-player,
+.left-column.not-home .video-container,
+.left-column.mobile-mini .video-container {
+    position: fixed !important;
+    bottom: calc(var(--bottom-player-height, 80px) + 16px) !important;
+    right: 20px !important;
+    width: clamp(280px, 24vw, 380px) !important;
+    height: auto !important;
+    aspect-ratio: 16 / 9 !important;
+    padding-bottom: 0 !important;
+    z-index: 9999 !important;
+    border-radius: 12px !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(var(--brand-rgb), 0.45) !important;
+    overflow: hidden !important;
+    display: block !important;
+    background: #000000 !important;
+    transition: width 0.25s ease, height 0.25s ease, box-shadow 0.25s ease !important;
+}
+
+/* Mini Player Header Controls */
+.mini-player-header {
+    display: none;
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    height: 36px !important;
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.92), rgba(0, 0, 0, 0.2)) !important;
+    z-index: 50 !important;
+    padding: 0 10px !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    user-select: none !important;
+    -webkit-user-select: none !important;
+}
+
+.video-container.is-mini-player .mini-player-header,
+.left-column.not-home .video-container .mini-player-header,
+.left-column.mobile-mini .video-container .mini-player-header {
+    display: flex !important;
+}
+
+.mini-player-drag-area {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    flex: 1 !important;
+    min-width: 0 !important;
+    cursor: grab !important;
+    height: 100% !important;
+}
+
+.mini-player-drag-area:active {
+    cursor: grabbing !important;
+}
+
+.mini-player-drag-icon {
+    font-size: 16px !important;
+    color: var(--sp-text-sub) !important;
+}
+
+.mini-player-title {
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    color: #ffffff !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.8) !important;
+}
+
+.mini-player-act-btn {
+    width: 26px !important;
+    height: 26px !important;
+    border-radius: 50% !important;
+    border: none !important;
+    background: rgba(255, 255, 255, 0.2) !important;
+    color: #ffffff !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    transition: background 0.15s ease, transform 0.15s ease !important;
+}
+
+.mini-player-act-btn:hover {
+    background: rgba(255, 255, 255, 0.35) !important;
+    transform: scale(1.08) !important;
+}
+
+/* Hide expand and reactions dock inside mini-player */
+.video-container.is-mini-player .btn-landscape-player-expand,
+.video-container.is-mini-player .video-reactions-dock,
+.left-column.not-home .video-container .btn-landscape-player-expand,
+.left-column.not-home .video-container .video-reactions-dock {
+    display: none !important;
+}
+
+/* Disable old rainbow border */
+.left-column.not-home .video-container::before,
+.left-column.mobile-mini .video-container::before {
+    display: none !important;
+}
+
+/* Floating Reactions Dock on Video */
+.video-reactions-dock {
+    background: rgba(18, 18, 18, 0.85) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    border-radius: var(--radius-pill) !important;
+    padding: 4px 10px !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5) !important;
+}
+
+.reaction-heart-btn {
+    background: rgba(255, 255, 255, 0.1) !important;
+    border: none !important;
+    border-radius: 50% !important;
+    cursor: pointer;
+    transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.reaction-heart-btn:hover {
+    transform: scale(1.2);
+    background: rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Video Info & Album Typography Header */
+.video-info {
+    margin-top: 18px !important;
+}
+
+.video-title {
+    font-family: var(--font-display) !important;
+    font-size: 24px !important;
+    font-weight: 800 !important;
+    color: var(--sp-text-main) !important;
+    letter-spacing: -0.02em !important;
+    margin: 8px 0 !important;
+    line-height: 1.3 !important;
+}
+
+.channel-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.channel-avatar {
+    width: 32px !important;
+    height: 32px !important;
+    border-radius: 50% !important;
+    background: var(--sp-card-hover) !important;
+    border: 1px solid var(--sp-border-strong) !important;
+    color: var(--sp-text-main) !important;
+    font-weight: 700 !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+}
+
+.channel-details {
+    display: flex;
+    flex-direction: column;
+}
+
+.channel-name {
+    font-size: 14px !important;
+    font-weight: 700 !important;
+    color: var(--sp-text-main) !important;
+}
+
+.channel-sub {
+    font-size: 12px !important;
+    color: var(--sp-text-sub) !important;
+}
+
+/* Control Box Container (Queue & Games Card) */
+.control-box {
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+    margin-top: 10px !important;
+}
+
+/* Spotify Tracklist Queue Section */
+.playlist-header {
+    font-size: 12px !important;
+    font-weight: 800 !important;
+    color: var(--sp-text-sub) !important;
+    letter-spacing: 0.08em !important;
+    text-transform: uppercase !important;
+    margin-bottom: 12px !important;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.playlist-header::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--sp-border);
+}
+
+.playlist-ui {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    background: var(--sp-base) !important;
+    border: 1px solid var(--sp-border) !important;
+    border-radius: var(--radius-md) !important;
+    padding: 8px !important;
+}
+
+.playlist-item {
+    display: flex !important;
+    align-items: center !important;
+    gap: 14px !important;
+    padding: 8px 12px !important;
+    border-radius: var(--radius-md) !important;
+    border: none !important;
+    background: transparent !important;
+    transition: background 0.15s ease !important;
+}
+
+.playlist-item:hover {
+    background: var(--sp-card-hover) !important;
+}
+
+.playlist-item img {
+    width: 44px !important;
+    height: 44px !important;
+    border-radius: 4px !important;
+    object-fit: cover !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+}
+
+.playlist-item .song-title {
+    font-size: 13.5px !important;
+    font-weight: 600 !important;
+    color: var(--sp-text-main) !important;
+}
+
+.playlist-item .song-id-text {
+    font-size: 11.5px !important;
+    color: var(--sp-text-sub) !important;
+}
+
+/* Spotify Browse Cards (Minigames Launcher) */
+.game-buttons-group {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)) !important;
+    gap: 10px !important;
+    margin-top: 20px !important;
+}
+
+.btn-start-game {
+    height: 72px !important;
+    background: var(--sp-base) !important;
+    border: 1px solid var(--sp-border) !important;
+    border-radius: var(--radius-md) !important;
+    padding: 10px 14px !important;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 10px !important;
+    color: var(--sp-text-main) !important;
+    font-weight: 700 !important;
+    font-size: 13px !important;
+    cursor: pointer !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    box-shadow: none !important;
+}
+
+.btn-start-game:hover {
+    background: var(--sp-card-hover) !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4) !important;
+}
+
+.btn-start-game .game-btn-icon {
+    font-size: 24px !important;
+    flex-shrink: 0;
+}
+
+/* --------------------------------------------------------------------------
+   7. FIXED SPOTIFY MUSIC PLAYER BAR (DOCKED AT BOTTOM OF SCREEN)
+   -------------------------------------------------------------------------- */
+.spotify-bottom-bar {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    height: var(--bottom-player-height) !important;
+    background: rgba(7, 12, 18, 0.84) !important;
+    border-top: 1px solid rgba(176, 224, 250, 0.16) !important;
+    box-shadow: 0 -10px 36px rgba(0, 0, 0, 0.55) !important;
+    z-index: 1000 !important;
+    display: grid !important;
+    grid-template-columns: minmax(200px, 1fr) minmax(280px, 1.4fr) minmax(200px, 1fr) !important;
+    align-items: center !important;
+    gap: 16px !important;
+    padding: 0 24px !important;
+    box-sizing: border-box !important;
+    backdrop-filter: blur(24px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
+}
+
+/* Top Progress Hairline along the top edge of the bar */
+.sp-bar-top-progress {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: rgba(255, 255, 255, 0.08);
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 2;
+}
+
+.sp-bar-top-progress-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--accent), var(--accent-strong, #b0e0fa));
+    box-shadow: 0 0 10px var(--accent);
+    transition: width 0.45s linear;
+}
+
+/* Bottom Bar Left: Current Playing Info */
+.sp-bar-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+
+.sp-bar-thumb-wrap {
+    position: relative;
+    flex-shrink: 0;
+    width: 52px;
+    height: 52px;
+    aspect-ratio: 1 / 1;
+}
+
+.sp-bar-thumb {
+    width: 100%;
+    height: 100%;
+    aspect-ratio: 1 / 1;
+    border-radius: 10px !important;
+    background: var(--sp-card-hover);
+    border: 1px solid rgba(176, 224, 250, 0.22) !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5) !important;
+}
+
+.sp-bar-thumb img {
+    width: 100%;
+    height: 100%;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    display: block;
+}
+
+.sp-bar-thumb-icon {
+    font-size: 24px;
+    color: var(--accent);
+}
+
+/* Mini animated equalizer badge on corner of cover art */
+.sp-eq-badge {
+    position: absolute;
+    right: -3px;
+    bottom: -3px;
+    width: 18px;
+    height: 18px;
+    border-radius: 6px;
+    background: rgba(7, 12, 18, 0.92);
+    border: 1px solid rgba(135, 206, 250, 0.4);
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 2px;
+    padding: 3px;
+    box-sizing: border-box;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+}
+
+.sp-eq-badge span,
+.sp-eq-inline i {
+    display: inline-block;
+    width: 2.5px;
+    background: var(--accent);
+    border-radius: 2px;
+    animation: spEqBounce 1.1s ease-in-out infinite;
+}
+
+.sp-eq-badge span:nth-child(1),
+.sp-eq-inline i:nth-child(1) {
+    height: 6px;
+    animation-delay: 0s;
+}
+
+.sp-eq-badge span:nth-child(2),
+.sp-eq-inline i:nth-child(2) {
+    height: 10px;
+    animation-delay: 0.2s;
+}
+
+.sp-eq-badge span:nth-child(3),
+.sp-eq-inline i:nth-child(3) {
+    height: 5px;
+    animation-delay: 0.4s;
+}
+
+@keyframes spEqBounce {
+    0%, 100% { transform: scaleY(0.45); opacity: 0.75; }
+    50% { transform: scaleY(1.1); opacity: 1; }
+}
+
+.sp-bar-info {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    gap: 3px;
+    min-width: 0;
+    flex: 1;
+}
+
+.sp-bar-title {
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--sp-text-main);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.25;
+}
+
+.sp-bar-sub-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+}
+
+.sp-live-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 8px var(--accent);
+    flex-shrink: 0;
+}
+
+.sp-bar-sub {
+    font-size: 11.5px;
+    color: var(--sp-text-sub);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.sp-bar-heart-btn {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    cursor: pointer;
+    font-size: 15px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: var(--sp-text-sub);
+    transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.18s ease, border-color 0.18s ease;
+}
+
+.sp-bar-heart-btn:hover {
+    transform: scale(1.14);
+    background: rgba(255, 107, 129, 0.16);
+    border-color: rgba(255, 107, 129, 0.45);
+}
+
+.sp-bar-heart-btn:active {
+    transform: scale(0.92);
+}
+
+/* Bottom Bar Center: 2-Row Controls + Timeline */
+.sp-bar-center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    max-width: 520px;
+    justify-self: center;
+    min-width: 0;
+}
+
+.sp-bar-controls-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    min-height: 34px;
+}
+
+.sp-live-status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 14px;
+    border-radius: 999px;
+    background: rgba(135, 206, 250, 0.1);
+    border: 1px solid rgba(135, 206, 250, 0.25);
+    color: var(--accent-strong, #b0e0fa);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+}
+
+.sp-eq-inline {
+    display: inline-flex;
+    align-items: flex-end;
+    gap: 2px;
+    height: 11px;
+}
+
+/* Use :has() to hide the passive status pill when admin playback buttons are visible */
+.sp-bar-controls-row:has(#song-tools button:not(.hidden)) .sp-live-status-pill {
+    display: none;
+}
+
+.sp-playback-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 !important;
+}
+
+/* Timeline row inside center of bottom bar */
+.sp-bar-timeline {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    max-width: 440px;
+}
+
+.sp-time-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--sp-text-muted);
+    min-width: 32px;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+}
+
+.sp-timeline-track {
+    flex: 1;
+    height: 4px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.14);
+    overflow: hidden;
+    position: relative;
+}
+
+.sp-timeline-fill {
+    height: 100%;
+    width: 0%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--accent), var(--accent-strong, #b0e0fa));
+    box-shadow: 0 0 8px rgba(var(--brand-rgb), 0.5);
+    transition: width 0.45s linear;
+}
+
+/* Spotify Skip, Loop, Radio Buttons */
+#btn-next-song {
+    background: linear-gradient(135deg, var(--accent-strong, #b0e0fa) 0%, var(--accent) 100%) !important;
+    color: #04121c !important;
+    font-weight: 800 !important;
+    font-size: 12.5px !important;
+    border: none !important;
+    border-radius: var(--radius-pill) !important;
+    height: 32px !important;
+    padding: 0 14px !important;
+    cursor: pointer !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 5px !important;
+    transition: transform 0.15s ease, filter 0.15s ease !important;
+    box-shadow: 0 4px 14px var(--sp-green-glow);
+    white-space: nowrap !important;
+}
+
+#btn-next-song.hidden {
+    display: none !important;
+}
+
+#btn-next-song:hover {
+    filter: brightness(1.08);
+    transform: scale(1.04);
+}
+
+#btn-loop {
+    width: 32px !important;
+    height: 32px !important;
+    border-radius: 50% !important;
+    background: rgba(255, 255, 255, 0.07) !important;
+    border: 1px solid rgba(255, 255, 255, 0.14) !important;
+    color: var(--sp-text-sub) !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    padding: 0 !important;
+    transition: all 0.15s ease !important;
+}
+
+#btn-loop.hidden {
+    display: none !important;
+}
+
+#btn-loop:hover {
+    color: var(--sp-text-main) !important;
+    background: rgba(255, 255, 255, 0.14) !important;
+    transform: scale(1.06);
+}
+
+#btn-loop.active {
+    color: var(--accent) !important;
+    border-color: var(--accent) !important;
+    background: rgba(var(--brand-rgb), 0.15) !important;
+    box-shadow: 0 0 10px var(--sp-green-glow);
+}
+
+#btn-dj-radio {
+    background: rgba(255, 255, 255, 0.07) !important;
+    border: 1px solid rgba(255, 255, 255, 0.14) !important;
+    color: var(--sp-text-sub) !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    border-radius: var(--radius-pill) !important;
+    height: 32px !important;
+    padding: 0 12px !important;
+    cursor: pointer !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 5px !important;
+    transition: all 0.15s ease !important;
+    white-space: nowrap !important;
+}
+
+#btn-dj-radio.hidden {
+    display: none !important;
+}
+
+#btn-dj-radio:hover {
+    color: var(--sp-text-main) !important;
+    background: rgba(255, 255, 255, 0.14) !important;
+    transform: scale(1.03);
+}
+
+#btn-dj-radio.active {
+    background: rgba(var(--brand-rgb), 0.15) !important;
+    border-color: var(--accent) !important;
+    color: var(--accent) !important;
+    box-shadow: 0 0 12px var(--sp-green-glow);
+}
+
+/* Bottom Bar Right: PiP, Mobile Quick Sheet Buttons & Volume Control */
+.sp-bar-right {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+    min-width: 0;
+}
+
+.sp-mobile-sheet-btns {
+    display: none;
+    align-items: center;
+    gap: 6px;
+}
+
+.sp-mobile-sheet-btn {
+    position: relative;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.07);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    color: var(--sp-text-sub);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0;
+    transition: all 0.18s ease;
+}
+
+.sp-mobile-sheet-btn .material-symbols-outlined {
+    font-size: 19px;
+}
+
+.sp-mobile-sheet-btn.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #04121c;
+    box-shadow: 0 0 12px var(--sp-green-glow);
+}
+
+.sp-mobile-badge {
+    position: absolute;
+    top: -3px;
+    right: -3px;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    border-radius: 999px;
+    background: #ff4757;
+    color: #ffffff;
+    font-size: 10px;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    border: 1.5px solid #070c12;
+}
+
+.sp-mobile-badge.hidden-badge {
+    display: none !important;
+}
+
+/* Fix #btn-toggle-pip: proper pill button instead of 38px circle */
+#btn-toggle-pip {
+    width: auto !important;
+    height: 34px !important;
+    padding: 0 13px !important;
+    border-radius: var(--radius-pill) !important;
+    background: rgba(255, 255, 255, 0.07) !important;
+    border: 1px solid rgba(255, 255, 255, 0.14) !important;
+    color: var(--sp-text-sub) !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    cursor: pointer !important;
+    white-space: nowrap !important;
+    transition: all 0.18s ease !important;
+}
+
+#btn-toggle-pip:hover {
+    color: var(--sp-text-main) !important;
+    background: rgba(255, 255, 255, 0.14) !important;
+    border-color: rgba(255, 255, 255, 0.26) !important;
+    transform: translateY(-1px);
+}
+
+/* Volume Control & Light Blue Filled Slider */
+.volume-control {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 999px;
+    padding: 4px 12px 4px 8px;
+}
+
+#volume-icon {
+    font-size: 19px !important;
+    color: var(--sp-text-sub) !important;
+    cursor: pointer;
+    transition: color 0.15s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#volume-icon:hover {
+    color: var(--accent) !important;
+}
+
+.sp-volume-slider,
+#volume-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 88px !important;
+    height: 4px !important;
+    border-radius: 999px !important;
+    background: linear-gradient(
+        to right,
+        var(--accent) 0%,
+        var(--accent) var(--vol-pct, 50%),
+        rgba(255, 255, 255, 0.18) var(--vol-pct, 50%),
+        rgba(255, 255, 255, 0.18) 100%
+    ) !important;
+    outline: none !important;
+    cursor: pointer;
+    transition: height 0.15s ease;
+}
+
+.sp-volume-slider:hover,
+#volume-slider:hover {
+    height: 6px !important;
+}
+
+.sp-volume-slider::-webkit-slider-thumb,
+#volume-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #ffffff;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+    cursor: pointer;
+    transition: transform 0.15s ease, background-color 0.15s ease;
+}
+
+.sp-volume-slider:hover::-webkit-slider-thumb,
+#volume-slider:hover::-webkit-slider-thumb {
+    transform: scale(1.22);
+    background: var(--accent);
+}
+
+.sp-volume-slider::-moz-range-thumb,
+#volume-slider::-moz-range-thumb {
+    width: 12px;
+    height: 12px;
+    border: none;
+    border-radius: 50%;
+    background: #ffffff;
+    cursor: pointer;
+}
+
+/* --------------------------------------------------------------------------
+   8. RIGHT CHAT & LYRICS PANEL (SPOTIFY / DISCORD AESTHETIC - DESKTOP)
+   -------------------------------------------------------------------------- */
+@media (min-width: 900px) {
+    .right-column {
+        background: var(--sp-card) !important;
+        border: 1px solid var(--sp-border) !important;
+        border-radius: var(--radius-lg) !important;
+        display: flex !important;
+        flex-direction: column !important;
+        width: 360px !important;
+        flex: none !important;
+        overflow: hidden !important;
+        box-shadow: none !important;
+    }
+
+    .right-column.hidden {
+        display: none !important;
+    }
+}
+
+@media (min-width: 1400px) {
+    .right-column {
+        width: 400px !important;
+    }
+}
+
+.chat-header {
+    background: var(--sp-black) !important;
+    border-bottom: 1px solid var(--sp-border) !important;
+    padding: 14px 18px !important;
+    height: 54px !important;
+    box-sizing: border-box;
+}
+
+.chat-tabs {
+    display: inline-flex !important;
+    background: var(--sp-base) !important;
+    border: 1px solid var(--sp-border) !important;
+    border-radius: var(--radius-pill) !important;
+    padding: 3px !important;
+    gap: 3px !important;
+    align-items: center !important;
+}
+
+.chat-tabs span {
+    font-size: 13px !important;
+    font-weight: 700 !important;
+    cursor: pointer !important;
+    color: var(--sp-text-sub) !important;
+    padding: 5px 14px !important;
+    border-radius: var(--radius-pill) !important;
+    transition: all 0.2s ease !important;
+    position: relative !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+    user-select: none;
+}
+
+.chat-tabs span:hover {
+    color: var(--sp-text-main) !important;
+}
+
+.chat-tabs span.active {
+    color: #ffffff !important;
+    background: var(--sp-elevated) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4) !important;
+}
+
+.chat-tabs span.active::after {
+    display: none !important;
+}
+
+.chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    /* Chỉ đặt màu nền; giữ background-image (chat_bg) do applyUserBackgrounds() gán inline */
+    background-color: rgba(7, 12, 18, 0.55) !important;
+    background-size: cover !important;
+    background-position: center center !important;
+    background-repeat: no-repeat !important;
+}
+
+/* Chat Input Area */
+.chat-input-area {
+    background: var(--sp-card) !important;
+    border-top: 1px solid var(--sp-border) !important;
+    padding: 12px 14px !important;
+}
+
+.chat-input-wrapper {
+    background: var(--sp-base) !important;
+    border: 1px solid var(--sp-border) !important;
+    border-radius: var(--radius-pill) !important;
+    padding: 4px 6px 4px 14px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    transition: border-color 0.2s, background 0.2s;
+}
+
+.chat-input-wrapper:focus-within {
+    border-color: rgba(255, 255, 255, 0.3) !important;
+    background: var(--sp-card-hover) !important;
+}
+
+.chat-input-wrapper input {
+    background: transparent !important;
+    border: none !important;
+    color: var(--sp-text-main) !important;
+    font-size: 13.5px !important;
+    flex: 1;
+    outline: none !important;
+}
+
+.chat-input-wrapper .action-icon-btn {
+    width: 32px !important;
+    height: 32px !important;
+    border-radius: 50% !important;
+    background: transparent !important;
+    border: none !important;
+    color: var(--sp-text-sub) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.chat-input-wrapper .action-icon-btn:hover {
+    color: var(--sp-text-main) !important;
+    background: rgba(255, 255, 255, 0.1) !important;
+}
+
+.chat-input-wrapper .send-btn {
+    background: var(--sp-green) !important;
+    color: #000000 !important;
+}
+.chat-input-wrapper .send-btn:hover {
+    background: var(--sp-green-hover) !important;
+    transform: scale(1.08);
+}
+
+/* Spotify Karaoke Lyrics Aesthetic */
+.lyric-box {
+    /* Chỉ đặt màu nền; giữ background-image (lyric_bg) do applyUserBackgrounds() gán inline */
+    background-color: rgba(7, 12, 18, 0.55) !important;
+    background-size: cover !important;
+    background-position: center center !important;
+    background-repeat: no-repeat !important;
+    padding: 24px 20px !important;
+}
+
+.lyric-line {
+    font-family: var(--font-display) !important;
+    font-size: 20px !important;
+    font-weight: 700 !important;
+    color: var(--sp-text-muted) !important;
+    line-height: 1.6 !important;
+    margin: 14px 0 !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    cursor: pointer;
+}
+
+.lyric-line:hover {
+    color: var(--sp-text-sub) !important;
+}
+
+.lyric-line.active {
+    font-size: 24px !important;
+    font-weight: 800 !important;
+    color: #ffffff !important;
+    text-shadow: 0 0 24px rgba(255, 255, 255, 0.35) !important;
+    transform: translateX(4px);
+}
+
+/* --------------------------------------------------------------------------
+   9. POMODORO STUDY PANEL (MINIMALIST SPOTIFY DARK CLOCK)
+   -------------------------------------------------------------------------- */
+.pomodoro-panel {
+    background: var(--sp-card) !important;
+    border: 1px solid var(--sp-border) !important;
+    border-radius: var(--radius-lg) !important;
+    padding: 24px !important;
+}
+
+.pomodoro-heading h2 {
+    font-family: var(--font-display) !important;
+    font-size: 22px !important;
+    font-weight: 800 !important;
+    color: var(--sp-text-main) !important;
+}
+
+.pomodoro-modes button {
+    background: var(--sp-base) !important;
+    border: 1px solid var(--sp-border) !important;
+    color: var(--sp-text-sub) !important;
+    font-weight: 700 !important;
+    border-radius: var(--radius-pill) !important;
+    padding: 8px 18px !important;
+    transition: all 0.2s;
+}
+
+.pomodoro-modes button[aria-pressed="true"] {
+    background: #ffffff !important;
+    color: #000000 !important;
+    border-color: #ffffff !important;
+}
+
+.pomodoro-clock {
+    border: 4px solid var(--sp-card-hover) !important;
+    box-shadow: 0 0 32px var(--sp-green-glow) !important;
+}
+
+#pomodoro-time {
+    font-family: var(--font-display) !important;
+    font-size: 64px !important;
+    font-weight: 800 !important;
+    color: var(--sp-text-main) !important;
+    letter-spacing: -2px !important;
+}
+
+#pomodoro-toggle {
+    background: var(--sp-green) !important;
+    color: #000000 !important;
+    font-weight: 800 !important;
+    border-radius: var(--radius-pill) !important;
+    padding: 12px 32px !important;
+    box-shadow: 0 0 16px var(--sp-green-glow);
+    transition: transform 0.15s, background 0.15s;
+}
+
+#pomodoro-toggle:hover {
+    background: var(--sp-green-hover) !important;
+    transform: scale(1.05);
+}
+
+#pomodoro-reset {
+    background: var(--sp-card-hover) !important;
+    border: 1px solid var(--sp-border) !important;
+    color: var(--sp-text-main) !important;
+    border-radius: var(--radius-pill) !important;
+    padding: 12px 24px !important;
+}
+
+/* --------------------------------------------------------------------------
+   10. GOOGLE MEET STUDY ROOM (MEET X SPOTIFY INTEGRATION)
+   -------------------------------------------------------------------------- */
+.study-panel.meet-container {
+    background: var(--sp-black) !important;
+    border: 1px solid var(--sp-border) !important;
+    border-radius: var(--radius-lg) !important;
+    overflow: hidden;
+}
+
+.meet-topbar {
+    background: var(--sp-base) !important;
+    border-bottom: 1px solid var(--sp-border) !important;
+    padding: 10px 18px !important;
+}
+
+.meet-brand-badge {
+    color: var(--sp-green) !important;
+    font-weight: 800 !important;
+}
+
+.meet-room-dropdown-btn,
+.meet-code-pill {
+    background: var(--sp-card-hover) !important;
+    border: 1px solid var(--sp-border) !important;
+    border-radius: var(--radius-pill) !important;
+    color: var(--sp-text-main) !important;
+}
+
+.meet-video-tile {
+    background: #202124 !important;
+    border-radius: var(--radius-md) !important;
+    border: 2px solid transparent !important;
+    overflow: hidden !important;
+}
+
+.meet-video-tile.speaking {
+    border-color: var(--sp-green) !important;
+    box-shadow: 0 0 16px var(--sp-green-glow) !important;
+}
+
+.meet-toolbar {
+    background: var(--sp-base) !important;
+    border-top: 1px solid var(--sp-border) !important;
+    padding: 12px 20px !important;
+}
+
+.meet-tool-btn {
+    width: 44px !important;
+    height: 44px !important;
+    border-radius: 50% !important;
+    background: var(--sp-card-hover) !important;
+    border: 1px solid var(--sp-border) !important;
+    color: var(--sp-text-main) !important;
+    transition: all 0.15s ease !important;
+}
+
+.meet-tool-btn:hover {
+    background: var(--sp-elevated) !important;
+    transform: scale(1.08);
+}
+
+.meet-tool-btn.active,
+.meet-tool-btn.meet-btn-active {
+    background: var(--sp-green) !important;
+    color: #000000 !important;
+}
+
+.meet-btn-leave {
+    background: #e91429 !important;
+    color: #ffffff !important;
+    border: none !important;
+}
+
+.meet-btn-leave:hover {
+    background: #ff334b !important;
+}
+
+.meet-side-panel {
+    background: var(--sp-card) !important;
+    border-left: 1px solid var(--sp-border) !important;
+}
+
+/* --------------------------------------------------------------------------
+   11. MESSENGER (1-ON-1 CHATS & FRIENDS)
+   -------------------------------------------------------------------------- */
+.messenger-container {
+    background: var(--sp-card) !important;
+    border-radius: var(--radius-lg) !important;
+}
+
+.messenger-left-pane {
+    background: var(--sp-base) !important;
+    border-right: 1px solid var(--sp-border) !important;
+}
+
+.messenger-search-bar {
+    background: var(--sp-card-hover) !important;
+    border: 1px solid var(--sp-border) !important;
+    border-radius: var(--radius-pill) !important;
+}
+
+.messenger-search-bar input {
+    background: transparent !important;
+    border: none !important;
+    color: var(--sp-text-main) !important;
+}
+
+.messenger-chat-item.active {
+    background: var(--sp-card-hover) !important;
+}
+
+/* Messages Sent & Received Bubbles */
+.msg-bubble-sent {
+    background: var(--sp-green) !important;
+    color: #000000 !important;
+    font-weight: 500 !important;
+    border-radius: 18px 18px 4px 18px !important;
+}
+
+.msg-bubble-recv {
+    background: var(--sp-card-hover) !important;
+    color: var(--sp-text-main) !important;
+    border-radius: 18px 18px 18px 4px !important;
+}
+
+/* --------------------------------------------------------------------------
+   12. MODALS, SETTINGS & GAME DIALOGS
+   -------------------------------------------------------------------------- */
+.draw-overlay,
+.login-overlay {
+    background: rgba(0, 0, 0, 0.8) !important;
+    backdrop-filter: blur(16px) !important;
+    -webkit-backdrop-filter: blur(16px) !important;
+}
+
+.draw-container,
+.settings-modal-container,
+.login-card {
+    background: var(--sp-elevated) !important;
+    border: 1px solid var(--sp-border-strong) !important;
+    border-radius: var(--radius-xl) !important;
+    box-shadow: var(--shadow-elevated) !important;
+    color: var(--sp-text-main) !important;
+}
+
+.login-input,
+.settings-modal-container input[type="text"],
+.settings-modal-container input[type="password"],
+.settings-modal-container input[type="email"],
+.settings-modal-container textarea,
+.settings-modal-container select {
+    background: var(--sp-card) !important;
+    border: 1px solid var(--sp-border) !important;
+    border-radius: var(--radius-md) !important;
+    color: var(--sp-text-main) !important;
+    padding: 10px 14px !important;
+    outline: none !important;
+    transition: border-color 0.2s;
+}
+
+.login-input:focus,
+.settings-modal-container input:focus {
+    border-color: #ffffff !important;
+}
+
+/* Action Buttons in Modals */
+.settings-btn-save,
+.login-btn,
+.messenger-primary-pill-btn {
+    background: var(--sp-green) !important;
+    color: #000000 !important;
+    font-weight: 800 !important;
+    border: none !important;
+    border-radius: var(--radius-pill) !important;
+    padding: 10px 24px !important;
+    cursor: pointer !important;
+    transition: transform 0.15s, background 0.15s !important;
+    box-shadow: 0 0 16px var(--sp-green-glow);
+}
+
+.settings-btn-save:hover,
+.login-btn:hover,
+.messenger-primary-pill-btn:hover {
+    background: var(--sp-green-hover) !important;
+    transform: scale(1.04);
+}
+
+.settings-btn-cancel,
+.settings-btn-secondary {
+    background: transparent !important;
+    border: 1px solid var(--sp-border-strong) !important;
+    color: var(--sp-text-main) !important;
+    font-weight: 700 !important;
+    border-radius: var(--radius-pill) !important;
+    padding: 10px 20px !important;
+    cursor: pointer !important;
+    transition: background 0.15s, border-color 0.15s !important;
+}
+
+.settings-btn-cancel:hover,
+.settings-btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.1) !important;
+    border-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+/* Auth Tabs (Login / Signup) */
+.auth-tabs {
+    background: var(--sp-card) !important;
+    border: 1px solid var(--sp-border) !important;
+    border-radius: var(--radius-pill) !important;
+    padding: 4px !important;
+}
+
+.auth-tab {
+    background: transparent !important;
+    border: none !important;
+    color: var(--sp-text-sub) !important;
+    font-weight: 700 !important;
+    border-radius: var(--radius-pill) !important;
+    padding: 8px 16px !important;
+    cursor: pointer;
+}
+
+.auth-tab.active {
+    background: #ffffff !important;
+    color: #000000 !important;
+}
+
+/* Google Auth Button */
+.google-auth-btn {
+    background: #ffffff !important;
+    color: #000000 !important;
+    font-weight: 700 !important;
+    border-radius: var(--radius-pill) !important;
+    border: none !important;
+    transition: transform 0.15s, opacity 0.15s !important;
+}
+.google-auth-btn:hover {
+    transform: scale(1.02);
+    opacity: 0.95;
+}
+
+/* Kahoot Style Quiz Options */
+.quiz-kahoot-grid button {
+    border-radius: var(--radius-md) !important;
+    font-weight: 800 !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4) !important;
+    transition: transform 0.15s, filter 0.15s !important;
+}
+.quiz-kahoot-grid button:hover {
+    transform: scale(1.02);
+    filter: brightness(1.1);
+}
+
+/* --------------------------------------------------------------------------
+   12B. HISTORY, TOP MUSIC, FEEDBACK & ADMIN QUIZ
+   -------------------------------------------------------------------------- */
+.history-item,
+.top-item {
+    background: var(--sp-base) !important;
+    border: 1px solid var(--sp-border) !important;
+    border-radius: var(--radius-md) !important;
+    padding: 10px 14px !important;
+    margin-bottom: 8px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 14px !important;
+    transition: background 0.15s ease, border-color 0.15s ease !important;
+    box-shadow: none !important;
+}
+
+.history-item:hover,
+.top-item:hover {
+    background: var(--sp-card-hover) !important;
+    border-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+.history-item img,
+.top-item img {
+    border-radius: 4px !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Feedback & Suggestions */
+.fb-container {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.fb-hero-card {
+    background: var(--sp-base) !important;
+    border: 1px solid var(--sp-border) !important;
+    border-radius: var(--radius-lg) !important;
+    padding: 20px !important;
+    box-shadow: none !important;
+}
+
+.fb-title-header::before {
+    background: var(--sp-green) !important;
+}
+
+.fb-title-main {
+    background: none !important;
+    -webkit-text-fill-color: #ffffff !important;
+    color: #ffffff !important;
+    font-family: var(--font-display) !important;
+}
+
+.fb-header-icon {
+    background: rgba(var(--brand-rgb), 0.15) !important;
+    border-color: rgba(var(--brand-rgb), 0.3) !important;
+    color: var(--sp-green) !important;
+    -webkit-text-fill-color: var(--sp-green) !important;
+}
+
+.fb-segment-btn.active {
+    background: #ffffff !important;
+    color: #000000 !important;
+    font-weight: 800 !important;
+}
+
+.fb-textarea {
+    background: var(--sp-card-hover) !important;
+    border: 1px solid var(--sp-border) !important;
+    border-radius: var(--radius-md) !important;
+    color: var(--sp-text-main) !important;
+}
+
+.fb-textarea:focus {
+    border-color: #ffffff !important;
+}
+
+.fb-submit-btn {
+    background: var(--sp-green) !important;
+    color: #000000 !important;
+    font-weight: 800 !important;
+    border-radius: var(--radius-pill) !important;
+    border: none !important;
+    box-shadow: 0 0 14px var(--sp-green-glow);
+}
+
+.fb-submit-btn:hover {
+    background: var(--sp-green-hover) !important;
+    transform: scale(1.04);
+}
+
+/* Quiz Admin Panel */
+.quiz-admin-hero-card {
+    background: var(--sp-base) !important;
+    border: 1px solid var(--sp-border) !important;
+    border-radius: var(--radius-lg) !important;
+    padding: 24px !important;
+}
+
+.quiz-admin-sidebar-box,
+.quiz-admin-editor-box {
+    background: var(--sp-card) !important;
+    border: 1px solid var(--sp-border) !important;
+    border-radius: var(--radius-md) !important;
+    padding: 16px !important;
+}
+
+/* Challenge Modals (Chess, Caro, Xiangqi) */
+.challenge-modal-container {
+    background: var(--sp-elevated) !important;
+    border: 1px solid var(--sp-border-strong) !important;
+    border-radius: var(--radius-xl) !important;
+}
+
+.challenge-btn.accept-btn {
+    background: var(--sp-green) !important;
+    color: #000000 !important;
+    font-weight: 800 !important;
+    border-radius: var(--radius-pill) !important;
+    border: none !important;
+}
+
+.challenge-btn.decline-btn {
+    background: transparent !important;
+    border: 1px solid var(--sp-border-strong) !important;
+    color: var(--sp-text-main) !important;
+    font-weight: 700 !important;
+    border-radius: var(--radius-pill) !important;
+}
+
+/* Quick Unlock Modal */
+.quick-unlock-modal,
+#quick-unlock-modal .login-card {
+    background: var(--sp-elevated) !important;
+    border: 1px solid var(--sp-border-strong) !important;
+    border-radius: var(--radius-xl) !important;
+}
+
+/* --------------------------------------------------------------------------
+   CHẾ ĐỘ TẬP TRUNG (FOCUS MODE) - ZERO-GAP FIX
+   -------------------------------------------------------------------------- */
+body.focus-mode .main-layout {
+    height: calc(100vh - var(--bottom-player-height)) !important;
+    max-height: calc(100vh - var(--bottom-player-height)) !important;
+    margin-bottom: var(--bottom-player-height) !important;
+    padding-top: 14px !important;
+}
+
+body.focus-mode .left-column:not(.not-home).video-info-collapsed .video-container {
+    max-height: calc(100vh - var(--bottom-player-height) - 40px) !important;
+}
+
+@media (max-width: 899px) {
+    body.focus-mode .main-layout {
+        height: calc(100dvh - var(--bottom-player-height)) !important;
+        max-height: calc(100dvh - var(--bottom-player-height)) !important;
+        margin-bottom: var(--bottom-player-height) !important;
+        padding-bottom: 0 !important;
+    }
+}
+
+/* --------------------------------------------------------------------------
+   13 & 14. MODERN GLASS LAYER (v2) + DEDICATED MOBILE UI ARCHITECTURE
+   Frosted dark glass panels that let the user's background image (web_bg)
+   shine through, Light Blue brand accents, and a clean mobile layout.
+   -------------------------------------------------------------------------- */
+:root {
+    color-scheme: dark;
+
+    --glass-bg: rgba(10, 16, 24, 0.66);
+    --glass-bg-strong: rgba(10, 16, 24, 0.82);
+    --glass-bg-soft: rgba(255, 255, 255, 0.045);
+    --glass-border: rgba(176, 224, 250, 0.16);
+    --glass-border-hover: rgba(176, 224, 250, 0.30);
+    --glass-blur: blur(22px) saturate(170%);
+    --glass-shadow: 0 16px 40px rgba(0, 0, 0, 0.45), inset 0 1px 0 0 rgba(255, 255, 255, 0.08);
+
+    --accent-strong: color-mix(in oklab, var(--accent), white 18%);
+    --accent-tint: color-mix(in oklab, var(--accent), transparent 84%);
+    --accent-line: color-mix(in oklab, var(--accent), transparent 55%);
+
+    --ease-out-expo: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Soft vignette over the background image for legibility */
+body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: -1;
+    background:
+        radial-gradient(ellipse 120% 80% at 50% 0%, transparent 0%, rgba(0, 0, 0, 0.35) 70%),
+        linear-gradient(180deg, rgba(0, 0, 0, 0.25) 0%, rgba(0, 0, 0, 0.55) 100%);
+}
+
+.dynamic-ambient-glow {
+    height: 620px;
+    background:
+        radial-gradient(ellipse 60% 70% at 20% -10%, rgba(var(--brand-rgb), 0.30) 0%, transparent 70%),
+        radial-gradient(ellipse 50% 60% at 85% -15%, rgba(var(--song-accent-rgb, var(--brand-rgb)), 0.14) 0%, transparent 70%);
+}
+
+/* ---- Glass shell: navbar, sidebar, bottom player ---- */
+.navbar {
+    background: rgba(7, 12, 18, 0.68) !important;
+    backdrop-filter: var(--glass-blur) !important;
+    -webkit-backdrop-filter: var(--glass-blur) !important;
+    border-bottom: 1px solid var(--glass-border) !important;
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35) !important;
+}
+
+.logo {
+    background: linear-gradient(90deg, #ffffff 0%, var(--accent-strong) 140%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.logo .live-badge {
+    background: var(--accent) !important;
+    -webkit-text-fill-color: #04121c !important;
+    color: #04121c !important;
+    box-shadow: 0 0 14px var(--accent-line) !important;
+}
+
+.search-bar-wrapper {
+    background: rgba(255, 255, 255, 0.07) !important;
+    border: 1px solid var(--glass-border) !important;
+}
+
+.search-bar-wrapper:hover {
+    background: rgba(255, 255, 255, 0.11) !important;
+    border-color: var(--glass-border-hover) !important;
+}
+
+.search-bar-wrapper:focus-within {
+    background: rgba(255, 255, 255, 0.12) !important;
+    border-color: var(--accent) !important;
+    box-shadow: 0 0 0 3px var(--accent-tint) !important;
+}
+
+.navbar-user,
+.navbar .circle-btn,
+.navbar .settings-btn,
+.navbar .logout-btn {
+    background: rgba(255, 255, 255, 0.07) !important;
+    border: 1px solid var(--glass-border) !important;
+}
+
+.navbar-user:hover,
+.navbar .circle-btn:hover,
+.navbar .settings-btn:hover,
+.navbar .logout-btn:hover {
+    background: rgba(255, 255, 255, 0.14) !important;
+    border-color: var(--glass-border-hover) !important;
+}
+
+.navbar-avatar-img {
+    border-color: var(--accent) !important;
+}
+
+@media (min-width: 900px) {
+    .sidebar {
+        background: var(--glass-bg) !important;
+        backdrop-filter: var(--glass-blur) !important;
+        -webkit-backdrop-filter: var(--glass-blur) !important;
+        border: 1px solid var(--glass-border) !important;
+        border-radius: 18px !important;
+        box-shadow: var(--glass-shadow) !important;
+    }
+}
+
+.spotify-bottom-bar {
+    background: rgba(7, 12, 18, 0.78) !important;
+    backdrop-filter: var(--glass-blur) !important;
+    -webkit-backdrop-filter: var(--glass-blur) !important;
+    border-top: 1px solid var(--glass-border) !important;
+    box-shadow: 0 -10px 36px rgba(0, 0, 0, 0.5) !important;
+}
+
+#btn-next-song,
+#pomodoro-toggle,
+.settings-btn-save,
+.login-btn,
+.messenger-primary-pill-btn,
+.fb-submit-btn,
+.challenge-btn.accept-btn,
+.chat-input-wrapper .send-btn {
+    background: linear-gradient(135deg, var(--accent-strong) 0%, var(--accent) 100%) !important;
+    color: #04121c !important;
+    box-shadow: 0 6px 18px var(--accent-line), inset 0 1px 0 rgba(255, 255, 255, 0.35) !important;
+    border: 1px solid color-mix(in oklab, var(--accent), black 15%) !important;
+}
+
+#btn-next-song:hover,
+#pomodoro-toggle:hover,
+.settings-btn-save:hover,
+.login-btn:hover,
+.messenger-primary-pill-btn:hover,
+.fb-submit-btn:hover {
+    filter: brightness(1.08);
+    box-shadow: 0 10px 26px var(--accent-line), inset 0 1px 0 rgba(255, 255, 255, 0.4) !important;
+}
+
+#btn-loop,
+#btn-toggle-pip,
+#btn-dj-radio {
+    background: rgba(255, 255, 255, 0.07) !important;
+    border: 1px solid var(--glass-border) !important;
+}
+
+#btn-loop:hover,
+#btn-toggle-pip:hover,
+#btn-dj-radio:hover {
+    background: rgba(255, 255, 255, 0.14) !important;
+    border-color: var(--glass-border-hover) !important;
+}
+
+#btn-loop.active,
+#btn-dj-radio.active {
+    background: var(--accent-tint) !important;
+    border-color: var(--accent) !important;
+    color: var(--accent-strong) !important;
+}
+
+/* ---- Content panels: translucent cards over the background image ---- */
+.left-column:not(.not-home),
+.history-column,
+.messenger-column {
+    background: var(--glass-bg-strong) !important;
+    border: 1px solid var(--glass-border) !important;
+    border-radius: 18px !important;
+    box-shadow: var(--glass-shadow) !important;
+}
+
+/* Blur only on desktop columns that have no position:fixed children (mini-player lives in .left-column) */
+@media (min-width: 900px) {
+    .history-column,
+    .messenger-column,
+    .right-column {
+        background: var(--glass-bg) !important;
+        backdrop-filter: var(--glass-blur) !important;
+        -webkit-backdrop-filter: var(--glass-blur) !important;
+        border: 1px solid var(--glass-border) !important;
+        border-radius: 18px !important;
+        box-shadow: var(--glass-shadow) !important;
+    }
+}
+
+.chat-header {
+    background: rgba(0, 0, 0, 0.28) !important;
+    border-bottom: 1px solid var(--glass-border) !important;
+}
+
+.chat-input-area {
+    background: rgba(0, 0, 0, 0.28) !important;
+    border-top: 1px solid var(--glass-border) !important;
+}
+
+.chat-tabs,
+.workspace-tabs {
+    background: rgba(0, 0, 0, 0.32) !important;
+    border: 1px solid var(--glass-border) !important;
+}
+
+.chat-tabs span.active,
+.workspace-tabs button[aria-selected="true"],
+.workspace-tabs [role="tab"][aria-selected="true"],
+.workspace-tabs button.active {
+    background: rgba(135, 206, 250, 0.18) !important;
+    color: #ffffff !important;
+    box-shadow: inset 0 1px 0 rgba(176, 224, 250, 0.28), 0 4px 12px rgba(0, 0, 0, 0.35) !important;
+}
+
+.chat-input-wrapper {
+    background: rgba(255, 255, 255, 0.06) !important;
+    border: 1px solid var(--glass-border) !important;
+}
+
+.chat-input-wrapper:focus-within {
+    border-color: var(--accent) !important;
+    box-shadow: 0 0 0 3px var(--accent-tint) !important;
+}
+
+/* Lyric box: keep image visible, polish active line with accent glow */
+.lyric-line.active {
+    color: #ffffff !important;
+    text-shadow: 0 0 22px var(--accent-line), 0 2px 10px rgba(0, 0, 0, 0.6) !important;
+}
+
+.lyric-line {
+    text-shadow: 0 1px 6px rgba(0, 0, 0, 0.55);
+}
+
+/* Video frame */
+.video-container:not(.is-mini-player) {
+    border-radius: 14px !important;
+    border: 1px solid var(--glass-border) !important;
+    box-shadow: 0 18px 44px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(0, 0, 0, 0.4) !important;
+}
+
+.video-title {
+    font-size: clamp(18px, 1.5vw, 25px) !important;
+    letter-spacing: -0.025em !important;
+    text-wrap: balance;
+}
+
+/* ---- Lists & cards: micro-interactions ---- */
+.playlist-ui {
+    background: rgba(0, 0, 0, 0.25) !important;
+    border: 1px solid var(--glass-border) !important;
+    border-radius: 14px !important;
+}
+
+.playlist-item {
+    border-radius: 10px !important;
+    transition: background-color 0.18s ease, transform 0.18s var(--ease-out-expo) !important;
+}
+
+.playlist-item:hover {
+    background: rgba(255, 255, 255, 0.08) !important;
+    transform: translateX(3px);
+}
+
+.playlist-item img,
+.history-item img,
+.top-item img {
+    border-radius: 8px !important;
+}
+
+.history-item,
+.top-item {
+    background: rgba(255, 255, 255, 0.04) !important;
+    border: 1px solid var(--glass-border) !important;
+    border-radius: 12px !important;
+    transition: background-color 0.18s ease, border-color 0.18s ease, transform 0.2s var(--ease-out-expo) !important;
+}
+
+.history-item:hover,
+.top-item:hover {
+    background: rgba(255, 255, 255, 0.08) !important;
+    border-color: var(--glass-border-hover) !important;
+    transform: translateY(-2px);
+}
+
+.btn-start-game {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.07) 0%, rgba(255, 255, 255, 0.02) 100%) !important;
+    border: 1px solid var(--glass-border) !important;
+    border-radius: 14px !important;
+    transition: transform 0.22s var(--ease-out-expo), border-color 0.2s ease, box-shadow 0.22s ease, background-color 0.2s ease !important;
+}
+
+.btn-start-game::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 0% 0%, var(--accent-tint) 0%, transparent 60%);
+    opacity: 0;
+    transition: opacity 0.25s ease;
+    pointer-events: none;
+}
+
+.btn-start-game:hover {
+    border-color: var(--accent-line) !important;
+    transform: translateY(-3px) !important;
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.45) !important;
+}
+
+.btn-start-game:hover::after {
+    opacity: 1;
+}
+
+.btn-start-game:active {
+    transform: translateY(0) scale(0.98) !important;
+}
+
+/* ---- Modals ---- */
+.draw-container,
+.settings-modal-container,
+.login-card,
+.challenge-modal-container {
+    background: rgba(14, 20, 28, 0.88) !important;
+    backdrop-filter: var(--glass-blur) !important;
+    -webkit-backdrop-filter: var(--glass-blur) !important;
+    border: 1px solid var(--glass-border) !important;
+    border-radius: 22px !important;
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+}
+
+.settings-section-card {
+    background: rgba(255, 255, 255, 0.04) !important;
+    border: 1px solid var(--glass-border) !important;
+    border-radius: 16px !important;
+}
+
+.settings-preview-box {
+    border-radius: 12px !important;
+    border: 1px solid var(--glass-border-hover) !important;
+    background-size: cover !important;
+    background-position: center !important;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* Keyboard focus ring (visible and on-accent) */
+:where(button, [role="tab"], .sidebar-item, a, input, select, textarea):focus-visible {
+    outline: 2px solid var(--accent-strong) !important;
+    outline-offset: 2px !important;
+}
+
+/* ==========================================================================
+   15. DEDICATED MOBILE UI ARCHITECTURE (@media max-width: 899px)
+   Clean, native-app-grade layout for phones:
+   - Compact 52px top navbar (4 clean icon actions, no overflow)
+   - Scrollable single-row workspace pills
+   - Floating Spotify Mini-Player Bar with built-in Lyrics & Chat buttons
+   - Fixed 5-tab bottom navigation bar
+   - Slide-up Chat & Lyrics Bottom Sheet that never collides with the player
+   ========================================================================== */
+@media (max-width: 899px) {
+    :root {
+        --mobile-nav-height: calc(56px + env(safe-area-inset-bottom, 0px));
+        --mobile-player-height: 58px;
+        --mobile-bottom-stack: calc(var(--mobile-nav-height) + var(--mobile-player-height) + 10px);
+    }
+
+    /* 1. Top Navbar: sleek 52px bar, hide redundant buttons so nothing overflows */
+    .navbar {
+        height: 52px !important;
+        padding: 0 12px !important;
+    }
+
+    .navbar .logo {
+        font-size: clamp(16px, 4.4vw, 19px) !important;
+        gap: 6px !important;
+    }
+
+    .navbar .live-badge {
+        font-size: 9px !important;
+        padding: 2px 6px !important;
+        border-radius: 4px !important;
+    }
+
+    .navbar-right {
+        gap: 6px !important;
+    }
+
+    /* Messenger is already on the bottom nav; Profile settings is already on the avatar pill */
+    #navbar-messenger-btn,
+    #btn-profile-settings,
+    #navbar-username {
+        display: none !important;
+    }
+
+    .navbar-user {
+        padding: 3px !important;
+        border-radius: 50% !important;
+        gap: 0 !important;
+        position: relative !important;
+        width: 34px !important;
+        height: 34px !important;
+        justify-content: center !important;
+    }
+
+    .navbar-avatar-img {
+        width: 28px !important;
+        height: 28px !important;
+    }
+
+    .navbar-user .user-dot {
+        position: absolute !important;
+        right: 1px !important;
+        bottom: 1px !important;
+        width: 7px !important;
+        height: 7px !important;
+        border: 1.5px solid #070c12 !important;
+    }
+
+    .navbar .circle-btn,
+    .navbar .settings-btn,
+    .navbar .logout-btn,
+    .mobile-search-trigger-btn {
+        width: 34px !important;
+        height: 34px !important;
+    }
+
+    .navbar .circle-btn .material-symbols-outlined,
+    .navbar .settings-btn .material-symbols-outlined,
+    .navbar .logout-btn .material-symbols-outlined,
+    .mobile-search-trigger-btn .material-symbols-outlined {
+        font-size: 19px !important;
+    }
+
+    /* 2. Hide legacy floating FAB menu (Lyrics & Chat are now inside the bottom player bar) */
+    .fab-menu-container,
+    #mobile-fab-menu {
+        display: none !important;
+    }
+
+    /* 3. Main Layout & Content Cards */
+    .main-layout {
+        height: calc(100dvh - 52px - var(--mobile-bottom-stack)) !important;
+        max-height: calc(100dvh - 52px - var(--mobile-bottom-stack)) !important;
+        margin-bottom: 0 !important;
+        padding: 6px 8px !important;
+        gap: 8px !important;
+    }
+
+    body.focus-mode .main-layout {
+        height: calc(100dvh - var(--mobile-bottom-stack)) !important;
+        max-height: calc(100dvh - var(--mobile-bottom-stack)) !important;
+        margin-bottom: 0 !important;
+        padding: 6px 8px !important;
+    }
+
+    .left-column:not(.not-home),
+    .history-column,
+    .messenger-column,
+    #top-column,
+    #feedback-column,
+    #quiz-admin-column {
+        padding: 10px 12px !important;
+        border-radius: 16px !important;
+        height: 100% !important;
+        overflow-y: auto !important;
+    }
+
+    /* When opening Chat/Lyrics on mobile, keep .left-column visible underneath instead of collapsing to 0x0 */
+    .left-column.mobile-mini:not(.not-home) {
+        position: relative !important;
+        width: 100% !important;
+        height: 100% !important;
+        padding: 10px 12px !important;
+        border-radius: 16px !important;
+        background: var(--glass-bg-strong) !important;
+        border: 1px solid var(--glass-border) !important;
+        overflow-y: auto !important;
+        pointer-events: auto !important;
+    }
+
+    /* 4. Workspace Pill Tabs: Horizontal scrollable strip without wrapping */
+    .workspace-tabs {
+        display: flex !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        overflow-x: auto !important;
+        scrollbar-width: none !important;
+        -ms-overflow-style: none !important;
+        white-space: nowrap !important;
+        padding: 4px !important;
+        gap: 4px !important;
+        margin-bottom: 10px !important;
+        box-sizing: border-box !important;
+    }
+
+    .workspace-tabs::-webkit-scrollbar {
+        display: none !important;
+    }
+
+    .workspace-tabs button,
+    .workspace-tabs [role="tab"] {
+        padding: 6px 12px !important;
+        font-size: 12px !important;
+        gap: 5px !important;
+        flex: 0 0 auto !important;
+    }
+
+    .workspace-tabs button .material-symbols-outlined,
+    .workspace-tabs [role="tab"] .material-symbols-outlined {
+        font-size: 16px !important;
+    }
+
+    /* 5. Video Player & Info on Mobile */
+    .video-container:not(.is-mini-player) {
+        border-radius: 12px !important;
+        aspect-ratio: 16 / 9 !important;
+    }
+
+    .video-reactions-dock {
+        padding: 3px 8px !important;
+        transform: scale(0.88);
+        transform-origin: bottom right;
+    }
+
+    .video-info {
+        margin-top: 10px !important;
+        padding: 0 2px !important;
+    }
+
+    .video-title {
+        font-size: clamp(15px, 4.2vw, 18px) !important;
+        margin: 2px 0 8px 0 !important;
+        line-height: 1.3 !important;
+    }
+
+    .channel-info {
+        margin-bottom: 12px !important;
+        gap: 10px !important;
+    }
+
+    /* 6. Queue & 2-Column Minigame Grid on Mobile */
+    .playlist-ui {
+        max-height: 190px !important;
+        padding: 6px !important;
+        border-radius: 12px !important;
+    }
+
+    .playlist-item {
+        padding: 6px 8px !important;
+        gap: 10px !important;
+    }
+
+    .playlist-item img {
+        width: 38px !important;
+        height: 38px !important;
+    }
+
+    .playlist-item .song-title {
+        font-size: 12.5px !important;
+    }
+
+    .game-buttons-group {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 8px !important;
+        margin-top: 14px !important;
+    }
+
+    .btn-start-game {
+        height: 54px !important;
+        padding: 8px 12px !important;
+        font-size: 12px !important;
+        border-radius: 12px !important;
+        gap: 8px !important;
+    }
+
+    .btn-start-game .game-btn-icon {
+        font-size: 20px !important;
+    }
+
+    /* 7. Picture-in-Picture Corner Mini-Player on Mobile (Docked at Top-Right below Navbar) */
+    .video-container.is-mini-player,
+    .left-column.not-home .video-container {
+        position: fixed !important;
+        top: 58px !important;
+        right: 12px !important;
+        bottom: auto !important;
+        left: auto !important;
+        width: 156px !important;
+        height: auto !important;
+        aspect-ratio: 16 / 9 !important;
+        border-radius: 10px !important;
+        z-index: 1250 !important;
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.85), 0 0 0 1.5px rgba(var(--brand-rgb), 0.5) !important;
+    }
+
+    /* When Chat/Lyrics sheet is open on Home tab, keep video normal inside .left-column instead of popping over chat */
+    .left-column.mobile-mini:not(.not-home) .video-container:not(.is-mini-player) {
+        position: relative !important;
+        top: auto !important;
+        right: auto !important;
+        bottom: auto !important;
+        width: 100% !important;
+        aspect-ratio: 16 / 9 !important;
+        border-radius: 12px !important;
+        z-index: 1 !important;
+    }
+
+    .left-column.mobile-mini:not(.not-home) .video-container:not(.is-mini-player) .mini-player-header {
+        display: none !important;
+    }
+
+    /* 8. Mobile Spotify Floating Player Bar (Docked above Bottom Nav) */
+    .spotify-bottom-bar {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        bottom: calc(var(--mobile-nav-height) + 4px) !important;
+        left: 8px !important;
+        right: 8px !important;
+        height: var(--mobile-player-height) !important;
+        padding: 0 10px !important;
+        gap: 8px !important;
+        border-radius: 14px !important;
+        border: 1px solid rgba(176, 224, 250, 0.22) !important;
+        background: rgba(8, 14, 22, 0.92) !important;
+        box-shadow: 0 10px 28px rgba(0, 0, 0, 0.65) !important;
+        overflow: hidden !important;
+    }
+
+    .sp-bar-left {
+        flex: 1 1 0 !important;
+        min-width: 0 !important;
+        width: auto !important;
+        gap: 9px !important;
+    }
+
+    .sp-bar-thumb-wrap {
+        width: 40px !important;
+        height: 40px !important;
+    }
+
+    .sp-bar-thumb {
+        border-radius: 8px !important;
+    }
+
+    .sp-eq-badge {
+        width: 15px !important;
+        height: 15px !important;
+        padding: 2px !important;
+    }
+
+    .sp-bar-title {
+        font-size: 12.5px !important;
+    }
+
+    .sp-bar-sub {
+        font-size: 10.5px !important;
+    }
+
+    .sp-bar-heart-btn {
+        width: 32px !important;
+        height: 32px !important;
+        font-size: 14px !important;
+    }
+
+    /* Compact center controls on mobile: hide timeline, status pill, loop & radio; make Next an icon button */
+    .sp-bar-center {
+        width: auto !important;
+        max-width: none !important;
+        flex: 0 0 auto !important;
+    }
+
+    .sp-bar-timeline,
+    .sp-live-status-pill,
+    #btn-loop,
+    #btn-dj-radio {
+        display: none !important;
+    }
+
+    .sp-bar-controls-row {
+        min-height: 0 !important;
+    }
+
+    #btn-next-song {
+        width: 32px !important;
+        height: 32px !important;
+        padding: 0 !important;
+        border-radius: 50% !important;
+    }
+
+    #btn-next-song .sp-btn-label {
+        display: none !important;
+    }
+
+    /* Right side on mobile: Lyrics button + Chat button + Mute icon */
+    .sp-bar-right {
+        width: auto !important;
+        min-width: 0 !important;
+        flex: 0 0 auto !important;
+        gap: 5px !important;
+    }
+
+    .sp-mobile-sheet-btns {
+        display: inline-flex !important;
+        gap: 5px !important;
+    }
+
+    .sp-mobile-sheet-btn {
+        width: 34px !important;
+        height: 34px !important;
+    }
+
+    #btn-toggle-pip,
+    .sp-volume-slider,
+    #volume-slider {
+        display: none !important;
+    }
+
+    .volume-control {
+        padding: 0 !important;
+        width: 34px !important;
+        height: 34px !important;
+        border-radius: 50% !important;
+        justify-content: center !important;
+        background: rgba(255, 255, 255, 0.07) !important;
+        border: 1px solid rgba(255, 255, 255, 0.14) !important;
+    }
+
+    /* 9. Mobile Bottom Navigation Bar (.sidebar) */
+    .sidebar,
+    .sidebar.mini {
+        background: rgba(6, 10, 16, 0.94) !important;
+        border-top: 1px solid rgba(176, 224, 250, 0.16) !important;
+        backdrop-filter: var(--glass-blur) !important;
+        -webkit-backdrop-filter: var(--glass-blur) !important;
+        height: var(--mobile-nav-height) !important;
+        padding: 4px 4px calc(4px + env(safe-area-inset-bottom, 0px)) 4px !important;
+        z-index: 1005 !important;
+    }
+
+    .sidebar-item,
+    .sidebar.mini .sidebar-item {
+        font-size: 10px !important;
+        gap: 2px !important;
+        padding: 4px 2px !important;
+    }
+
+    .sidebar-item .material-symbols-outlined {
+        font-size: 22px !important;
+    }
+
+    .sidebar-item.active {
+        color: var(--accent) !important;
+    }
+
+    .sidebar-item.active .material-symbols-outlined {
+        color: var(--accent) !important;
+    }
+
+    .sidebar-item.active::before {
+        display: none !important;
+    }
+
+    /* 10. Mobile Chat & Lyrics Slide-Up Sheet (.right-column) */
+    .right-column {
+        display: none !important;
+    }
+
+    .right-column.chat-open {
+        display: flex !important;
+        flex-direction: column !important;
+        position: fixed !important;
+        top: 58px !important;
+        left: 8px !important;
+        right: 8px !important;
+        bottom: calc(var(--mobile-bottom-stack) + 2px) !important;
+        width: auto !important;
+        height: auto !important;
+        z-index: 1200 !important;
+        background: rgba(8, 14, 22, 0.96) !important;
+        backdrop-filter: blur(26px) saturate(180%) !important;
+        -webkit-backdrop-filter: blur(26px) saturate(180%) !important;
+        border: 1px solid rgba(176, 224, 250, 0.24) !important;
+        border-radius: 18px !important;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8) !important;
+        overflow: hidden !important;
+        animation: mobileSheetUp 0.26s var(--ease-out-expo) !important;
+    }
+
+    .right-column .chat-header {
+        height: 48px !important;
+        padding: 0 12px !important;
+        background: rgba(0, 0, 0, 0.35) !important;
+    }
+
+    .right-column .chat-tabs span {
+        font-size: 13px !important;
+        padding: 5px 12px !important;
+    }
+
+    .right-column .chat-input-area {
+        padding: 10px 12px !important;
+        background: rgba(0, 0, 0, 0.4) !important;
+    }
+
+    .right-column .chat-input-wrapper input {
+        font-size: 14px !important;
+        padding: 6px 0 !important;
+    }
+
+    /* Messenger on Mobile: full-height clean pane */
+    .messenger-container {
+        border-radius: 14px !important;
+    }
+}
+
+/* Mobile Landscape (short height): ultra-compact bottom player & right nav rail */
+@media (orientation: landscape) and (max-height: 550px) and (max-width: 899px) {
+    :root {
+        --mobile-nav-height: 0px;
+        --mobile-player-height: 48px;
+        --mobile-bottom-stack: 54px;
+    }
+
+    .spotify-bottom-bar {
+        bottom: 4px !important;
+        left: 8px !important;
+        right: calc(68px + env(safe-area-inset-right, 0px)) !important;
+        height: 48px !important;
+    }
+
+    .right-column.chat-open {
+        top: 54px !important;
+        right: calc(68px + env(safe-area-inset-right, 0px)) !important;
+        bottom: 56px !important;
+    }
+}
+
+/* ---- Accessibility fallbacks ---- */
+@media (prefers-reduced-motion: reduce) {
+    .sidebar,
+    .sidebar-item,
+    .playlist-item,
+    .history-item,
+    .top-item,
+    .btn-start-game,
+    .dynamic-ambient-glow,
+    .sp-eq-badge span,
+    .sp-eq-inline i {
+        transition: none !important;
+        animation: none !important;
+    }
+
+    .playlist-item:hover,
+    .history-item:hover,
+    .top-item:hover,
+    .btn-start-game:hover {
+        transform: none !important;
+    }
+}
+
+@media (forced-colors: active) {
+    .sidebar,
+    .navbar,
+    .spotify-bottom-bar,
+    .left-column:not(.not-home),
+    .history-column,
+    .messenger-column,
+    .right-column,
+    .btn-start-game,
+    .history-item,
+    .top-item {
+        border: 1px solid CanvasText !important;
+    }
+
+    .sidebar-item.active,
+    .chat-tabs span.active,
+    .workspace-tabs button[aria-selected="true"] {
+        outline: 2px solid Highlight !important;
+    }
+
+    .logo {
+        -webkit-text-fill-color: CanvasText;
+    }
+
+    dialog.modern-app-dialog,
+    .live-dedication-banner,
+    .chat-dedication-card,
+    .chat-poll-card,
+    .chat-song-card,
+    .navbar-premium-btn,
+    .sidebar-premium-cta {
+        border: 1px solid CanvasText !important;
+    }
+
+    .theme-pill-option:has(input:checked),
+    .chat-poll-opt-btn.voted {
+        outline: 2px solid Highlight !important;
+    }
+}
+
+/* ==========================================================================
+   16. PREMIUM ACCESS CONTROL & LIVE ROOM INTERACTIVE SUITE (DESKTOP & MOBILE)
+   - Member vs Premium/Admin tab gating (.premium-hidden-tab)
+   - Navbar & Sidebar Premium CTA + Chat VIP Crown Badge
+   - Stage Live Dedication Banner (#live-dedication-banner) + Chat Dedication Card
+   - Real-time Live Poll Card (.chat-poll-card)
+   - Shareable Song Card Generator & Chat Card (.chat-song-card)
+   - Native <dialog> Modals with top-layer scroll containment
+   ========================================================================== */
+
+/* 16.1 Member vs Premium Tab Gating (override higher-specificity navbar/sidebar rules) */
+.premium-hidden-tab,
+.sidebar .sidebar-item.premium-hidden-tab,
+.sidebar.mini .sidebar-item.premium-hidden-tab,
+.sidebar .sidebar-item.liquid-glass-btn.premium-hidden-tab,
+.navbar .navbar-messenger-btn.premium-hidden-tab,
+.navbar .settings-btn.premium-hidden-tab,
+.navbar .circle-btn.premium-hidden-tab {
+    display: none !important;
+}
+
+/* Neutralize glass.css pink/white overrides on desktop .sidebar-item.liquid-glass-btn */
+@media (min-width: 900px) {
+    .sidebar .sidebar-item.liquid-glass-btn {
+        background: transparent !important;
+        border: 1px solid transparent !important;
+        box-shadow: none !important;
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+        color: var(--sp-text-sub) !important;
+        margin-bottom: 0 !important;
+        padding: 10px 14px !important;
+        border-radius: 12px !important;
+        transform: none !important;
+    }
+
+    .sidebar .sidebar-item.liquid-glass-btn:hover {
+        color: var(--sp-text-main) !important;
+        background: rgba(255, 255, 255, 0.07) !important;
+        border-color: transparent !important;
+        box-shadow: none !important;
+        transform: none !important;
+    }
+
+    .sidebar .sidebar-item.liquid-glass-btn.active {
+        color: var(--sp-text-main) !important;
+        background: linear-gradient(90deg, color-mix(in oklab, var(--accent), transparent 80%), rgba(255, 255, 255, 0.04)) !important;
+        border-color: color-mix(in oklab, var(--accent), transparent 65%) !important;
+        box-shadow: none !important;
+    }
+
+    .sidebar .sidebar-item.liquid-glass-btn.active .material-symbols-outlined {
+        color: var(--accent) !important;
+        transform: none !important;
+    }
+
+    .sidebar.mini .sidebar-item.liquid-glass-btn,
+    .sidebar.mini:hover .sidebar-item.liquid-glass-btn {
+        width: 52px !important;
+        height: 48px !important;
+        min-height: 48px !important;
+        padding: 0 !important;
+        justify-content: center !important;
+        border-radius: 14px !important;
+    }
+}
+
+/* Navbar Premium CTA / VIP Status Pill (Frosted Dark Glass + Light Blue & Gold Crown) */
+.navbar-premium-btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 7px !important;
+    height: 38px !important;
+    padding: 0 14px !important;
+    border-radius: 999px !important;
+    font-family: var(--font-body) !important;
+    font-size: 12.5px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.01em !important;
+    color: #f4faff !important;
+    background: linear-gradient(135deg, rgba(135, 206, 250, 0.18) 0%, rgba(255, 213, 79, 0.14) 100%) !important;
+    border: 1px solid rgba(176, 224, 250, 0.34) !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.16) !important;
+    cursor: pointer !important;
+    transition: transform 0.2s var(--ease-out-expo), border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease !important;
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+}
+
+.navbar-premium-btn:hover:not(:disabled) {
+    transform: translateY(-1px);
+    background: linear-gradient(135deg, rgba(135, 206, 250, 0.28) 0%, rgba(255, 213, 79, 0.22) 100%) !important;
+    border-color: rgba(135, 206, 250, 0.65) !important;
+    box-shadow: 0 6px 20px rgba(135, 206, 250, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.25) !important;
+}
+
+.navbar-premium-btn .material-symbols-outlined {
+    font-size: 18px !important;
+    color: #ffd54f !important;
+    font-variation-settings: 'FILL' 1;
+}
+
+.navbar-premium-btn.is-premium-active {
+    height: 36px !important;
+    padding: 0 13px !important;
+    background: rgba(135, 206, 250, 0.12) !important;
+    border: 1px solid rgba(135, 206, 250, 0.36) !important;
+    color: #e6f5ff !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12) !important;
+}
+
+.navbar-premium-btn.is-premium-active .material-symbols-outlined {
+    color: #ffd54f !important;
+}
+
+/* Sidebar Upgrade CTA Item (Docked at bottom of desktop sidebar for Member; hidden when already VIP) */
+@media (min-width: 900px) {
+    .sidebar .sidebar-item.sidebar-premium-cta {
+        margin-top: auto !important;
+        background: linear-gradient(135deg, rgba(135, 206, 250, 0.14) 0%, rgba(255, 213, 79, 0.1) 100%) !important;
+        border: 1px solid rgba(135, 206, 250, 0.3) !important;
+        color: #eaf6ff !important;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.22) !important;
+    }
+
+    .sidebar .sidebar-item.sidebar-premium-cta .material-symbols-outlined {
+        color: #ffd54f !important;
+        font-variation-settings: 'FILL' 1;
+    }
+
+    .sidebar .sidebar-item.sidebar-premium-cta:hover {
+        background: linear-gradient(135deg, rgba(135, 206, 250, 0.24) 0%, rgba(255, 213, 79, 0.18) 100%) !important;
+        border-color: rgba(135, 206, 250, 0.55) !important;
+    }
+}
+
+/* Hide Sidebar Upgrade CTA once user is already Admin/Premium (Navbar badge is already shown) */
+#sidebar-upgrade-premium.is-premium-active {
+    display: none !important;
+}
+
+/* Chat VIP Crown Badge */
+.chat-vip-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    padding: 1px 6px;
+    margin-inline: 4px;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    color: #05101a;
+    background: linear-gradient(135deg, #ffe082 0%, #87cefa 100%);
+    box-shadow: 0 2px 8px rgba(135, 206, 250, 0.3);
+    vertical-align: middle;
+}
+
+/* 16.2 Live Dedication Floating Stage Banner (#live-dedication-banner) */
+.live-dedication-banner {
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 14px;
+    padding: 13px 16px 16px 16px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, rgba(12, 28, 46, 0.94) 0%, rgba(7, 16, 28, 0.96) 100%);
+    border: 1px solid rgba(135, 206, 250, 0.45);
+    box-shadow: 0 14px 36px rgba(0, 0, 0, 0.5), 0 0 24px rgba(135, 206, 250, 0.18);
+    backdrop-filter: blur(18px) saturate(160%);
+    -webkit-backdrop-filter: blur(18px) saturate(160%);
+    animation: dedBannerSlideIn 0.35s var(--ease-out-expo);
+}
+
+.live-dedication-banner.hidden,
+.left-column.not-home .live-dedication-banner {
+    display: none !important;
+}
+
+@keyframes dedBannerSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px) scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.live-dedication-banner.theme-ice {
+    background: linear-gradient(135deg, rgba(14, 38, 64, 0.94) 0%, rgba(8, 20, 34, 0.96) 100%);
+    border-color: rgba(135, 206, 250, 0.55);
+}
+
+.live-dedication-banner.theme-star {
+    background: linear-gradient(135deg, rgba(52, 38, 12, 0.94) 0%, rgba(22, 16, 8, 0.96) 100%);
+    border-color: rgba(255, 213, 79, 0.58);
+    box-shadow: 0 14px 36px rgba(0, 0, 0, 0.5), 0 0 24px rgba(255, 213, 79, 0.2);
+}
+
+.live-dedication-banner.theme-fire {
+    background: linear-gradient(135deg, rgba(58, 20, 26, 0.94) 0%, rgba(26, 10, 14, 0.96) 100%);
+    border-color: rgba(255, 138, 101, 0.58);
+    box-shadow: 0 14px 36px rgba(0, 0, 0, 0.5), 0 0 24px rgba(255, 112, 67, 0.2);
+}
+
+.live-dedication-banner.theme-sakura {
+    background: linear-gradient(135deg, rgba(50, 22, 48, 0.94) 0%, rgba(22, 11, 24, 0.96) 100%);
+    border-color: rgba(244, 143, 177, 0.58);
+    box-shadow: 0 14px 36px rgba(0, 0, 0, 0.5), 0 0 24px rgba(244, 143, 177, 0.2);
+}
+
+.live-ded-glow {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 12% 20%, rgba(135, 206, 250, 0.16) 0%, transparent 60%);
+    pointer-events: none;
+}
+
+.live-ded-header {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 6px;
+}
+
+.live-ded-user {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    min-width: 0;
+}
+
+.live-ded-icon {
+    font-size: 16px;
+    line-height: 1;
+}
+
+.live-ded-sender {
+    font-size: 13.5px;
+    font-weight: 800;
+    color: #ffffff;
+}
+
+.live-ded-badge {
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: rgba(135, 206, 250, 0.2);
+    color: #d8f2ff;
+    border: 1px solid rgba(135, 206, 250, 0.38);
+}
+
+.live-ded-body {
+    position: relative;
+    z-index: 1;
+    font-size: 14.5px;
+    font-weight: 600;
+    line-height: 1.45;
+    color: #f4faff;
+    word-break: break-word;
+}
+
+.live-ded-song {
+    position: relative;
+    z-index: 1;
+    margin-top: 6px;
+    font-size: 12px;
+    color: rgba(190, 226, 255, 0.82);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.live-ded-close {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    background: rgba(255, 255, 255, 0.06);
+    color: rgba(255, 255, 255, 0.78);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    padding: 0;
+    transition: background-color 0.18s ease, color 0.18s ease;
+}
+
+.live-ded-close:hover {
+    background: rgba(255, 255, 255, 0.16);
+    color: #ffffff;
+}
+
+.live-ded-progress {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 3px;
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.live-ded-progress-fill {
+    height: 100%;
+    width: 100%;
+    background: linear-gradient(90deg, var(--accent) 0%, #ffe082 100%);
+}
+
+/* 16.3 Quick Live Interactive Strip above Chat Input (Balanced 3-Column Grid on Desktop) */
+.chat-live-tools-strip {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+    padding: 0 0 8px 0;
+    margin: 0;
+}
+
+.chat-live-tool-pill {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 5px !important;
+    height: 32px !important;
+    padding: 0 8px !important;
+    border-radius: 10px !important;
+    font-family: var(--font-body) !important;
+    font-size: 11.5px !important;
+    font-weight: 700 !important;
+    color: #d6ecff !important;
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(176, 224, 250, 0.18) !important;
+    cursor: pointer !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    transition: background-color 0.18s ease, border-color 0.18s ease, transform 0.18s var(--ease-out-expo), color 0.18s ease !important;
+}
+
+.chat-live-tool-pill .material-symbols-outlined {
+    font-size: 15px !important;
+    color: var(--accent) !important;
+    flex-shrink: 0;
+}
+
+.chat-live-tool-pill:hover:not(:disabled) {
+    background: rgba(135, 206, 250, 0.16) !important;
+    border-color: rgba(135, 206, 250, 0.45) !important;
+    color: #ffffff !important;
+    transform: translateY(-1px);
+}
+
+/* 16.4 Rich In-Chat Interactive Cards (Dedication, Poll, Song Card) */
+.chat-dedication-card {
+    margin-top: 4px;
+    padding: 11px 13px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, rgba(16, 42, 68, 0.88) 0%, rgba(10, 22, 38, 0.94) 100%);
+    border: 1px solid rgba(135, 206, 250, 0.42);
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.35);
+}
+
+.chat-dedication-card.theme-star {
+    background: linear-gradient(135deg, rgba(56, 40, 12, 0.88) 0%, rgba(24, 18, 8, 0.94) 100%);
+    border-color: rgba(255, 213, 79, 0.5);
+}
+
+.chat-dedication-card.theme-fire {
+    background: linear-gradient(135deg, rgba(60, 20, 26, 0.88) 0%, rgba(28, 10, 14, 0.94) 100%);
+    border-color: rgba(255, 138, 101, 0.5);
+}
+
+.chat-dedication-card.theme-sakura {
+    background: linear-gradient(135deg, rgba(52, 22, 48, 0.88) 0%, rgba(24, 12, 26, 0.94) 100%);
+    border-color: rgba(244, 143, 177, 0.5);
+}
+
+.chat-ded-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    color: var(--accent-strong);
+    margin-bottom: 5px;
+}
+
+.chat-ded-text {
+    font-size: 13.5px;
+    line-height: 1.45;
+    color: #f5faff;
+    font-weight: 600;
+    word-break: break-word;
+}
+
+.chat-ded-song {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 7px;
+    padding-top: 6px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    font-size: 11px;
+    color: rgba(190, 226, 255, 0.82);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Live Poll Card in Chat */
+.chat-poll-card {
+    margin-top: 4px;
+    padding: 12px 13px;
+    border-radius: 14px;
+    background: rgba(10, 20, 32, 0.92);
+    border: 1px solid rgba(135, 206, 250, 0.32);
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.35);
+}
+
+.chat-poll-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    margin-bottom: 6px;
+}
+
+.chat-poll-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    color: var(--accent);
+}
+
+.chat-poll-total {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.58);
+}
+
+.chat-poll-question {
+    font-size: 13.5px;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 9px;
+    line-height: 1.35;
+}
+
+.chat-poll-options {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.chat-poll-opt-btn {
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+    padding: 8px 11px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: #e8f4ff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    text-align: left;
+    font-family: inherit;
+    transition: border-color 0.18s ease, background-color 0.18s ease;
+}
+
+.chat-poll-opt-btn:hover:not(:disabled) {
+    border-color: rgba(135, 206, 250, 0.5);
+    background: rgba(135, 206, 250, 0.08);
+}
+
+.chat-poll-opt-btn.voted {
+    border-color: var(--accent);
+    background: rgba(135, 206, 250, 0.14);
+}
+
+.chat-poll-opt-fill {
+    position: absolute;
+    inset-block: 0;
+    inset-inline-start: 0;
+    background: linear-gradient(90deg, rgba(135, 206, 250, 0.28) 0%, rgba(135, 206, 250, 0.1) 100%);
+    transition: width 0.35s var(--ease-out-expo);
+    pointer-events: none;
+}
+
+.chat-poll-opt-label {
+    position: relative;
+    z-index: 1;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #f4faff;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.chat-poll-opt-stat {
+    position: relative;
+    z-index: 1;
+    font-family: var(--font-mono, monospace);
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--accent-strong);
+    flex-shrink: 0;
+}
+
+/* Shared Song Card in Chat */
+.chat-song-card {
+    margin-top: 4px;
+    padding: 12px;
+    border-radius: 14px;
+    background: linear-gradient(145deg, rgba(11, 22, 36, 0.94) 0%, rgba(7, 13, 22, 0.96) 100%);
+    border: 1px solid rgba(135, 206, 250, 0.36);
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.38);
+}
+
+.chat-sc-top {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 9px;
+}
+
+.chat-sc-thumb {
+    width: 48px;
+    height: 48px;
+    border-radius: 9px;
+    object-fit: cover;
+    flex-shrink: 0;
+    border: 1px solid rgba(176, 224, 250, 0.25);
+}
+
+.chat-sc-meta {
+    min-width: 0;
+    flex: 1;
+}
+
+.chat-sc-badge {
+    display: block;
+    font-size: 9.5px;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    color: var(--accent);
+    margin-bottom: 2px;
+}
+
+.chat-sc-title {
+    font-size: 12.5px;
+    font-weight: 700;
+    color: #ffffff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.chat-sc-quote {
+    margin: 0 0 8px 0;
+    padding: 8px 10px;
+    border-radius: 10px;
+    background: rgba(135, 206, 250, 0.07);
+    border-left: 3px solid var(--accent);
+    font-size: 12.5px;
+    font-style: italic;
+    line-height: 1.4;
+    color: #eaf6ff;
+}
+
+.chat-sc-footer {
+    font-size: 11px;
+    color: rgba(200, 224, 248, 0.68);
+    text-align: right;
+}
+
+/* 16.5 Native <dialog> Modals (Premium, Dedication, Poll, Song Card) */
+/* MANDATORY (both rules): without them, scrolling over the backdrop or inside the dialog scrolls the page behind it */
+dialog.modern-app-dialog:modal {
+    overscroll-behavior: contain;
+}
+
+dialog.modern-app-dialog::backdrop {
+    overflow: hidden;
+    overscroll-behavior: contain;
+    background: rgba(3, 8, 15, 0.74);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+
+dialog.modern-app-dialog {
+    padding: 0 !important;
+    border: 1px solid rgba(176, 224, 250, 0.26) !important;
+    border-radius: 22px !important;
+    background: rgba(12, 19, 29, 0.96) !important;
+    backdrop-filter: blur(26px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(26px) saturate(180%) !important;
+    color: #f0f7ff !important;
+    width: min(92vw, 500px) !important;
+    max-height: 88dvh !important;
+    overflow-y: auto !important;
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.72), inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+    margin: auto !important;
+    box-sizing: border-box !important;
+}
+
+dialog.modern-app-dialog.song-card-dialog {
+    width: min(94vw, 720px) !important;
+}
+
+.modern-dialog-inner {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    box-sizing: border-box;
+}
+
+.modern-dialog-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid rgba(176, 224, 250, 0.14);
+}
+
+.modern-dialog-title-wrap {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    min-width: 0;
+}
+
+.dialog-brand-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 13px;
+    background: rgba(135, 206, 250, 0.14);
+    border: 1px solid rgba(135, 206, 250, 0.32);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px !important;
+    color: var(--accent);
+    flex-shrink: 0;
+}
+
+.dialog-brand-icon.crown {
+    background: linear-gradient(135deg, rgba(255, 213, 79, 0.2) 0%, rgba(135, 206, 250, 0.18) 100%);
+    border-color: rgba(255, 213, 79, 0.45);
+    color: #ffd54f;
+    font-variation-settings: 'FILL' 1;
+}
+
+.modern-dialog-header h3 {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: 18px;
+    font-weight: 800;
+    color: #ffffff;
+    line-height: 1.25;
+}
+
+.modern-dialog-sub {
+    margin: 3px 0 0 0;
+    font-size: 12.5px;
+    color: rgba(196, 220, 244, 0.76);
+    line-height: 1.35;
+}
+
+.modern-dialog-close {
+    width: 34px !important;
+    height: 34px !important;
+    border-radius: 50% !important;
+    border: 1px solid rgba(255, 255, 255, 0.14) !important;
+    background: rgba(255, 255, 255, 0.06) !important;
+    color: rgba(255, 255, 255, 0.8) !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    padding: 0 !important;
+    flex-shrink: 0;
+    transition: background-color 0.18s ease, color 0.18s ease, transform 0.18s ease !important;
+}
+
+.modern-dialog-close:hover {
+    background: rgba(255, 255, 255, 0.15) !important;
+    color: #ffffff !important;
+    transform: scale(1.06);
+}
+
+/* Forms & Inputs inside <dialog> */
+.modern-dialog-form {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin: 0;
+}
+
+.modern-field-label {
+    display: block;
+    font-size: 12.5px;
+    font-weight: 700;
+    color: #d6ecff;
+    margin-bottom: -4px;
+}
+
+.modern-field-label code {
+    padding: 2px 6px;
+    border-radius: 6px;
+    background: rgba(135, 206, 250, 0.16);
+    color: var(--accent-strong);
+    font-family: var(--font-mono);
+    font-size: 12px;
+}
+
+.modern-dialog-input,
+.modern-dialog-textarea {
+    width: 100% !important;
+    box-sizing: border-box !important;
+    padding: 11px 14px !important;
+    border-radius: 12px !important;
+    background: rgba(255, 255, 255, 0.06) !important;
+    border: 1px solid rgba(176, 224, 250, 0.22) !important;
+    color: #ffffff !important;
+    font-size: 13.5px !important;
+    font-family: var(--font-body) !important;
+    line-height: 1.45 !important;
+    outline: none !important;
+    resize: vertical;
+    transition: border-color 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease !important;
+}
+
+.modern-dialog-input::placeholder,
+.modern-dialog-textarea::placeholder {
+    color: rgba(180, 205, 230, 0.48) !important;
+}
+
+.modern-dialog-input:focus,
+.modern-dialog-textarea:focus {
+    background: rgba(255, 255, 255, 0.09) !important;
+    border-color: var(--accent) !important;
+    box-shadow: 0 0 0 3px rgba(135, 206, 250, 0.18) !important;
+}
+
+/* Dedication & Song Card Theme Selector Pills */
+.dedication-theme-pills {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+}
+
+#song-card-theme-pills.dedication-theme-pills {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.ded-theme-pill {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    height: 38px !important;
+    padding: 0 12px !important;
+    border-radius: 11px !important;
+    font-family: var(--font-body) !important;
+    font-size: 12.5px !important;
+    font-weight: 700 !important;
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(255, 255, 255, 0.14) !important;
+    color: rgba(226, 240, 255, 0.86) !important;
+    cursor: pointer !important;
+    transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease, transform 0.18s ease !important;
+}
+
+.ded-theme-pill:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.1) !important;
+    border-color: rgba(176, 224, 250, 0.35) !important;
+    color: #ffffff !important;
+}
+
+.ded-theme-pill.active {
+    background: rgba(135, 206, 250, 0.2) !important;
+    border-color: var(--accent) !important;
+    color: #ffffff !important;
+    box-shadow: 0 0 0 1px rgba(135, 206, 250, 0.3), 0 6px 16px rgba(0, 0, 0, 0.28) !important;
+}
+
+.modern-checkbox-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 13px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    font-size: 13px;
+    font-weight: 600;
+    color: #e2f1ff;
+    cursor: pointer;
+    user-select: none;
+}
+
+.modern-checkbox-row input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--accent);
+    cursor: pointer;
+    margin: 0;
+}
+
+/* Poll Options Container & Ghost Button */
+.poll-options-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.modern-btn-ghost {
+    align-self: flex-start;
+    height: 34px;
+    padding: 0 13px;
+    border-radius: 10px;
+    background: rgba(135, 206, 250, 0.08) !important;
+    border: 1px dashed rgba(135, 206, 250, 0.38) !important;
+    color: var(--accent-strong) !important;
+    font-family: var(--font-body) !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    cursor: pointer !important;
+    transition: background-color 0.18s ease, border-color 0.18s ease !important;
+}
+
+.modern-btn-ghost:hover:not(:disabled) {
+    background: rgba(135, 206, 250, 0.16) !important;
+    border-color: var(--accent) !important;
+}
+
+/* Dialog Footer & Action Buttons */
+.modern-dialog-footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(176, 224, 250, 0.12);
+    margin-top: 2px;
+}
+
+.modern-btn-secondary,
+.modern-btn-primary {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    height: 40px !important;
+    padding: 0 18px !important;
+    border-radius: 999px !important;
+    font-family: var(--font-body) !important;
+    font-size: 13px !important;
+    font-weight: 700 !important;
+    cursor: pointer !important;
+    white-space: nowrap !important;
+    transition: transform 0.18s var(--ease-out-expo), background-color 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease !important;
+}
+
+.modern-btn-secondary {
+    background: rgba(255, 255, 255, 0.07) !important;
+    border: 1px solid rgba(255, 255, 255, 0.16) !important;
+    color: #e2f1ff !important;
+}
+
+.modern-btn-secondary:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.14) !important;
+    color: #ffffff !important;
+}
+
+.modern-btn-primary {
+    background: linear-gradient(135deg, var(--accent-strong, #b0e0fa) 0%, var(--accent, #87cefa) 100%) !important;
+    border: 1px solid rgba(200, 238, 255, 0.65) !important;
+    color: #04121c !important;
+    box-shadow: 0 6px 18px rgba(135, 206, 250, 0.28) !important;
+}
+
+.modern-btn-primary:hover:not(:disabled) {
+    transform: translateY(-1px);
+    filter: brightness(1.06);
+    box-shadow: 0 10px 24px rgba(135, 206, 250, 0.42) !important;
+}
+
+.modern-btn-primary .material-symbols-outlined,
+.modern-btn-secondary .material-symbols-outlined {
+    font-size: 18px !important;
+}
+
+/* Premium Modal Perks & Action Box */
+.premium-perks-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.premium-perk-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 14px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(176, 224, 250, 0.14);
+}
+
+.premium-perk-item .perk-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: rgba(135, 206, 250, 0.14);
+    border: 1px solid rgba(135, 206, 250, 0.28);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px !important;
+    color: var(--accent);
+    flex-shrink: 0;
+}
+
+.premium-perk-item strong {
+    display: block;
+    font-size: 13.5px;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 3px;
+}
+
+.premium-perk-item p {
+    margin: 0;
+    font-size: 12px;
+    line-height: 1.4;
+    color: rgba(200, 224, 246, 0.76);
+}
+
+.premium-upgrade-action-box {
+    padding: 14px;
+    border-radius: 16px;
+    background: rgba(0, 0, 0, 0.28);
+    border: 1px solid rgba(176, 224, 250, 0.18);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.premium-code-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 2px;
+}
+
+.premium-code-row .modern-dialog-input {
+    flex: 1;
+}
+
+.premium-cta-full {
+    width: 100% !important;
+    height: 44px !important;
+    font-size: 14px !important;
+}
+
+.modern-dialog-msg {
+    padding: 8px 12px;
+    border-radius: 10px;
+    background: rgba(255, 180, 80, 0.14);
+    border: 1px solid rgba(255, 180, 80, 0.35);
+    color: #ffe082;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.premium-already-active-box {
+    padding: 18px 16px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, rgba(135, 206, 250, 0.12) 0%, rgba(255, 213, 79, 0.08) 100%);
+    border: 1px solid rgba(135, 206, 250, 0.32);
+    text-align: center;
+}
+
+.premium-already-active-box h4 {
+    margin: 8px 0 4px 0;
+    font-size: 15px;
+    font-weight: 800;
+    color: #ffffff;
+}
+
+.premium-already-active-box p {
+    margin: 0;
+    font-size: 12.5px;
+    color: rgba(205, 228, 250, 0.8);
+}
+
+/* Song Card Studio Layout (Desktop 2-Column + Mobile 1-Column) */
+.song-card-editor-layout {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    gap: 20px;
+    align-items: start;
+}
+
+.song-card-canvas-wrap {
+    background: rgba(0, 0, 0, 0.38);
+    border: 1px solid rgba(176, 224, 250, 0.2);
+    border-radius: 16px;
+    padding: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#song-card-canvas {
+    width: 100%;
+    max-width: 220px;
+    height: auto;
+    border-radius: 12px;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6);
+    display: block;
+}
+
+.song-card-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.song-card-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 6px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(176, 224, 250, 0.12);
+}
+
+@media (max-width: 899px) {
+    /* Keep mobile bottom nav strictly 5 tabs; Premium button is in top navbar */
+    #sidebar-upgrade-premium {
+        display: none !important;
+    }
+
+    .navbar-premium-btn #navbar-premium-label {
+        display: none !important;
+    }
+
+    .navbar-premium-btn,
+    .navbar-premium-btn.is-premium-active {
+        width: 34px !important;
+        height: 34px !important;
+        padding: 0 !important;
+        border-radius: 50% !important;
+    }
+
+    .song-card-editor-layout,
+    #song-card-theme-pills.dedication-theme-pills {
+        grid-template-columns: 1fr;
+    }
+
+    .premium-code-row,
+    .song-card-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .modern-dialog-inner {
+        padding: 18px 16px;
+    }
+}
+
+/* ==========================================================================
+   17. VIETQR BANK CHECKOUT & ADMIN PREMIUM MANAGEMENT TABLE (RESPONSIVE-TABLE)
+   ========================================================================== */
+
+dialog.modern-app-dialog.vietqr-dialog {
+    max-width: 560px !important;
+    max-height: 92vh !important;
+}
+
+.vietqr-dialog-inner {
+    padding: 16px 20px 18px 20px !important;
+    gap: 10px !important;
+}
+
+.vietqr-dialog-header {
+    margin-bottom: 0 !important;
+    padding-bottom: 8px !important;
+}
+
+/* Dải đặc quyền 1 dòng */
+.vietqr-perks-strip {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 10px;
+    background: rgba(135, 206, 250, 0.08);
+    border: 1px solid rgba(135, 206, 250, 0.2);
+}
+
+.v-perk-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #e6f4ff;
+    white-space: nowrap;
+}
+
+.v-perk-pill .material-symbols-outlined {
+    font-size: 14px;
+    color: var(--accent);
+}
+
+/* Hộp thanh toán VietQR gọn gàng */
+.vietqr-checkout-box {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 12px 14px;
+    border-radius: 16px;
+    background: linear-gradient(155deg, rgba(135, 206, 250, 0.1), rgba(7, 15, 24, 0.8));
+    border: 1px solid rgba(135, 206, 250, 0.28);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.vietqr-checkout-grid {
+    display: grid;
+    grid-template-columns: 165px minmax(0, 1fr);
+    gap: 14px;
+    align-items: center;
+}
+
+.vietqr-qr-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    text-align: center;
+}
+
+.vietqr-qr-frame {
+    width: 165px;
+    height: 165px;
+    padding: 6px;
+    border-radius: 12px;
+    background: #ffffff;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45), 0 0 0 1.5px rgba(135, 206, 250, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.vietqr-qr-frame img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    border-radius: 8px;
+}
+
+.vietqr-scan-hint {
+    font-size: 10.5px;
+    line-height: 1.3;
+    color: var(--text-sub);
+    text-align: center;
+}
+
+.vietqr-info-col {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    min-width: 0;
+}
+
+/* Hàng giá tiền nổi bật */
+.vietqr-price-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 6px 10px;
+    border-radius: 10px;
+    background: rgba(135, 206, 250, 0.12);
+    border: 1px solid rgba(135, 206, 250, 0.32);
+}
+
+.v-price-label {
+    font-size: 11.5px;
+    font-weight: 700;
+    color: var(--text-sub);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.v-price-val-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.v-price-num {
+    font-family: var(--font-display);
+    font-size: 16px;
+    font-weight: 800;
+    color: #87cefa;
+    white-space: nowrap;
+}
+
+/* Bảng chi tiết ngân hàng gọn đẹp */
+.vietqr-details-table {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    padding: 8px 10px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(176, 224, 250, 0.12);
+}
+
+.v-dt-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    font-size: 12px;
+}
+
+.v-dt-lbl {
+    color: var(--text-sub);
+    font-size: 11px;
+    flex-shrink: 0;
+}
+
+.v-dt-val {
+    color: #ffffff;
+    font-weight: 700;
+    text-align: right;
+    word-break: break-word;
+}
+
+.v-dt-val.mono {
+    font-family: var(--font-mono);
+    color: var(--accent-hover);
+    font-size: 13.5px;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+}
+
+.v-dt-val-wrap {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.vietqr-mini-btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 24px !important;
+    height: 24px !important;
+    padding: 0 !important;
+    border-radius: 6px !important;
+    background: rgba(135, 206, 250, 0.14) !important;
+    border: 1px solid rgba(135, 206, 250, 0.3) !important;
+    color: var(--accent-hover) !important;
+    cursor: pointer !important;
+    flex-shrink: 0 !important;
+    transition: background-color 0.15s ease, transform 0.12s ease !important;
+}
+
+.vietqr-mini-btn:hover {
+    background: rgba(135, 206, 250, 0.3) !important;
+    color: #ffffff !important;
+    transform: scale(1.08);
+}
+
+.vietqr-mini-btn .material-symbols-outlined {
+    font-size: 13px !important;
+}
+
+/* Khối nội dung chuyển khoản không bao giờ vỡ dòng */
+.vietqr-content-card {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 7px 10px;
+    border-radius: 10px;
+    background: rgba(251, 188, 4, 0.1);
+    border: 1px solid rgba(251, 188, 4, 0.35);
+}
+
+.v-cc-lbl {
+    font-size: 10.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: #ffe066;
+}
+
+.v-cc-body {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.v-cc-code {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 800;
+    color: #fff3bf;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.vietqr-copy-code-btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+    height: 26px !important;
+    padding: 0 8px !important;
+    border-radius: 7px !important;
+    font-size: 11px !important;
+    font-weight: 800 !important;
+    background: rgba(251, 188, 4, 0.22) !important;
+    border: 1px solid rgba(251, 188, 4, 0.5) !important;
+    color: #fff3bf !important;
+    cursor: pointer !important;
+    flex-shrink: 0 !important;
+    transition: background-color 0.15s ease, transform 0.12s ease !important;
+}
+
+.vietqr-copy-code-btn:hover {
+    background: rgba(251, 188, 4, 0.38) !important;
+    color: #ffffff !important;
+    transform: translateY(-1px);
+}
+
+.vietqr-copy-code-btn .material-symbols-outlined {
+    font-size: 13px !important;
+}
+
+/* Hộp trạng thái chờ duyệt */
+.vietqr-pending-status-box {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 12px;
+    border-radius: 10px;
+    background: rgba(251, 188, 4, 0.14);
+    border: 1px solid rgba(251, 188, 4, 0.42);
+    color: #ffe8a3;
+}
+
+.vietqr-pending-status-box .spin-icon {
+    font-size: 20px;
+    color: #ffd43b;
+    flex-shrink: 0;
+}
+
+.vietqr-pending-status-box strong {
+    display: block;
+    font-size: 12.5px;
+    color: #fff3bf;
+    margin-bottom: 2px;
+}
+
+.vietqr-pending-status-box p {
+    margin: 0;
+    font-size: 11.5px;
+    line-height: 1.35;
+    color: rgba(255, 243, 191, 0.88);
+}
+
+/* Nút xác nhận thanh toán gọn gàng */
+.vietqr-confirm-btn {
+    height: 40px !important;
+    font-size: 13px !important;
+    font-weight: 800 !important;
+    border-radius: 11px !important;
+    margin-top: 2px !important;
+    box-shadow: 0 4px 16px rgba(135, 206, 250, 0.3) !important;
+}
+
+@media (max-width: 599px) {
+    dialog.modern-app-dialog.vietqr-dialog {
+        max-width: 95vw !important;
+    }
+    .vietqr-checkout-grid {
+        grid-template-columns: 1fr !important;
+        gap: 10px !important;
+    }
+    .vietqr-qr-frame {
+        width: 145px !important;
+        height: 145px !important;
+    }
+    .vietqr-perks-strip {
+        flex-wrap: wrap !important;
+        justify-content: center !important;
+    }
+}
+
+/* ==========================================================================
+   BẢNG QUẢN LÝ VIP CHO ADMIN (#premium-admin-column)
+   ========================================================================== */
+#premium-admin-column {
+    overflow-y: auto;
+    padding: 20px;
+}
+
+.premium-admin-shell {
+    max-width: 1120px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding-bottom: 40px;
+}
+
+.premium-admin-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    padding: 20px 22px;
+    border-radius: 22px;
+    background: linear-gradient(135deg, rgba(135, 206, 250, 0.18), rgba(10, 22, 36, 0.85));
+    border: 1px solid rgba(135, 206, 250, 0.35);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.38);
+}
+
+.premium-admin-title-group {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.premium-admin-icon-badge {
+    width: 48px;
+    height: 48px;
+    border-radius: 15px;
+    background: linear-gradient(135deg, #87cefa, #b0e0fa);
+    color: #051320;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 22px rgba(135, 206, 250, 0.35);
+    flex-shrink: 0;
+}
+
+.premium-admin-icon-badge .material-symbols-outlined {
+    font-size: 28px;
+}
+
+.premium-admin-heading {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: 21px;
+    font-weight: 800;
+    color: #ffffff;
+}
+
+.premium-admin-subtitle {
+    margin: 4px 0 0 0;
+    font-size: 13px;
+    color: var(--text-sub);
+}
+
+/* 3 Thẻ Thống Kê */
+.premium-admin-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.premium-stat-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 18px;
+    border-radius: 18px;
+    background: rgba(12, 22, 34, 0.78);
+    border: 1px solid rgba(176, 224, 250, 0.2);
+    box-shadow: 0 10px 26px rgba(0, 0, 0, 0.28);
+}
+
+.premium-stat-card .stat-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    background: rgba(135, 206, 250, 0.15);
+    color: var(--accent);
+    flex-shrink: 0;
+}
+
+.premium-stat-card .stat-icon.pending {
+    background: rgba(251, 188, 4, 0.16);
+    color: #ffd43b;
+}
+
+.premium-stat-card .stat-icon.bank {
+    background: rgba(81, 207, 102, 0.16);
+    color: #69db7c;
+}
+
+.premium-stat-card .stat-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-sub);
+}
+
+.premium-stat-card .stat-value {
+    font-family: var(--font-display);
+    font-size: 22px;
+    font-weight: 800;
+    color: #ffffff;
+    margin-top: 2px;
+}
+
+/* Khối Card Quản Trị */
+.premium-admin-card {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 20px 22px;
+    border-radius: 22px;
+    background: rgba(10, 19, 31, 0.82);
+    border: 1px solid rgba(176, 224, 250, 0.2);
+    box-shadow: 0 14px 36px rgba(0, 0, 0, 0.34);
+}
+
+.premium-admin-card-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(176, 224, 250, 0.14);
+}
+
+.premium-admin-card-head h3 {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-display);
+    font-size: 16.5px;
+    font-weight: 800;
+    color: #ffffff;
+}
+
+.premium-admin-card-head h3 .material-symbols-outlined {
+    color: var(--accent);
+    font-size: 21px;
+}
+
+.premium-admin-card-head p {
+    margin: 4px 0 0 0;
+    font-size: 12.5px;
+    color: var(--text-sub);
+}
+
+.premium-pending-pill {
+    padding: 5px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 800;
+    background: rgba(251, 188, 4, 0.16);
+    border: 1px solid rgba(251, 188, 4, 0.42);
+    color: #ffe066;
+}
+
+/* Danh sách yêu cầu thanh toán chờ duyệt */
+.admin-premium-requests-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.admin-empty-placeholder {
+    text-align: center;
+    padding: 20px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px dashed rgba(176, 224, 250, 0.18);
+    color: var(--text-muted);
+    font-size: 13px;
+}
+
+.admin-req-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    flex-wrap: wrap;
+    padding: 13px 16px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, rgba(135, 206, 250, 0.12), rgba(255, 255, 255, 0.03));
+    border: 1px solid rgba(135, 206, 250, 0.35);
+}
+
+.admin-req-user {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 14.5px;
+    color: #ffffff;
+    margin-bottom: 4px;
+}
+
+.admin-req-user .material-symbols-outlined {
+    font-size: 18px;
+    color: var(--accent);
+}
+
+.admin-req-time {
+    font-size: 11.5px;
+    color: var(--text-sub);
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.admin-req-details {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    font-size: 12.5px;
+    color: var(--text-sub);
+}
+
+.admin-req-details .req-amount {
+    color: #87cefa;
+    font-weight: 800;
+}
+
+.admin-req-details .req-code {
+    font-family: var(--font-mono);
+    padding: 2px 7px;
+    border-radius: 6px;
+    background: rgba(255, 222, 122, 0.15);
+    color: #ffde7a;
+    font-weight: 700;
+}
+
+.admin-req-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.admin-btn-approve,
+.admin-btn-reject {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 36px;
+    padding: 0 14px;
+    border-radius: 10px;
+    font-size: 12.5px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: transform 0.14s ease, filter 0.16s ease;
+}
+
+.admin-btn-approve {
+    background: linear-gradient(135deg, #87cefa, #b0e0fa);
+    color: #051320;
+    border: 1px solid #d4f0ff;
+}
+
+.admin-btn-reject {
+    background: rgba(255, 107, 107, 0.14);
+    color: #ff8787;
+    border: 1px solid rgba(255, 107, 107, 0.38);
+}
+
+.admin-btn-approve:hover,
+.admin-btn-reject:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.06);
+}
+
+/* Thanh cấp quyền thủ công & bộ lọc */
+.admin-manual-grant-bar {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) auto;
+    gap: 10px;
+    align-items: center;
+}
+
+.admin-table-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.admin-table-search {
+    flex: 1 1 260px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 40px;
+    padding: 0 12px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(176, 224, 250, 0.2);
+}
+
+.admin-table-search .material-symbols-outlined {
+    font-size: 18px;
+    color: var(--accent);
+}
+
+.admin-table-search input {
+    width: 100%;
+    background: transparent !important;
+    border: none !important;
+    outline: none !important;
+    color: #ffffff !important;
+    font-size: 13px !important;
+}
+
+.admin-table-filters {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+/* ==========================================================================
+   RESPONSIVE TABLE (MODERN WEB GUIDANCE PATTERN)
+   ========================================================================== */
+.table-wrapper.premium-table-wrapper {
+    container-type: inline-size;
+    overflow: auto;
+    max-block-size: 520px;
+    border-radius: 16px;
+    border: 1px solid rgba(176, 224, 250, 0.2);
+    background: rgba(6, 13, 22, 0.85);
+}
+
+.table-wrapper.premium-table-wrapper:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+.premium-users-table {
+    inline-size: 100%;
+    border-collapse: collapse;
+    font-variant-numeric: tabular-nums;
+    --label-1: "Tài khoản";
+    --label-2: "Email / ID";
+    --label-3: "Phân hạng";
+    --label-4: "Trạng thái";
+    --label-5: "Ghi chú";
+    --label-6: "Thao tác";
+}
+
+.premium-users-table caption {
+    padding: 10px 16px;
+    text-align: left;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-sub);
+    background: rgba(135, 206, 250, 0.06);
+    border-bottom: 1px solid rgba(176, 224, 250, 0.14);
+}
+
+.premium-users-table :is(th, td) {
+    padding: 12px 14px;
+    text-align: start;
+    vertical-align: middle;
+    border-bottom: 1px solid rgba(176, 224, 250, 0.1);
+    font-size: 13px;
+    color: #e6f4ff;
+}
+
+.premium-users-table thead {
+    position: sticky;
+    inset-block-start: 0;
+    z-index: 2;
+    background: #0b1828;
+}
+
+.premium-users-table thead th {
+    font-family: var(--font-display);
+    font-size: 11.5px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--accent-hover);
+    border-bottom: 1px solid rgba(135, 206, 250, 0.28);
+}
+
+.premium-users-table tbody th {
+    position: sticky;
+    inset-inline-start: 0;
+    z-index: 1;
+    background: #081320;
+    font-weight: 700;
+}
+
+.premium-users-table tbody tr:hover td,
+.premium-users-table tbody tr:hover th {
+    background: rgba(135, 206, 250, 0.08);
+}
+
+.table-user-cell {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.table-user-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 800;
+    color: #04101c;
+    flex-shrink: 0;
+}
+
+.table-user-name {
+    font-weight: 800;
+    color: #ffffff;
+}
+
+.role-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 11.5px;
+    font-weight: 800;
+}
+
+.role-pill .material-symbols-outlined {
+    font-size: 14px;
+}
+
+.role-pill.role-admin {
+    background: rgba(251, 188, 4, 0.16);
+    border: 1px solid rgba(251, 188, 4, 0.45);
+    color: #ffe066;
+}
+
+.role-pill.role-premium {
+    background: rgba(135, 206, 250, 0.18);
+    border: 1px solid rgba(135, 206, 250, 0.48);
+    color: #b0e0fa;
+}
+
+.role-pill.role-member {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    color: var(--text-sub);
+}
+
+.online-status-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.online-status-chip .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+.online-status-chip.online {
+    color: #69db7c;
+}
+
+.online-status-chip.online .dot {
+    background: #51cf66;
+    box-shadow: 0 0 8px #51cf66;
+}
+
+.online-status-chip.offline {
+    color: var(--text-muted);
+}
+
+.online-status-chip.offline .dot {
+    background: rgba(180, 195, 210, 0.4);
+}
+
+.table-note-cell {
+    max-width: 240px;
+    color: var(--text-sub);
+    font-size: 12px;
+}
+
+.admin-table-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    height: 32px;
+    padding: 0 11px;
+    border-radius: 9px;
+    font-size: 12px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: transform 0.14s ease, filter 0.15s ease;
+}
+
+.admin-table-btn .material-symbols-outlined {
+    font-size: 15px;
+}
+
+.admin-table-btn.grant {
+    background: linear-gradient(135deg, #87cefa, #b0e0fa);
+    color: #051320;
+    border: 1px solid #d4f0ff;
+}
+
+.admin-table-btn.revoke {
+    background: rgba(255, 107, 107, 0.12);
+    color: #ff8787;
+    border: 1px solid rgba(255, 107, 107, 0.35);
+}
+
+.admin-table-btn:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.06);
+}
+
+.admin-immutable-tag {
+    font-size: 11.5px;
+    font-weight: 700;
+    color: var(--text-muted);
+}
+
+/* Container query stacked layout when table container is narrow (< 600px) */
+@container (width < 600px) {
+    .premium-users-table thead {
+        display: none;
+    }
+
+    .premium-users-table tbody tr {
+        display: grid;
+        gap: 6px;
+        padding: 12px;
+        border-block-end: 1px solid rgba(176, 224, 250, 0.18);
+    }
+
+    .premium-users-table tbody :is(th, td) {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 4px 0;
+        border: none;
+        background: transparent;
+        position: static;
+    }
+
+    .premium-users-table td::before {
+        font-weight: 700;
+        color: var(--text-sub);
+        margin-inline-end: 10px;
+    }
+
+    .premium-users-table td:nth-child(2)::before { content: var(--label-2) ": "; }
+    .premium-users-table td:nth-child(3)::before { content: var(--label-3) ": "; }
+    .premium-users-table td:nth-child(4)::before { content: var(--label-4) ": "; }
+    .premium-users-table td:nth-child(5)::before { content: var(--label-5) ": "; }
+    .premium-users-table td:nth-child(6)::before { content: var(--label-6) ": "; }
+}
+
+/* Khối Cấu Hình VietQR của Admin */
+.admin-vietqr-config-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 250px;
+    gap: 20px;
+    align-items: start;
+}
+
+.admin-vietqr-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.admin-form-row-2 {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.admin-vietqr-webhook-hint {
+    padding: 11px 14px;
+    border-radius: 12px;
+    background: rgba(135, 206, 250, 0.1);
+    border: 1px solid rgba(135, 206, 250, 0.26);
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: var(--text-sub);
+}
+
+.admin-vietqr-webhook-hint strong {
+    color: var(--accent-hover);
+}
+
+.admin-vietqr-preview-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    padding: 14px;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(176, 224, 250, 0.22);
+    text-align: center;
+}
+
+.qr-preview-label {
+    font-size: 12px;
+    font-weight: 800;
+    color: var(--accent-hover);
+}
+
+.qr-preview-frame {
+    width: 210px;
+    height: 245px;
+    padding: 8px;
+    border-radius: 14px;
+    background: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 10px 26px rgba(0, 0, 0, 0.42);
+}
+
+.qr-preview-frame img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.qr-preview-caption {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 700;
+    color: #ffffff;
+}
+
+@media (max-width: 899px) {
+    .vietqr-checkout-grid,
+    .premium-admin-stats-grid,
+    .admin-manual-grant-bar,
+    .admin-vietqr-config-grid,
+    .admin-form-row-2 {
+        grid-template-columns: 1fr;
+    }
+}

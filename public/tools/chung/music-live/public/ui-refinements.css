@@ -1,0 +1,283 @@
+/* Presentation layer, loaded after Liquid Glass. Keep game layouts and user wallpapers intact. */
+:root {
+    color-scheme: dark;
+    --surface-quiet: rgba(32, 26, 40, 0.94);
+    --surface-hover: rgba(255, 180, 210, 0.08);
+    --text-muted: #c3b3cb;
+}
+
+body {
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+}
+
+button, input, textarea, select { font-family: inherit; }
+button { touch-action: manipulation; }
+input, textarea { min-width: 0; }
+input::placeholder, textarea::placeholder { color: #a99aaf; opacity: 1; }
+
+/* The glass library resets outlines, so explicitly restore keyboard focus. */
+:is(button, input, textarea, select, a, [tabindex]):focus-visible {
+    outline: 2px solid #ffc3d7 !important;
+    outline-offset: 3px;
+}
+
+button:disabled { cursor: not-allowed; opacity: 0.55; }
+
+.navbar {
+    padding-inline: 24px;
+    background: rgba(28, 24, 34, 0.96);
+    border-bottom-color: var(--border-color);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+}
+
+.navbar-search { max-width: 560px; min-width: 100px; }
+.navbar-user { min-width: 0; }
+#navbar-username { max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.navbar .logo .live-badge { font-size: 9px; letter-spacing: 0.7px; margin-left: 2px; }
+
+.navbar .liquid-glass-btn,
+.auth-card .liquid-glass-btn,
+.sidebar .sidebar-item.liquid-glass-btn,
+.game-buttons-group .liquid-glass-btn {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    box-shadow: none !important;
+    border-color: var(--border-color) !important;
+    background: var(--surface-hover) !important;
+}
+
+.navbar .liquid-glass-btn:hover,
+.game-buttons-group .liquid-glass-btn:hover {
+    background: rgba(255, 180, 210, 0.16) !important;
+    border-color: var(--border-color-strong) !important;
+}
+
+.sidebar {
+    background: var(--surface-quiet);
+    border-color: var(--border-color);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.14);
+}
+
+.sidebar .sidebar-item.liquid-glass-btn {
+    color: var(--text-muted) !important;
+    background: transparent !important;
+    border-color: transparent !important;
+    text-align: left;
+    transform: none;
+}
+
+.sidebar .sidebar-item.liquid-glass-btn:hover {
+    color: var(--text-main) !important;
+    background: var(--surface-hover) !important;
+    transform: none !important;
+}
+
+.sidebar .sidebar-item.liquid-glass-btn.active {
+    color: #ffe3ed !important;
+    background: rgba(255, 117, 160, 0.14) !important;
+    border-color: rgba(255, 117, 160, 0.25) !important;
+}
+
+.video-info {
+    background: var(--surface-quiet);
+    border-color: var(--border-color);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.14);
+}
+
+.section-eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin-bottom: 10px;
+    color: var(--accent);
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+}
+
+.section-eyebrow .material-symbols-outlined { font-size: 18px; }
+.video-title { font-family: var(--font-body); font-size: clamp(18px, 1.7vw, 26px); text-shadow: none; overflow-wrap: anywhere; }
+.channel-info { margin-bottom: 16px; }
+.channel-details { min-width: 0; }
+.channel-sub { line-height: 1.5; overflow-wrap: anywhere; }
+.control-box { padding: 16px 0 0; background: transparent; border: 0; border-top: 1px solid var(--border-color); border-radius: 0; }
+.volume-control { min-height: 36px; }
+#song-tools:not(:has(button:not(.hidden))) { display: none; }
+.queue-section { margin-top: 20px; }
+.playlist-header, .games-heading {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 10px;
+    color: var(--text-main);
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0;
+}
+
+.playlist-header .material-symbols-outlined,
+.games-heading .material-symbols-outlined { color: var(--accent); font-size: 20px; }
+.playlist-ui { padding: 8px 12px; background: rgba(0, 0, 0, 0.16); border: 1px solid var(--border-color); border-radius: 12px; }
+.playlist-item .song-info { min-width: 0; }
+.playlist-item > img { flex-shrink: 0; }
+.games-heading { margin-top: 22px; }
+.game-buttons-group { display: grid; grid-template-columns: repeat(auto-fit, minmax(125px, 1fr)); gap: 8px; margin-top: 0; }
+.game-buttons-group .btn-start-game { min-width: 0; min-height: 44px; margin: 0; padding: 10px 12px; font-size: 13px; border-radius: 12px !important; justify-content: flex-start; }
+.game-btn-icon { font-size: 19px; }
+
+.right-column { border-color: var(--border-color); }
+.right-column.hidden { display: none !important; }
+.chat-header { background: var(--surface-quiet); min-height: 60px; height: auto; gap: 8px; flex-wrap: wrap; border-bottom-color: var(--border-color); }
+.chat-tabs { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+.chat-tabs > span { white-space: nowrap; }
+.chat-header-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; margin-left: auto; }
+.chat-header-actions button { align-items: center; justify-content: center; min-width: 32px; min-height: 32px; padding: 6px; }
+#chat-area-container { min-height: 0; min-width: 0; }
+.chat-input-area { flex-shrink: 0; }
+.chat-messages { min-width: 0; }
+.chat-message { min-width: 0; flex-shrink: 0; }
+.chat-bubble-wrap { flex-shrink: 1; }
+.chat-bubble { overflow-wrap: anywhere; }
+.chat-author { overflow-wrap: anywhere; flex-wrap: wrap; }
+.chat-reply-quote { max-width: 100%; }
+/* Media must fit the bubble after the avatar, gaps and action menu take their space.
+   !important overrides the fixed max-width written by the existing message renderer. */
+.chat-message .chat-bubble :is(.chat-media-img, .chat-media-video, .chat-gif) {
+    max-width: min(260px, 100%) !important;
+    height: auto;
+}
+.chat-input-wrapper { border-color: var(--border-color); }
+.chat-input-wrapper input { min-width: 0; }
+.chat-input-wrapper:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+
+.history-item,
+.history-item:nth-child(even),
+.history-item:nth-child(3n),
+.history-item:hover {
+    border-radius: 14px;
+    border-width: 1px;
+    border-color: var(--border-color);
+    background: var(--surface-quiet);
+    transform: none;
+    box-shadow: none;
+}
+.history-item::before { display: none; }
+.history-item:hover { border-color: rgba(255, 117, 160, 0.45); }
+.history-thumb-container, .history-item:hover .history-thumb-container { border-radius: 8px; }
+
+/* A scrollable overlay keeps registration, OTP and quick-lock forms reachable. */
+.login-overlay {
+    height: 100dvh;
+    padding: max(24px, env(safe-area-inset-top)) 16px max(24px, env(safe-area-inset-bottom));
+    overflow-y: auto;
+    align-items: flex-start;
+    overscroll-behavior-y: contain;
+}
+.login-overlay > .login-card { flex-shrink: 0; margin-block: auto; }
+#login-section {
+    background: radial-gradient(ellipse at 20% 15%, rgba(137, 77, 139, 0.18), transparent 55%), rgba(20, 16, 25, 0.94);
+}
+.login-card.auth-card {
+    width: 100%;
+    max-width: 440px;
+    padding: 32px;
+    background: #261f2f;
+    border: 1px solid rgba(255, 180, 210, 0.2);
+    border-radius: 24px;
+    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.3);
+}
+.auth-eyebrow { margin-bottom: 24px; font-size: 10px; font-weight: 800; color: var(--text-muted); letter-spacing: 1.4px; }
+.auth-brand { display: flex; justify-content: center; align-items: center; gap: 10px; margin-bottom: 8px; }
+.auth-field-label { display: block; margin-bottom: 6px; text-align: left; font-size: 13px; font-weight: 700; color: #e6d9ec; }
+.auth-card .login-input { min-height: 46px; padding: 11px 14px; border-radius: 12px; font-size: 16px; background: rgba(0, 0, 0, 0.16); }
+.auth-card .login-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.auth-card .auth-tabs { padding: 4px; background: rgba(0, 0, 0, 0.2); border-radius: 12px; }
+.auth-card .auth-tab.liquid-glass-btn { border-radius: 9px !important; background: transparent !important; border-color: transparent !important; min-height: 40px; color: var(--text-muted) !important; }
+.auth-card .auth-tab.active { background: #493346 !important; color: #ffe2ec !important; }
+.auth-card .login-btn.liquid-glass-btn { min-height: 48px; border-radius: 12px !important; background: #ff91b3 !important; color: #301521 !important; font-weight: 800; }
+.auth-card .login-btn:hover { background: #ffa9c3 !important; transform: none; }
+.auth-card .google-auth-btn { min-height: 48px; border-radius: 12px !important; background: #faf7fb !important; color: #29212f !important; }
+.auth-card .google-auth-btn:hover { background: #eee6f1 !important; transform: none; }
+.auth-card .google-auth-btn svg { flex-shrink: 0; }
+.otp-boxes-wrapper { gap: clamp(5px, 2vw, 10px); }
+.otp-box { min-width: 0; max-width: calc((100% - 25px) / 6); }
+
+@media (min-width: 900px) {
+    .main-layout { padding: 20px; gap: 20px; }
+    .sidebar { width: 192px; padding: 14px 8px; }
+    .sidebar .sidebar-item.liquid-glass-btn { min-height: 48px; padding: 12px !important; gap: 10px; font-size: 14px; }
+    .sidebar.mini, .sidebar.mini:hover { width: 72px; padding: 14px 6px; }
+    .sidebar.mini .sidebar-item.liquid-glass-btn,
+    .sidebar.mini:hover .sidebar-item.liquid-glass-btn { flex-direction: column !important; justify-content: center !important; padding: 12px 0 !important; }
+    .sidebar.mini .sidebar-label { display: none; }
+    .sidebar.mini .sidebar-item .material-symbols-outlined { font-size: 24px; }
+    .left-column:not(.not-home):not(.mobile-mini) { gap: 0; padding-right: 4px; scrollbar-gutter: stable; }
+    .video-info { flex: none; margin-top: 16px; padding: 22px; }
+    .video-container { border-radius: 16px; }
+    .right-column { width: clamp(300px, 27vw, 380px); border-radius: 16px; }
+    .history-column { scrollbar-gutter: stable; }
+}
+
+@media (min-width: 900px) and (max-width: 1249px) {
+    .main-layout { padding: 14px; gap: 14px; }
+    .sidebar:not(.expanded-force):hover { width: 72px; padding: 14px 6px; }
+    .sidebar:not(.expanded-force):hover .sidebar-item .sidebar-label { display: none; }
+    .navbar { padding-inline: 16px; }
+    .navbar-search { margin-inline: 16px; }
+    #navbar-username { max-width: 80px; }
+}
+
+@media (max-width: 899px) {
+    .navbar { padding-inline: 12px; gap: 8px; }
+    .navbar-right { gap: 4px; }
+    .navbar .logo { font-size: 19px; }
+    .navbar .logo .live-badge { display: none; }
+    .navbar-user { display: none; } /* Account settings remain available via the adjacent button. */
+    .navbar .liquid-glass-btn { width: 36px; height: 36px; min-width: 36px; padding: 0; }
+    .navbar .material-symbols-outlined { font-size: 20px; }
+    #mobile-song-input, .chat-input-wrapper input { font-size: 16px; }
+    .sidebar .sidebar-item.liquid-glass-btn { min-height: 48px; }
+    .sidebar .sidebar-label { max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+    .sidebar .sidebar-item.liquid-glass-btn.active::after { display: none; }
+    .left-column:not(.not-home):not(.mobile-mini) { gap: 0; padding: 0 0 72px; }
+    .video-info { flex: none; overflow: visible; margin: 12px; padding: 16px; }
+    .video-title { font-size: 20px; }
+    .control-box { padding: 14px 0 0; }
+    .section-eyebrow { font-size: 9px; }
+    .game-buttons-group { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .right-column { padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px)); }
+    .chat-header { min-height: 56px; padding-inline: 12px; }
+    .chat-input-area { padding: 10px 12px; }
+    .chat-input-wrapper { padding-inline: 8px; }
+    .quiz-admin-sidebar-box, .quiz-admin-editor-box { min-width: 0 !important; flex-basis: 100% !important; }
+}
+
+@media (max-width: 380px) {
+    .navbar { padding-inline: 8px; }
+    .navbar-right { gap: 2px; }
+    .navbar .liquid-glass-btn { width: 32px; min-width: 32px; }
+    .navbar .logo { font-size: 18px; }
+    .login-card.auth-card { padding: 24px 18px; }
+    .auth-eyebrow { letter-spacing: 0.6px; }
+    .auth-card .google-auth-btn { padding-inline: 10px; font-size: 14px; }
+}
+
+/* Preserve the existing landscape player / information expansion behavior. */
+@media (orientation: landscape) and (max-height: 550px) and (max-width: 1024px) {
+    .video-info { margin: 0; }
+    .section-eyebrow { display: none; }
+    .right-column { padding-bottom: 0; }
+}
+
+/* Layered !important rules also override the glass library's transition shorthands. */
+@layer accessibility-motion {
+    @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.01ms !important;
+            scroll-behavior: auto !important;
+        }
+    }
+}

@@ -1,0 +1,1394 @@
+/* The player stays mounted when switching workspaces, preserving playback and sync. */
+.workspace-tabs {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px;
+    margin-bottom: 12px;
+    flex-shrink: 0;
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    background: var(--surface-quiet);
+}
+.workspace-tabs button, .pomodoro-panel button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 40px;
+    padding: 8px 14px;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    background: transparent;
+    color: var(--text-muted);
+    font: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+}
+.workspace-tabs button:hover, .pomodoro-panel button:hover { background: var(--accent-soft); color: var(--text-main); }
+.pomodoro-panel button:disabled { cursor: not-allowed; }
+.workspace-tabs button[aria-selected="true"], .pomodoro-modes button[aria-pressed="true"] {
+    background: var(--accent-soft);
+    border-color: rgba(135, 206, 250, 0.3);
+    color: #b0e0fa;
+}
+.workspace-tabs .material-symbols-outlined { font-size: 20px; }
+.pomodoro-tab-time { font-family: var(--font-mono); font-size: 11px; }
+.left-column:is(.not-home, .mobile-mini) > :is(.workspace-tabs, .pomodoro-panel, .study-panel) { display: none; }
+.left-column:is(.pomodoro-view, .study-view):not(.not-home):not(.mobile-mini) > .video-container:not(.is-mini-player) { display: none !important; }
+.left-column:is(.pomodoro-view, .study-view) .landscape-info-collapse-bar { display: none !important; }
+
+.pomodoro-panel {
+    --pomodoro-progress: 0deg;
+    flex: none;
+    padding: clamp(16px, 3vw, 28px);
+    border: 1px solid var(--border-color);
+    border-radius: 18px;
+    background: radial-gradient(ellipse at top, rgba(135, 206, 250, 0.08), transparent 65%), #241e2d;
+    text-align: center;
+    min-width: 0;
+}
+.pomodoro-panel[hidden], .pomodoro-tab-time[hidden] { display: none; }
+.pomodoro-heading { display: flex; justify-content: space-between; gap: 12px; text-align: left; margin-bottom: 20px; }
+.pomodoro-heading .section-eyebrow { margin-bottom: 4px; }
+.pomodoro-heading h2 { margin: 0; font-size: clamp(17px, 2vw, 22px); }
+.pomodoro-heading > .material-symbols-outlined { font-size: 30px; color: var(--accent); }
+.pomodoro-modes { display: flex; justify-content: center; flex-wrap: wrap; gap: 4px; }
+.pomodoro-modes button { padding-inline: 10px; }
+.pomodoro-clock {
+    width: min(100%, 252px);
+    aspect-ratio: 1;
+    margin: 24px auto;
+    padding: 5px;
+    border-radius: 50%;
+    background: conic-gradient(var(--accent) var(--pomodoro-progress), rgba(176, 224, 250, 0.12) 0);
+}
+.pomodoro-clock-face {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    height: 100%;
+    border-radius: inherit;
+    background: #241e2d;
+    color: var(--text-muted);
+    font-size: 12px;
+}
+#pomodoro-time { color: var(--text-main); font-family: var(--font-mono); font-size: clamp(36px, 5vw, 54px); font-weight: 600; line-height: 1.2; letter-spacing: -2px; }
+.pomodoro-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+.pomodoro-actions button { border-color: var(--border-color); min-height: 44px; padding-inline: 20px; }
+.pomodoro-panel .pomodoro-primary { background: #9ad6fb; color: #301521; }
+.pomodoro-panel .pomodoro-primary:hover { background: #b0e0fa; color: #301521; }
+.pomodoro-status { min-height: 40px; margin: 16px 0; color: var(--text-muted); font-size: 13px; }
+.pomodoro-settings { border-top: 1px solid var(--border-color); text-align: left; }
+.pomodoro-settings summary { display: flex; align-items: center; gap: 8px; padding-block: 14px; cursor: pointer; font-size: 13px; font-weight: 700; }
+.pomodoro-settings summary::after { content: '+'; margin-left: auto; }
+.pomodoro-settings[open] summary::after { content: '−'; }
+.pomodoro-settings-fields { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.pomodoro-settings label { font-size: 12px; color: var(--text-muted); }
+.pomodoro-settings input { width: 100%; min-height: 42px; margin-top: 6px; padding: 8px; color: var(--text-main); background: rgba(0, 0, 0, 0.2); border: 1px solid var(--border-color); border-radius: 8px; font-size: 16px; }
+.pomodoro-settings p { color: var(--text-muted); font-size: 12px; }
+.pomodoro-settings button { border-color: var(--border-color); margin-bottom: 12px; }
+.pomodoro-footer { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; color: var(--text-muted); font-size: 11px; text-align: left; }
+.pomodoro-footer label { display: flex; align-items: center; gap: 6px; min-height: 32px; }
+.pomodoro-footer input { accent-color: var(--accent); }
+
+@media (max-width: 899px) {
+    .workspace-tabs { margin: 10px 12px; }
+    .pomodoro-panel { margin-inline: 12px; }
+    .pomodoro-clock { width: 220px; max-width: 100%; margin-block: 20px; }
+    #pomodoro-time { font-size: 46px; }
+}
+
+/* Keep the switcher above both columns in the existing phone landscape layout. */
+@media (orientation: landscape) and (max-height: 550px) and (max-width: 1024px) {
+    .left-column:not(.not-home):not(.mobile-mini) {
+        display: grid !important;
+        grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+        grid-template-rows: auto minmax(0, 1fr);
+    }
+    .workspace-tabs { grid-column: 1 / -1; margin: 0; padding: 3px; }
+    .left-column:not(.not-home):not(.mobile-mini) > .video-container { width: 100% !important; max-width: 100% !important; max-height: 100% !important; }
+    .left-column.video-info-collapsed:not(.not-home):not(.mobile-mini) > .video-container { grid-column: 1 / -1; }
+    .pomodoro-panel { margin: 0; max-height: 100%; overflow-y: auto; padding: 14px; }
+    .pomodoro-heading { display: none; }
+    .pomodoro-modes button { min-height: 32px; padding: 5px 8px; font-size: 12px; }
+    .pomodoro-clock { width: 132px; margin-block: 8px; }
+    .pomodoro-clock-face { gap: 4px; font-size: 10px; }
+    .pomodoro-actions button { min-height: 38px; padding: 6px 12px; }
+    #pomodoro-time { font-size: 34px; }
+}
+
+/* ============================================================
+   FOCUS MODE (Chế độ tập trung)
+   - Nút Tập trung ở bên phải thanh workspace-tabs
+   - Ẩn header của trang (.navbar)
+   - Ẩn thanh sidebar bên trái / dưới (#sidebar)
+   - Ẩn các nút trò chơi (.games-heading, .game-buttons-group)
+   - Ẩn danh sách phát tiếp theo (.queue-section)
+   - Giữ lại:
+     + Video player (.video-container / #player-container)
+     + Pomodoro panel (#pomodoro-panel)
+     + Thanh sidebar trên (.workspace-tabs) với nút Tập trung bên phải
+     + Mô tả / setting cho video (.video-title, .channel-info, .volume-control, #song-tools)
+     + Khung chat (.right-column)
+   ============================================================ */
+
+/* Nút chế độ tập trung ở bên phải thanh workspace-tabs */
+.workspace-focus-btn {
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 40px;
+    padding: 8px 14px;
+    border-radius: 10px !important;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    color: var(--text-muted);
+    font: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.workspace-focus-btn:hover {
+    background: rgba(135, 206, 250, 0.2) !important;
+    border-color: rgba(176, 224, 250, 0.45) !important;
+    color: #ffffff !important;
+    transform: translateY(-1px);
+}
+
+.workspace-focus-btn:active {
+    transform: scale(0.96);
+}
+
+/* Khi đang ở Chế độ tập trung */
+body.focus-mode .workspace-focus-btn,
+.workspace-focus-btn.active {
+    background: linear-gradient(135deg, rgba(135, 206, 250, 0.4) 0%, rgba(255, 71, 87, 0.25) 100%) !important;
+    border-color: rgba(176, 224, 250, 0.65) !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 16px rgba(135, 206, 250, 0.32), inset 0 1px 2px rgba(255, 255, 255, 0.5) !important;
+}
+
+body.focus-mode .workspace-focus-btn .material-symbols-outlined,
+.workspace-focus-btn.active .material-symbols-outlined {
+    color: #87cefa;
+    font-variation-settings: 'FILL' 1;
+}
+
+@media (max-width: 480px) {
+    .workspace-focus-btn .focus-mode-label {
+        display: none;
+    }
+    .workspace-focus-btn {
+        padding: 8px 10px !important;
+    }
+}
+
+/* --- Ẩn các thành phần theo yêu cầu khi vào Chế độ tập trung --- */
+
+/* 1. Ẩn Header trang */
+body.focus-mode .navbar {
+    display: none !important;
+}
+
+/* 2. Ẩn thanh Sidebar bên trái (trên desktop) & bên dưới (trên mobile) */
+body.focus-mode .sidebar {
+    display: none !important;
+}
+
+/* 3. Ẩn các nút trò chơi */
+body.focus-mode .control-box .games-heading,
+body.focus-mode .control-box .game-buttons-group {
+    display: none !important;
+}
+
+/* 4. Ẩn danh sách phát tiếp theo để chỉ còn video mô tả & setting */
+body.focus-mode .control-box .queue-section {
+    display: none !important;
+}
+
+/* 5. Ẩn các cột tab khác nếu có để giữ trọn vẹn không gian phòng chính */
+body.focus-mode #history-column,
+body.focus-mode #top-column,
+body.focus-mode #feedback-column,
+body.focus-mode #quiz-admin-column,
+body.focus-mode #messenger-column {
+    display: none !important;
+}
+
+/* 6. Layout tối ưu toàn màn hình (full viewport) */
+body.focus-mode .main-layout {
+    height: 100vh !important;
+    height: 100dvh !important;
+    padding-top: 14px !important;
+}
+
+@media (min-width: 900px) {
+    body.focus-mode .main-layout {
+        padding: 16px 24px !important;
+        gap: 20px !important;
+    }
+}
+
+@media (max-width: 899px) {
+    body.focus-mode .main-layout {
+        padding-bottom: env(safe-area-inset-bottom, 12px) !important;
+    }
+    body.focus-mode .fab-menu-container {
+        bottom: calc(16px + env(safe-area-inset-bottom, 0px)) !important;
+    }
+}
+
+@media (orientation: landscape) and (max-height: 550px) and (max-width: 1024px) {
+    body.focus-mode .main-layout {
+        padding-right: env(safe-area-inset-right, 12px) !important;
+    }
+}
+
+/* ============================================================
+   STUDY ROOMS (PHÒNG HỌC CHUNG)
+   ============================================================ */
+
+.study-tab-badge {
+    background: #ff4757;
+    color: #ffffff;
+    font-size: 10.5px;
+    font-weight: 800;
+    padding: 1px 6px;
+    border-radius: 10px;
+    margin-left: 2px;
+}
+
+.study-panel {
+    flex: none;
+    border: 1px solid var(--border-color);
+    border-radius: 18px;
+    background: #202124;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+}
+
+.study-panel[hidden] {
+    display: none !important;
+}
+
+/* ============================================================
+   GOOGLE MEET STYLES FOR STUDY ROOM
+   ============================================================ */
+
+/* TOPBAR */
+.meet-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    background: #1e1f22;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    gap: 12px;
+    flex-wrap: wrap;
+    z-index: 10;
+}
+
+.meet-topbar-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.meet-brand-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    color: #e8eaed;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.meet-logo-icon {
+    font-size: 18px;
+    color: #34a853;
+}
+
+.meet-brand-title {
+    font-family: var(--font-display);
+    letter-spacing: 0.3px;
+}
+
+/* Room dropdown selector */
+.meet-room-selector-wrap {
+    position: relative;
+}
+
+.meet-room-dropdown-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px !important;
+    font-size: 13px !important;
+    font-weight: 700 !important;
+    background: rgba(255, 255, 255, 0.08) !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    color: #ffffff !important;
+    cursor: pointer;
+    border-radius: 20px !important;
+    transition: all 0.2s ease;
+}
+
+.meet-room-dropdown-btn:hover {
+    background: rgba(255, 255, 255, 0.15) !important;
+    border-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+.meet-room-dropdown-menu {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    min-width: 260px;
+    background: #282a2d;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 12px;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.55);
+    padding: 8px;
+    z-index: 100;
+    backdrop-filter: blur(12px);
+}
+
+.meet-dropdown-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 8px 8px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #9aa0a6;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.btn-admin-add-room-mini {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    background: rgba(52, 168, 83, 0.2);
+    border: 1px solid rgba(52, 168, 83, 0.4);
+    color: #81c995;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.btn-admin-add-room-mini:hover {
+    background: rgba(52, 168, 83, 0.35);
+    color: #fff;
+}
+
+.meet-dropdown-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    max-height: 220px;
+    overflow-y: auto;
+    margin-top: 6px;
+}
+
+.meet-dropdown-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 10px;
+    border-radius: 8px;
+    background: transparent;
+    color: #e8eaed;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+    border: none;
+    text-align: left;
+    width: 100%;
+}
+
+.meet-dropdown-item:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.meet-dropdown-item.active {
+    background: rgba(138, 180, 248, 0.18);
+    color: #8ab4f8;
+    font-weight: 700;
+}
+
+.meet-dropdown-item-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+}
+
+.meet-dropdown-item-name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.meet-dropdown-badge {
+    background: rgba(255, 255, 255, 0.12);
+    padding: 1px 6px;
+    border-radius: 10px;
+    font-size: 11px;
+    color: #bdc1c6;
+}
+
+/* Meet code pill */
+.meet-code-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    color: #9aa0a6;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.2s;
+}
+
+.meet-code-pill:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #e8eaed;
+    border-color: rgba(255, 255, 255, 0.25);
+}
+
+/* Call timer */
+.meet-topbar-center {
+    display: flex;
+    align-items: center;
+}
+
+.meet-call-timer {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 700;
+    color: #e8eaed;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 4px 12px;
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.meet-topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.meet-topbar-btn {
+    padding: 6px 12px !important;
+    background: rgba(255, 255, 255, 0.06) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    color: #e8eaed !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    cursor: pointer;
+    transition: all 0.18s;
+}
+
+.meet-topbar-btn:hover {
+    background: rgba(255, 255, 255, 0.15) !important;
+    color: #fff !important;
+}
+
+/* MEET STAGE WRAPPER */
+.meet-stage-wrapper {
+    display: flex;
+    position: relative;
+    width: 100%;
+    min-height: 440px;
+    max-height: 72vh;
+    background: #171719;
+    overflow: hidden;
+}
+
+.meet-stage {
+    flex: 1;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    padding: 14px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    min-width: 0;
+}
+
+/* SPOTLIGHT VIEW (Pin / Screen Share) */
+.meet-spotlight-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    background: #000000;
+    border-radius: 14px;
+    overflow: hidden;
+    margin-bottom: 12px;
+    min-height: 320px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+}
+
+.meet-spotlight-media {
+    flex: 1;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #000;
+    overflow: hidden;
+}
+
+.meet-spotlight-media video {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.meet-spotlight-info {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    right: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    pointer-events: none;
+    z-index: 5;
+}
+
+.meet-spotlight-name {
+    background: rgba(0, 0, 0, 0.7);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 8px;
+    backdrop-filter: blur(8px);
+    pointer-events: auto;
+}
+
+.meet-unpin-btn {
+    pointer-events: auto;
+    background: rgba(0, 0, 0, 0.75);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #fff;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    backdrop-filter: blur(8px);
+    transition: background 0.15s;
+}
+
+.meet-unpin-btn:hover {
+    background: rgba(234, 67, 53, 0.85);
+}
+
+/* MEET VIDEO GRID */
+.meet-grid {
+    flex: 1;
+    display: grid;
+    gap: 12px;
+    width: 100%;
+    height: 100%;
+    align-content: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+/* Grid Layouts by user count */
+.meet-grid.grid-1 {
+    grid-template-columns: minmax(320px, 800px);
+    max-width: 860px;
+    margin: 0 auto;
+}
+
+.meet-grid.grid-2 {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.meet-grid.grid-3,
+.meet-grid.grid-4 {
+    grid-template-columns: repeat(2, minmax(260px, 1fr));
+}
+
+.meet-grid.grid-multi {
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+}
+
+/* In spotlight mode, grid turns into a strip below or beside */
+.meet-stage.is-spotlight .meet-grid {
+    flex: none;
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    gap: 10px;
+    padding-bottom: 6px;
+    height: 140px;
+}
+
+.meet-stage.is-spotlight .meet-tile {
+    width: 220px;
+    flex-shrink: 0;
+    height: 124px;
+}
+
+/* MEET TILE (Individual user box) */
+.meet-tile {
+    position: relative;
+    background: #3c4043;
+    border-radius: 14px;
+    overflow: hidden;
+    aspect-ratio: 16 / 9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+    border: 2px solid transparent;
+    transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+    user-select: none;
+}
+
+.meet-tile.is-speaking {
+    border-color: #34a853;
+    box-shadow: 0 0 16px rgba(52, 168, 83, 0.6);
+}
+
+.meet-tile.is-hand-raised {
+    border-color: #fbbc04;
+}
+
+.meet-video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    background: #202124;
+}
+
+.meet-tile.is-local .meet-video {
+    transform: scaleX(-1); /* Mirror local webcam */
+}
+
+/* Avatar placeholder when camera is off */
+.meet-avatar-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at center, #303134 0%, #202124 100%);
+}
+
+.meet-avatar-circle {
+    width: clamp(56px, 10vw, 84px);
+    height: clamp(56px, 10vw, 84px);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: clamp(24px, 4vw, 36px);
+    font-weight: 700;
+    color: #ffffff;
+    background: #87cefa;
+    position: relative;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+    background-size: cover;
+    background-position: center;
+    overflow: hidden;
+}
+
+.meet-avatar-circle-img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    display: block;
+}
+
+/* Speaking ripple effect on avatar */
+.meet-tile.is-speaking .meet-avatar-circle::before {
+    content: '';
+    position: absolute;
+    inset: -6px;
+    border-radius: 50%;
+    border: 3px solid #34a853;
+    animation: meetSpeakingWave 1.2s infinite ease-out;
+}
+
+@keyframes meetSpeakingWave {
+    0% { transform: scale(1); opacity: 0.9; }
+    100% { transform: scale(1.3); opacity: 0; }
+}
+
+/* Corner name badge */
+.meet-tile-nametag {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(0, 0, 0, 0.65);
+    padding: 3px 8px;
+    border-radius: 6px;
+    backdrop-filter: blur(6px);
+    max-width: 80%;
+    z-index: 2;
+}
+
+.meet-tile-name {
+    font-size: 12px;
+    font-weight: 700;
+    color: #ffffff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.meet-tile-you-badge {
+    font-size: 10px;
+    font-weight: 700;
+    color: #8ab4f8;
+}
+
+.meet-tile-admin-badge {
+    background: rgba(251, 188, 4, 0.25);
+    color: #fbbc04;
+    font-size: 9px;
+    font-weight: 800;
+    padding: 1px 4px;
+    border-radius: 4px;
+}
+
+/* Mic status corner */
+.meet-tile-mic-status {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.65);
+    color: #fff;
+    z-index: 2;
+}
+
+.meet-tile-mic-status.is-muted {
+    background: #ea4335;
+    color: #fff;
+}
+
+.meet-tile-mic-status .material-symbols-outlined {
+    font-size: 15px;
+}
+
+/* Hand raised badge */
+.meet-tile-hand {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: #fbbc04;
+    color: #202124;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+    animation: meetHandBounce 1s infinite alternate ease-in-out;
+    z-index: 3;
+}
+
+.meet-tile-hand .material-symbols-outlined {
+    font-size: 17px;
+}
+
+@keyframes meetHandBounce {
+    0% { transform: translateY(0) scale(1); }
+    100% { transform: translateY(-4px) scale(1.08); }
+}
+
+/* Hover actions (Pin, etc.) */
+.meet-tile-actions {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+    z-index: 4;
+}
+
+.meet-tile:hover .meet-tile-actions {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.meet-tile-action-btn {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: rgba(32, 33, 36, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.15s;
+}
+
+.meet-tile-action-btn:hover {
+    background: #8ab4f8;
+    color: #202124;
+    transform: scale(1.1);
+}
+
+/* Empty room placeholder */
+.meet-empty-notice {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    color: #9aa0a6;
+    text-align: center;
+    gap: 12px;
+}
+
+.meet-empty-icon {
+    font-size: 48px;
+    color: rgba(255, 255, 255, 0.2);
+}
+
+/* FLOATING REACTIONS LAYER */
+.meet-reactions-layer {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 20;
+}
+
+.meet-floating-emoji {
+    position: absolute;
+    bottom: 20px;
+    font-size: 32px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    animation: meetEmojiFloatUp 3.2s forwards cubic-bezier(0.1, 0.8, 0.3, 1);
+    filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.5));
+}
+
+.meet-floating-emoji-user {
+    background: rgba(0, 0, 0, 0.7);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 12px;
+    backdrop-filter: blur(4px);
+}
+
+@keyframes meetEmojiFloatUp {
+    0% {
+        transform: translateY(0) scale(0.6);
+        opacity: 0;
+    }
+    15% {
+        transform: translateY(-40px) scale(1.2);
+        opacity: 1;
+    }
+    70% {
+        opacity: 0.95;
+    }
+    100% {
+        transform: translateY(-280px) scale(1.05);
+        opacity: 0;
+    }
+}
+
+/* MEET SIDE PANEL (Drawer) */
+.meet-side-panel {
+    width: 320px;
+    background: #202124;
+    border-left: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    z-index: 15;
+    transition: transform 0.25s ease;
+}
+
+.meet-side-panel.hidden {
+    display: none !important;
+}
+
+.meet-side-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.meet-side-tabs {
+    display: flex;
+    gap: 4px;
+}
+
+.meet-side-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    border-radius: 8px;
+    background: transparent;
+    border: none;
+    color: #9aa0a6;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.meet-side-tab.active {
+    background: rgba(255, 255, 255, 0.1);
+    color: #8ab4f8;
+}
+
+.meet-side-close {
+    background: transparent;
+    border: none;
+    color: #9aa0a6;
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+}
+
+.meet-side-close:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.meet-side-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px;
+}
+
+.meet-side-content.hidden {
+    display: none !important;
+}
+
+/* People List in Side Panel */
+.meet-people-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.meet-person-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 10px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.meet-person-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+
+.meet-person-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 12px;
+    color: #fff;
+    flex-shrink: 0;
+    background-size: cover;
+    overflow: hidden;
+}
+
+.meet-person-avatar-img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    display: block;
+}
+
+.meet-person-meta {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.meet-person-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: #e8eaed;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.meet-person-status {
+    font-size: 11px;
+    color: #9aa0a6;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.meet-person-badges {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #9aa0a6;
+}
+
+.meet-person-mic-icon.muted {
+    color: #ea4335;
+}
+
+/* Details Section in Side Panel */
+.meet-details-room-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.04);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    margin-bottom: 14px;
+}
+
+.meet-details-icon {
+    font-size: 32px;
+    line-height: 1;
+}
+
+.meet-details-meta h4 {
+    margin: 0 0 4px 0;
+    font-size: 16px;
+    font-weight: 700;
+    color: #fff;
+}
+
+.meet-details-meta p {
+    margin: 6px 0 0 0;
+    font-size: 12px;
+    color: #9aa0a6;
+    line-height: 1.4;
+}
+
+.meet-my-settings-box {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 12px;
+}
+
+.meet-my-settings-box label {
+    font-size: 12px;
+    font-weight: 700;
+    color: #e8eaed;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* ============================================================
+   GOOGLE MEET BOTTOM TOOLBAR
+   ============================================================ */
+.meet-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 20px;
+    background: #1e1f22;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    position: relative;
+    z-index: 10;
+    gap: 12px;
+}
+
+.meet-toolbar-left {
+    display: flex;
+    align-items: center;
+    min-width: 140px;
+}
+
+.meet-toolbar-room-name-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #e8eaed;
+}
+
+.meet-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #34a853;
+}
+
+/* Toolbar center: Iconic round Meet buttons */
+.meet-toolbar-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    flex: 1;
+}
+
+.meet-tool-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: #3c4043;
+    border: none;
+    color: #ffffff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    outline: none;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.meet-tool-btn:hover {
+    background: #474a4d;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+}
+
+.meet-tool-btn:active {
+    transform: translateY(0);
+}
+
+.meet-tool-btn .material-symbols-outlined {
+    font-size: 21px;
+}
+
+/* Mic & Cam off state: Google red */
+.meet-tool-btn.is-off {
+    background: #ea4335 !important;
+    color: #ffffff !important;
+}
+
+.meet-tool-btn.is-off:hover {
+    background: #d93025 !important;
+}
+
+/* Active state (Hand raised, Screen sharing) */
+.meet-tool-btn.is-active {
+    background: #8ab4f8 !important;
+    color: #202124 !important;
+}
+
+/* Leave call button: Iconic pill red button */
+.meet-btn-leave {
+    width: 56px !important;
+    height: 44px !important;
+    border-radius: 22px !important;
+    background: #ea4335 !important;
+    color: #ffffff !important;
+}
+
+.meet-btn-leave:hover {
+    background: #d93025 !important;
+}
+
+/* Subtle side buttons */
+.meet-toolbar-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    justify-content: flex-end;
+    min-width: 140px;
+}
+
+.meet-btn-subtle {
+    background: transparent !important;
+    color: #9aa0a6 !important;
+    box-shadow: none !important;
+}
+
+.meet-btn-subtle:hover {
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: #ffffff !important;
+}
+
+/* Reactions popover bar */
+.meet-reactions-popover-wrap {
+    position: relative;
+}
+
+.meet-reactions-bar {
+    position: absolute;
+    bottom: calc(100% + 14px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: #282a2d;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 30px;
+    padding: 6px 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(10px);
+    z-index: 100;
+    white-space: nowrap;
+}
+
+.meet-reactions-bar.hidden {
+    display: none !important;
+}
+
+.meet-reaction-opt {
+    background: transparent;
+    border: none;
+    font-size: 22px;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 50%;
+    transition: transform 0.15s ease;
+    line-height: 1;
+}
+
+.meet-reaction-opt:hover {
+    transform: scale(1.35);
+}
+
+/* Pulse dot */
+.pulse-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #34a853;
+    display: inline-block;
+    box-shadow: 0 0 8px #34a853;
+    animation: meetPulse 2s infinite;
+}
+
+@keyframes meetPulse {
+    0% { transform: scale(0.95); opacity: 0.8; }
+    50% { transform: scale(1.3); opacity: 1; }
+    100% { transform: scale(0.95); opacity: 0.8; }
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+    .meet-stage-wrapper {
+        min-height: 360px;
+        max-height: 60vh;
+    }
+
+    .meet-toolbar {
+        padding: 8px 10px;
+    }
+
+    .meet-toolbar-left,
+    .meet-toolbar-right {
+        display: none;
+    }
+
+    .meet-toolbar-center {
+        justify-content: space-around;
+        width: 100%;
+        gap: 6px;
+    }
+
+    .meet-tool-btn {
+        width: 40px;
+        height: 40px;
+    }
+
+    .meet-btn-leave {
+        width: 48px !important;
+        height: 40px !important;
+    }
+
+    .meet-side-panel {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        z-index: 30;
+    }
+}
+
+

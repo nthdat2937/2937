@@ -1,0 +1,22 @@
+[
+  {
+    "id": "room_general",
+    "name": "Phòng học chung",
+    "icon": "📚",
+    "desc": "Không gian học tập & làm việc yên tĩnh cùng âm nhạc thư giãn.",
+    "topic": "Tự do & Tập trung",
+    "createdBy": "Hệ thống",
+    "createdAt": 1700000000000,
+    "isDefault": true
+  },
+  {
+    "id": "study_1792814187788_zhgyv",
+    "name": "Ôn thi đại học",
+    "icon": "🎯",
+    "desc": "Cùng nhau học tập, chia sẻ kiến thức và tiến bộ mỗi ngày.",
+    "topic": "Tập trung & Thảo luận",
+    "createdBy": "nthdat 😎",
+    "createdAt": 1792814187788,
+    "isDefault": false
+  }
+]

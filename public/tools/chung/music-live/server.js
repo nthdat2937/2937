@@ -12,6 +12,7 @@ const SUPABASE_KEY = 'sb_publishable_p0VSduH3epzQVUdvAf2kPQ_aoWk_l1T';
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 async function logMusicHistory(videoId, title, addedBy) {
+    if (videoId) lastPlayedVideo = { id: videoId, title: title || '' };
     try {
         const { error } = await supabase.from('music_history').insert([{
             video_id: videoId,
@@ -870,16 +871,182 @@ const io = new Server(server, {
     maxHttpBufferSize: 50 * 1024 * 1024
 });
 
+app.use(express.json({ limit: '15mb' }));
+app.use(express.urlencoded({ extended: true, limit: '15mb' }));
+
 app.use(express.static('public'));
 app.use('/assets', express.static(path.join(__dirname, 'assets')));
+
+const UPLOADS_DIR = path.join(__dirname, 'public/uploads');
+const AVATARS_DIR = path.join(UPLOADS_DIR, 'avatars');
+if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+if (!fs.existsSync(AVATARS_DIR)) fs.mkdirSync(AVATARS_DIR, { recursive: true });
+app.use('/uploads', express.static(UPLOADS_DIR));
+
+// Avatar Proxy: Bỏ qua kiểm tra Referer từ các nguồn ngoài như Google (lh3.googleusercontent.com)
+app.get('/api/avatar-proxy', (req, res) => {
+    const targetUrl = req.query.url;
+    if (!targetUrl || typeof targetUrl !== 'string') {
+        return res.redirect('/assets/images/placeholder.svg');
+    }
+    try {
+        const parsed = new URL(targetUrl);
+        if (!['http:', 'https:'].includes(parsed.protocol)) {
+            return res.redirect('/assets/images/placeholder.svg');
+        }
+        const client = parsed.protocol === 'https:' ? https : http;
+        const proxyReq = client.get(targetUrl, {
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Accept': 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8'
+            },
+            timeout: 8000
+        }, (proxyRes) => {
+            if (proxyRes.statusCode >= 300 && proxyRes.statusCode < 400 && proxyRes.headers.location) {
+                return res.redirect(`/api/avatar-proxy?url=${encodeURIComponent(proxyRes.headers.location)}`);
+            }
+            if (proxyRes.statusCode !== 200) {
+                return res.redirect('/assets/images/placeholder.svg');
+            }
+            res.writeHead(200, {
+                'Content-Type': proxyRes.headers['content-type'] || 'image/jpeg',
+                'Cache-Control': 'public, max-age=86400',
+                'Access-Control-Allow-Origin': '*'
+            });
+            proxyRes.pipe(res);
+        });
+
+        proxyReq.on('error', () => {
+            if (!res.headersSent) res.redirect('/assets/images/placeholder.svg');
+        });
+        proxyReq.on('timeout', () => {
+            proxyReq.destroy();
+            if (!res.headersSent) res.redirect('/assets/images/placeholder.svg');
+        });
+    } catch (e) {
+        if (!res.headersSent) res.redirect('/assets/images/placeholder.svg');
+    }
+});
+
+// Endpoint upload avatar dự phòng khi Supabase storage không có bucket
+app.post('/api/upload-avatar', (req, res) => {
+    const { image, userId } = req.body || {};
+    if (!image || typeof image !== 'string' || !image.startsWith('data:image/')) {
+        return res.status(400).json({ error: 'Dữ liệu ảnh không hợp lệ' });
+    }
+    try {
+        const matches = image.match(/^data:image\/([a-zA-Z0-9+]+);base64,(.+)$/);
+        if (!matches) {
+            return res.status(400).json({ error: 'Định dạng base64 không đúng' });
+        }
+        let ext = matches[1].toLowerCase();
+        if (ext === 'jpeg') ext = 'jpg';
+        if (ext === 'svg+xml') ext = 'svg';
+        const buffer = Buffer.from(matches[2], 'base64');
+        const safeUserId = (userId || 'user').replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 36);
+        const filename = `avatar_${safeUserId}_${Date.now()}.${ext}`;
+        const filePath = path.join(AVATARS_DIR, filename);
+        fs.writeFileSync(filePath, buffer);
+        const avatarUrl = `/uploads/avatars/${filename}`;
+        return res.json({ success: true, avatarUrl });
+    } catch (err) {
+        console.error('Lỗi lưu ảnh avatar:', err);
+        return res.status(500).json({ error: 'Không thể lưu ảnh đại diện' });
+    }
+});
+
+const DATA_DIR = path.join(__dirname, 'data');
 
 let playlist = [];
 let currentVideoId = '';
 let currentVideoTitle = 'Chưa có bài hát nào';
+
+// Bài hát phát gần nhất (mục đầu tiên trong "Lịch sử phát").
+// Dùng làm video mặc định khi chưa có bài nào đang phát (vd: vừa khởi động lại server, hết hàng đợi).
+let lastPlayedVideo = { id: '', title: '' };
+
+async function loadLastPlayedVideo() {
+    try {
+        const { data, error } = await supabase
+            .from('music_history')
+            .select('video_id, title')
+            .order('played_at', { ascending: false })
+            .limit(1);
+        if (error) {
+            console.error('Supabase Error (load last played):', error.message);
+            return;
+        }
+        if (data && data.length > 0 && data[0].video_id) {
+            lastPlayedVideo = { id: data[0].video_id, title: data[0].title || '' };
+            console.log('🎵 Bài hát cuối cùng đã phát:', lastPlayedVideo.title);
+        }
+    } catch (err) {
+        console.error('Supabase Exception (load last played):', err.message);
+    }
+}
+loadLastPlayedVideo();
+
+// Trả về thông tin video gửi cho client: bài đang phát, hoặc bài phát gần nhất làm mặc định.
+function getInitialVideoPayload() {
+    if (currentVideoId) {
+        return { currentVideoId, currentVideoTitle, isLastPlayedFallback: false };
+    }
+    if (lastPlayedVideo.id) {
+        return {
+            currentVideoId: lastPlayedVideo.id,
+            currentVideoTitle: lastPlayedVideo.title || currentVideoTitle,
+            isLastPlayedFallback: true
+        };
+    }
+    return { currentVideoId, currentVideoTitle, isLastPlayedFallback: false };
+}
 let pinnedMessage = null;
 let loopMode = false;
+let djRadioMode = true; // Chế độ DJ Radio tự động nối bài khi hết hàng đợi
+let recentPlayedSongIds = [];
 let isPlayerIdle = true;
 let lastGlobalVideoEndedTime = 0;
+
+async function autoPickDjRadioSong(currentTitle, currentId) {
+    try {
+        let clean = (currentTitle || 'nhạc trẻ acoustic chill')
+            .replace(/[\(\[\{].*?[\)\]\}]/g, '')
+            .replace(/(official|music video|mv|audio|lyric|lyrics|video|karaoke|beat|remix|hd|4k)/gi, '')
+            .trim();
+        if (!clean || clean.length < 2) clean = 'nhạc chill acoustic';
+
+        const queries = [
+            clean + ' mix nhạc tương tự',
+            clean + ' acoustic chill',
+            clean + ' bài hát tương tự',
+            'nhạc trẻ hot trending việt nam'
+        ];
+
+        for (const query of queries) {
+            const r = await ytSearch(query);
+            const videos = r && r.videos ? r.videos : [];
+            const found = videos.find(v =>
+                v.videoId &&
+                v.videoId !== currentId &&
+                !recentPlayedSongIds.includes(v.videoId) &&
+                v.seconds > 60 && v.seconds < 540
+            );
+            if (found) {
+                recentPlayedSongIds.push(found.videoId);
+                if (recentPlayedSongIds.length > 25) recentPlayedSongIds.shift();
+                return {
+                    id: found.videoId,
+                    title: found.title,
+                    addedBy: 'DJ Radio 📻',
+                    isDjRadio: true
+                };
+            }
+        }
+    } catch (err) {
+        console.error('DJ Radio search error:', err.message);
+    }
+    return null;
+}
 
 
 let connectedUsers = new Map();
@@ -1061,7 +1228,6 @@ function getPublicUnoState() {
 }
 
 // --- PICTURE QUIZ (GAME ĐOÁN TỪ THEO HÌNH) STORAGE & HELPERS ---
-const DATA_DIR = path.join(__dirname, 'data');
 const QUIZ_FILE = path.join(DATA_DIR, 'picture_quiz_packs.json');
 
 const DEFAULT_QUIZ_PACKS = [
@@ -1221,6 +1387,97 @@ function saveQuizPacks(packs) {
         console.log('📂 Đã tải', filePacks.length, 'bộ câu hỏi từ file local (đồng bộ lên Supabase).');
     }
 })();
+
+// ============================================================
+// STUDY ROOMS SYSTEM (Phòng học chung & Tạo phòng cho Admin)
+// ============================================================
+const STUDY_ROOMS_FILE = path.join(DATA_DIR, 'study_rooms.json');
+
+const DEFAULT_STUDY_ROOMS = [
+    {
+        id: 'room_general',
+        name: 'Phòng học chung',
+        icon: '📚',
+        desc: 'Không gian học tập & làm việc yên tĩnh cùng âm nhạc thư giãn.',
+        topic: 'Tự do & Tập trung',
+        createdBy: 'Hệ thống',
+        createdAt: 1700000000000,
+        isDefault: true
+    }
+];
+
+let cachedStudyRooms = null;
+const studyUsers = new Map(); // socket.id -> { socketId, userId, username, avatarUrl, nameColor, role, roomId, status, goal, joinedAt }
+const studyVibes = []; // recent vibes
+
+function loadStudyRooms() {
+    if (cachedStudyRooms) return cachedStudyRooms;
+    try {
+        if (!fs.existsSync(DATA_DIR)) {
+            fs.mkdirSync(DATA_DIR, { recursive: true });
+        }
+        if (!fs.existsSync(STUDY_ROOMS_FILE)) {
+            fs.writeFileSync(STUDY_ROOMS_FILE, JSON.stringify(DEFAULT_STUDY_ROOMS, null, 2), 'utf8');
+            cachedStudyRooms = DEFAULT_STUDY_ROOMS;
+            return DEFAULT_STUDY_ROOMS;
+        }
+        const raw = fs.readFileSync(STUDY_ROOMS_FILE, 'utf8');
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+            cachedStudyRooms = parsed;
+            return parsed;
+        }
+    } catch (e) {
+        console.error('Error reading study_rooms.json:', e.message);
+    }
+    cachedStudyRooms = DEFAULT_STUDY_ROOMS;
+    return DEFAULT_STUDY_ROOMS;
+}
+
+function saveStudyRooms(rooms) {
+    try {
+        if (!fs.existsSync(DATA_DIR)) {
+            fs.mkdirSync(DATA_DIR, { recursive: true });
+        }
+        cachedStudyRooms = rooms;
+        fs.writeFileSync(STUDY_ROOMS_FILE, JSON.stringify(rooms, null, 2), 'utf8');
+    } catch (e) {
+        console.error('Error writing study_rooms.json:', e.message);
+    }
+}
+
+// Cập nhật lại danh tính (tên/avatar/màu/role) của người dùng đang ở phòng học
+// khi socket vừa xác thực xong hoặc vừa đổi hồ sơ (tránh bị hiển thị "Bạn học").
+function refreshStudyUserIdentity(sock) {
+    const u = studyUsers.get(sock.id);
+    if (!u) return false;
+    const cleanName = (sock.username || '').replace(/😎/g, '').trim();
+    if (cleanName) {
+        u.username = sock.role === 'admin' ? cleanName + ' 😎' : cleanName;
+    }
+    u.avatarUrl = sock.avatarUrl || '';
+    u.nameColor = sock.nameColor || u.nameColor || '#ff75a0';
+    u.role = sock.role || 'member';
+    u.userId = sock.userId || null;
+    return true;
+}
+
+function getStudyRoomState() {
+    const rooms = loadStudyRooms();
+    const userCounts = {};
+    rooms.forEach(r => { userCounts[r.id] = 0; });
+    for (const u of studyUsers.values()) {
+        userCounts[u.roomId] = (userCounts[u.roomId] || 0) + 1;
+    }
+    const activeUsers = Array.from(studyUsers.values());
+    return {
+        rooms,
+        userCounts,
+        totalLearners: studyUsers.size,
+        activeUsers,
+        recentVibes: studyVibes.slice(-15)
+    };
+}
 
 function generateQuestionsForPack(pack, allPacks) {
     if (!pack || !Array.isArray(pack.items)) return [];
@@ -1560,6 +1817,388 @@ ${webContext}`;
     }
 }
 
+// ============================================================
+// PREMIUM ACCOUNTS, VIETQR CONFIG & LIVE INTERACTIVE ROOM STATE
+// ============================================================
+const PREMIUM_DATA_FILE = path.join(__dirname, 'premium_data.json');
+const premiumUsers = new Set(); // Lưu userId hoặc username (lowercase) đã nâng cấp Premium
+const revokedPremiumUsers = new Set(); // Lưu userId hoặc username bị Admin thu hồi về Member
+const livePolls = new Map();    // pollId -> { id, question, authorName, authorColor, createdAt, options: [{ text, voters: Set }] }
+
+let premiumDataStore = {
+    vietqrConfig: {
+        bankId: 'MB',
+        bankName: 'MB Bank (Ngân hàng Quân Đội)',
+        accountNo: '0987654321',
+        accountName: 'CHU TRAM NHAC 2937 ML',
+        amount: 29000,
+        template: 'compact2',
+        transferPrefix: 'VIP2937'
+    },
+    users: {}, // key (userId hoặc lowerUsername) -> { key, userId, username, displayName, email, role: 'premium'|'member', note, updatedAt, updatedBy }
+    paymentRequests: [] // [{ id, userId, username, displayName, amount, transferContent, status: 'pending'|'approved'|'rejected', createdAt, processedAt, processedBy }]
+};
+
+function loadPremiumDataStore() {
+    try {
+        if (fs.existsSync(PREMIUM_DATA_FILE)) {
+            const raw = JSON.parse(fs.readFileSync(PREMIUM_DATA_FILE, 'utf8'));
+            if (raw && typeof raw === 'object') {
+                if (raw.vietqrConfig && typeof raw.vietqrConfig === 'object') {
+                    premiumDataStore.vietqrConfig = {
+                        ...premiumDataStore.vietqrConfig,
+                        ...raw.vietqrConfig
+                    };
+                }
+                if (raw.users && typeof raw.users === 'object') {
+                    premiumDataStore.users = raw.users;
+                }
+                if (Array.isArray(raw.paymentRequests)) {
+                    premiumDataStore.paymentRequests = raw.paymentRequests;
+                }
+            }
+        } else {
+            fs.writeFileSync(PREMIUM_DATA_FILE, JSON.stringify(premiumDataStore, null, 2), 'utf8');
+        }
+    } catch (err) {
+        console.error('⚠️ Lỗi đọc file premium_data.json:', err.message);
+    }
+
+    premiumUsers.clear();
+    revokedPremiumUsers.clear();
+    Object.values(premiumDataStore.users || {}).forEach(u => {
+        if (!u) return;
+        const uIdKey = u.userId ? String(u.userId).trim() : '';
+        const uNameKey = u.username ? String(u.username).replace(/😎/g, '').trim().toLowerCase() : '';
+        if (u.role === 'premium') {
+            if (uIdKey) premiumUsers.add(uIdKey);
+            if (uNameKey) premiumUsers.add(uNameKey);
+        } else if (u.role === 'member') {
+            if (uIdKey) revokedPremiumUsers.add(uIdKey);
+            if (uNameKey) revokedPremiumUsers.add(uNameKey);
+        }
+    });
+}
+
+function savePremiumDataStore() {
+    try {
+        fs.writeFileSync(PREMIUM_DATA_FILE, JSON.stringify(premiumDataStore, null, 2), 'utf8');
+    } catch (err) {
+        console.error('⚠️ Lỗi lưu file premium_data.json:', err.message);
+    }
+}
+
+loadPremiumDataStore();
+
+function normalizeTransferCodeName(name) {
+    return String(name || 'MEMBER')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/đ/g, 'd')
+        .replace(/Đ/g, 'D')
+        .replace(/[^a-zA-Z0-9]/g, '')
+        .toUpperCase()
+        .slice(0, 14) || 'MEMBER';
+}
+
+function buildVietQrTransferContent(username, userId) {
+    const prefix = String(premiumDataStore.vietqrConfig.transferPrefix || 'VIP2937').trim().toUpperCase();
+    const cleanSlug = normalizeTransferCodeName(username);
+    const shortSuffix = userId ? String(userId).replace(/[^a-zA-Z0-9]/g, '').slice(0, 4).toUpperCase() : '';
+    return `${prefix} ${cleanSlug}${shortSuffix ? ' ' + shortSuffix : ''}`.trim();
+}
+
+async function grantOrRevokePremium({ userId, username, displayName, email, isPremium, note, updatedBy }) {
+    const cleanUsername = String(username || displayName || '').replace(/😎/g, '').trim();
+    const lowerName = cleanUsername.toLowerCase();
+    const cleanUserId = userId ? String(userId).trim() : '';
+    const recordKey = cleanUserId || lowerName;
+    if (!recordKey) return null;
+
+    const existing = premiumDataStore.users[recordKey] || (lowerName && premiumDataStore.users[lowerName]) || {};
+    const newRole = isPremium ? 'premium' : 'member';
+
+    const updatedRecord = {
+        key: recordKey,
+        userId: cleanUserId || existing.userId || '',
+        username: cleanUsername || existing.username || 'Thành viên',
+        displayName: displayName || existing.displayName || cleanUsername || 'Thành viên',
+        email: email || existing.email || '',
+        role: newRole,
+        note: note !== undefined ? note : (existing.note || ''),
+        updatedAt: Date.now(),
+        updatedBy: updatedBy || 'Admin'
+    };
+
+    premiumDataStore.users[recordKey] = updatedRecord;
+    if (lowerName && recordKey !== lowerName && premiumDataStore.users[lowerName]) {
+        delete premiumDataStore.users[lowerName];
+    }
+
+    if (isPremium) {
+        if (cleanUserId) {
+            premiumUsers.add(cleanUserId);
+            revokedPremiumUsers.delete(cleanUserId);
+        }
+        if (lowerName) {
+            premiumUsers.add(lowerName);
+            revokedPremiumUsers.delete(lowerName);
+        }
+    } else {
+        if (cleanUserId) {
+            premiumUsers.delete(cleanUserId);
+            revokedPremiumUsers.add(cleanUserId);
+        }
+        if (lowerName) {
+            premiumUsers.delete(lowerName);
+            revokedPremiumUsers.add(lowerName);
+        }
+    }
+
+    savePremiumDataStore();
+
+    // Đồng bộ lên bảng profiles của Supabase nếu có
+    if (supabase) {
+        try {
+            if (cleanUserId) {
+                await supabase
+                    .from('profiles')
+                    .update({ role: newRole })
+                    .eq('id', cleanUserId)
+                    .neq('role', 'admin');
+            } else if (cleanUsername) {
+                await supabase
+                    .from('profiles')
+                    .update({ role: newRole })
+                    .ilike('username', cleanUsername)
+                    .neq('role', 'admin');
+            }
+        } catch (err) {
+            console.warn('Supabase sync premium role warning:', err.message);
+        }
+    }
+
+    // Cập nhật tức thì cho các socket đang online của tài khoản này
+    for (const [sId, sock] of io.sockets.sockets.entries()) {
+        const sockCleanName = String(sock.username || '').replace(/😎/g, '').trim().toLowerCase();
+        const matchId = cleanUserId && sock.userId && String(sock.userId) === cleanUserId;
+        const matchName = lowerName && sockCleanName && sockCleanName === lowerName;
+        if (matchId || matchName) {
+            if (sock.role !== 'admin') {
+                sock.isPremium = Boolean(isPremium);
+                sock.role = isPremium ? 'premium' : 'member';
+                const connU = connectedUsers.get(sId);
+                if (connU) {
+                    connU.isPremium = Boolean(isPremium);
+                    connU.role = sock.role;
+                }
+                sock.emit('premiumStatusUpdated', {
+                    isPremium: Boolean(isPremium),
+                    role: sock.role,
+                    updatedBy: updatedBy || 'Admin'
+                });
+            }
+        }
+    }
+
+    if (isPremium) {
+        io.emit('newMessage', {
+            id: 'sys-vip-' + Date.now() + '-' + Math.random().toString(36).slice(2, 5),
+            name: 'Hệ thống 👑',
+            text: `👑 Chúc mừng **[${cleanUsername || 'Thành viên'}]** đã chính thức trở thành **2937.ML PREMIUM**!`,
+            role: 'system'
+        });
+    }
+
+    return updatedRecord;
+}
+
+async function buildAdminPremiumFullPayload() {
+    const mergedMap = new Map();
+
+    // 1. Lấy danh sách tài khoản từ Supabase profiles
+    if (supabase) {
+        try {
+            const { data: profiles } = await supabase
+                .from('profiles')
+                .select('id, username, display_name, email, role, avatar_url, name_color, updated_at')
+                .order('updated_at', { ascending: false })
+                .limit(300);
+
+            if (Array.isArray(profiles)) {
+                profiles.forEach(p => {
+                    const uid = String(p.id || '').trim();
+                    if (!uid) return;
+                    const uname = String(p.username || p.display_name || 'Thành viên').replace(/😎/g, '').trim();
+                    const lowerName = uname.toLowerCase();
+                    let role = String(p.role || 'member').toLowerCase().trim();
+                    if (role !== 'admin') {
+                        if (revokedPremiumUsers.has(uid) || (lowerName && revokedPremiumUsers.has(lowerName))) {
+                            role = 'member';
+                        } else if (premiumUsers.has(uid) || (lowerName && premiumUsers.has(lowerName))) {
+                            role = 'premium';
+                        }
+                    }
+                    const storeEntry = premiumDataStore.users[uid] || (lowerName ? premiumDataStore.users[lowerName] : null);
+                    mergedMap.set(uid, {
+                        key: uid,
+                        userId: uid,
+                        username: uname,
+                        displayName: p.display_name || uname,
+                        email: p.email || (storeEntry && storeEntry.email) || '',
+                        avatarUrl: p.avatar_url || '',
+                        nameColor: p.name_color || '#87cefa',
+                        role: role === 'admin' ? 'admin' : (role === 'premium' ? 'premium' : 'member'),
+                        isPremium: role === 'admin' || role === 'premium',
+                        online: isUserOnline(uid),
+                        note: storeEntry ? (storeEntry.note || '') : '',
+                        updatedAt: storeEntry ? storeEntry.updatedAt : (p.updated_at ? new Date(p.updated_at).getTime() : 0),
+                        updatedBy: storeEntry ? (storeEntry.updatedBy || '') : ''
+                    });
+                });
+            }
+        } catch (err) {
+            console.warn('Supabase fetch profiles for admin warning:', err.message);
+        }
+    }
+
+    // 2. Gộp thêm dữ liệu từ file premium_data.json
+    Object.values(premiumDataStore.users || {}).forEach(u => {
+        if (!u) return;
+        const uid = u.userId ? String(u.userId).trim() : '';
+        const uname = String(u.username || u.displayName || 'Thành viên').replace(/😎/g, '').trim();
+        const lowerName = uname.toLowerCase();
+        // Tìm xem đã có trong mergedMap chưa
+        let existingEntry = uid ? mergedMap.get(uid) : null;
+        if (!existingEntry && lowerName) {
+            for (const item of mergedMap.values()) {
+                if (item.username.toLowerCase() === lowerName) {
+                    existingEntry = item;
+                    break;
+                }
+            }
+        }
+        if (existingEntry) {
+            if (existingEntry.role !== 'admin') {
+                existingEntry.role = u.role === 'premium' ? 'premium' : 'member';
+                existingEntry.isPremium = existingEntry.role === 'premium';
+            }
+            if (u.note) existingEntry.note = u.note;
+            if (u.updatedAt) existingEntry.updatedAt = u.updatedAt;
+            if (u.updatedBy) existingEntry.updatedBy = u.updatedBy;
+            if (u.email && !existingEntry.email) existingEntry.email = u.email;
+        } else {
+            const key = uid || lowerName;
+            if (key) {
+                mergedMap.set(key, {
+                    key,
+                    userId: uid,
+                    username: uname,
+                    displayName: u.displayName || uname,
+                    email: u.email || '',
+                    avatarUrl: '',
+                    nameColor: '#87cefa',
+                    role: u.role === 'premium' ? 'premium' : 'member',
+                    isPremium: u.role === 'premium',
+                    online: false,
+                    note: u.note || '',
+                    updatedAt: u.updatedAt || Date.now(),
+                    updatedBy: u.updatedBy || 'Admin'
+                });
+            }
+        }
+    });
+
+    // 3. Gộp thêm những người dùng đang trực tuyến trong phòng
+    for (const [sId, connU] of connectedUsers.entries()) {
+        const sock = io.sockets.sockets.get(sId);
+        const uid = (sock && sock.userId) ? String(sock.userId).trim() : '';
+        const uname = String((connU && connU.name) || (sock && sock.username) || 'Thành viên').replace(/😎/g, '').trim();
+        const lowerName = uname.toLowerCase();
+        const isAdm = (connU && connU.role === 'admin') || (sock && sock.role === 'admin');
+        const isPrem = isAdm || Boolean((connU && connU.isPremium) || (sock && sock.isPremium));
+
+        let target = uid ? mergedMap.get(uid) : null;
+        if (!target && lowerName) {
+            for (const item of mergedMap.values()) {
+                if (item.username.toLowerCase() === lowerName) {
+                    target = item;
+                    break;
+                }
+            }
+        }
+
+        if (target) {
+            target.online = true;
+            if (isAdm) {
+                target.role = 'admin';
+                target.isPremium = true;
+            }
+            if (!target.avatarUrl && connU.avatarUrl) target.avatarUrl = connU.avatarUrl;
+        } else if (lowerName) {
+            const key = uid || lowerName;
+            mergedMap.set(key, {
+                key,
+                userId: uid,
+                username: uname,
+                displayName: uname,
+                email: '',
+                avatarUrl: connU.avatarUrl || '',
+                nameColor: connU.nameColor || '#87cefa',
+                role: isAdm ? 'admin' : (isPrem ? 'premium' : 'member'),
+                isPremium: isPrem,
+                online: true,
+                note: isAdm ? 'Mặc định Admin là Premium' : '',
+                updatedAt: Date.now(),
+                updatedBy: ''
+            });
+        }
+    }
+
+    const usersList = Array.from(mergedMap.values()).sort((a, b) => {
+        if (a.online !== b.online) return a.online ? -1 : 1;
+        const roleOrder = { admin: 0, premium: 1, member: 2 };
+        if (roleOrder[a.role] !== roleOrder[b.role]) return roleOrder[a.role] - roleOrder[b.role];
+        return (b.updatedAt || 0) - (a.updatedAt || 0);
+    });
+
+    return {
+        vietqrConfig: premiumDataStore.vietqrConfig,
+        paymentRequests: (premiumDataStore.paymentRequests || []).slice(0, 100),
+        users: usersList
+    };
+}
+
+async function broadcastAdminPremiumState() {
+    const payload = await buildAdminPremiumFullPayload();
+    for (const [, sock] of io.sockets.sockets.entries()) {
+        if (sock.role === 'admin') {
+            sock.emit('premium:adminStateUpdated', payload);
+        }
+    }
+}
+
+function getPublicPollState(poll) {
+    if (!poll) return null;
+    let totalVotes = 0;
+    poll.options.forEach(opt => { totalVotes += opt.voters.size; });
+    return {
+        id: poll.id,
+        question: poll.question,
+        authorName: poll.authorName,
+        authorColor: poll.authorColor,
+        createdAt: poll.createdAt,
+        totalVotes,
+        options: poll.options.map((opt, idx) => ({
+            index: idx,
+            text: opt.text,
+            count: opt.voters.size,
+            percent: totalVotes > 0 ? Math.round((opt.voters.size / totalVotes) * 100) : 0,
+            voterIds: Array.from(opt.voters)
+        }))
+    };
+}
+
 io.on('connection', (socket) => {
     console.log('🔌 Một kết nối mới: ' + socket.id);
     io.emit('viewersUpdate', io.engine.clientsCount);
@@ -1616,17 +2255,18 @@ io.on('connection', (socket) => {
         if (isUserAdmin) {
             socket.username = chosenName.includes('😎') ? chosenName : (chosenName + ' 😎');
             socket.role = 'admin';
+            socket.isPremium = true; // Mặc định Admin là tài khoản Premium
             socket.nameColor = resolvedColor || '#fbbc04';
             socket.avatarUrl = resolvedAvatar;
             userAvatars.set(username.toLowerCase(), resolvedAvatar);
             if (resolvedDisplayName) userAvatars.set(resolvedDisplayName.toLowerCase(), resolvedAvatar);
-            connectedUsers.set(socket.id, { id: socket.id, name: socket.username, role: 'admin', nameColor: socket.nameColor, avatarUrl: socket.avatarUrl });
+            connectedUsers.set(socket.id, { id: socket.id, name: socket.username, role: 'admin', isPremium: true, nameColor: socket.nameColor, avatarUrl: socket.avatarUrl });
             if (quizRoomState.active) {
                 const uKey = getQuizUserKey(socket);
                 quizRoomState.players[uKey] = {
                     id: socket.id,
                     name: socket.username,
-                    color: socket.nameColor || '#ff75a0',
+                    color: socket.nameColor || '#87cefa',
                     score: (quizRoomState.players[uKey] ? quizRoomState.players[uKey].score : 0),
                     correctCount: (quizRoomState.players[uKey] ? quizRoomState.players[uKey].correctCount : 0)
                 };
@@ -1634,45 +2274,65 @@ io.on('connection', (socket) => {
             socket.emit('authResult', {
                 success: true,
                 role: 'admin',
-                userProfile: { username, displayName: resolvedDisplayName, avatarUrl: resolvedAvatar, nameColor: socket.nameColor, role: 'admin' },
-                currentVideoId, currentVideoTitle, playlist, pinnedMessage, loopMode,
+                isPremium: true,
+                userProfile: { username, displayName: resolvedDisplayName, avatarUrl: resolvedAvatar, nameColor: socket.nameColor, role: 'admin', isPremium: true },
+                ...getInitialVideoPayload(), playlist, pinnedMessage, loopMode, djRadioMode,
                 drawGame: drawGame.active ? { active: true, state: drawGame.state, scores: drawGame.scores } : null,
                 caroGame, chessGame, xiangqiGame, unoPublicState: getPublicUnoState(),
-                quizPublicState: quizRoomState.active ? getPublicQuizState() : null, chatHistory
+                quizPublicState: quizRoomState.active ? getPublicQuizState() : null, chatHistory,
+                studyRoomState: getStudyRoomState()
             });
             io.emit('newMessage', { id: 'sys-' + Date.now(), name: 'Hệ thống 🤖', text: `👑 Admin [${socket.username}] đã lên sàn điều khiển nhạc!`, role: 'system' });
             io.emit('activeUsersList', getDrawUserList());
         } else {
             socket.username = chosenName.replace(/😎/g, '').trim();
-            socket.role = 'member';
+            const lowerUname = username.toLowerCase();
+            const lowerSockName = socket.username.toLowerCase();
+            const isExplicitlyRevoked = (
+                (userId && revokedPremiumUsers.has(String(userId))) ||
+                revokedPremiumUsers.has(lowerUname) ||
+                revokedPremiumUsers.has(lowerSockName)
+            );
+            const isUserPremium = !isExplicitlyRevoked && (
+                resolvedRole === 'premium' ||
+                (userId && premiumUsers.has(String(userId))) ||
+                premiumUsers.has(lowerUname) ||
+                premiumUsers.has(lowerSockName)
+            );
+            socket.role = isUserPremium ? 'premium' : 'member';
+            socket.isPremium = isUserPremium;
             socket.nameColor = resolvedColor || '#3ea6ff';
             socket.avatarUrl = resolvedAvatar;
             userAvatars.set(username.toLowerCase(), resolvedAvatar);
             if (resolvedDisplayName) userAvatars.set(resolvedDisplayName.toLowerCase(), resolvedAvatar);
-            connectedUsers.set(socket.id, { id: socket.id, name: socket.username, role: 'member', nameColor: socket.nameColor, avatarUrl: socket.avatarUrl });
+            connectedUsers.set(socket.id, { id: socket.id, name: socket.username, role: socket.role, isPremium: socket.isPremium, nameColor: socket.nameColor, avatarUrl: socket.avatarUrl });
             if (quizRoomState.active) {
                 const uKey = getQuizUserKey(socket);
                 quizRoomState.players[uKey] = {
                     id: socket.id,
                     name: socket.username,
-                    color: socket.nameColor || '#ff75a0',
+                    color: socket.nameColor || '#87cefa',
                     score: (quizRoomState.players[uKey] ? quizRoomState.players[uKey].score : 0),
                     correctCount: (quizRoomState.players[uKey] ? quizRoomState.players[uKey].correctCount : 0)
                 };
             }
             socket.emit('authResult', {
                 success: true,
-                role: 'member',
-                userProfile: { username, displayName: resolvedDisplayName, avatarUrl: resolvedAvatar, nameColor: socket.nameColor, role: 'member' },
-                currentVideoId, currentVideoTitle, playlist, pinnedMessage, loopMode,
+                role: socket.role,
+                isPremium: socket.isPremium,
+                userProfile: { username, displayName: resolvedDisplayName, avatarUrl: resolvedAvatar, nameColor: socket.nameColor, role: socket.role, isPremium: socket.isPremium },
+                ...getInitialVideoPayload(), playlist, pinnedMessage, loopMode, djRadioMode,
                 drawGame: drawGame.active ? { active: true, state: drawGame.state, scores: drawGame.scores } : null,
                 caroGame, chessGame, xiangqiGame, unoPublicState: getPublicUnoState(),
-                quizPublicState: quizRoomState.active ? getPublicQuizState() : null, chatHistory
+                quizPublicState: quizRoomState.active ? getPublicQuizState() : null, chatHistory,
+                studyRoomState: getStudyRoomState()
             });
             io.emit('newMessage', { id: 'sys-' + Date.now(), name: 'Hệ thống 🤖', text: `👋 Chào mừng [${socket.username}] đã tham gia phòng nhạc!`, role: 'system' });
             io.emit('activeUsersList', getDrawUserList());
         }
         if (drawGame.active) io.emit('drawUsersUpdate', getDrawUserList());
+        // Nếu người dùng đã vào phòng học trước khi xác thực xong -> cập nhật lại tên thật
+        if (refreshStudyUserIdentity(socket)) io.emit('study:update', getStudyRoomState());
     });
 
     socket.on('updateUserProfile', async (data) => {
@@ -1697,6 +2357,7 @@ io.on('connection', (socket) => {
 
         io.emit('activeUsersList', getDrawUserList());
         if (drawGame.active) io.emit('drawUsersUpdate', getDrawUserList());
+        if (refreshStudyUserIdentity(socket)) io.emit('study:update', getStudyRoomState());
     });
 
     socket.on('getUserBackgrounds', async (data, callback) => {
@@ -1915,6 +2576,28 @@ io.on('connection', (socket) => {
                     });
                     isPlayerIdle = false;
                     logMusicHistory(currentVideoId, currentVideoTitle, nextSong.addedBy || 'Người dùng');
+                } else if (djRadioMode) {
+                    const djSong = await autoPickDjRadioSong(currentVideoTitle, currentVideoId);
+                    if (djSong) {
+                        currentVideoId = djSong.id;
+                        currentVideoTitle = djSong.title;
+                        io.emit('changeVideo', { id: currentVideoId, title: currentVideoTitle });
+                        io.emit('updatePlaylist', playlist);
+                        isPlayerIdle = false;
+                        io.emit('newMessage', {
+                            id: 'sys-' + Date.now(),
+                            name: 'DJ Radio 📻',
+                            nameColor: '#ff75a0',
+                            text: `⏭️ **${senderName}** đã chuyển bài. 📻 DJ Radio tự động nối bài: **${djSong.title}**!`,
+                            role: 'system'
+                        });
+                        logMusicHistory(currentVideoId, currentVideoTitle, 'DJ Radio 📻');
+                    } else {
+                        currentVideoId = '';
+                        currentVideoTitle = 'Chưa có bài hát nào';
+                        isPlayerIdle = true;
+                        io.emit('stopVideo');
+                    }
                 } else {
                     currentVideoId = '';
                     currentVideoTitle = 'Chưa có bài hát nào';
@@ -2190,7 +2873,7 @@ io.on('connection', (socket) => {
         }
     });
 
-    socket.on('adminNextSong', () => {
+    socket.on('adminNextSong', async () => {
         if (socket.role === 'admin') {
             if (playlist.length > 0) {
                 const nextSong = playlist.shift();
@@ -2200,16 +2883,36 @@ io.on('connection', (socket) => {
                 io.emit('updatePlaylist', playlist);
                 isPlayerIdle = false;
                 logMusicHistory(currentVideoId, currentVideoTitle, nextSong.addedBy || 'Admin');
+            } else if (djRadioMode) {
+                const djSong = await autoPickDjRadioSong(currentVideoTitle, currentVideoId);
+                if (djSong) {
+                    currentVideoId = djSong.id;
+                    currentVideoTitle = djSong.title;
+                    io.emit('changeVideo', { id: currentVideoId, title: currentVideoTitle });
+                    io.emit('updatePlaylist', playlist);
+                    isPlayerIdle = false;
+                    io.emit('newMessage', {
+                        id: 'sys-' + Date.now(),
+                        name: 'DJ Radio 📻',
+                        nameColor: '#ff75a0',
+                        text: `📻 DJ Radio tự động nối bài: **${djSong.title}**!`,
+                        role: 'system'
+                    });
+                    logMusicHistory(currentVideoId, currentVideoTitle, 'DJ Radio 📻');
+                } else {
+                    currentVideoId = '';
+                    currentVideoTitle = 'Chưa có bài hát nào';
+                    isPlayerIdle = true;
+                    io.emit('stopVideo');
+                }
             } else {
                 currentVideoId = '';
                 currentVideoTitle = 'Chưa có bài hát nào';
                 isPlayerIdle = true;
                 io.emit('stopVideo');
-                isPlayerIdle = true;
             }
         }
     });
-
 
     socket.on('adminToggleLoop', () => {
         if (socket.role === 'admin') {
@@ -2218,33 +2921,456 @@ io.on('connection', (socket) => {
         }
     });
 
+    socket.on('toggleDjRadio', () => {
+        djRadioMode = !djRadioMode;
+        io.emit('djRadioUpdate', djRadioMode);
+        io.emit('newMessage', {
+            id: 'sys-' + Date.now(),
+            name: 'Hệ thống 🤖',
+            text: djRadioMode 
+                ? '📻 Chế độ **DJ Radio** đã được **BẬT** (sẽ tự động nối bài tương tự khi hết hàng đợi).'
+                : '📻 Chế độ **DJ Radio** đã được **TẮT**.',
+            role: 'system'
+        });
+    });
 
-    socket.on('videoEnded', (clientVideoId) => {
-        if (socket.role === 'admin') {
+    socket.on('liveReaction', (data) => {
+        const { emoji } = data || {};
+        if (emoji && typeof emoji === 'string' && emoji.length <= 12) {
+            socket.broadcast.emit('newLiveReaction', {
+                emoji,
+                sender: socket.username || 'Ẩn danh'
+            });
+        }
+    });
 
-            if (clientVideoId && clientVideoId !== currentVideoId) return;
+    // ============================================================
+    // 1. NÂNG CẤP TÀI KHOẢN PREMIUM QUA VIETQR & BẢNG QUẢN LÝ ADMIN
+    // ============================================================
+    socket.on('premium:getPublicConfig', (_, callback) => {
+        const cleanName = String(socket.username || 'Thành viên').replace(/😎/g, '').trim();
+        const uid = socket.userId ? String(socket.userId).trim() : '';
+        const transferContent = buildVietQrTransferContent(cleanName, uid);
 
+        const pendingReq = (premiumDataStore.paymentRequests || []).find(r =>
+            r.status === 'pending' && (
+                (uid && r.userId && String(r.userId) === uid) ||
+                (cleanName && r.username && r.username.toLowerCase() === cleanName.toLowerCase())
+            )
+        ) || null;
 
-            const now = Date.now();
-            if (now - lastGlobalVideoEndedTime < 3000) return;
-            lastGlobalVideoEndedTime = now;
+        if (typeof callback === 'function') {
+            callback({
+                success: true,
+                vietqrConfig: premiumDataStore.vietqrConfig,
+                transferContent: pendingReq ? pendingReq.transferContent : transferContent,
+                pendingRequest: pendingReq
+            });
+        }
+    });
 
-            if (loopMode) {
+    socket.on('premium:requestPayment', async (data, callback) => {
+        const cleanName = String((data && data.username) || socket.username || 'Thành viên').replace(/😎/g, '').trim();
+        const uid = String((data && data.userId) || socket.userId || '').trim();
+        const transferContent = buildVietQrTransferContent(cleanName, uid);
+        const amount = Number(premiumDataStore.vietqrConfig.amount) || 29000;
 
-                io.emit('changeVideo', { id: currentVideoId, title: currentVideoTitle });
-                isPlayerIdle = false;
-            } else if (playlist.length > 0) {
+        // Kiểm tra xem đã có yêu cầu pending nào của user này chưa
+        let reqObj = (premiumDataStore.paymentRequests || []).find(r =>
+            r.status === 'pending' && (
+                (uid && r.userId && String(r.userId) === uid) ||
+                (cleanName && r.username && r.username.toLowerCase() === cleanName.toLowerCase())
+            )
+        );
 
-                const nextSong = playlist.shift();
-                currentVideoId = nextSong.id;
-                currentVideoTitle = nextSong.title;
+        if (!reqObj) {
+            reqObj = {
+                id: 'pay-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6).toUpperCase(),
+                userId: uid,
+                username: cleanName,
+                displayName: cleanName,
+                amount,
+                transferContent,
+                status: 'pending',
+                createdAt: Date.now()
+            };
+            premiumDataStore.paymentRequests.unshift(reqObj);
+            if (premiumDataStore.paymentRequests.length > 200) {
+                premiumDataStore.paymentRequests = premiumDataStore.paymentRequests.slice(0, 200);
+            }
+            savePremiumDataStore();
+        }
+
+        // Báo cho tất cả Admin đang online biết có yêu cầu thanh toán VietQR mới
+        for (const [, sock] of io.sockets.sockets.entries()) {
+            if (sock.role === 'admin') {
+                sock.emit('premium:newPaymentRequest', reqObj);
+            }
+        }
+        await broadcastAdminPremiumState();
+
+        if (typeof callback === 'function') {
+            callback({
+                success: true,
+                request: reqObj,
+                vietqrConfig: premiumDataStore.vietqrConfig
+            });
+        }
+    });
+
+    socket.on('premium:adminGetData', async (_, callback) => {
+        if (socket.role !== 'admin') {
+            if (typeof callback === 'function') callback({ success: false, message: 'Chỉ Admin mới có quyền truy cập!' });
+            return;
+        }
+        const payload = await buildAdminPremiumFullPayload();
+        if (typeof callback === 'function') {
+            callback({ success: true, ...payload });
+        }
+    });
+
+    socket.on('premium:adminSaveConfig', async (data, callback) => {
+        if (socket.role !== 'admin') {
+            if (typeof callback === 'function') callback({ success: false, message: 'Chỉ Admin mới có quyền chỉnh sửa cấu hình VietQR!' });
+            return;
+        }
+        const cfg = data || {};
+        premiumDataStore.vietqrConfig = {
+            bankId: String(cfg.bankId || premiumDataStore.vietqrConfig.bankId || 'MB').trim().toUpperCase(),
+            bankName: String(cfg.bankName || premiumDataStore.vietqrConfig.bankName || 'MB Bank').trim(),
+            accountNo: String(cfg.accountNo || '').replace(/\s+/g, '').trim(),
+            accountName: String(cfg.accountName || '').trim().toUpperCase(),
+            amount: Math.max(1000, Number(cfg.amount) || 29000),
+            template: ['compact2', 'compact', 'qr_only', 'print'].includes(cfg.template) ? cfg.template : 'compact2',
+            transferPrefix: String(cfg.transferPrefix || 'VIP2937').replace(/[^a-zA-Z0-9]/g, '').toUpperCase() || 'VIP2937'
+        };
+        savePremiumDataStore();
+
+        io.emit('premium:configUpdated', premiumDataStore.vietqrConfig);
+        await broadcastAdminPremiumState();
+
+        if (typeof callback === 'function') {
+            callback({ success: true, vietqrConfig: premiumDataStore.vietqrConfig });
+        }
+    });
+
+    socket.on('premium:adminApproveRequest', async (data, callback) => {
+        if (socket.role !== 'admin') {
+            if (typeof callback === 'function') callback({ success: false, message: 'Không có quyền Admin!' });
+            return;
+        }
+        const { requestId } = data || {};
+        const reqObj = (premiumDataStore.paymentRequests || []).find(r => r.id === requestId);
+        if (!reqObj) {
+            if (typeof callback === 'function') callback({ success: false, message: 'Không tìm thấy yêu cầu thanh toán này!' });
+            return;
+        }
+
+        reqObj.status = 'approved';
+        reqObj.processedAt = Date.now();
+        reqObj.processedBy = (socket.username || 'Admin').replace(/😎/g, '').trim();
+        savePremiumDataStore();
+
+        await grantOrRevokePremium({
+            userId: reqObj.userId,
+            username: reqObj.username,
+            displayName: reqObj.displayName || reqObj.username,
+            isPremium: true,
+            note: `Thanh toán VietQR (${Number(reqObj.amount || 0).toLocaleString('vi-VN')}đ • ${reqObj.transferContent})`,
+            updatedBy: reqObj.processedBy
+        });
+
+        await broadcastAdminPremiumState();
+        if (typeof callback === 'function') {
+            callback({ success: true, request: reqObj });
+        }
+    });
+
+    socket.on('premium:adminRejectRequest', async (data, callback) => {
+        if (socket.role !== 'admin') {
+            if (typeof callback === 'function') callback({ success: false, message: 'Không có quyền Admin!' });
+            return;
+        }
+        const { requestId, reason } = data || {};
+        const reqObj = (premiumDataStore.paymentRequests || []).find(r => r.id === requestId);
+        if (!reqObj) {
+            if (typeof callback === 'function') callback({ success: false, message: 'Không tìm thấy yêu cầu thanh toán này!' });
+            return;
+        }
+
+        reqObj.status = 'rejected';
+        reqObj.processedAt = Date.now();
+        reqObj.processedBy = (socket.username || 'Admin').replace(/😎/g, '').trim();
+        reqObj.rejectReason = String(reason || 'Chưa nhận được giao dịch chuyển khoản hợp lệ').trim();
+        savePremiumDataStore();
+
+        // Báo cho người dùng đang online biết yêu cầu bị từ chối
+        for (const [, sock] of io.sockets.sockets.entries()) {
+            const sockCleanName = String(sock.username || '').replace(/😎/g, '').trim().toLowerCase();
+            const matchId = reqObj.userId && sock.userId && String(sock.userId) === String(reqObj.userId);
+            const matchName = reqObj.username && sockCleanName === reqObj.username.toLowerCase();
+            if (matchId || matchName) {
+                sock.emit('premiumPaymentRejected', {
+                    requestId: reqObj.id,
+                    reason: reqObj.rejectReason
+                });
+            }
+        }
+
+        await broadcastAdminPremiumState();
+        if (typeof callback === 'function') {
+            callback({ success: true, request: reqObj });
+        }
+    });
+
+    socket.on('premium:adminSetUserStatus', async (data, callback) => {
+        if (socket.role !== 'admin') {
+            if (typeof callback === 'function') callback({ success: false, message: 'Chỉ Admin mới có quyền quản lý tài khoản Premium!' });
+            return;
+        }
+        const { userId, username, email, isPremium, note } = data || {};
+        let targetUserId = userId ? String(userId).trim() : '';
+        let targetUsername = String(username || '').replace(/😎/g, '').trim();
+        let targetEmail = String(email || '').trim();
+
+        // Nếu Admin nhập email hoặc username thủ công, thử tìm trong Supabase profiles để lấy đúng id
+        if (!targetUserId && (targetUsername || targetEmail) && supabase) {
+            try {
+                let query = supabase.from('profiles').select('id, username, display_name, email, role');
+                if (targetEmail && targetEmail.includes('@')) {
+                    query = query.ilike('email', targetEmail);
+                } else if (targetUsername.includes('@')) {
+                    targetEmail = targetUsername;
+                    query = query.ilike('email', targetEmail);
+                } else {
+                    query = query.or(`username.ilike.${targetUsername},display_name.ilike.${targetUsername}`);
+                }
+                const { data: found } = await query.limit(1).maybeSingle();
+                if (found) {
+                    if (found.role === 'admin') {
+                        if (typeof callback === 'function') {
+                            callback({ success: false, message: 'Tài khoản Admin mặc định luôn là Premium, không thể hạ quyền!' });
+                        }
+                        return;
+                    }
+                    targetUserId = String(found.id || '');
+                    targetUsername = found.username || found.display_name || targetUsername;
+                    targetEmail = found.email || targetEmail;
+                }
+            } catch (err) { }
+        }
+
+        if (!targetUserId && !targetUsername) {
+            if (typeof callback === 'function') {
+                callback({ success: false, message: 'Vui lòng nhập Tên tài khoản hoặc Email hợp lệ!' });
+            }
+            return;
+        }
+
+        const adminName = (socket.username || 'Admin').replace(/😎/g, '').trim();
+        const record = await grantOrRevokePremium({
+            userId: targetUserId,
+            username: targetUsername || targetEmail,
+            displayName: targetUsername || targetEmail,
+            email: targetEmail,
+            isPremium: Boolean(isPremium),
+            note: note !== undefined ? String(note).trim() : (isPremium ? 'Cấp quyền bởi Admin' : 'Thu hồi về Member'),
+            updatedBy: adminName
+        });
+
+        await broadcastAdminPremiumState();
+        if (typeof callback === 'function') {
+            callback({ success: true, record });
+        }
+    });
+
+    // ============================================================
+    // 2. GỬI LỜI CHÚC / TÂM SỰ LÊN MÀN HÌNH (LIVE DEDICATION)
+    // ============================================================
+    socket.on('sendDedication', (data, callback) => {
+        const rawText = String((data && data.text) || '').trim().slice(0, 180);
+        if (!rawText) {
+            if (typeof callback === 'function') callback({ success: false, message: 'Vui lòng nhập lời nhắn!' });
+            return;
+        }
+        const theme = ['ice', 'star', 'fire', 'sakura'].includes(data?.theme) ? data.theme : 'ice';
+        const songTitle = String((data && data.songTitle) || currentVideoTitle || '').trim().slice(0, 100);
+        const msgId = String((data && data.id) || ('ded-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7)));
+
+        const dedicationPayload = {
+            id: msgId,
+            senderId: socket.id,
+            userId: socket.userId || '',
+            name: socket.username || 'Ẩn danh',
+            nameColor: socket.nameColor || '#87cefa',
+            avatarUrl: socket.avatarUrl || '',
+            role: socket.role || 'member',
+            isPremium: Boolean(socket.isPremium || socket.role === 'admin'),
+            text: rawText,
+            theme,
+            songTitle,
+            type: 'dedication',
+            createdAt: Date.now()
+        };
+
+        io.emit('liveDedication', dedicationPayload);
+        io.emit('newMessage', dedicationPayload);
+        if (typeof callback === 'function') callback({ success: true });
+    });
+
+    // ============================================================
+    // 3. THĂM DÒ Ý KIẾN NHANH TRONG CHAT (LIVE POLL)
+    // ============================================================
+    socket.on('createPoll', (data, callback) => {
+        const question = String((data && data.question) || '').trim().slice(0, 140);
+        const rawOptions = Array.isArray(data?.options) ? data.options : [];
+        const cleanOptions = rawOptions
+            .map(o => String(o || '').trim().slice(0, 80))
+            .filter(Boolean)
+            .slice(0, 4);
+
+        if (!question || cleanOptions.length < 2) {
+            if (typeof callback === 'function') {
+                callback({ success: false, message: 'Vui lòng nhập câu hỏi và ít nhất 2 lựa chọn!' });
+            }
+            return;
+        }
+
+        const pollId = String((data && data.id) || ('poll-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7)));
+        const pollObj = {
+            id: pollId,
+            question,
+            authorName: socket.username || 'Ẩn danh',
+            authorColor: socket.nameColor || '#87cefa',
+            createdAt: Date.now(),
+            options: cleanOptions.map(text => ({ text, voters: new Set() }))
+        };
+        livePolls.set(pollId, pollObj);
+        // Giữ tối đa 30 poll gần nhất trong bộ nhớ
+        if (livePolls.size > 30) {
+            const oldestKey = livePolls.keys().next().value;
+            livePolls.delete(oldestKey);
+        }
+
+        const publicPoll = getPublicPollState(pollObj);
+        const pollMsgObj = {
+            id: pollId,
+            senderId: socket.id,
+            userId: socket.userId || '',
+            name: socket.username || 'Ẩn danh',
+            nameColor: socket.nameColor || '#87cefa',
+            avatarUrl: socket.avatarUrl || '',
+            role: socket.role || 'member',
+            isPremium: Boolean(socket.isPremium || socket.role === 'admin'),
+            text: `📊 Bình chọn: ${question}`,
+            type: 'poll',
+            pollData: publicPoll
+        };
+
+        io.emit('newMessage', pollMsgObj);
+        if (typeof callback === 'function') callback({ success: true, poll: publicPoll });
+    });
+
+    socket.on('votePoll', (data) => {
+        const { pollId, optionIndex } = data || {};
+        const poll = livePolls.get(pollId);
+        if (!poll) return;
+        const idx = Number(optionIndex);
+        if (!Number.isInteger(idx) || idx < 0 || idx >= poll.options.length) return;
+
+        const voterKey = String(socket.userId || socket.id);
+        const alreadyInTarget = poll.options[idx].voters.has(voterKey);
+
+        // Xóa phiếu cũ ở các lựa chọn khác (mỗi người 1 phiếu)
+        poll.options.forEach(opt => opt.voters.delete(voterKey));
+
+        // Nếu bấm vào lựa chọn mới thì ghi nhận phiếu (bấm lại chính nó thì rút phiếu)
+        if (!alreadyInTarget) {
+            poll.options[idx].voters.add(voterKey);
+        }
+
+        io.emit('pollUpdated', getPublicPollState(poll));
+    });
+
+    // ============================================================
+    // 4. CHIA SẺ THẺ BÀI HÁT VÀO KHUNG CHAT (SHAREABLE SONG CARD)
+    // ============================================================
+    socket.on('shareSongCard', (data, callback) => {
+        const songTitle = String((data && data.songTitle) || currentVideoTitle || '2937.ML Live').trim().slice(0, 120);
+        const quote = String((data && data.quote) || '').trim().slice(0, 220);
+        const videoId = String((data && data.videoId) || currentVideoId || '').trim().slice(0, 32);
+        const theme = String((data && data.theme) || 'midnight').trim();
+        const msgId = String((data && data.id) || ('scard-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7)));
+
+        const cardMsgObj = {
+            id: msgId,
+            senderId: socket.id,
+            userId: socket.userId || '',
+            name: socket.username || 'Ẩn danh',
+            nameColor: socket.nameColor || '#87cefa',
+            avatarUrl: socket.avatarUrl || '',
+            role: socket.role || 'member',
+            isPremium: Boolean(socket.isPremium || socket.role === 'admin'),
+            text: `🎵 Đã chia sẻ Thẻ Bài Hát: ${songTitle}`,
+            type: 'song_card',
+            songCard: {
+                songTitle,
+                quote: quote || 'Âm nhạc kết nối mọi khoảnh khắc tại 2937.ML Live ✨',
+                videoId,
+                theme,
+                listenerName: (socket.username || 'Ẩn danh').replace(/😎/g, '').trim()
+            }
+        };
+
+        io.emit('newMessage', cardMsgObj);
+        if (typeof callback === 'function') callback({ success: true });
+    });
+
+    socket.on('videoEnded', async (clientVideoId) => {
+        const isAdmin = (socket.role === 'admin');
+        const hasAdminOnline = Array.from(connectedUsers.values()).some(u => u.role === 'admin');
+
+        // Admin hoặc người dùng bất kỳ (nếu không có admin nào online) được phép kích hoạt chuyển bài
+        if (!isAdmin && hasAdminOnline) return;
+
+        if (clientVideoId && clientVideoId !== currentVideoId) return;
+
+        const now = Date.now();
+        if (now - lastGlobalVideoEndedTime < 3000) return;
+        lastGlobalVideoEndedTime = now;
+
+        if (loopMode) {
+            io.emit('changeVideo', { id: currentVideoId, title: currentVideoTitle });
+            isPlayerIdle = false;
+        } else if (playlist.length > 0) {
+            const nextSong = playlist.shift();
+            currentVideoId = nextSong.id;
+            currentVideoTitle = nextSong.title;
+            io.emit('changeVideo', { id: currentVideoId, title: currentVideoTitle });
+            io.emit('updatePlaylist', playlist);
+            isPlayerIdle = false;
+            logMusicHistory(currentVideoId, currentVideoTitle, nextSong.addedBy || 'Hệ thống');
+        } else if (djRadioMode) {
+            const djSong = await autoPickDjRadioSong(currentVideoTitle, currentVideoId);
+            if (djSong) {
+                currentVideoId = djSong.id;
+                currentVideoTitle = djSong.title;
                 io.emit('changeVideo', { id: currentVideoId, title: currentVideoTitle });
                 io.emit('updatePlaylist', playlist);
                 isPlayerIdle = false;
-                logMusicHistory(currentVideoId, currentVideoTitle, nextSong.addedBy || 'Hệ thống');
+                io.emit('newMessage', {
+                    id: 'sys-' + Date.now(),
+                    name: 'DJ Radio 📻',
+                    nameColor: '#ff75a0',
+                    text: `📻 DJ Radio tự động chọn bài tiếp theo: **${djSong.title}**!`,
+                    role: 'system'
+                });
+                logMusicHistory(currentVideoId, currentVideoTitle, 'DJ Radio 📻');
             } else {
                 isPlayerIdle = true;
             }
+        } else {
+            isPlayerIdle = true;
         }
     });
 
@@ -2918,8 +4044,200 @@ io.on('connection', (socket) => {
             io.to('user:' + receiverId).emit('messenger:userTyping', { senderId: sId, isTyping });
         }
     });
+    // ============================================================
+    // STUDY ROOMS REALTIME SOCKET EVENTS
+    // ============================================================
+    socket.on('study:getState', (callback) => {
+        const state = getStudyRoomState();
+        if (typeof callback === 'function') callback(state);
+        else socket.emit('study:update', state);
+    });
+
+    socket.on('study:joinRoom', (data, callback) => {
+        const { roomId, status, goal } = data || {};
+        const rooms = loadStudyRooms();
+        let targetId = roomId;
+        if (!rooms.some(r => r.id === targetId)) {
+            targetId = rooms[0] ? rooms[0].id : 'room_general';
+        }
+
+        const chosenName = (socket.username || 'Bạn học').replace(/😎/g, '').trim();
+        studyUsers.set(socket.id, {
+            socketId: socket.id,
+            userId: socket.userId || null,
+            username: socket.role === 'admin' ? chosenName + ' 😎' : chosenName,
+            avatarUrl: socket.avatarUrl || '',
+            nameColor: socket.nameColor || '#ff75a0',
+            role: socket.role || 'member',
+            roomId: targetId,
+            status: (status || 'Đang tập trung 🔥').substring(0, 40),
+            goal: (goal || '').substring(0, 100),
+            mediaState: { mic: false, cam: false, hand: false, screen: false, speaking: false },
+            joinedAt: Date.now()
+        });
+
+        const state = getStudyRoomState();
+        io.emit('study:update', state);
+        if (typeof callback === 'function') callback({ success: true, state, currentRoomId: targetId });
+    });
+
+    socket.on('study:leaveRoom', (callback) => {
+        if (studyUsers.has(socket.id)) {
+            const u = studyUsers.get(socket.id);
+            studyUsers.delete(socket.id);
+            io.emit('study:update', getStudyRoomState());
+            io.emit('study:peerLeft', { socketId: socket.id, roomId: u ? u.roomId : null });
+        }
+        if (typeof callback === 'function') callback({ success: true });
+    });
+
+    socket.on('study:mediaState', (data, callback) => {
+        if (studyUsers.has(socket.id)) {
+            const user = studyUsers.get(socket.id);
+            user.mediaState = Object.assign(user.mediaState || { mic: false, cam: false, hand: false, screen: false, speaking: false }, data || {});
+            io.emit('study:mediaStateChanged', {
+                socketId: socket.id,
+                roomId: user.roomId,
+                mediaState: user.mediaState
+            });
+        }
+        if (typeof callback === 'function') callback({ success: true });
+    });
+
+    socket.on('study:signal', (data) => {
+        if (data && data.to) {
+            io.to(data.to).emit('study:signal', {
+                from: socket.id,
+                signal: data.signal,
+                type: data.type
+            });
+        }
+    });
+
+    socket.on('study:reaction', (data) => {
+        const user = studyUsers.get(socket.id);
+        const rId = (user && user.roomId) || (data && data.roomId) || 'room_general';
+        const chosenName = user ? user.username : (socket.username || 'Bạn học');
+        io.emit('study:reactionReceived', {
+            socketId: socket.id,
+            username: chosenName,
+            avatarUrl: user ? user.avatarUrl : '',
+            emoji: (data && data.emoji) || '❤️',
+            roomId: rId
+        });
+    });
+
+    socket.on('study:updateStatus', (data, callback) => {
+        if (studyUsers.has(socket.id)) {
+            const user = studyUsers.get(socket.id);
+            if (data.status) user.status = String(data.status).substring(0, 40);
+            if (typeof data.goal === 'string') user.goal = data.goal.trim().substring(0, 100);
+            io.emit('study:update', getStudyRoomState());
+        }
+        if (typeof callback === 'function') callback({ success: true });
+    });
+
+    socket.on('study:sendVibe', (data, callback) => {
+        const { roomId, text, emoji } = data || {};
+        if (!text || !text.trim()) return;
+        const chosenName = (socket.username || 'Bạn học').replace(/😎/g, '').trim();
+        const vibe = {
+            id: 'vibe_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
+            roomId: roomId || 'room_general',
+            username: socket.role === 'admin' ? chosenName + ' 😎' : chosenName,
+            avatarUrl: socket.avatarUrl || '',
+            nameColor: socket.nameColor || '#ff75a0',
+            text: text.trim().substring(0, 100),
+            emoji: emoji || '💪',
+            time: Date.now()
+        };
+        studyVibes.push(vibe);
+        if (studyVibes.length > 30) studyVibes.shift();
+        io.emit('study:vibeReceived', vibe);
+        io.emit('study:update', getStudyRoomState());
+        if (typeof callback === 'function') callback({ success: true, vibe });
+    });
+
+    socket.on('study:createRoom', (data, callback) => {
+        if (socket.role !== 'admin') {
+            if (typeof callback === 'function') callback({ success: false, message: 'Chỉ Admin mới có quyền thêm phòng học mới!' });
+            return;
+        }
+        const { name, icon, desc, topic } = data || {};
+        if (!name || !name.trim()) {
+            if (typeof callback === 'function') callback({ success: false, message: 'Vui lòng nhập tên phòng học!' });
+            return;
+        }
+
+        const rooms = loadStudyRooms();
+        const newRoom = {
+            id: 'study_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
+            name: name.trim().substring(0, 40),
+            icon: (icon || '📚').trim().substring(0, 8),
+            desc: (desc || 'Cùng nhau học tập, chia sẻ kiến thức và tiến bộ mỗi ngày.').trim().substring(0, 180),
+            topic: (topic || 'Tập trung & Thảo luận').trim().substring(0, 40),
+            createdBy: socket.username || 'Admin',
+            createdAt: Date.now(),
+            isDefault: false
+        };
+        rooms.push(newRoom);
+        saveStudyRooms(rooms);
+
+        const state = getStudyRoomState();
+        io.emit('study:update', state);
+        io.emit('newMessage', {
+            id: 'sys-' + Date.now(),
+            name: 'Hệ thống 🤖',
+            text: `🏫 Admin [${socket.username}] vừa tạo phòng học mới: "${newRoom.icon} ${newRoom.name}"!`,
+            role: 'system'
+        });
+
+        if (typeof callback === 'function') callback({ success: true, room: newRoom, state });
+    });
+
+    socket.on('study:deleteRoom', (data, callback) => {
+        if (socket.role !== 'admin') {
+            if (typeof callback === 'function') callback({ success: false, message: 'Chỉ Admin mới có quyền xóa phòng học!' });
+            return;
+        }
+        const { roomId } = data || {};
+        if (!roomId || roomId === 'room_general') {
+            if (typeof callback === 'function') callback({ success: false, message: 'Không thể xóa phòng học chung mặc định!' });
+            return;
+        }
+
+        let rooms = loadStudyRooms();
+        const deletedRoom = rooms.find(r => r.id === roomId);
+        rooms = rooms.filter(r => r.id !== roomId);
+        saveStudyRooms(rooms);
+
+        // Chuyển người dùng trong phòng này về phòng chung
+        for (const u of studyUsers.values()) {
+            if (u.roomId === roomId) {
+                u.roomId = 'room_general';
+            }
+        }
+
+        const state = getStudyRoomState();
+        io.emit('study:update', state);
+        if (deletedRoom) {
+            io.emit('newMessage', {
+                id: 'sys-' + Date.now(),
+                name: 'Hệ thống 🤖',
+                text: `🗑️ Admin đã đóng phòng học "${deletedRoom.name}".`,
+                role: 'system'
+            });
+        }
+        if (typeof callback === 'function') callback({ success: true, state });
+    });
 
     socket.on('disconnect', () => {
+        if (studyUsers.has(socket.id)) {
+            const u = studyUsers.get(socket.id);
+            studyUsers.delete(socket.id);
+            io.emit('study:update', getStudyRoomState());
+            io.emit('study:peerLeft', { socketId: socket.id, roomId: u ? u.roomId : null });
+        }
         if (socket.userId && userSockets.has(String(socket.userId))) {
             const sSet = userSockets.get(String(socket.userId));
             sSet.delete(socket.id);
@@ -2997,6 +4315,76 @@ io.on('connection', (socket) => {
             quizRoomState.state = 'lobby';
         }
     });
+});
+
+// ============================================================
+// WEBHOOK TỰ ĐỘNG DUYỆT THANH TOÁN NGÂN HÀNG VIETQR (SePay / Casso)
+// ============================================================
+app.post('/api/vietqr-webhook', async (req, res) => {
+    try {
+        const body = req.body || {};
+        // Hỗ trợ cả cấu trúc JSON của SePay (content, transferAmount) và Casso (data: [{ description, amount }])
+        const transactions = Array.isArray(body.data) ? body.data : [body];
+        const minAmount = Number(premiumDataStore.vietqrConfig.amount) || 29000;
+        const prefix = String(premiumDataStore.vietqrConfig.transferPrefix || 'VIP2937').toUpperCase();
+        const approvedList = [];
+
+        for (const tx of transactions) {
+            const rawContent = String(tx.content || tx.description || tx.addInfo || '').toUpperCase();
+            const txAmount = Number(tx.transferAmount || tx.amount || 0);
+            if (!rawContent || txAmount < minAmount) continue;
+
+            // 1. Tìm trong danh sách paymentRequests đang chờ duyệt (pending)
+            const matchedReq = (premiumDataStore.paymentRequests || []).find(r =>
+                r.status === 'pending' &&
+                r.transferContent &&
+                rawContent.replace(/\s+/g, '').includes(r.transferContent.toUpperCase().replace(/\s+/g, ''))
+            );
+
+            if (matchedReq) {
+                matchedReq.status = 'approved';
+                matchedReq.processedAt = Date.now();
+                matchedReq.processedBy = 'VietQR Auto Webhook';
+                savePremiumDataStore();
+
+                await grantOrRevokePremium({
+                    userId: matchedReq.userId,
+                    username: matchedReq.username,
+                    displayName: matchedReq.displayName || matchedReq.username,
+                    isPremium: true,
+                    note: `Tự động duyệt qua Webhook VietQR (${txAmount.toLocaleString('vi-VN')}đ)`,
+                    updatedBy: 'VietQR Auto Webhook'
+                });
+                approvedList.push(matchedReq.username);
+                continue;
+            }
+
+            // 2. Nếu người dùng quét QR chuyển khoản trước khi bấm nút, đối chiếu theo cú pháp <PREFIX> <USERNAME>
+            const regex = new RegExp(prefix + '\\s+([A-Z0-9_.-]{2,20})', 'i');
+            const m = rawContent.match(regex);
+            if (m && m[1]) {
+                const targetSlug = m[1].trim();
+                await grantOrRevokePremium({
+                    userId: '',
+                    username: targetSlug,
+                    displayName: targetSlug,
+                    isPremium: true,
+                    note: `Tự động duyệt qua Webhook VietQR (${txAmount.toLocaleString('vi-VN')}đ)`,
+                    updatedBy: 'VietQR Auto Webhook'
+                });
+                approvedList.push(targetSlug);
+            }
+        }
+
+        if (approvedList.length > 0) {
+            await broadcastAdminPremiumState();
+        }
+
+        return res.json({ success: true, approvedCount: approvedList.length, approvedUsers: approvedList });
+    } catch (err) {
+        console.error('VietQR Webhook Error:', err.message);
+        return res.status(500).json({ success: false, message: err.message });
+    }
 });
 
 // Phục vụ Web tĩnh Monkeytype

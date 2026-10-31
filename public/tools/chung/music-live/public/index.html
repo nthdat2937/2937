@@ -14,8 +14,10 @@
         rel="stylesheet">
     <link rel="stylesheet"
         href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
-    <link rel="stylesheet" href="styles.css?v=1.1">
+    <link rel="stylesheet" href="styles.css?v=1.2">
     <link rel="stylesheet" href="/libs/liquid-glass/glass.css?v=2.1">
+    <link rel="stylesheet" href="pomodoro.css?v=1.3">
+    <link rel="stylesheet" href="redesign.css?v=6.1">
 </head>
 
 <body>
@@ -56,6 +58,9 @@
             }
         })();
     </script>
+
+    <!-- Dynamic Ambient Song Glow Layer -->
+    <div id="dynamic-ambient-glow" class="dynamic-ambient-glow"></div>
 
     <div id="login-section" class="login-overlay">
         <div class="login-card" style="max-width: 440px; padding: 36px 30px;">
@@ -128,7 +133,7 @@
             <!-- Form Xác Thực Email (OTP 6 số & Link xác minh) -->
             <div id="form-verify-otp" class="hidden">
                 <div style="text-align: center; margin-bottom: 16px;">
-                    <div style="width: 50px; height: 50px; margin: 0 auto 10px auto; border-radius: 50%; background: rgba(255,117,160,0.15); display: flex; align-items: center; justify-content: center;">
+                    <div style="width: 50px; height: 50px; margin: 0 auto 10px auto; border-radius: 50%; background: rgba(135, 206, 250,0.15); display: flex; align-items: center; justify-content: center;">
                         <span class="material-symbols-outlined" style="font-size: 26px; color: var(--accent);">mark_email_read</span>
                     </div>
                     <h3 style="margin: 0 0 6px 0; font-size: 19px; color: #fff;">Xác Thực Địa Chỉ Email</h3>
@@ -140,7 +145,7 @@
 
                 <!-- Lựa chọn 1: Nhập mã OTP trực tiếp -->
                 <div class="otp-input-card">
-                    <div style="font-size: 12.5px; font-weight: 600; color: #ff75a0; margin-bottom: 8px; display: flex; align-items: center; justify-content: center; gap: 5px;">
+                    <div style="font-size: 12.5px; font-weight: 600; color: #87cefa; margin-bottom: 8px; display: flex; align-items: center; justify-content: center; gap: 5px;">
                         <span class="material-symbols-outlined" style="font-size: 16px;">pin</span>
                         <span>Lựa chọn 1: Nhập mã OTP từ email</span>
                     </div>
@@ -241,6 +246,10 @@
         </div>
 
         <div id="navbar-right" class="navbar-right hidden">
+            <button type="button" class="navbar-premium-btn" id="navbar-premium-btn" onclick="openPremiumModal()" title="Nâng cấp tài khoản 2937.ML Premium">
+                <span class="material-symbols-outlined premium-crown-icon">workspace_premium</span>
+                <span id="navbar-premium-label">Nâng cấp Premium</span>
+            </button>
             <button class="mobile-search-trigger-btn liquid-glass-btn circle-btn" onclick="openMobileSearch()" title="Tìm kiếm">
                 <span class="material-symbols-outlined" style="font-size:20px;">search</span>
             </button>
@@ -249,7 +258,7 @@
                 <span id="navbar-messenger-badge" class="nav-msg-badge hidden">0</span>
             </button>
             <div class="navbar-user" onclick="openProfileSettingsModal()" style="cursor: pointer;" title="Cài đặt thông tin tài khoản">
-                <img id="navbar-avatar" class="navbar-avatar-img hidden" src="" alt="Avatar">
+                <img id="navbar-avatar" class="navbar-avatar-img hidden" src="" alt="Avatar" referrerpolicy="no-referrer">
                 <span class="user-dot"></span>
                 <span id="navbar-username"></span>
             </div>
@@ -308,16 +317,339 @@
                 <span class="material-symbols-outlined">folder_managed</span>
                 <span class="sidebar-label">Kho Đoán Hình</span>
             </div>
+            <div class="sidebar-item hidden liquid-glass-btn" id="sidebar-premium-admin" onclick="showTab('premium-admin')" data-tab="premium-admin" title="Bảng Quản Lý Tài Khoản Premium & VietQR (Admin)">
+                <span class="material-symbols-outlined">admin_panel_settings</span>
+                <span class="sidebar-label">Quản lý VIP</span>
+                <span id="sidebar-premium-pending-badge" class="sidebar-badge hidden">0</span>
+            </div>
+            <div class="sidebar-item sidebar-premium-cta liquid-glass-btn" id="sidebar-upgrade-premium" onclick="openPremiumModal()" title="Nâng cấp tài khoản Premium để mở khóa toàn bộ tính năng">
+                <span class="material-symbols-outlined">workspace_premium</span>
+                <span class="sidebar-label" id="sidebar-premium-label">Nâng cấp Premium</span>
+            </div>
         </div>
 
         <div class="left-column" id="left-column">
-            <div class="video-container" id="player-container">
+            <!-- Live Dedication / SuperChat Floating Stage Banner -->
+            <div id="live-dedication-banner" class="live-dedication-banner hidden" role="status" aria-live="polite">
+                <div class="live-ded-glow"></div>
+                <div class="live-ded-header">
+                    <div class="live-ded-user">
+                        <span class="live-ded-icon" id="live-ded-icon">💌</span>
+                        <span class="live-ded-sender" id="live-ded-sender">Thành viên</span>
+                        <span class="live-ded-badge">LỜI CHÚC TRỰC TIẾP</span>
+                    </div>
+                    <button type="button" class="live-ded-close" onclick="closeLiveDedicationBanner()" title="Ẩn lời chúc">
+                        <span class="material-symbols-outlined" style="font-size:16px;">close</span>
+                    </button>
+                </div>
+                <div class="live-ded-body" id="live-ded-body"></div>
+                <div class="live-ded-song" id="live-ded-song"></div>
+                <div class="live-ded-progress"><div class="live-ded-progress-fill" id="live-ded-progress-fill"></div></div>
+            </div>
+            <div class="workspace-tabs" role="tablist" aria-label="Chọn không gian">
+                <button type="button" id="workspace-video-tab" role="tab" aria-selected="true" aria-controls="player-container">
+                    <span class="material-symbols-outlined" aria-hidden="true">smart_display</span> Video
+                </button>
+                <button type="button" id="workspace-pomodoro-tab" role="tab" aria-selected="false" aria-controls="pomodoro-panel" tabindex="-1">
+                    <span class="material-symbols-outlined" aria-hidden="true">timer</span> Pomodoro
+                    <span id="pomodoro-tab-time" class="pomodoro-tab-time" hidden></span>
+                </button>
+                <button type="button" id="workspace-study-tab" role="tab" aria-selected="false" aria-controls="study-panel" tabindex="-1">
+                    <span class="material-symbols-outlined" aria-hidden="true">school</span> Phòng học
+                    <span id="study-tab-badge" class="study-tab-badge hidden">0</span>
+                </button>
+                <button type="button" id="workspace-focus-tab" class="workspace-focus-btn liquid-glass-btn pill-btn" onclick="toggleFocusMode()" title="Bật/Tắt chế độ tập trung (Esc)" aria-pressed="false">
+                    <span class="material-symbols-outlined" id="focus-mode-icon" aria-hidden="true">center_focus_strong</span>
+                    <span class="focus-mode-label" id="focus-mode-label">Tập trung</span>
+                </button>
+            </div>
+
+            <div class="video-container" id="player-container" role="tabpanel" aria-labelledby="workspace-video-tab">
+                <!-- Header điều khiển của Mini Player (chỉ hiển thị khi thu nhỏ) -->
+                <div class="mini-player-header" id="mini-player-header">
+                    <div class="mini-player-drag-area" id="mini-player-drag-area">
+                        <span class="material-symbols-outlined mini-player-drag-icon">drag_indicator</span>
+                        <span class="mini-player-title" id="mini-player-title">Đang phát nhạc</span>
+                    </div>
+                    <div class="mini-player-actions">
+                        <button type="button" class="mini-player-act-btn" onclick="toggleMiniPlayer(false)" title="Trở lại khung lớn">
+                            <span class="material-symbols-outlined">open_in_full</span>
+                        </button>
+                    </div>
+                </div>
+
                 <div id="youtube-player"></div>
+
+                <!-- Hiệu ứng thả cảm xúc bay trực tiếp -->
+                <div id="floating-reactions-stream" class="floating-reactions-stream"></div>
+
+                <!-- Thanh thả cảm xúc nhanh trên video -->
+                <div class="video-reactions-dock" id="video-reactions-dock">
+                    <button type="button" class="reaction-heart-btn" onclick="triggerFloatingReaction('❤️')" title="Thả tim (❤️) - Bấm nhiều lần để bắn bùng nổ!">
+                        <span class="heart-emoji-anim">❤️</span>
+                    </button>
+                    <div class="reaction-mini-picker">
+                        <button type="button" class="reaction-opt-btn" onclick="triggerFloatingReaction('🔥')" title="Quá cháy! 🔥">🔥</button>
+                        <button type="button" class="reaction-opt-btn" onclick="triggerFloatingReaction('👏')" title="Vỗ tay! 👏">👏</button>
+                        <button type="button" class="reaction-opt-btn" onclick="triggerFloatingReaction('🎉')" title="Quẩy lên! 🎉">🎉</button>
+                        <button type="button" class="reaction-opt-btn" onclick="triggerFloatingReaction('😭')" title="Cảm động 😭">😭</button>
+                        <button type="button" class="reaction-opt-btn" onclick="triggerFloatingReaction('💯')" title="100 điểm 💯">💯</button>
+                    </div>
+                </div>
+
                 <button type="button" class="btn-landscape-player-expand liquid-glass-btn pill-btn" id="btn-landscape-player-expand" onclick="toggleLandscapeVideoInfo()" title="Xem to / Hiện thông tin">
                     <span class="material-symbols-outlined" id="player-expand-icon">open_in_full</span>
                     <span id="player-expand-text">Xem to</span>
                 </button>
             </div>
+
+            <section id="pomodoro-panel" class="pomodoro-panel" role="tabpanel" aria-labelledby="workspace-pomodoro-tab" tabindex="0" hidden>
+                <div class="pomodoro-heading">
+                    <div><div class="section-eyebrow">GÓC HỌC TẬP</div><h2>Từng chút một, tập trung hơn.</h2></div>
+                    <span class="material-symbols-outlined" aria-hidden="true">spa</span>
+                </div>
+                <div class="pomodoro-modes" role="group" aria-label="Loại phiên Pomodoro">
+                    <button type="button" data-pomodoro-mode="focus" aria-pressed="true">Tập trung</button>
+                    <button type="button" data-pomodoro-mode="short" aria-pressed="false">Nghỉ ngắn</button>
+                    <button type="button" data-pomodoro-mode="long" aria-pressed="false">Nghỉ dài</button>
+                </div>
+                <div class="pomodoro-clock" id="pomodoro-clock">
+                    <div class="pomodoro-clock-face">
+                        <span id="pomodoro-phase-label">Thời gian tập trung</span>
+                        <span id="pomodoro-time" role="timer" aria-live="off" aria-label="Thời gian còn lại">25:00</span>
+                        <span id="pomodoro-session-count">Đã hoàn thành 0 phiên học</span>
+                    </div>
+                </div>
+                <div class="pomodoro-actions">
+                    <button type="button" id="pomodoro-toggle" class="pomodoro-primary"><span class="material-symbols-outlined" aria-hidden="true">play_arrow</span><span>Bắt đầu</span></button>
+                    <button type="button" id="pomodoro-reset"><span class="material-symbols-outlined" aria-hidden="true">restart_alt</span>Đặt lại</button>
+                </div>
+                <p id="pomodoro-status" class="pomodoro-status" role="status" aria-live="polite">Chọn một việc nhỏ và bắt đầu. Nhạc vẫn tiếp tục khi bạn học.</p>
+                <details class="pomodoro-settings">
+                    <summary><span class="material-symbols-outlined" aria-hidden="true">tune</span> Tùy chỉnh thời gian</summary>
+                    <form id="pomodoro-settings-form">
+                        <div class="pomodoro-settings-fields">
+                            <label>Tập trung (phút)<input id="pomodoro-focus-minutes" type="number" min="1" max="180" step="1" value="25" required></label>
+                            <label>Nghỉ ngắn (phút)<input id="pomodoro-short-minutes" type="number" min="1" max="180" step="1" value="5" required></label>
+                            <label>Nghỉ dài (phút)<input id="pomodoro-long-minutes" type="number" min="1" max="180" step="1" value="15" required></label>
+                        </div>
+                        <p>Tạm dừng để chỉnh. Áp dụng sẽ đặt lại lượt hiện tại.</p>
+                        <button type="submit" id="pomodoro-save-settings">Áp dụng</button>
+                    </form>
+                </details>
+                <div class="pomodoro-footer">
+                    <label><input type="checkbox" id="pomodoro-sound" checked> Âm báo hết giờ</label>
+                    <span>Tự lưu trên thiết bị này · Nghỉ dài sau 4 phiên học</span>
+                </div>
+            </section>
+
+            <!-- PHÒNG HỌC GOOGLE MEET (GOOGLE MEET STUDY ROOM) -->
+            <section id="study-panel" class="study-panel meet-container" role="tabpanel" aria-labelledby="workspace-study-tab" tabindex="0" hidden>
+                <!-- GOOGLE MEET TOP HEADER -->
+                <div class="meet-topbar">
+                    <div class="meet-topbar-left">
+                        <div class="meet-brand-badge">
+                            <span class="material-symbols-outlined meet-logo-icon">video_camera_front</span>
+                            <span class="meet-brand-title">Phòng Học Meet</span>
+                        </div>
+                        <!-- Bộ chọn phòng học -->
+                        <div class="meet-room-selector-wrap">
+                            <button type="button" class="meet-room-dropdown-btn liquid-glass-btn pill-btn" id="meet-current-room-btn" onclick="toggleMeetRoomDropdown()" title="Chọn phòng học">
+                                <span id="meet-active-room-icon">📚</span>
+                                <span id="meet-active-room-name">Phòng học chung</span>
+                                <span class="material-symbols-outlined" style="font-size: 18px;">expand_more</span>
+                            </button>
+                            <!-- Dropdown danh sách phòng -->
+                            <div class="meet-room-dropdown-menu hidden" id="meet-room-dropdown-menu">
+                                <div class="meet-dropdown-header">
+                                    <span>Danh sách phòng học</span>
+                                    <button type="button" id="btn-admin-add-study-room" class="btn-admin-add-room-mini hidden" onclick="openCreateStudyRoomModal()" title="Thêm phòng học mới (Admin)">
+                                        <span class="material-symbols-outlined" style="font-size: 16px;">add</span> Tạo phòng
+                                    </button>
+                                </div>
+                                <div class="meet-dropdown-list" id="meet-dropdown-rooms-list">
+                                    <!-- Rendered dynamically -->
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Mã phòng học / link -->
+                        <div class="meet-code-pill" id="meet-room-code-pill" onclick="copyMeetRoomCode()" title="Nhấn để sao chép mã phòng">
+                            <span class="material-symbols-outlined" style="font-size: 14px;">content_copy</span>
+                            <span id="meet-room-code-text">room_general</span>
+                        </div>
+                    </div>
+
+                    <div class="meet-topbar-center">
+                        <div class="meet-call-timer" id="meet-call-timer" title="Thời gian phiên học">
+                            <span class="pulse-dot"></span>
+                            <span id="meet-session-clock">00:00:00</span>
+                        </div>
+                    </div>
+
+                    <div class="meet-topbar-right">
+                        <!-- Nút hiển thị thông tin phòng -->
+                        <button type="button" class="meet-topbar-btn liquid-glass-btn circle-btn" id="meet-btn-info-drawer" onclick="toggleMeetSidePanel('details')" title="Chi tiết cuộc họp">
+                            <span class="material-symbols-outlined">info</span>
+                        </button>
+                        <!-- Nút hiển thị danh sách thành viên -->
+                        <button type="button" class="meet-topbar-btn liquid-glass-btn pill-btn" id="meet-btn-people-drawer" onclick="toggleMeetSidePanel('people')" title="Người tham gia">
+                            <span class="material-symbols-outlined">group</span>
+                            <span id="meet-people-count-badge">0</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- GOOGLE MEET MAIN STAGE & SIDE PANEL WRAPPER -->
+                <div class="meet-stage-wrapper">
+                    <!-- SÂN KHẤU CHÍNH (MEET STAGE) -->
+                    <div class="meet-stage" id="meet-stage">
+                        <!-- SPOTLIGHT / PINNED / SCREEN SHARE VIEW (Khi có người chia sẻ màn hình hoặc ghim) -->
+                        <div class="meet-spotlight-container hidden" id="meet-spotlight-container">
+                            <div class="meet-spotlight-media" id="meet-spotlight-media">
+                                <!-- Pinned video element -->
+                            </div>
+                            <div class="meet-spotlight-info">
+                                <div class="meet-spotlight-name" id="meet-spotlight-name">Màn hình chia sẻ</div>
+                                <button type="button" class="meet-unpin-btn" onclick="unpinMeetTile()" title="Bỏ ghim">
+                                    <span class="material-symbols-outlined">keep_off</span>
+                                    <span>Bỏ ghim</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- VIDEO TILES GRID (Lưới các ô người tham gia) -->
+                        <div class="meet-grid" id="meet-video-grid">
+                            <!-- Các ô tile video do study-rooms.js render -->
+                        </div>
+
+                        <!-- FLOATING REACTIONS LAYER (Hiệu ứng emoji bay lên khi có ai thả tim, vỗ tay) -->
+                        <div class="meet-reactions-layer" id="meet-reactions-layer" aria-hidden="true"></div>
+                    </div>
+
+                    <!-- MEET SIDE PANEL (Drawer danh sách người tham gia & chi tiết phòng) -->
+                    <aside class="meet-side-panel hidden" id="meet-side-panel">
+                        <div class="meet-side-header">
+                            <div class="meet-side-tabs">
+                                <button type="button" class="meet-side-tab active" id="meet-tab-people" onclick="switchMeetSideTab('people')">
+                                    <span class="material-symbols-outlined" style="font-size: 18px;">group</span>
+                                    Mọi người (<span id="meet-side-people-count">0</span>)
+                                </button>
+                                <button type="button" class="meet-side-tab" id="meet-tab-details" onclick="switchMeetSideTab('details')">
+                                    <span class="material-symbols-outlined" style="font-size: 18px;">info</span>
+                                    Chi tiết
+                                </button>
+                            </div>
+                            <button type="button" class="meet-side-close circle-btn" onclick="toggleMeetSidePanel(false)" title="Đóng bảng">
+                                <span class="material-symbols-outlined">close</span>
+                            </button>
+                        </div>
+
+                        <!-- Tab Content 1: Danh sách mọi người -->
+                        <div class="meet-side-content" id="meet-side-people-content">
+                            <div class="meet-people-list" id="meet-people-list">
+                                <!-- Rendered dynamically -->
+                            </div>
+                        </div>
+
+                        <!-- Tab Content 2: Chi tiết phòng & Bàn học cá nhân -->
+                        <div class="meet-side-content hidden" id="meet-side-details-content">
+                            <div class="meet-details-section">
+                                <div class="meet-details-room-card">
+                                    <div class="meet-details-icon" id="meet-details-icon">📚</div>
+                                    <div class="meet-details-meta">
+                                        <h4 id="meet-details-name">Phòng học chung</h4>
+                                        <span class="study-topic-badge" id="meet-details-topic">Tự do & Tập trung</span>
+                                        <p id="meet-details-desc">Không gian học tập & làm việc yên tĩnh cùng âm nhạc thư giãn.</p>
+                                    </div>
+                                </div>
+
+                                <!-- Thiết lập mục tiêu phiên học của bạn -->
+                                <div class="meet-my-settings-box">
+                                    <label for="study-my-goal-input"><span class="material-symbols-outlined" style="font-size: 15px;">flag</span> Mục tiêu học tập hôm nay:</label>
+                                    <div class="study-goal-input-wrap">
+                                        <input type="text" id="study-my-goal-input" placeholder="Ví dụ: Ôn 2 chương Toán, làm lab frontend..." maxlength="80">
+                                        <button type="button" class="liquid-glass-btn pill-btn" onclick="saveMyStudyGoal()">Lưu</button>
+                                    </div>
+
+                                    <span class="study-status-title" style="margin-top: 10px; display: block;">Trạng thái hoạt động:</span>
+                                    <div class="study-status-pills" id="study-status-pills">
+                                        <button type="button" class="study-status-pill active" data-status="Đang tập trung 🔥" onclick="setMyStudyStatus('Đang tập trung 🔥')">🔥 Tập trung</button>
+                                        <button type="button" class="study-status-pill" data-status="Đang đọc sách 📖" onclick="setMyStudyStatus('Đang đọc sách 📖')">📖 Đọc sách</button>
+                                        <button type="button" class="study-status-pill" data-status="Làm bài tập 📝" onclick="setMyStudyStatus('Làm bài tập 📝')">📝 Làm bài</button>
+                                        <button type="button" class="study-status-pill" data-status="Lập trình / Code 💻" onclick="setMyStudyStatus('Lập trình / Code 💻')">💻 Code</button>
+                                        <button type="button" class="study-status-pill" data-status="Nghỉ giải lao ☕" onclick="setMyStudyStatus('Nghỉ giải lao ☕')">☕ Giải lao</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </aside>
+                </div>
+
+                <!-- GOOGLE MEET BOTTOM TOOLBAR -->
+                <div class="meet-toolbar" id="meet-toolbar" role="toolbar" aria-label="Thanh điều khiển Google Meet">
+                    <div class="meet-toolbar-left">
+                        <div class="meet-toolbar-room-name-label" id="meet-toolbar-room-label">
+                            <span class="meet-dot"></span>
+                            <span id="meet-toolbar-room-text">Phòng học chung</span>
+                        </div>
+                    </div>
+
+                    <div class="meet-toolbar-center">
+                        <!-- Nút Bật/Tắt Mic -->
+                        <button type="button" class="meet-tool-btn meet-btn-mic" id="meet-btn-mic" onclick="toggleMeetMic()" title="Bật/Tắt Micro (Ctrl+D)">
+                            <span class="material-symbols-outlined" id="meet-icon-mic">mic_off</span>
+                        </button>
+
+                        <!-- Nút Bật/Tắt Camera -->
+                        <button type="button" class="meet-tool-btn meet-btn-cam" id="meet-btn-cam" onclick="toggleMeetCam()" title="Bật/Tắt Camera (Ctrl+E)">
+                            <span class="material-symbols-outlined" id="meet-icon-cam">videocam_off</span>
+                        </button>
+
+                        <!-- Nút Giơ tay -->
+                        <button type="button" class="meet-tool-btn" id="meet-btn-hand" onclick="toggleMeetHand()" title="Giơ tay phát biểu">
+                            <span class="material-symbols-outlined">front_hand</span>
+                        </button>
+
+                        <!-- Nút Chia sẻ màn hình -->
+                        <button type="button" class="meet-tool-btn" id="meet-btn-screen" onclick="toggleMeetScreenShare()" title="Chia sẻ màn hình">
+                            <span class="material-symbols-outlined" id="meet-icon-screen">present_to_all</span>
+                        </button>
+
+                        <!-- Nút Thả cảm xúc (Reactions popover) -->
+                        <div class="meet-reactions-popover-wrap">
+                            <button type="button" class="meet-tool-btn" id="meet-btn-reactions" onclick="toggleMeetReactionsPopover()" title="Gửi biểu tượng cảm xúc">
+                                <span class="material-symbols-outlined">mood</span>
+                            </button>
+                            <div class="meet-reactions-bar hidden" id="meet-reactions-bar">
+                                <button type="button" class="meet-reaction-opt" onclick="sendMeetReaction('💖')">💖</button>
+                                <button type="button" class="meet-reaction-opt" onclick="sendMeetReaction('👏')">👏</button>
+                                <button type="button" class="meet-reaction-opt" onclick="sendMeetReaction('🎉')">🎉</button>
+                                <button type="button" class="meet-reaction-opt" onclick="sendMeetReaction('👍')">👍</button>
+                                <button type="button" class="meet-reaction-opt" onclick="sendMeetReaction('😂')">😂</button>
+                                <button type="button" class="meet-reaction-opt" onclick="sendMeetReaction('😮')">😮</button>
+                                <button type="button" class="meet-reaction-opt" onclick="sendMeetReaction('🔥')">🔥</button>
+                                <button type="button" class="meet-reaction-opt" onclick="sendMeetReaction('💡')">💡</button>
+                            </div>
+                        </div>
+
+                        <!-- Nút Rời phòng -->
+                        <button type="button" class="meet-tool-btn meet-btn-leave" id="meet-btn-leave" onclick="leaveMeetRoom()" title="Rời khỏi phòng học">
+                            <span class="material-symbols-outlined">call_end</span>
+                        </button>
+                    </div>
+
+                    <div class="meet-toolbar-right">
+                        <!-- Nút mở nhanh cài đặt mục tiêu -->
+                        <button type="button" class="meet-tool-btn meet-btn-subtle" onclick="toggleMeetSidePanel('details')" title="Mục tiêu & Cài đặt">
+                            <span class="material-symbols-outlined">flag</span>
+                        </button>
+                        <!-- Nút mở người tham gia -->
+                        <button type="button" class="meet-tool-btn meet-btn-subtle" onclick="toggleMeetSidePanel('people')" title="Người tham gia">
+                            <span class="material-symbols-outlined">group</span>
+                        </button>
+                    </div>
+                </div>
+            </section>
 
             <div class="video-info">
                 <div class="landscape-info-collapse-bar">
@@ -337,28 +669,7 @@
                 </div>
 
                 <div class="control-box">
-                    <div class="volume-control" style="display:flex;align-items:center;gap:4px;">
-                        <span id="volume-icon" class="material-symbols-outlined"
-                            style="font-size: 20px; cursor: pointer;" onclick="toggleVideoMute()"
-                            title="Bật/Tắt tiếng video">volume_up</span>
-                        <input type="range" id="volume-slider" class="ui-slider" min="0" max="100" value="50"
-                            oninput="changeVolume(this.value)">
-                    </div>
-
-                    <div id="song-tools" class="admin-tools">
-                        <button id="btn-next-song" class="btn-next hidden liquid-glass-btn pill-btn" onclick="nextSong()"
-                            style="display:flex;align-items:center;gap:4px;justify-content:center;">
-                            <span class="material-symbols-outlined" style="font-size:18px;">skip_next</span>
-                            Qua bài
-                        </button>
-                        <button id="btn-loop" class="btn-loop hidden liquid-glass-btn pill-btn" onclick="toggleLoop()"
-                            title="Bật/Tắt chế độ lặp lại">
-                            <span class="material-symbols-outlined" style="font-size:18px;">repeat</span>
-                            Lặp lại
-                        </button>
-                    </div>
-
-                    <div style="margin-top: 20px;">
+                    <div style="margin-top: 4px;">
                         <div class="playlist-header">HÀNG ĐỢI PHÁT TIẾP THEO</div>
                         <div class="playlist-ui" id="playlist-ui">
                             <div>Chưa có bài nào chờ.</div>
@@ -489,9 +800,9 @@
         <div class="history-column hidden" id="quiz-admin-column">
             <div class="quiz-admin-hero-card">
                 <!-- Header -->
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; border-bottom: 1px solid rgba(255, 180, 210, 0.2); padding-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; border-bottom: 1px solid rgba(176, 224, 250, 0.2); padding-bottom: 16px; flex-wrap: wrap; gap: 12px;">
                     <div style="display: flex; align-items: center; gap: 14px;">
-                        <div style="width: 46px; height: 46px; border-radius: 14px; background: linear-gradient(135deg, rgba(255, 212, 59, 0.25), rgba(255, 117, 160, 0.25)); border: 1px solid rgba(255, 212, 59, 0.4); display: flex; align-items: center; justify-content: center;">
+                        <div style="width: 46px; height: 46px; border-radius: 14px; background: linear-gradient(135deg, rgba(255, 212, 59, 0.25), rgba(135, 206, 250, 0.25)); border: 1px solid rgba(255, 212, 59, 0.4); display: flex; align-items: center; justify-content: center;">
                             <span class="material-symbols-outlined" style="color: #ffd43b; font-size: 28px;">folder_managed</span>
                         </div>
                         <div>
@@ -499,7 +810,7 @@
                             <p style="font-size: 13px; color: var(--text-muted); margin: 2px 0 0 0; font-weight: 600;">Thêm, chỉnh sửa hoặc xóa bộ câu hỏi Đoán Hình cho phòng nhạc.</p>
                         </div>
                     </div>
-                    <button type="button" class="settings-btn-save" style="background: linear-gradient(135deg, #ff75a0, #ff4757); padding: 10px 24px; font-weight: 800; font-size: 15px; border-radius: 16px; box-shadow: 0 4px 16px rgba(255, 117, 160, 0.3);" onclick="saveQuizAdminPacks()">
+                    <button type="button" class="settings-btn-save" style="background: linear-gradient(135deg, #87cefa, #ff4757); padding: 10px 24px; font-weight: 800; font-size: 15px; border-radius: 16px; box-shadow: 0 4px 16px rgba(135, 206, 250, 0.3);" onclick="saveQuizAdminPacks()">
                         <span class="material-symbols-outlined" style="font-size: 20px;">save</span>
                         Lưu Thay Đổi Kho
                     </button>
@@ -510,7 +821,7 @@
                     <div class="quiz-admin-sidebar-box" style="flex: 1; min-width: 260px;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
                             <span style="font-weight: 800; font-size: 14px; color: #ffffff; font-family: var(--font-display);">DANH SÁCH BỘ CÂU HỎI</span>
-                            <button type="button" class="action-btn" style="padding: 6px 12px; font-size: 12px; background: linear-gradient(135deg, #ff75a0, #7b61ff); color: #fff; font-weight: 800; border: none; border-radius: 12px;" onclick="createEmptyQuizPack()">+ Tạo Bộ Mới</button>
+                            <button type="button" class="action-btn" style="padding: 6px 12px; font-size: 12px; background: linear-gradient(135deg, #87cefa, #7b61ff); color: #fff; font-weight: 800; border: none; border-radius: 12px;" onclick="createEmptyQuizPack()">+ Tạo Bộ Mới</button>
                         </div>
                         <div id="admin-quiz-pack-selector-list" style="display: flex; flex-direction: column; gap: 8px; max-height: 520px; overflow-y: auto; padding-right: 2px;">
                             <!-- Rendered by JS -->
@@ -523,11 +834,11 @@
                             <div style="display: flex; flex-direction: column; gap: 14px;">
                                 <div>
                                     <label style="font-size: 13px; color: var(--text-muted); font-weight: 700; display: block; margin-bottom: 4px;">TÊN BỘ CÂU HỎI:</label>
-                                    <input type="text" id="admin-pack-name-input" class="login-input" style="background: rgba(0,0,0,0.3); border: 1.5px solid rgba(255, 180, 210, 0.2); border-radius: 12px; font-weight: 600; color: #fff;" placeholder="Ví dụ: Bộ câu hỏi Cờ các nước..." oninput="updateAdminPackHeader()">
+                                    <input type="text" id="admin-pack-name-input" class="login-input" style="background: rgba(0,0,0,0.3); border: 1.5px solid rgba(176, 224, 250, 0.2); border-radius: 12px; font-weight: 600; color: #fff;" placeholder="Ví dụ: Bộ câu hỏi Cờ các nước..." oninput="updateAdminPackHeader()">
                                 </div>
                                 <div>
                                     <label style="font-size: 13px; color: var(--text-muted); font-weight: 700; display: block; margin-bottom: 4px;">MÔ TẢ BỘ CÂU HỎI:</label>
-                                    <input type="text" id="admin-pack-desc-input" class="login-input" style="background: rgba(0,0,0,0.3); border: 1.5px solid rgba(255, 180, 210, 0.2); border-radius: 12px; font-weight: 600; color: #fff;" placeholder="Mô tả ngắn về bộ này..." oninput="updateAdminPackHeader()">
+                                    <input type="text" id="admin-pack-desc-input" class="login-input" style="background: rgba(0,0,0,0.3); border: 1.5px solid rgba(176, 224, 250, 0.2); border-radius: 12px; font-weight: 600; color: #fff;" placeholder="Mô tả ngắn về bộ này..." oninput="updateAdminPackHeader()">
                                 </div>
 
                                 <!-- Readiness Condition Banner -->
@@ -552,7 +863,7 @@
                     </div>
                 </div>
 
-                <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid rgba(255, 180, 210, 0.2); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid rgba(176, 224, 250, 0.2); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
                     <button type="button" class="settings-btn-secondary" style="color: #ff4757; border-color: rgba(255,71,87,0.4); font-weight: 800; border-radius: 14px; padding: 8px 16px;" onclick="deleteCurrentAdminPack()">
                         <span class="material-symbols-outlined" style="font-size: 18px;">delete</span>
                         Xóa Bộ Câu Hỏi Này
@@ -562,6 +873,225 @@
                         Lưu Thay Đổi Kho
                     </button>
                 </div>
+            </div>
+        </div>
+
+        <!-- PREMIUM ADMIN MANAGEMENT COLUMN (CHỈ DÀNH CHO ADMIN) -->
+        <div class="history-column hidden" id="premium-admin-column">
+            <div class="premium-admin-shell">
+                <!-- Header -->
+                <div class="premium-admin-header">
+                    <div class="premium-admin-title-group">
+                        <div class="premium-admin-icon-badge">
+                            <span class="material-symbols-outlined">workspace_premium</span>
+                        </div>
+                        <div>
+                            <h2 class="premium-admin-heading">Bảng Quản Lý Tài Khoản Premium &amp; VietQR</h2>
+                            <p class="premium-admin-subtitle">Quản lý danh sách thành viên VIP, duyệt giao dịch chuyển khoản ngân hàng và cấu hình mã VietQR nhận tiền</p>
+                        </div>
+                    </div>
+                    <button type="button" class="modern-btn-secondary" onclick="loadPremiumAdminData(true)">
+                        <span class="material-symbols-outlined">refresh</span>
+                        <span>Làm mới dữ liệu</span>
+                    </button>
+                </div>
+
+                <!-- 3 Thẻ Thống Kê Nhanh -->
+                <div class="premium-admin-stats-grid">
+                    <div class="premium-stat-card">
+                        <span class="material-symbols-outlined stat-icon vip">workspace_premium</span>
+                        <div>
+                            <div class="stat-label">Tổng Tài Khoản VIP / Admin</div>
+                            <div class="stat-value" id="admin-stat-vip-count">0</div>
+                        </div>
+                    </div>
+                    <div class="premium-stat-card">
+                        <span class="material-symbols-outlined stat-icon pending">payments</span>
+                        <div>
+                            <div class="stat-label">Giao Dịch Chờ Duyệt</div>
+                            <div class="stat-value" id="admin-stat-pending-count">0</div>
+                        </div>
+                    </div>
+                    <div class="premium-stat-card">
+                        <span class="material-symbols-outlined stat-icon bank">qr_code_scanner</span>
+                        <div>
+                            <div class="stat-label">Giá Gói Nâng Cấp</div>
+                            <div class="stat-value" id="admin-stat-price-display">29.000đ</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Khối 1: Yêu Cầu Thanh Toán Ngân Hàng Đang Chờ Duyệt -->
+                <section class="premium-admin-card" aria-labelledby="admin-pending-requests-heading">
+                    <div class="premium-admin-card-head">
+                        <div>
+                            <h3 id="admin-pending-requests-heading">
+                                <span class="material-symbols-outlined">notifications_active</span>
+                                Yêu Cầu Xác Nhận Chuyển Khoản Ngân Hàng
+                            </h3>
+                            <p>Khi thành viên quét mã VietQR và bấm "Tôi đã chuyển khoản", yêu cầu sẽ hiện trực tiếp tại đây để Admin duyệt 1 chạm.</p>
+                        </div>
+                        <span class="premium-pending-pill" id="admin-pending-pill-count">0 chờ duyệt</span>
+                    </div>
+                    <div id="admin-premium-requests-list" class="admin-premium-requests-list">
+                        <div class="admin-empty-placeholder">Hiện không có yêu cầu thanh toán nào đang chờ duyệt.</div>
+                    </div>
+                </section>
+
+                <!-- Khối 2: Bảng Danh Sách Tài Khoản & Cấp/Thu Hồi Quyền Premium -->
+                <section class="premium-admin-card" aria-labelledby="premium-users-table-caption">
+                    <div class="premium-admin-card-head">
+                        <div>
+                            <h3>
+                                <span class="material-symbols-outlined">manage_accounts</span>
+                                Danh Sách Tài Khoản &amp; Phân Quyền Truy Cập
+                            </h3>
+                            <p>Cấp quyền Premium thủ công hoặc chuyển đổi trạng thái giữa <strong>Member</strong> (chỉ xem Trang chủ) và <strong>Premium</strong> (mở khóa toàn bộ tính năng).</p>
+                        </div>
+                    </div>
+
+                    <!-- Thanh cấp quyền nhanh theo Tên / Email -->
+                    <form class="admin-manual-grant-bar" onsubmit="event.preventDefault(); manualGrantPremiumByInput();">
+                        <input type="text" id="admin-manual-user-input" class="modern-dialog-input" placeholder="Nhập Tên người dùng (Username) hoặc Email cần cấp VIP..." required>
+                        <input type="text" id="admin-manual-note-input" class="modern-dialog-input" placeholder="Ghi chú (vd: Đã chuyển khoản VCB 29k)...">
+                        <button type="submit" class="modern-btn-primary">
+                            <span class="material-symbols-outlined">add_moderator</span>
+                            <span>Cấp Quyền Premium</span>
+                        </button>
+                    </form>
+
+                    <!-- Bộ lọc và tìm kiếm trong bảng -->
+                    <div class="admin-table-toolbar">
+                        <div class="admin-table-search">
+                            <span class="material-symbols-outlined">search</span>
+                            <input type="text" id="admin-users-search-input" placeholder="Tìm theo tên hiển thị, username, email hoặc ghi chú..." oninput="renderAdminPremiumUsersTable()">
+                        </div>
+                        <div class="admin-table-filters" id="admin-users-filter-pills">
+                            <button type="button" class="ded-theme-pill active" data-role-filter="all" onclick="setAdminUsersRoleFilter('all')">Tất cả</button>
+                            <button type="button" class="ded-theme-pill" data-role-filter="premium" onclick="setAdminUsersRoleFilter('premium')">👑 Premium</button>
+                            <button type="button" class="ded-theme-pill" data-role-filter="member" onclick="setAdminUsersRoleFilter('member')">👤 Member</button>
+                            <button type="button" class="ded-theme-pill" data-role-filter="admin" onclick="setAdminUsersRoleFilter('admin')">🛡️ Admin</button>
+                            <button type="button" class="ded-theme-pill" data-role-filter="online" onclick="setAdminUsersRoleFilter('online')">🟢 Đang Online</button>
+                        </div>
+                    </div>
+
+                    <!-- Bảng Responsive chuẩn Modern Web Guidance -->
+                    <div tabindex="0" role="region" aria-labelledby="premium-users-table-caption" class="table-wrapper premium-table-wrapper">
+                        <table class="premium-users-table">
+                            <caption id="premium-users-table-caption">Danh sách tài khoản thành viên và trạng thái gói 2937.ML Premium</caption>
+                            <thead>
+                                <tr>
+                                    <th scope="col">Tài khoản</th>
+                                    <th scope="col">Email / Mã định danh</th>
+                                    <th scope="col">Phân hạng hiện tại</th>
+                                    <th scope="col">Trạng thái</th>
+                                    <th scope="col">Ghi chú giao dịch</th>
+                                    <th scope="col">Thao tác quản trị</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-premium-users-tbody">
+                                <tr>
+                                    <td colspan="6" style="text-align: center; padding: 28px; color: var(--text-muted);">Đang tải danh sách tài khoản...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- Khối 3: Cấu Hình Ngân Hàng Nhận Tiền VietQR -->
+                <section class="premium-admin-card" aria-labelledby="admin-vietqr-config-heading">
+                    <div class="premium-admin-card-head">
+                        <div>
+                            <h3 id="admin-vietqr-config-heading">
+                                <span class="material-symbols-outlined">account_balance</span>
+                                Cấu Hình Tài Khoản Ngân Hàng Nhận Tiền (VietQR)
+                            </h3>
+                            <p>Điền đúng Ngân hàng và Số tài khoản của bạn. Hệ thống sẽ tự động sinh mã QR chuẩn NAPAS 247 với sẵn số tiền &amp; nội dung chuyển khoản cho từng thành viên.</p>
+                        </div>
+                    </div>
+
+                    <div class="admin-vietqr-config-grid">
+                        <form class="admin-vietqr-form" onsubmit="event.preventDefault(); saveAdminVietqrConfig();">
+                            <div class="admin-form-row-2">
+                                <div>
+                                    <label for="admin-vietqr-bank-id" class="modern-field-label">Ngân hàng thụ hưởng (VietQR Bank ID):</label>
+                                    <select id="admin-vietqr-bank-id" class="modern-dialog-input" onchange="previewAdminVietqrConfig()">
+                                        <option value="MB" data-name="MB Bank (Ngân hàng Quân Đội)">MB - MB Bank (Quân Đội)</option>
+                                        <option value="VCB" data-name="Vietcombank (Ngoại Thương)">VCB - Vietcombank</option>
+                                        <option value="TCB" data-name="Techcombank (Kỹ Thương)">TCB - Techcombank</option>
+                                        <option value="ACB" data-name="ACB (Ngân hàng Á Châu)">ACB - Ngân hàng Á Châu</option>
+                                        <option value="BIDV" data-name="BIDV (Đầu Tư & Phát Triển)">BIDV - Ngân hàng BIDV</option>
+                                        <option value="CTG" data-name="VietinBank (Công Thương)">CTG - VietinBank</option>
+                                        <option value="ICB" data-name="VietinBank (ICB)">ICB - VietinBank</option>
+                                        <option value="VPB" data-name="VPBank (Việt Nam Thịnh Vượng)">VPB - VPBank</option>
+                                        <option value="TPB" data-name="TPBank (Tiên Phong)">TPB - TPBank</option>
+                                        <option value="STB" data-name="Sacombank (Sài Gòn Thương Tín)">STB - Sacombank</option>
+                                        <option value="VIB" data-name="VIB (Quốc Tế)">VIB - Ngân hàng Quốc Tế</option>
+                                        <option value="MSB" data-name="MSB (Hàng Hải)">MSB - Ngân hàng Hàng Hải</option>
+                                        <option value="SHB" data-name="SHB (Sài Gòn - Hà Nội)">SHB - Ngân hàng SHB</option>
+                                        <option value="HDB" data-name="HDBank (Phát Triển TP.HCM)">HDB - HDBank</option>
+                                        <option value="OCB" data-name="OCB (Phương Đông)">OCB - Ngân hàng Phương Đông</option>
+                                        <option value="LPB" data-name="LPBank (Lộc Phát / Bưu Điện)">LPB - LPBank</option>
+                                        <option value="SEAB" data-name="SeABank (Đông Nam Á)">SEAB - SeABank</option>
+                                        <option value="CAKE" data-name="CAKE by VPBank">CAKE - Ngân hàng số CAKE</option>
+                                        <option value="TIMO" data-name="Timo by Ban Viet Bank">TIMO - Ngân hàng số Timo</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="admin-vietqr-account-no" class="modern-field-label">Số tài khoản nhận tiền:</label>
+                                    <input type="text" id="admin-vietqr-account-no" class="modern-dialog-input" placeholder="Nhập số tài khoản ngân hàng..." required oninput="previewAdminVietqrConfig()">
+                                </div>
+                            </div>
+
+                            <div class="admin-form-row-2">
+                                <div>
+                                    <label for="admin-vietqr-account-name" class="modern-field-label">Tên chủ tài khoản (Viết hoa không dấu):</label>
+                                    <input type="text" id="admin-vietqr-account-name" class="modern-dialog-input" placeholder="VD: NGUYEN VAN A" required oninput="previewAdminVietqrConfig()">
+                                </div>
+                                <div>
+                                    <label for="admin-vietqr-amount" class="modern-field-label">Giá gói nâng cấp Premium (VNĐ):</label>
+                                    <input type="number" id="admin-vietqr-amount" class="modern-dialog-input" min="1000" step="1000" placeholder="29000" required oninput="previewAdminVietqrConfig()">
+                                </div>
+                            </div>
+
+                            <div class="admin-form-row-2">
+                                <div>
+                                    <label for="admin-vietqr-prefix" class="modern-field-label">Tiền tố nội dung chuyển khoản tự động:</label>
+                                    <input type="text" id="admin-vietqr-prefix" class="modern-dialog-input" placeholder="VIP2937" maxlength="12" oninput="previewAdminVietqrConfig()">
+                                </div>
+                                <div>
+                                    <label for="admin-vietqr-template" class="modern-field-label">Mẫu giao diện ảnh QR (VietQR Template):</label>
+                                    <select id="admin-vietqr-template" class="modern-dialog-input" onchange="previewAdminVietqrConfig()">
+                                        <option value="compact2">compact2 (Có khung + Logo + Số tiền)</option>
+                                        <option value="compact">compact (Khung gọn)</option>
+                                        <option value="qr_only">qr_only (Chỉ mã QR)</option>
+                                        <option value="print">print (Bản in đầy đủ)</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="admin-vietqr-webhook-hint">
+                                <strong>💡 Hỗ trợ Webhook tự động duyệt 24/7:</strong> Nếu bạn kết nối SePay hoặc Casso, hãy trỏ URL Webhook về địa chỉ <code>/api/vietqr-webhook</code>. Khi ngân hàng báo biến động số dư khớp nội dung <code>VIP2937 &lt;Username&gt;</code>, hệ thống sẽ tự động kích hoạt VIP ngay lập tức mà không cần bấm duyệt tay!
+                            </div>
+
+                            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 6px;">
+                                <button type="submit" class="modern-btn-primary">
+                                    <span class="material-symbols-outlined">save</span>
+                                    <span>Lưu Cấu Hình Ngân Hàng VietQR</span>
+                                </button>
+                            </div>
+                        </form>
+
+                        <!-- Xem trước mã VietQR trực tiếp -->
+                        <div class="admin-vietqr-preview-box">
+                            <div class="qr-preview-label">Xem trước mã VietQR hiển thị cho Member</div>
+                            <div class="qr-preview-frame">
+                                <img id="admin-vietqr-preview-img" src="https://img.vietqr.io/image/MB-0987654321-compact2.png?amount=29000&addInfo=VIP2937%20DEMO&accountName=CHU%20TRAM%20NHAC%202937%20ML" alt="VietQR Preview" referrerpolicy="no-referrer">
+                            </div>
+                            <div class="qr-preview-caption" id="admin-vietqr-preview-caption">MB • 0987654321 • 29.000đ</div>
+                        </div>
+                    </div>
+                </section>
             </div>
         </div>
 
@@ -633,7 +1163,7 @@
                             </button>
                             <div class="messenger-header-user">
                                 <div class="messenger-avatar-wrap">
-                                    <img id="messenger-header-avatar" src="" alt="Avatar" class="messenger-avatar-img">
+                                    <img id="messenger-header-avatar" src="" alt="Avatar" class="messenger-avatar-img" referrerpolicy="no-referrer">
                                     <span id="messenger-header-online-dot" class="messenger-online-dot"></span>
                                 </div>
                                 <div class="messenger-header-info">
@@ -663,7 +1193,7 @@
 
                         <!-- Typing Indicator -->
                         <div class="messenger-typing-indicator hidden" id="messenger-typing-indicator">
-                            <img id="messenger-typing-avatar" src="" class="messenger-typing-avatar">
+                            <img id="messenger-typing-avatar" src="" class="messenger-typing-avatar" referrerpolicy="no-referrer">
                             <div class="messenger-typing-bubble">
                                 <span class="typing-dot"></span>
                                 <span class="typing-dot"></span>
@@ -837,6 +1367,22 @@
                         </button>
                     </div>
 
+                    <!-- Thanh công cụ tương tác phòng Live (Lời chúc, Bình chọn, Thẻ Bài Hát) -->
+                    <div class="chat-live-tools-strip" aria-label="Tương tác phòng Live">
+                        <button type="button" class="chat-live-tool-pill" onclick="openDedicationModal()" title="Gửi lời chúc / tâm sự âm nhạc hiện nổi trên màn hình">
+                            <span class="material-symbols-outlined">campaign</span>
+                            <span>Lời chúc Live</span>
+                        </button>
+                        <button type="button" class="chat-live-tool-pill" onclick="openPollModal()" title="Tạo cuộc thăm dò ý kiến trực tiếp trong khung chat">
+                            <span class="material-symbols-outlined">ballot</span>
+                            <span>Bình chọn</span>
+                        </button>
+                        <button type="button" class="chat-live-tool-pill" onclick="openSongCardModal()" title="Tạo & chia sẻ Thẻ Bài Hát kèm lời nhạc đang phát">
+                            <span class="material-symbols-outlined">photo_camera</span>
+                            <span>Thẻ Bài Hát</span>
+                        </button>
+                    </div>
+
                     <div class="chat-input-wrapper" id="chat-input-wrapper">
                         <button class="picker-btn action-icon-btn" id="emoji-toggle-btn" onclick="togglePicker()"
                             title="Emoji & GIF">😊</button>
@@ -903,6 +1449,11 @@
                     style="flex:1; margin:0; border-radius:0; border:none; max-height:none; background:linear-gradient(rgba(15, 13, 11, 0.65), rgba(15, 13, 11, 0.65)), url('/assets/images/background-chat.jpeg') center center / cover no-repeat;">
                     <div id="lyric-content"></div>
                 </div>
+                <button class="lyric-report-btn lyric-search-btn" id="lyric-search-btn" onclick="promptManualLyricSearch()"
+                    title="Tìm lời bài hát thủ công trên LRCLIB (nhập tên bài + ca sĩ)">
+                    <span class="material-symbols-outlined" style="font-size:15px;">search</span>
+                    <span>Tìm lời</span>
+                </button>
                 <button class="lyric-report-btn hidden" id="lyric-report-btn" onclick="switchToNextLyric()"
                     title="Báo lệch lời / Đổi sang bản lyric khác trên LRCLIB">
                     <span class="material-symbols-outlined" style="font-size:15px;">sync_alt</span>
@@ -929,6 +1480,82 @@
             </button>
         </div>
 
+        <!-- Spotify Fixed Bottom Player Bar -->
+        <div class="spotify-bottom-bar" id="spotify-bottom-bar">
+            <div class="sp-bar-top-progress" aria-hidden="true">
+                <div class="sp-bar-top-progress-fill" id="sp-bar-top-progress-fill"></div>
+            </div>
+
+            <div class="sp-bar-left">
+                <div class="sp-bar-thumb-wrap">
+                    <div class="sp-bar-thumb" id="sp-bar-thumb">
+                        <span class="material-symbols-outlined sp-bar-thumb-icon">music_note</span>
+                    </div>
+                    <div class="sp-eq-badge" id="sp-eq-badge" aria-hidden="true">
+                        <span></span><span></span><span></span>
+                    </div>
+                </div>
+                <div class="sp-bar-info">
+                    <div class="sp-bar-title" id="bottom-bar-title">Thưởng thức âm nhạc cùng mọi người</div>
+                    <div class="sp-bar-sub-row">
+                        <span class="sp-live-dot" aria-hidden="true"></span>
+                        <div class="sp-bar-sub" id="bottom-bar-artist">2937.ML Trực Tiếp</div>
+                    </div>
+                </div>
+                <button type="button" class="sp-bar-heart-btn" onclick="triggerFloatingReaction('❤️')" title="Thả tim (❤️) - Bấm nhiều lần để bắn bùng nổ!">
+                    <span>❤️</span>
+                </button>
+            </div>
+
+            <div class="sp-bar-center">
+                <div class="sp-bar-controls-row">
+                    <div class="sp-live-status-pill" id="sp-live-status-pill" title="Nhạc đang phát đồng bộ theo thời gian thực">
+                        <span class="sp-eq-inline" aria-hidden="true"><i></i><i></i><i></i></span>
+                        <span id="sp-live-status-text">Đang phát trực tiếp</span>
+                    </div>
+                    <div id="song-tools" class="sp-playback-controls admin-tools">
+                        <button id="btn-loop" class="btn-loop hidden liquid-glass-btn circle-btn" onclick="toggleLoop()" title="Bật/Tắt chế độ lặp lại">
+                            <span class="material-symbols-outlined" style="font-size:18px;">repeat</span>
+                        </button>
+                        <button id="btn-next-song" class="btn-next hidden liquid-glass-btn pill-btn" onclick="nextSong()" title="Qua bài">
+                            <span class="material-symbols-outlined" style="font-size:18px;">skip_next</span>
+                            <span class="sp-btn-label">Qua bài</span>
+                        </button>
+                        <button id="btn-dj-radio" class="btn-dj-radio hidden liquid-glass-btn pill-btn active" onclick="toggleDjRadio()" title="Tự động nối bài tương tự khi hết hàng đợi">
+                            <span class="material-symbols-outlined" style="font-size:18px;">radio</span>
+                            <span id="dj-radio-label">DJ Radio: Bật</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="sp-bar-timeline">
+                    <span class="sp-time-label" id="sp-time-current">0:00</span>
+                    <div class="sp-timeline-track" id="sp-timeline-track">
+                        <div class="sp-timeline-fill" id="sp-timeline-fill"></div>
+                    </div>
+                    <span class="sp-time-label" id="sp-time-total">0:00</span>
+                </div>
+            </div>
+
+            <div class="sp-bar-right">
+                <div class="sp-mobile-sheet-btns">
+                    <button type="button" class="sp-mobile-sheet-btn" id="sp-mobile-lyric-btn" onclick="toggleLyricBubble()" title="Lời bài hát">
+                        <span class="material-symbols-outlined">lyrics</span>
+                    </button>
+                    <button type="button" class="sp-mobile-sheet-btn" id="sp-mobile-chat-btn" onclick="toggleChatBubble()" title="Trò chuyện trực tiếp">
+                        <span class="material-symbols-outlined">forum</span>
+                        <span id="sp-mobile-chat-badge" class="sp-mobile-badge hidden-badge">0</span>
+                    </button>
+                </div>
+                <button id="btn-toggle-pip" class="btn-toggle-pip liquid-glass-btn pill-btn" onclick="toggleMiniPlayer()" title="Thu nhỏ thành cửa sổ nổi góc màn hình (PiP)">
+                    <span class="material-symbols-outlined" id="pip-btn-icon" style="font-size:18px;">picture_in_picture_alt</span>
+                    <span id="pip-btn-label">Mini Player</span>
+                </button>
+                <div class="volume-control">
+                    <span id="volume-icon" class="material-symbols-outlined" onclick="toggleVideoMute()" title="Bật/Tắt tiếng video">volume_up</span>
+                    <input type="range" id="volume-slider" class="ui-slider sp-volume-slider" min="0" max="100" value="50" style="--vol-pct: 50%;" oninput="this.style.setProperty('--vol-pct', this.value + '%'); changeVolume(this.value)">
+                </div>
+            </div>
+        </div>
     </div>
 
 
@@ -1370,7 +1997,7 @@
     <div id="settings-modal" class="draw-overlay hidden" style="z-index: 2000;">
         <div class="draw-container settings-modal-container">
             <div class="draw-header"
-                style="justify-content: space-between; margin-bottom: 18px; border-bottom: 1px solid rgba(255,180,210,0.2); padding-bottom: 14px;">
+                style="justify-content: space-between; margin-bottom: 18px; border-bottom: 1px solid rgba(176, 224, 250,0.2); padding-bottom: 14px;">
                 <div class="draw-header-title" style="display:flex; align-items:center; gap: 10px;">
                     <span class="material-symbols-outlined"
                         style="color: var(--accent); font-size: 26px;">settings</span>
@@ -1513,10 +2140,34 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Hiệu Ứng Trải Nghiệm & Tiện Ích Thông Minh -->
+                <div class="settings-section-card">
+                    <div class="settings-section-title">
+                        <span class="material-symbols-outlined" style="color: #87cefa;">auto_awesome</span>
+                        <span>Trải Nghiệm Nghe Nhạc & Tiện Ích</span>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 14px; margin-top: 10px;">
+                        <label style="display: flex; align-items: center; justify-content: space-between; cursor: pointer;">
+                            <div>
+                                <div style="font-size: 14px; font-weight: 600; color: #fff;">Màu nền thích ứng theo bài hát (Dynamic Glow)</div>
+                                <div style="font-size: 12px; color: var(--text-muted);">Tự đổi màu viền phát sáng & nền mờ theo bìa bài hát</div>
+                            </div>
+                            <input type="checkbox" id="setting-dynamic-glow" checked onchange="toggleDynamicGlowSetting(this.checked)" style="width: 18px; height: 18px; accent-color: var(--accent); cursor: pointer;">
+                        </label>
+                        <label style="display: flex; align-items: center; justify-content: space-between; cursor: pointer;">
+                            <div>
+                                <div style="font-size: 14px; font-weight: 600; color: #fff;">Tự động thu nhỏ Mini Player khi đổi tab</div>
+                                <div style="font-size: 12px; color: var(--text-muted);">Vừa học Pomodoro, gọi phòng học Meet vừa xem video ở góc màn hình</div>
+                            </div>
+                            <input type="checkbox" id="setting-auto-pip" checked onchange="toggleAutoPipSetting(this.checked)" style="width: 18px; height: 18px; accent-color: var(--accent); cursor: pointer;">
+                        </label>
+                    </div>
+                </div>
             </div>
 
             <div class="settings-modal-footer"
-                style="margin-top: 20px; padding-top: 14px; border-top: 1px solid rgba(255,180,210,0.2); display: flex; justify-content: space-between; align-items: center;">
+                style="margin-top: 20px; padding-top: 14px; border-top: 1px solid rgba(176, 224, 250,0.2); display: flex; justify-content: space-between; align-items: center;">
                 <button type="button" class="settings-btn-secondary liquid-glass-btn pill-btn" onclick="resetAllBgsToDefault()">
                     <span class="material-symbols-outlined" style="font-size: 16px;">refresh</span>
                     Mặc định tất cả
@@ -1536,7 +2187,7 @@
     <div id="profile-settings-modal" class="draw-overlay hidden" style="z-index: 2000;">
         <div class="draw-container settings-modal-container" style="max-width: 520px; width: 92%; max-height: 90vh; overflow-y: auto;">
             <div class="draw-header"
-                style="justify-content: space-between; margin-bottom: 16px; border-bottom: 1px solid rgba(255,180,210,0.2); padding-bottom: 14px;">
+                style="justify-content: space-between; margin-bottom: 16px; border-bottom: 1px solid rgba(176, 224, 250,0.2); padding-bottom: 14px;">
                 <div class="draw-header-title" style="display:flex; align-items:center; gap: 10px;">
                     <span class="material-symbols-outlined" style="color: var(--accent); font-size: 26px;">manage_accounts</span>
                     <span style="font-family: var(--font-display); font-size: 22px; font-weight: 700; color: #ffffff;">Cài Đặt Thông Tin</span>
@@ -1565,7 +2216,7 @@
                 <!-- Avatar Upload Section -->
                 <div style="display: flex; flex-direction: column; align-items: center; gap: 10px; margin-bottom: 20px;">
                     <div class="profile-avatar-wrapper" style="position: relative; width: 88px; height: 88px;">
-                        <img id="profile-avatar-preview" src="/assets/images/placeholder.jpg" alt="Avatar preview"
+                        <img id="profile-avatar-preview" src="/assets/images/placeholder.svg" alt="Avatar preview" referrerpolicy="no-referrer"
                             style="width: 88px; height: 88px; border-radius: 50%; object-fit: cover; border: 3px solid var(--accent); background: #2b2b36;">
                         <label for="profile-avatar-file-input" class="avatar-upload-badge liquid-glass-btn circle-btn" title="Tải ảnh đại diện lên"
                             style="position: absolute; bottom: 0; right: 0; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer;">
@@ -1640,7 +2291,7 @@
                 </div>
 
                 <div class="settings-modal-footer"
-                    style="margin-top: 20px; padding-top: 14px; border-top: 1px solid rgba(255,180,210,0.2); display: flex; justify-content: flex-end; gap: 10px;">
+                    style="margin-top: 20px; padding-top: 14px; border-top: 1px solid rgba(176, 224, 250,0.2); display: flex; justify-content: flex-end; gap: 10px;">
                     <button type="button" class="settings-btn-cancel liquid-glass-btn pill-btn" onclick="closeProfileSettingsModal()">Hủy</button>
                     <button type="button" id="btn-save-profile" class="settings-btn-save liquid-glass-btn pill-btn" onclick="saveUserProfile()">
                         <span class="material-symbols-outlined" style="font-size: 18px;">check</span>
@@ -1718,7 +2369,7 @@
                 </div>
 
                 <div class="settings-modal-footer"
-                    style="margin-top: 20px; padding-top: 14px; border-top: 1px solid rgba(255,180,210,0.2); display: flex; justify-content: flex-end;">
+                    style="margin-top: 20px; padding-top: 14px; border-top: 1px solid rgba(176, 224, 250,0.2); display: flex; justify-content: flex-end;">
                     <button type="button" class="settings-btn-cancel liquid-glass-btn pill-btn" onclick="closeProfileSettingsModal()">Đóng</button>
                 </div>
             </div>
@@ -1730,7 +2381,7 @@
         <div class="login-card quick-unlock-card" style="max-width: 400px; padding: 32px 26px; text-align: center;">
             <div style="display: flex; flex-direction: column; align-items: center; margin-bottom: 16px;">
                 <div class="unlock-avatar-wrapper" style="position: relative; width: 80px; height: 80px; margin-bottom: 12px;">
-                    <img id="unlock-user-avatar" src="/assets/images/placeholder.jpg" alt="Avatar"
+                    <img id="unlock-user-avatar" src="/assets/images/placeholder.svg" alt="Avatar" referrerpolicy="no-referrer"
                         style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 3px solid var(--accent); background: #2b2b36; box-shadow: 0 4px 14px rgba(0,0,0,0.4);">
                 </div>
                 <h3 id="unlock-user-name" style="margin: 0 0 4px 0; font-size: 20px; color: var(--text-main);">Người dùng</h3>
@@ -1800,7 +2451,7 @@
     <div id="quick-lock-setup-modal" class="draw-overlay hidden" style="z-index: 10000;">
         <div class="draw-container settings-modal-container" style="max-width: 520px; width: 92%; max-height: 90vh; overflow-y: auto;">
             <div class="draw-header"
-                style="justify-content: space-between; margin-bottom: 16px; border-bottom: 1px solid rgba(255,180,210,0.2); padding-bottom: 14px;">
+                style="justify-content: space-between; margin-bottom: 16px; border-bottom: 1px solid rgba(176, 224, 250,0.2); padding-bottom: 14px;">
                 <div class="draw-header-title" style="display:flex; align-items:center; gap: 10px;">
                     <span class="material-symbols-outlined" style="color: var(--accent); font-size: 26px;">security</span>
                     <span style="font-family: var(--font-display); font-size: 22px; font-weight: 700; color: #ffffff;">Cài Đặt Đăng Nhập Nhanh</span>
@@ -1900,7 +2551,7 @@
             </div>
 
             <div class="settings-modal-footer"
-                style="margin-top: 20px; padding-top: 14px; border-top: 1px solid rgba(255,180,210,0.2); display: flex; justify-content: space-between; align-items: center;">
+                style="margin-top: 20px; padding-top: 14px; border-top: 1px solid rgba(176, 224, 250,0.2); display: flex; justify-content: space-between; align-items: center;">
                 <button type="button" id="btn-skip-quick-lock" class="settings-btn-secondary liquid-glass-btn pill-btn" onclick="closeQuickLockSetupModal(true)">
                     Bỏ qua
                 </button>
@@ -1917,9 +2568,9 @@
         <div class="draw-container settings-modal-container quiz-modal-container" style="max-width: 780px; width: 92%; padding: 24px; max-height: 90vh; overflow-y: auto;">
             <div class="draw-header" style="justify-content: space-between; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 16px;">
                 <div class="draw-header-title" style="display:flex; align-items:center; gap: 10px;">
-                    <span class="material-symbols-outlined" style="color: #ff75a0; font-size: 26px;">quiz</span>
+                    <span class="material-symbols-outlined" style="color: #87cefa; font-size: 26px;">quiz</span>
                     <span style="font-family: var(--font-display); font-size: 22px; font-weight: 700; color: #ffffff;">Đoán Từ Theo Hình</span>
-                    <span class="draw-live-tag" style="background: linear-gradient(135deg, #ff75a0, #ff4757);">TRẮC NGHIỆM</span>
+                    <span class="draw-live-tag" style="background: linear-gradient(135deg, #87cefa, #ff4757);">TRẮC NGHIỆM</span>
                 </div>
                 <button class="settings-close-btn liquid-glass-btn circle-btn" onclick="closePictureQuizGame()" title="Đóng">
                     <span class="material-symbols-outlined" style="font-size:20px;">close</span>
@@ -1942,7 +2593,7 @@
             <div id="quiz-game-view" class="hidden">
                 <!-- Top Status Bar -->
                 <div class="quiz-progress-bar-wrapper" style="margin-bottom: 14px; background: rgba(255,255,255,0.1); height: 8px; border-radius: 4px; overflow: hidden;">
-                    <div id="quiz-progress-fill" style="width: 0%; height: 100%; background: linear-gradient(90deg, #ff75a0, #51cf66); transition: width 0.3s linear;"></div>
+                    <div id="quiz-progress-fill" style="width: 0%; height: 100%; background: linear-gradient(90deg, #87cefa, #51cf66); transition: width 0.3s linear;"></div>
                 </div>
 
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
@@ -1954,7 +2605,7 @@
                     </div>
                     
                     <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-                        <span id="quiz-my-score-badge" style="background: rgba(255,117,160,0.15); border: 1px solid rgba(255,117,160,0.4); padding: 4px 12px; border-radius: 16px; font-size: 13px; font-weight: 800; color: #ff75a0; display: flex; align-items: center; gap: 4px;">
+                        <span id="quiz-my-score-badge" style="background: rgba(135, 206, 250,0.15); border: 1px solid rgba(135, 206, 250,0.4); padding: 4px 12px; border-radius: 16px; font-size: 13px; font-weight: 800; color: #87cefa; display: flex; align-items: center; gap: 4px;">
                             <span class="material-symbols-outlined" style="font-size: 16px;">military_tech</span>
                             <span id="quiz-my-score-text">Điểm: 0đ</span>
                         </span>
@@ -2042,7 +2693,7 @@
                 </div>
 
                 <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
-                    <button class="caro-btn liquid-glass-btn pill-btn" style="background: linear-gradient(135deg, #ff75a0, #ff4757); color: #fff; font-weight: 800; padding: 10px 20px; font-size: 15px;" onclick="returnToQuizLobby()">📋 Chơi Lượt Mới / Chọn Bộ Khác</button>
+                    <button class="caro-btn liquid-glass-btn pill-btn" style="background: linear-gradient(135deg, #87cefa, #ff4757); color: #fff; font-weight: 800; padding: 10px 20px; font-size: 15px;" onclick="returnToQuizLobby()">📋 Chơi Lượt Mới / Chọn Bộ Khác</button>
                 </div>
             </div>
         </div>
@@ -2051,7 +2702,7 @@
     <!-- ADD FRIEND MODAL -->
     <div id="add-friend-modal" class="draw-overlay hidden" style="z-index: 2100;">
         <div class="draw-container settings-modal-container" style="max-width: 480px; width: 92%; max-height: 85vh; display: flex; flex-direction: column;">
-            <div class="settings-modal-header" style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px solid rgba(255, 180, 210, 0.2);">
+            <div class="settings-modal-header" style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px solid rgba(176, 224, 250, 0.2);">
                 <div style="display: flex; align-items: center; gap: 10px;">
                     <span class="material-symbols-outlined" style="color: var(--accent); font-size: 26px;">person_add</span>
                     <h3 style="margin: 0; font-family: var(--font-display); font-size: 20px; font-weight: 700; color: #fff;">Thêm Bạn Bè</h3>
@@ -2064,7 +2715,7 @@
                 <div style="position: relative; display: flex; align-items: center;">
                     <span class="material-symbols-outlined" style="position: absolute; left: 12px; color: var(--text-muted); font-size: 20px;">search</span>
                     <input type="text" id="add-friend-search-input" placeholder="Tìm theo tên hiển thị, username hoặc email..." 
-                        style="width: 100%; padding: 12px 14px 12px 42px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,180,210,0.25); border-radius: 14px; color: #fff; font-size: 14px; outline: none; transition: 0.2s;"
+                        style="width: 100%; padding: 12px 14px 12px 42px; background: rgba(255,255,255,0.06); border: 1px solid rgba(176, 224, 250,0.25); border-radius: 14px; color: #fff; font-size: 14px; outline: none; transition: 0.2s;"
                         oninput="handleSearchUsersToAddFriend(this.value)">
                 </div>
                 <div id="add-friend-results-list" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; min-height: 220px; max-height: 380px; padding-right: 4px;">
@@ -2074,9 +2725,68 @@
                     </div>
                 </div>
             </div>
-            <div class="settings-modal-footer" style="padding-top: 12px; border-top: 1px solid rgba(255,180,210,0.2); display: flex; justify-content: flex-end;">
+            <div class="settings-modal-footer" style="padding-top: 12px; border-top: 1px solid rgba(176, 224, 250,0.2); display: flex; justify-content: flex-end;">
                 <button class="settings-btn-cancel liquid-glass-btn pill-btn" onclick="closeAddFriendModal()">Đóng</button>
             </div>
+        </div>
+    </div>
+
+    <!-- CREATE STUDY ROOM MODAL (ADMIN ONLY) -->
+    <div id="create-study-room-modal" class="draw-overlay hidden" style="z-index: 2100;">
+        <div class="draw-container settings-modal-container" style="max-width: 480px; width: 92%; max-height: 85vh; display: flex; flex-direction: column;">
+            <div class="settings-modal-header" style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px solid rgba(176, 224, 250, 0.2);">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span class="material-symbols-outlined" style="color: var(--accent); font-size: 26px;">school</span>
+                    <h3 style="margin: 0; font-family: var(--font-display); font-size: 20px; font-weight: 700; color: #fff;">Tạo Phòng Học Mới</h3>
+                </div>
+                <button type="button" class="close-btn liquid-glass-btn circle-btn" onclick="closeCreateStudyRoomModal()">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <form id="form-create-study-room" onsubmit="handleCreateStudyRoomSubmit(event)">
+                <div style="padding: 16px 0; display: flex; flex-direction: column; gap: 14px; overflow-y: auto; max-height: calc(85vh - 120px); padding-right: 4px;">
+                    <div>
+                        <label style="display: block; font-size: 13px; font-weight: 700; margin-bottom: 6px; color: var(--text-muted);">Tên phòng học:</label>
+                        <input type="text" id="new-study-name" placeholder="Ví dụ: Ôn thi Đại học, Lập trình Frontend, Góc Đọc sách..." 
+                            maxlength="40" required
+                            style="width: 100%; padding: 10px 14px; background: rgba(255,255,255,0.06); border: 1px solid rgba(176, 224, 250,0.25); border-radius: 12px; color: #fff; font-size: 14px; outline: none; box-sizing: border-box;">
+                    </div>
+                    <div>
+                        <label style="display: block; font-size: 13px; font-weight: 700; margin-bottom: 6px; color: var(--text-muted);">Biểu tượng (Icon / Emoji):</label>
+                        <div class="study-emoji-grid" id="study-emoji-grid" style="display: flex; flex-wrap: wrap; gap: 8px;">
+                            <span class="study-emoji-opt active" onclick="selectStudyEmoji(this, '📚')">📚</span>
+                            <span class="study-emoji-opt" onclick="selectStudyEmoji(this, '💻')">💻</span>
+                            <span class="study-emoji-opt" onclick="selectStudyEmoji(this, '🎯')">🎯</span>
+                            <span class="study-emoji-opt" onclick="selectStudyEmoji(this, '☕')">☕</span>
+                            <span class="study-emoji-opt" onclick="selectStudyEmoji(this, '📝')">📝</span>
+                            <span class="study-emoji-opt" onclick="selectStudyEmoji(this, '🔬')">🔬</span>
+                            <span class="study-emoji-opt" onclick="selectStudyEmoji(this, '🎨')">🎨</span>
+                            <span class="study-emoji-opt" onclick="selectStudyEmoji(this, '🧠')">🧠</span>
+                            <span class="study-emoji-opt" onclick="selectStudyEmoji(this, '⚡')">⚡</span>
+                            <span class="study-emoji-opt" onclick="selectStudyEmoji(this, '📖')">📖</span>
+                            <span class="study-emoji-opt" onclick="selectStudyEmoji(this, '🎧')">🎧</span>
+                            <span class="study-emoji-opt" onclick="selectStudyEmoji(this, '🌌')">🌌</span>
+                        </div>
+                        <input type="hidden" id="new-study-icon" value="📚">
+                    </div>
+                    <div>
+                        <label style="display: block; font-size: 13px; font-weight: 700; margin-bottom: 6px; color: var(--text-muted);">Chủ đề / Lĩnh vực:</label>
+                        <input type="text" id="new-study-topic" placeholder="Ví dụ: CNTT, Ngoại ngữ, Tự nhiên, Tự do..." 
+                            maxlength="40" value="Tập trung & Thảo luận"
+                            style="width: 100%; padding: 10px 14px; background: rgba(255,255,255,0.06); border: 1px solid rgba(176, 224, 250,0.25); border-radius: 12px; color: #fff; font-size: 14px; outline: none; box-sizing: border-box;">
+                    </div>
+                    <div>
+                        <label style="display: block; font-size: 13px; font-weight: 700; margin-bottom: 6px; color: var(--text-muted);">Mô tả phòng:</label>
+                        <textarea id="new-study-desc" rows="2" placeholder="Chia sẻ mục tiêu hoặc quy định học tập của phòng..." 
+                            maxlength="180"
+                            style="width: 100%; padding: 10px 14px; background: rgba(255,255,255,0.06); border: 1px solid rgba(176, 224, 250,0.25); border-radius: 12px; color: #fff; font-size: 14px; outline: none; resize: vertical; box-sizing: border-box;"></textarea>
+                    </div>
+                </div>
+                <div class="settings-modal-footer" style="padding-top: 14px; border-top: 1px solid rgba(176, 224, 250,0.2); display: flex; justify-content: flex-end; gap: 10px;">
+                    <button type="button" class="settings-btn-cancel liquid-glass-btn pill-btn" onclick="closeCreateStudyRoomModal()">Hủy</button>
+                    <button type="submit" class="settings-btn-save liquid-glass-btn pill-btn" style="background: linear-gradient(135deg, #87cefa, #ff4757); border: none; font-weight: 700; padding: 10px 20px;">Tạo phòng ngay</button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -2088,6 +2798,256 @@
         </div>
     </div>
 
+    <!-- ==========================================================
+         NATIVE <dialog> MODALS: PREMIUM, DEDICATION, POLL, SONG CARD
+         ========================================================== -->
+
+    <!-- 1. Modal Nâng Cấp Tài Khoản Premium Qua Thanh Toán Ngân Hàng (VietQR) -->
+    <dialog id="premium-upgrade-modal" class="modern-app-dialog vietqr-dialog" aria-labelledby="premium-dialog-title">
+        <div class="modern-dialog-inner vietqr-dialog-inner">
+            <div class="modern-dialog-header vietqr-dialog-header">
+                <div class="modern-dialog-title-wrap">
+                    <span class="material-symbols-outlined dialog-brand-icon crown">workspace_premium</span>
+                    <div>
+                        <h3 id="premium-dialog-title">Nâng Cấp 2937.ML Premium</h3>
+                        <p class="modern-dialog-sub" id="premium-current-tier-text">Mở khóa toàn bộ tab &amp; tính năng VIP</p>
+                    </div>
+                </div>
+                <button type="button" class="modern-dialog-close" onclick="closePremiumModal()" title="Đóng">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+
+            <!-- Dải đặc quyền VIP 1 dòng siêu gọn -->
+            <div class="vietqr-perks-strip">
+                <span class="v-perk-pill"><span class="material-symbols-outlined">lock_open_right</span> Mở khóa tất cả trang</span>
+                <span class="v-perk-pill"><span class="material-symbols-outlined">verified</span> Huy hiệu 👑 VIP chat</span>
+                <span class="v-perk-pill"><span class="material-symbols-outlined">bolt</span> Duyệt tự động 24/7</span>
+            </div>
+
+            <!-- Khu vực Thanh toán Chuyển khoản Ngân hàng VietQR dành cho Member -->
+            <div id="premium-upgrade-action-box" class="premium-upgrade-action-box vietqr-checkout-box">
+                <div class="vietqr-checkout-grid">
+                    <!-- Cột 1: Mã QR VietQR gọn gàng -->
+                    <div class="vietqr-qr-col">
+                        <div class="vietqr-qr-frame">
+                            <img id="vietqr-checkout-img" src="https://img.vietqr.io/image/MB-0987654321-compact2.png?amount=29000&addInfo=VIP2937%20MEMBER&accountName=CHU%20TRAM%20NHAC%202937%20ML" alt="Mã QR chuyển khoản ngân hàng VietQR" referrerpolicy="no-referrer">
+                        </div>
+                        <span class="vietqr-scan-hint">Quét bằng App Ngân hàng hoặc MoMo / ZaloPay</span>
+                    </div>
+
+                    <!-- Cột 2: Bảng thông tin thanh toán cấu trúc 1 khối gọn đẹp -->
+                    <div class="vietqr-info-col">
+                        <!-- Giá gói nổi bật -->
+                        <div class="vietqr-price-row">
+                            <span class="v-price-label">Số tiền:</span>
+                            <div class="v-price-val-group">
+                                <strong class="v-price-num" id="vietqr-amount-text">29.000 VNĐ</strong>
+                                <button type="button" class="vietqr-mini-btn" onclick="copyVietqrRawAmount()" title="Sao chép số tiền">
+                                    <span class="material-symbols-outlined">content_copy</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Bảng chi tiết ngân hàng gọn gàng -->
+                        <div class="vietqr-details-table">
+                            <div class="v-dt-row">
+                                <span class="v-dt-lbl">Ngân hàng:</span>
+                                <strong class="v-dt-val" id="vietqr-bank-name">MB Bank (Ngân hàng Quân Đội)</strong>
+                            </div>
+                            <div class="v-dt-row">
+                                <span class="v-dt-lbl">Số tài khoản:</span>
+                                <div class="v-dt-val-wrap">
+                                    <strong class="v-dt-val mono" id="vietqr-account-no">0987654321</strong>
+                                    <button type="button" class="vietqr-mini-btn" onclick="copyVietqrField('vietqr-account-no', 'Số tài khoản')" title="Sao chép số tài khoản">
+                                        <span class="material-symbols-outlined">content_copy</span>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="v-dt-row">
+                                <span class="v-dt-lbl">Chủ tài khoản:</span>
+                                <strong class="v-dt-val" id="vietqr-account-name">CHU TRAM NHAC 2937 ML</strong>
+                            </div>
+                        </div>
+
+                        <!-- Khối Nội dung chuyển khoản nổi bật không bị gãy dòng -->
+                        <div class="vietqr-content-card">
+                            <div class="v-cc-head">
+                                <span class="v-cc-lbl">Nội dung chuyển khoản (bắt buộc):</span>
+                            </div>
+                            <div class="v-cc-body">
+                                <code class="v-cc-code" id="vietqr-transfer-content">VIP2937 MEMBER</code>
+                                <button type="button" class="vietqr-copy-code-btn" onclick="copyVietqrField('vietqr-transfer-content', 'Nội dung chuyển khoản')">
+                                    <span class="material-symbols-outlined">content_copy</span> Sao chép
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="premium-status-msg" class="modern-dialog-msg hidden"></div>
+
+                <!-- Hộp trạng thái đang chờ duyệt -->
+                <div id="vietqr-pending-status-box" class="vietqr-pending-status-box hidden">
+                    <span class="material-symbols-outlined spin-icon">hourglass_top</span>
+                    <div>
+                        <strong>Đang chờ xác nhận giao dịch chuyển khoản...</strong>
+                        <p>Ngay khi giao dịch được xác nhận, tài khoản sẽ tự động lên <strong>👑 PREMIUM</strong> tức thì!</p>
+                    </div>
+                </div>
+
+                <!-- Nút xác nhận gọn gàng -->
+                <button type="button" id="btn-confirm-vietqr-payment" class="modern-btn-primary vietqr-confirm-btn" onclick="submitPremiumBankPaymentRequest()">
+                    <span class="material-symbols-outlined">verified_user</span>
+                    <span>Tôi Đã Chuyển Khoản — Gửi Yêu Cầu Kích Hoạt VIP</span>
+                </button>
+            </div>
+
+            <div id="premium-already-active-box" class="premium-already-active-box hidden">
+                <span class="material-symbols-outlined" style="font-size: 36px; color: var(--accent);">verified</span>
+                <h4>Tài khoản của bạn đang là 2937.ML PREMIUM!</h4>
+                <p>Toàn bộ các tab và tính năng nâng cao trên trang web đã được mở khóa cho bạn.</p>
+            </div>
+        </div>
+    </dialog>
+
+            <div id="premium-already-active-box" class="premium-already-active-box hidden">
+                <span class="material-symbols-outlined" style="font-size: 36px; color: var(--accent);">verified</span>
+                <h4>Tài khoản của bạn đang là 2937.ML PREMIUM!</h4>
+                <p>Toàn bộ các tab và tính năng nâng cao trên trang web đã được mở khóa cho bạn.</p>
+            </div>
+        </div>
+    </dialog>
+
+    <!-- 2. Modal Gửi Lời Chúc / Tâm Sự Lên Màn Hình (Live Dedication) -->
+    <dialog id="dedication-modal" class="modern-app-dialog" aria-labelledby="dedication-dialog-title">
+        <div class="modern-dialog-inner">
+            <div class="modern-dialog-header">
+                <div class="modern-dialog-title-wrap">
+                    <span class="material-symbols-outlined dialog-brand-icon">campaign</span>
+                    <div>
+                        <h3 id="dedication-dialog-title">Gửi Lời Chúc Lên Màn Hình</h3>
+                        <p class="modern-dialog-sub">Hiển thị nổi bật trên sân khấu nhạc trong 15 giây & lưu vào khung chat</p>
+                    </div>
+                </div>
+                <button type="button" class="modern-dialog-close" onclick="closeDedicationModal()" title="Đóng">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+
+            <form onsubmit="event.preventDefault(); submitLiveDedication();" class="modern-dialog-form">
+                <label for="dedication-text-input" class="modern-field-label">Lời nhắn / Tâm sự âm nhạc của bạn:</label>
+                <textarea id="dedication-text-input" class="modern-dialog-textarea" rows="3" maxlength="160" placeholder="Ví dụ: Gửi tặng bài hát này cho mọi người đang thức khuya học bài nhé! 💙" required></textarea>
+
+                <label class="modern-field-label">Chọn phong cách thẻ hiển thị:</label>
+                <div class="dedication-theme-pills" id="dedication-theme-pills">
+                    <button type="button" class="ded-theme-pill active" data-theme="ice" onclick="selectDedicationTheme('ice')">❄️ Xanh Băng Giá</button>
+                    <button type="button" class="ded-theme-pill" data-theme="star" onclick="selectDedicationTheme('star')">✨ Sao Đêm</button>
+                    <button type="button" class="ded-theme-pill" data-theme="fire" onclick="selectDedicationTheme('fire')">🔥 Nhiệt Huyết</button>
+                    <button type="button" class="ded-theme-pill" data-theme="sakura" onclick="selectDedicationTheme('sakura')">🌸 Chill Đêm</button>
+                </div>
+
+                <label class="modern-checkbox-row">
+                    <input type="checkbox" id="dedication-attach-song" checked>
+                    <span>Đính kèm tên bài hát đang phát trên trạm nhạc</span>
+                </label>
+
+                <div class="modern-dialog-footer">
+                    <button type="button" class="modern-btn-secondary" onclick="closeDedicationModal()">Hủy</button>
+                    <button type="submit" class="modern-btn-primary">
+                        <span class="material-symbols-outlined">send</span>
+                        <span>Phát Lên Màn Hình</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </dialog>
+
+    <!-- 3. Modal Tạo Bình Chọn Nhanh Trong Chat (Live Poll) -->
+    <dialog id="poll-modal" class="modern-app-dialog" aria-labelledby="poll-dialog-title">
+        <div class="modern-dialog-inner">
+            <div class="modern-dialog-header">
+                <div class="modern-dialog-title-wrap">
+                    <span class="material-symbols-outlined dialog-brand-icon">ballot</span>
+                    <div>
+                        <h3 id="poll-dialog-title">Tạo Thăm Dò Ý Kiến (Live Poll)</h3>
+                        <p class="modern-dialog-sub">Mọi người trong phòng bấm chọn và xem phần trăm nhảy trực tiếp</p>
+                    </div>
+                </div>
+                <button type="button" class="modern-dialog-close" onclick="closePollModal()" title="Đóng">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+
+            <form onsubmit="event.preventDefault(); submitLivePoll();" class="modern-dialog-form">
+                <label for="poll-question-input" class="modern-field-label">Câu hỏi bình chọn:</label>
+                <input type="text" id="poll-question-input" class="modern-dialog-input" maxlength="120" placeholder="Ví dụ: Đổi sang nhạc Lofi hay nghe tiếp V-Pop đây mọi người?" required>
+
+                <label class="modern-field-label">Các phương án lựa chọn (2 – 4 phương án):</label>
+                <div id="poll-options-container" class="poll-options-container">
+                    <input type="text" class="modern-dialog-input poll-opt-input" maxlength="70" placeholder="Phương án 1 (vd: Nhạc Lofi Chill 🎧)" required>
+                    <input type="text" class="modern-dialog-input poll-opt-input" maxlength="70" placeholder="Phương án 2 (vd: V-Pop Sôi Động 🔥)" required>
+                    <input type="text" class="modern-dialog-input poll-opt-input" maxlength="70" placeholder="Phương án 3 (không bắt buộc)">
+                </div>
+                <button type="button" id="btn-add-poll-opt" class="modern-btn-ghost" onclick="addPollOptionInput()">+ Thêm phương án thứ 4</button>
+
+                <div class="modern-dialog-footer">
+                    <button type="button" class="modern-btn-secondary" onclick="closePollModal()">Hủy</button>
+                    <button type="submit" class="modern-btn-primary">
+                        <span class="material-symbols-outlined">how_to_vote</span>
+                        <span>Đăng Bình Chọn</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </dialog>
+
+    <!-- 4. Modal Chia Sẻ Khoảnh Khắc / Thẻ Bài Hát (Shareable Song Card) -->
+    <dialog id="song-card-modal" class="modern-app-dialog song-card-dialog" aria-labelledby="song-card-dialog-title">
+        <div class="modern-dialog-inner">
+            <div class="modern-dialog-header">
+                <div class="modern-dialog-title-wrap">
+                    <span class="material-symbols-outlined dialog-brand-icon">photo_camera</span>
+                    <div>
+                        <h3 id="song-card-dialog-title">Chia Sẻ Khoảnh Khắc Âm Nhạc</h3>
+                        <p class="modern-dialog-sub">Tạo thẻ bài hát kèm câu lyric tâm đắc để tải về hoặc gửi vào phòng chat</p>
+                    </div>
+                </div>
+                <button type="button" class="modern-dialog-close" onclick="closeSongCardModal()" title="Đóng">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+
+            <div class="song-card-editor-layout">
+                <div class="song-card-canvas-wrap">
+                    <canvas id="song-card-canvas" width="720" height="880"></canvas>
+                </div>
+                <div class="song-card-controls">
+                    <label for="song-card-quote-input" class="modern-field-label">Câu lyric / cảm nhận muốn in lên thẻ:</label>
+                    <textarea id="song-card-quote-input" class="modern-dialog-textarea" rows="3" maxlength="160" placeholder="Nhập câu hát bạn thích nhất..." oninput="renderSongCardCanvas()"></textarea>
+
+                    <label class="modern-field-label">Phong cách thẻ:</label>
+                    <div class="dedication-theme-pills" id="song-card-theme-pills">
+                        <button type="button" class="ded-theme-pill active" data-card-theme="midnight" onclick="selectSongCardTheme('midnight')">🌌 LightBlue Đêm</button>
+                        <button type="button" class="ded-theme-pill" data-card-theme="vinyl" onclick="selectSongCardTheme('vinyl')">💿 Đĩa Than Vinyl</button>
+                        <button type="button" class="ded-theme-pill" data-card-theme="aurora" onclick="selectSongCardTheme('aurora')">✨ Cực Quang</button>
+                    </div>
+
+                    <div class="song-card-actions">
+                        <button type="button" class="modern-btn-secondary" onclick="downloadSongCardImage()">
+                            <span class="material-symbols-outlined">download</span>
+                            <span>Tải Ảnh PNG</span>
+                        </button>
+                        <button type="button" class="modern-btn-primary" onclick="shareSongCardToChat()">
+                            <span class="material-symbols-outlined">send</span>
+                            <span>Gửi Vào Khung Chat</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </dialog>
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="/socket.io/socket.io.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
@@ -2098,7 +3058,110 @@
     <script src="/libs/liquid-glass/button.js"></script>
     <script src="/libs/liquid-glass/controls.js"></script>
     <script src="/libs/liquid-glass/liquid-glass.js"></script>
-    <script src="main.js"></script>
+    <script src="main.js?v=6.2"></script>
+    <script src="pomodoro.js?v=1.1"></script>
+    <script src="study-rooms.js?v=1.1"></script>
+    <script>
+        // Sync Spotify Bottom Bar with current track info, thumbnail, timeline & mobile chat badge
+        (function initSpotifyBottomBarSync() {
+            var wt = document.getElementById('welcome-title');
+            var bt = document.getElementById('bottom-bar-title');
+            var ba = document.getElementById('bottom-bar-artist');
+            var thumb = document.getElementById('sp-bar-thumb');
+            var status = document.getElementById('status');
+            var tCur = document.getElementById('sp-time-current');
+            var tTot = document.getElementById('sp-time-total');
+            var fillCenter = document.getElementById('sp-timeline-fill');
+            var fillTop = document.getElementById('sp-bar-top-progress-fill');
+            var volSlider = document.getElementById('volume-slider');
+            var origChatBadge = document.getElementById('chat-badge');
+            var mobChatBadge = document.getElementById('sp-mobile-chat-badge');
+            var mobChatBtn = document.getElementById('sp-mobile-chat-btn');
+            var mobLyricBtn = document.getElementById('sp-mobile-lyric-btn');
+            var rightCol = document.querySelector('.right-column');
+            var lyricArea = document.getElementById('lyric-area-container');
+
+            function fmtTime(sec) {
+                if (!sec || !isFinite(sec) || sec < 0) return '0:00';
+                var s = Math.floor(sec);
+                var h = Math.floor(s / 3600);
+                var m = Math.floor((s % 3600) / 60);
+                var r = s % 60;
+                if (h > 0) {
+                    return h + ':' + (m < 10 ? '0' : '') + m + ':' + (r < 10 ? '0' : '') + r;
+                }
+                return m + ':' + (r < 10 ? '0' : '') + r;
+            }
+
+            function syncBottomBar() {
+                if (wt && bt && wt.textContent) {
+                    var title = wt.textContent.trim();
+                    bt.textContent = title;
+                    bt.title = title;
+                }
+                if (status && ba) {
+                    var st = status.textContent.trim();
+                    if (st && !st.includes('Đang kết nối')) {
+                        ba.textContent = st;
+                    }
+                }
+                if (thumb && window.currentVideoId) {
+                    var currentImg = thumb.querySelector('img');
+                    var targetSrc = 'https://img.youtube.com/vi/' + window.currentVideoId + '/mqdefault.jpg';
+                    if (!currentImg || currentImg.src !== targetSrc) {
+                        thumb.innerHTML = '<img src="' + targetSrc + '" alt="cover" referrerpolicy="no-referrer">';
+                    }
+                }
+                if (volSlider) {
+                    volSlider.style.setProperty('--vol-pct', (volSlider.value || 0) + '%');
+                }
+                if (origChatBadge && mobChatBadge) {
+                    mobChatBadge.textContent = origChatBadge.textContent;
+                    var isHidden = origChatBadge.classList.contains('hidden-badge') || origChatBadge.textContent === '0';
+                    mobChatBadge.classList.toggle('hidden-badge', isHidden);
+                }
+                if (rightCol && mobChatBtn && mobLyricBtn) {
+                    var isOpen = rightCol.classList.contains('chat-open');
+                    var isLyric = lyricArea && !lyricArea.classList.contains('hidden');
+                    mobChatBtn.classList.toggle('active', isOpen && !isLyric);
+                    mobLyricBtn.classList.toggle('active', isOpen && isLyric);
+                }
+            }
+
+            function syncTimeline() {
+                try {
+                    if (typeof player !== 'undefined' && player && typeof player.getCurrentTime === 'function' && typeof player.getDuration === 'function') {
+                        var cur = player.getCurrentTime() || 0;
+                        var dur = player.getDuration() || 0;
+                        var pct = dur > 0 ? Math.min(100, Math.max(0, (cur / dur) * 100)) : 0;
+                        if (tCur) tCur.textContent = fmtTime(cur);
+                        if (tTot) tTot.textContent = fmtTime(dur);
+                        if (fillCenter) fillCenter.style.width = pct.toFixed(2) + '%';
+                        if (fillTop) fillTop.style.width = pct.toFixed(2) + '%';
+                    }
+                } catch (_) {}
+            }
+
+            if (wt) {
+                new MutationObserver(syncBottomBar).observe(wt, { childList: true, characterData: true, subtree: true });
+            }
+            if (status) {
+                new MutationObserver(syncBottomBar).observe(status, { childList: true, characterData: true, subtree: true });
+            }
+            if (origChatBadge) {
+                new MutationObserver(syncBottomBar).observe(origChatBadge, { attributes: true, childList: true, characterData: true });
+            }
+            if (rightCol) {
+                new MutationObserver(syncBottomBar).observe(rightCol, { attributes: true, attributeFilter: ['class'] });
+            }
+            window.addEventListener('load', function () {
+                syncBottomBar();
+                syncTimeline();
+            });
+            setInterval(syncBottomBar, 1500);
+            setInterval(syncTimeline, 500);
+        })();
+    </script>
 </body>
 
 </html>
