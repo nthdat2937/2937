@@ -34,7 +34,7 @@ const userAvatars = new Map();
 
 async function saveMessageToSupabase(msgObj) {
     if (!supabase) return;
-    if (msgObj.role === 'system') return; // Do not save system notifications
+    if (msgObj.role === 'system' && !msgObj.persistSystem) return; // Do not save regular system notifications
     try {
         const payload = {
             id: String(msgObj.id),
@@ -90,7 +90,16 @@ async function getRecentChatHistory() {
             return [];
         }
         if (!data) return [];
-        return data.reverse().map(m => {
+        const ordered = data.reverse();
+        let lastClearIdx = -1;
+        for (let i = ordered.length - 1; i >= 0; i--) {
+            if (ordered[i] && ordered[i].text === '__CMD_CLEAR__') {
+                lastClearIdx = i;
+                break;
+            }
+        }
+        const visibleRows = lastClearIdx >= 0 ? ordered.slice(lastClearIdx + 1) : ordered;
+        return visibleRows.map(m => {
             const cleanMName = (m.name || '').replace(' 😎', '').trim().toLowerCase();
             return {
                 id: m.id,
@@ -207,6 +216,55 @@ function isUserOnline(userId) {
 
 function getOnlineUserIds() {
     return Array.from(userSockets.keys());
+}
+
+async function getOnlineWebUsers(currentUserId) {
+    const onlineIds = getOnlineUserIds().filter(id => !currentUserId || String(id) !== String(currentUserId));
+    const relationships = currentUserId ? await getUserRelationships(currentUserId) : new Map();
+
+    const users = await Promise.all(onlineIds.map(async (uid) => {
+        const profile = await getProfileById(uid);
+        if (!profile) return null;
+        const rel = relationships.get(String(uid)) || { status: 'none' };
+        return {
+            ...profile,
+            online: true,
+            isGuest: false,
+            relationship: rel.status,
+            friendshipId: rel.id || null
+        };
+    }));
+
+    const result = users.filter(Boolean);
+
+    // Include connected guests (without logged-in userId) if any
+    for (const [sId, u] of connectedUsers.entries()) {
+        const sock = io ? io.sockets.sockets.get(sId) : null;
+        if (sock && !sock.userId) {
+            const clean = (u.name || 'Khách').replace(/😎/g, '').trim() || 'Khách';
+            result.push({
+                id: 'guest-' + sId,
+                username: clean,
+                displayName: clean,
+                avatarUrl: u.avatarUrl || '',
+                nameColor: u.nameColor || '#94a3b8',
+                role: u.role || 'member',
+                online: true,
+                isGuest: true,
+                relationship: 'none',
+                friendshipId: null
+            });
+        }
+    }
+
+    result.sort((a, b) => {
+        if (a.isGuest !== b.isGuest) return a.isGuest ? 1 : -1;
+        if (a.relationship === 'friends' && b.relationship !== 'friends') return -1;
+        if (a.relationship !== 'friends' && b.relationship === 'friends') return 1;
+        return (a.displayName || a.username || '').localeCompare(b.displayName || b.username || '', 'vi');
+    });
+
+    return result;
 }
 
 async function getProfileById(userId) {
@@ -470,7 +528,7 @@ async function getUnreadDirectMessageCount(senderId, receiverId) {
 }
 
 async function getMessengerOverview(userId) {
-    if (!userId) return { friends: [], pendingRequests: [], sentRequests: [], conversations: [], onlineUserIds: getOnlineUserIds() };
+    if (!userId) return { friends: [], pendingRequests: [], sentRequests: [], conversations: [], onlineUserIds: getOnlineUserIds(), onlineUsers: await getOnlineWebUsers(null) };
 
     let rows = [];
     if (supabase) {
@@ -577,7 +635,8 @@ async function getMessengerOverview(userId) {
         pendingRequests,
         sentRequests,
         conversations,
-        onlineUserIds: getOnlineUserIds()
+        onlineUserIds: getOnlineUserIds(),
+        onlineUsers: await getOnlineWebUsers(userId)
     };
 }
 
@@ -970,6 +1029,7 @@ async function loadLastPlayedVideo() {
         const { data, error } = await supabase
             .from('music_history')
             .select('video_id, title')
+            .neq('video_id', '__CMD_CLEAR__')
             .order('played_at', { ascending: false })
             .limit(1);
         if (error) {
@@ -1009,6 +1069,50 @@ let lastGlobalVideoEndedTime = 0;
 
 async function autoPickDjRadioSong(currentTitle, currentId) {
     try {
+        // Pick a random song from ALL play history in Supabase (including soft-cleared songs before __CMD_CLEAR__)
+        if (supabase) {
+            const { data, error } = await supabase
+                .from('music_history')
+                .select('video_id, title')
+                .neq('video_id', '__CMD_CLEAR__')
+                .order('played_at', { ascending: false })
+                .limit(500);
+
+            if (!error && Array.isArray(data) && data.length > 0) {
+                const uniqueMap = new Map();
+                for (const row of data) {
+                    if (!row || !row.video_id || row.video_id === '__CMD_CLEAR__' || row.title === '__CMD_CLEAR__') continue;
+                    if (!uniqueMap.has(row.video_id)) {
+                        uniqueMap.set(row.video_id, {
+                            id: row.video_id,
+                            title: row.title || 'Bài hát trong lịch sử'
+                        });
+                    }
+                }
+
+                const allSongs = Array.from(uniqueMap.values());
+                if (allSongs.length > 0) {
+                    let pool = allSongs.filter(s => s.id !== currentId && !recentPlayedSongIds.includes(s.id));
+                    if (pool.length === 0) {
+                        pool = allSongs.filter(s => s.id !== currentId);
+                    }
+                    if (pool.length === 0) {
+                        pool = allSongs;
+                    }
+                    const picked = pool[Math.floor(Math.random() * pool.length)];
+                    recentPlayedSongIds.push(picked.id);
+                    if (recentPlayedSongIds.length > 25) recentPlayedSongIds.shift();
+                    return {
+                        id: picked.id,
+                        title: picked.title,
+                        addedBy: 'DJ Radio 📻',
+                        isDjRadio: true
+                    };
+                }
+            }
+        }
+
+        // Fallback to YouTube search only if history is empty or Supabase unavailable
         let clean = (currentTitle || 'nhạc trẻ acoustic chill')
             .replace(/[\(\[\{].*?[\)\]\}]/g, '')
             .replace(/(official|music video|mv|audio|lyric|lyrics|video|karaoke|beat|remix|hd|4k)/gi, '')
@@ -1409,6 +1513,13 @@ const DEFAULT_STUDY_ROOMS = [
 let cachedStudyRooms = null;
 const studyUsers = new Map(); // socket.id -> { socketId, userId, username, avatarUrl, nameColor, role, roomId, status, goal, joinedAt }
 const studyVibes = []; // recent vibes
+const virtual3dUsers = new Map(); // socket.id -> { socketId, username, role, isPremium, color, hat, x, y, z, rotY, seatId, zone, isMoving, statusText }
+
+function getVirtual3DState() {
+    return {
+        users: Array.from(virtual3dUsers.values())
+    };
+}
 
 function loadStudyRooms() {
     if (cachedStudyRooms) return cachedStudyRooms;
@@ -2506,6 +2617,29 @@ io.on('connection', (socket) => {
 
             const textLower = textMsg.trim().toLowerCase();
 
+            if (textLower === '/clear' || textLower.startsWith('/clear ')) {
+                if (socket.role !== 'admin') {
+                    socket.emit('newMessage', {
+                        id: 'sys-' + Date.now(),
+                        name: 'Hệ thống ❌',
+                        text: 'Lệnh **/clear** chỉ dành cho Quản trị viên!',
+                        role: 'system'
+                    });
+                    return;
+                }
+                const clearMarkerId = 'sys-clear-' + Date.now();
+                await saveMessageToSupabase({
+                    id: clearMarkerId,
+                    name: 'Hệ thống 🧹',
+                    text: '__CMD_CLEAR__',
+                    role: 'system',
+                    type: 'text',
+                    persistSystem: true
+                });
+                io.emit('chatCleared', { clearedBy: senderName });
+                return;
+            }
+
             let isTbNotification = false;
             let tbContent = '';
             if (textLower.startsWith('/tb ') || textLower === '/tb') {
@@ -2777,6 +2911,26 @@ io.on('connection', (socket) => {
             io.emit('messageDeleted', msgId);
             deleteMessageFromSupabase(msgId);
         }
+    });
+
+    socket.on('adminClearMusicHistory', async () => {
+        if (socket.role !== 'admin') return;
+        if (supabase) {
+            try {
+                const { error } = await supabase.from('music_history').insert([{
+                    video_id: '__CMD_CLEAR__',
+                    title: '__CMD_CLEAR__',
+                    added_by: socket.username || 'Admin',
+                    played_at: new Date().toISOString()
+                }]);
+                if (error) {
+                    console.error('Supabase Error (clear music_history marker):', error.message);
+                }
+            } catch (err) {
+                console.error('Supabase Exception (clear music_history marker):', err.message);
+            }
+        }
+        io.emit('musicHistoryCleared', { clearedBy: socket.username || 'Admin' });
     });
 
 
@@ -3949,6 +4103,13 @@ io.on('connection', (socket) => {
         else socket.emit('messenger:initResult', overview);
     });
 
+    socket.on('messenger:getOnlineUsers', async (data, callback) => {
+        const uId = data?.userId || socket.userId;
+        const onlineUsers = await getOnlineWebUsers(uId);
+        if (typeof callback === 'function') callback({ onlineUsers });
+        else socket.emit('messenger:onlineUsersResult', { onlineUsers });
+    });
+
     socket.on('messenger:searchUsers', async (data, callback) => {
         const { query, currentUserId } = data || {};
         const uId = currentUserId || socket.userId;
@@ -4231,7 +4392,126 @@ io.on('connection', (socket) => {
         if (typeof callback === 'function') callback({ success: true, state });
     });
 
+    // --- 3D VIRTUAL CAMPUS (PHÒNG NGHE NHẠC & HỌC TẬP ẢO 3D) ---
+    socket.on('virtual3d:join', (payload = {}, callback) => {
+        const userEntry = {
+            socketId: socket.id,
+            userId: socket.userId ? String(socket.userId) : '',
+            username: socket.username || payload.username || 'Khách 3D',
+            role: socket.role || payload.role || 'member',
+            isPremium: !!(socket.isPremium || socket.role === 'admin' || payload.isPremium),
+            color: String(payload.color || '#ffffff').slice(0, 20),
+            hat: String(payload.hat || 'none').slice(0, 20),
+            hair: String(payload.hair || 'messy').slice(0, 20),
+            hairColor: String(payload.hairColor || '#38302e').slice(0, 20),
+            skinColor: String(payload.skinColor || '#ffe2c6').slice(0, 20),
+            face: String(payload.face || 'basic').slice(0, 20),
+            topStyle: String(payload.topStyle || 'sleeveless').slice(0, 20),
+            shortsColor: String(payload.shortsColor || '#228be6').slice(0, 20),
+            shoesStyle: String(payload.shoesStyle || 'slippers').slice(0, 20),
+            x: Number.isFinite(payload.x) ? payload.x : -12,
+            y: Number.isFinite(payload.y) ? payload.y : 0,
+            z: Number.isFinite(payload.z) ? payload.z : 0,
+            rotY: Number.isFinite(payload.rotY) ? payload.rotY : 0,
+            seatId: payload.seatId ? String(payload.seatId) : null,
+            zone: String(payload.zone || 'music'),
+            isMoving: false,
+            statusText: String(payload.statusText || '🎵 Đang ở Phòng Nhạc').slice(0, 60)
+        };
+        virtual3dUsers.set(socket.id, userEntry);
+        const state = getVirtual3DState();
+        io.emit('virtual3d:state', state);
+        if (typeof callback === 'function') callback({ success: true, state });
+    });
+
+    socket.on('virtual3d:move', (payload = {}) => {
+        const u = virtual3dUsers.get(socket.id);
+        if (!u) return;
+        if (Number.isFinite(payload.x)) u.x = Math.max(-32, Math.min(32, payload.x));
+        if (Number.isFinite(payload.y)) u.y = Math.max(0, Math.min(10, payload.y));
+        if (Number.isFinite(payload.z)) u.z = Math.max(-16, Math.min(16, payload.z));
+        if (Number.isFinite(payload.rotY)) u.rotY = payload.rotY;
+        if (payload.zone) u.zone = String(payload.zone).slice(0, 20);
+        if (payload.seatId !== undefined) u.seatId = payload.seatId ? String(payload.seatId) : null;
+        u.isMoving = !!payload.isMoving;
+        if (payload.statusText !== undefined) u.statusText = String(payload.statusText || '').slice(0, 60);
+        socket.broadcast.emit('virtual3d:playerMoved', u);
+    });
+
+    socket.on('virtual3d:sit', (payload = {}, callback) => {
+        const u = virtual3dUsers.get(socket.id);
+        if (!u) {
+            if (typeof callback === 'function') callback({ success: false });
+            return;
+        }
+        const targetSeat = payload.seatId ? String(payload.seatId) : null;
+        if (targetSeat) {
+            // Check if seat is already occupied by someone else
+            for (const [sid, other] of virtual3dUsers.entries()) {
+                if (sid !== socket.id && other.seatId === targetSeat) {
+                    if (typeof callback === 'function') {
+                        callback({ success: false, message: `Ghế này đang có ${other.username} ngồi rồi!` });
+                    }
+                    return;
+                }
+            }
+            u.seatId = targetSeat;
+            if (Number.isFinite(payload.x)) u.x = payload.x;
+            if (Number.isFinite(payload.y)) u.y = payload.y;
+            if (Number.isFinite(payload.z)) u.z = payload.z;
+            if (Number.isFinite(payload.rotY)) u.rotY = payload.rotY;
+            u.isMoving = false;
+            if (payload.statusText) u.statusText = String(payload.statusText).slice(0, 60);
+        } else {
+            u.seatId = null;
+            if (Number.isFinite(payload.x)) u.x = payload.x;
+            if (Number.isFinite(payload.z)) u.z = payload.z;
+            if (payload.statusText) u.statusText = String(payload.statusText).slice(0, 60);
+        }
+        const state = getVirtual3DState();
+        io.emit('virtual3d:state', state);
+        if (typeof callback === 'function') callback({ success: true, state });
+    });
+
+    socket.on('virtual3d:customize', (payload = {}) => {
+        const u = virtual3dUsers.get(socket.id);
+        if (!u) return;
+        if (payload.color) u.color = String(payload.color).slice(0, 20);
+        if (payload.hat) u.hat = String(payload.hat).slice(0, 20);
+        if (payload.hair) u.hair = String(payload.hair).slice(0, 20);
+        if (payload.hairColor) u.hairColor = String(payload.hairColor).slice(0, 20);
+        if (payload.skinColor) u.skinColor = String(payload.skinColor).slice(0, 20);
+        if (payload.face) u.face = String(payload.face).slice(0, 20);
+        if (payload.topStyle) u.topStyle = String(payload.topStyle).slice(0, 20);
+        if (payload.shortsColor) u.shortsColor = String(payload.shortsColor).slice(0, 20);
+        if (payload.shoesStyle) u.shoesStyle = String(payload.shoesStyle).slice(0, 20);
+        io.emit('virtual3d:state', getVirtual3DState());
+    });
+
+    socket.on('virtual3d:emote', (payload = {}) => {
+        const u = virtual3dUsers.get(socket.id);
+        if (!u) return;
+        io.emit('virtual3d:emote', {
+            socketId: socket.id,
+            username: u.username,
+            emote: String(payload.emote || '👋').slice(0, 32),
+            text: payload.text ? String(payload.text).slice(0, 120) : '',
+            action: payload.action ? String(payload.action).slice(0, 20) : ''
+        });
+    });
+
+    socket.on('virtual3d:leave', () => {
+        if (virtual3dUsers.has(socket.id)) {
+            virtual3dUsers.delete(socket.id);
+            io.emit('virtual3d:state', getVirtual3DState());
+        }
+    });
+
     socket.on('disconnect', () => {
+        if (virtual3dUsers.has(socket.id)) {
+            virtual3dUsers.delete(socket.id);
+            io.emit('virtual3d:state', getVirtual3DState());
+        }
         if (studyUsers.has(socket.id)) {
             const u = studyUsers.get(socket.id);
             studyUsers.delete(socket.id);

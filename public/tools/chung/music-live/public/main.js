@@ -285,6 +285,10 @@ function showTab(tab) {
         activeTab.setAttribute('aria-current', 'page');
     }
 
+    if (document.body.classList.contains('virtual3d-mode-active') && typeof window.closeVirtual3DWorld === 'function') {
+        window.closeVirtual3DWorld();
+    }
+
     document.getElementById('left-column').classList.remove('not-home');
     document.getElementById('left-column').classList.remove('hidden');
     document.getElementById('history-column').classList.add('hidden');
@@ -315,7 +319,11 @@ function showTab(tab) {
         if (typeof isAutoPipEnabled !== 'undefined' && isAutoPipEnabled) {
             toggleMiniPlayer(true);
         }
-        applyMiniPlayerSavedPos();
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                applyMiniPlayerSavedPos();
+            });
+        });
         if (tab === 'messenger') {
             if (msgCol) msgCol.classList.remove('hidden');
             if (rightCol) rightCol.classList.add('hidden');
@@ -378,9 +386,21 @@ async function loadHistory() {
             return;
         }
 
-        let groupedData = [];
+        const visibleRows = [];
         for (let i = 0; i < data.length; i++) {
-            const current = data[i];
+            const row = data[i];
+            if (row.video_id === '__CMD_CLEAR__' || row.title === '__CMD_CLEAR__') break;
+            visibleRows.push(row);
+        }
+
+        if (visibleRows.length === 0) {
+            list.innerHTML = '<div style="color:var(--text-muted); padding:12px; text-align:center;">Lịch sử phát đã được làm sạch.</div>';
+            return;
+        }
+
+        let groupedData = [];
+        for (let i = 0; i < visibleRows.length; i++) {
+            const current = visibleRows[i];
             if (groupedData.length > 0 && groupedData[groupedData.length - 1].video_id === current.video_id) {
                 groupedData[groupedData.length - 1].count = (groupedData[groupedData.length - 1].count || 1) + 1;
             } else {
@@ -3173,6 +3193,7 @@ socket.on('authResult', (res) => {
             document.body.classList.add('admin-mode');
             document.getElementById('btn-next-song')?.classList.remove('hidden');
             document.getElementById('btn-loop')?.classList.remove('hidden');
+            document.getElementById('btn-clear-history')?.classList.remove('hidden');
             const djRadioBtn = document.getElementById('btn-dj-radio');
             if (djRadioBtn) djRadioBtn.classList.remove('hidden');
             document.getElementById('btn-start-game')?.classList.remove('hidden');
@@ -3188,6 +3209,7 @@ socket.on('authResult', (res) => {
             document.getElementById('btn-next-song')?.classList.add('hidden');
             document.getElementById('btn-loop')?.classList.add('hidden');
             document.getElementById('btn-dj-radio')?.classList.add('hidden');
+            document.getElementById('btn-clear-history')?.classList.add('hidden');
             document.getElementById('btn-start-game')?.classList.add('hidden');
             document.getElementById('sidebar-quiz-admin')?.classList.add('hidden');
             document.getElementById('sidebar-premium-admin')?.classList.add('hidden');
@@ -3313,6 +3335,7 @@ async function logout() {
     document.getElementById('btn-next-song')?.classList.add('hidden');
     document.getElementById('btn-loop')?.classList.add('hidden');
     document.getElementById('btn-dj-radio')?.classList.add('hidden');
+    document.getElementById('btn-clear-history')?.classList.add('hidden');
     document.getElementById('btn-start-game')?.classList.add('hidden');
     document.getElementById('sidebar-quiz-admin')?.classList.add('hidden');
     document.getElementById('sidebar-premium-admin')?.classList.add('hidden');
@@ -3374,6 +3397,173 @@ function setReply(id, name, text) {
 function cancelReply() {
     currentReply = null;
     document.getElementById('reply-container').classList.add('hidden');
+}
+
+function toggleChatToolsMenu(event) {
+    if (event) event.stopPropagation();
+    const popover = document.getElementById('chat-tools-popover');
+    const btn = document.getElementById('chat-tools-menu-btn');
+    if (!popover) return;
+    const willOpen = popover.classList.contains('hidden');
+    popover.classList.toggle('hidden', !willOpen);
+    if (btn) {
+        btn.classList.toggle('active', willOpen);
+        btn.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+    }
+}
+
+function closeChatToolsMenu() {
+    const popover = document.getElementById('chat-tools-popover');
+    const btn = document.getElementById('chat-tools-menu-btn');
+    if (popover) popover.classList.add('hidden');
+    if (btn) {
+        btn.classList.remove('active');
+        btn.setAttribute('aria-expanded', 'false');
+    }
+}
+
+document.addEventListener('click', (event) => {
+    const wrap = document.getElementById('chat-tools-menu-wrap');
+    const popover = document.getElementById('chat-tools-popover');
+    if (!wrap || !popover || popover.classList.contains('hidden')) return;
+    if (!wrap.contains(event.target)) {
+        closeChatToolsMenu();
+    }
+});
+
+function clearMusicHistoryAdmin() {
+    if (typeof myRole === 'undefined' || myRole !== 'admin') return;
+    if (!confirm('Bạn có chắc muốn dọn sạch danh sách lịch sử phát hiển thị? (Dữ liệu cũ vẫn được giữ trong database)')) return;
+    if (typeof socket !== 'undefined') {
+        socket.emit('adminClearMusicHistory');
+    }
+}
+
+function toggleSpotifyBarPlay() {
+    const icon = document.getElementById('sp-play-circle-icon');
+    if (typeof player !== 'undefined' && player && typeof player.getPlayerState === 'function') {
+        try {
+            const st = player.getPlayerState();
+            if (st === 1) {
+                player.pauseVideo();
+                if (icon) icon.textContent = 'play_arrow';
+            } else {
+                player.playVideo();
+                if (icon) icon.textContent = 'pause';
+            }
+            return;
+        } catch (_) {}
+    }
+}
+
+socket.on('chatCleared', (data) => {
+    const chatBox = document.getElementById('chat-box-ui');
+    if (chatBox) {
+        chatBox.innerHTML = '';
+    }
+    if (typeof lastChatSenderId !== 'undefined') {
+        lastChatSenderId = null;
+    }
+    if (typeof showToastNotification === 'function') {
+        showToastNotification(`🧹 [${data?.clearedBy || 'Admin'}] đã dọn sạch khung chat chung.`);
+    }
+});
+
+socket.on('musicHistoryCleared', (data) => {
+    if (typeof loadHistory === 'function') {
+        loadHistory();
+    }
+    if (typeof showToastNotification === 'function') {
+        showToastNotification(`🧹 [${data?.clearedBy || 'Admin'}] đã dọn sạch lịch sử phát.`);
+    }
+});
+
+function openChatCommandsModal() {
+    const modal = document.getElementById('chat-commands-modal');
+    const body = document.getElementById('chat-commands-list-body');
+    const sub = document.getElementById('chat-commands-role-sub');
+    if (!modal || !body) return;
+
+    const isAdminUser = (typeof myRole !== 'undefined' && myRole === 'admin');
+    const isPremUser = (typeof isMyAccountPremium !== 'undefined' && isMyAccountPremium) || (typeof myRole !== 'undefined' && myRole === 'premium');
+    const roleLabel = isAdminUser
+        ? '👑 Quản trị viên (Admin)'
+        : (isPremUser ? '⭐ Thành viên Premium' : '👤 Thành viên');
+
+    if (sub) {
+        sub.innerHTML = `Quyền hiện tại của bạn: <strong style="color:#87cefa;">${roleLabel}</strong> • Bấm vào lệnh để điền nhanh`;
+    }
+
+    const memberCmds = [
+        { cmd: '/ai ', label: '/ai <câu hỏi>', desc: 'Hỏi trợ lý AI ngay trong khung chat chung' }
+    ];
+
+    const adminCmds = [
+        { cmd: '/add ', label: '/add <tên bài / ID>', desc: 'Thêm bài hát vào danh sách phát' },
+        { cmd: '/skip', label: '/skip', desc: 'Chuyển sang bài hát tiếp theo' },
+        { cmd: '/repeat', label: '/repeat', desc: 'Bật / Tắt chế độ lặp lại bài hát hiện tại' },
+        { cmd: '/move ', label: '/move <số 1> <số 2>', desc: 'Đổi vị trí 2 bài hát trong danh sách chờ' },
+        { cmd: '/remove ', label: '/remove <số>', desc: 'Xóa bài hát theo số thứ tự khỏi danh sách chờ' },
+        { cmd: '/tb ', label: '/tb <nội dung>', desc: 'Gửi thông báo toàn màn hình tới tất cả mọi người' },
+        { cmd: '/clear', label: '/clear', desc: 'Dọn sạch khung chat chung (chỉ hiện tin nhắn mới từ sau lệnh này)' }
+    ];
+
+    const renderGroup = (title, badgeText, badgeColor, badgeBg, cmds, locked) => `
+        <div style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.09); border-radius: 14px; padding: 12px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 10px;">
+                <span style="font-size: 13px; font-weight: 700; color: #f8fafc;">${title}</span>
+                <span style="font-size: 11px; font-weight: 700; color: ${badgeColor}; background: ${badgeBg}; padding: 3px 9px; border-radius: 999px;">${badgeText}</span>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 7px;">
+                ${cmds.map(c => `
+                    <button type="button" ${locked ? 'disabled' : `onclick="insertChatCommand('${c.cmd}')"`}
+                        style="display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; text-align: left; padding: 9px 11px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.08); background: rgba(15,23,42,0.55); color: #e2e8f0; cursor: ${locked ? 'not-allowed' : 'pointer'}; opacity: ${locked ? '0.6' : '1'}; transition: border-color 0.15s, background 0.15s;">
+                        <div style="min-width: 0;">
+                            <div style="font-family: var(--font-mono, monospace); font-size: 12.5px; font-weight: 700; color: #7dd3fc;">${escapeHtml(c.label)}</div>
+                            <div style="font-size: 12px; color: #94a3b8; margin-top: 2px;">${escapeHtml(c.desc)}</div>
+                        </div>
+                        <span class="material-symbols-outlined" style="font-size: 16px; color: ${locked ? '#64748b' : '#7dd3fc'}; flex-shrink: 0;">${locked ? 'lock' : 'arrow_forward'}</span>
+                    </button>
+                `).join('')}
+            </div>
+        </div>
+    `;
+
+    body.innerHTML =
+        renderGroup('👤 Dành cho Mọi người', 'Tất cả thành viên', '#86efac', 'rgba(34,197,94,0.16)', memberCmds, false) +
+        renderGroup(
+            '👑 Dành cho Quản trị viên (Admin)',
+            isAdminUser ? 'Bạn có quyền dùng' : 'Chỉ Admin',
+            isAdminUser ? '#fde047' : '#fca5a5',
+            isAdminUser ? 'rgba(250,204,21,0.16)' : 'rgba(239,68,68,0.16)',
+            adminCmds,
+            !isAdminUser
+        );
+
+    if (typeof modal.showModal === 'function') {
+        if (!modal.open) modal.showModal();
+    } else {
+        modal.classList.remove('hidden');
+    }
+}
+
+function closeChatCommandsModal() {
+    const modal = document.getElementById('chat-commands-modal');
+    if (!modal) return;
+    if (typeof modal.close === 'function' && modal.open) {
+        modal.close();
+    } else {
+        modal.classList.add('hidden');
+    }
+}
+
+function insertChatCommand(cmdText) {
+    closeChatCommandsModal();
+    const input = document.getElementById('chat-input');
+    if (input) {
+        input.value = cmdText;
+        input.focus();
+    }
 }
 
 function sendChat() {
@@ -3439,7 +3629,10 @@ socket.on('messageDeleted', (msgId) => {
 });
 
 socket.on('viewersUpdate', (count) => {
-    document.getElementById('viewer-count').innerHTML = `(<span class="material-symbols-outlined" style="font-size:14px; vertical-align:text-bottom;">visibility</span> ${count})`;
+    const el = document.getElementById('viewer-count');
+    if (el) {
+        el.innerHTML = `<span class="material-symbols-outlined" style="font-size:12px; vertical-align:middle; margin-right:2px;">visibility</span> ${count}`;
+    }
 });
 
 // --- FULLSCREEN ANNOUNCEMENT (/tb) LOGIC ---
@@ -4666,6 +4859,7 @@ socket.on('newMessage', (data) => {
                 .replace(/🗑️/g, '<span class="material-symbols-outlined" style="font-size:15px; vertical-align:text-bottom; margin-right:2px;">delete</span>')
                 .replace(/❌/g, '<span class="material-symbols-outlined" style="font-size:15px; vertical-align:text-bottom; margin-right:2px;">error</span>');
             safeText = safeText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            safeText = safeText.replace(/\n/g, '<br>');
         }
         contentHtml = `<span class="chat-text">${safeText}</span>`;
     }
@@ -5540,6 +5734,7 @@ function toggleAutoPipSetting(checked) {
 
 function toggleMiniPlayer(forceState) {
     const playerEl = document.getElementById('player-container');
+    const leftCol = document.getElementById('left-column');
     const pipBtn = document.getElementById('btn-toggle-pip');
     const pipIcon = document.getElementById('pip-btn-icon');
     const pipLabel = document.getElementById('pip-btn-label');
@@ -5553,6 +5748,12 @@ function toggleMiniPlayer(forceState) {
         isMiniPlayerActive = !isMiniPlayerActive;
     }
 
+    // If restoring while on another tab, return smoothly to home tab
+    if (!isMiniPlayerActive && leftCol && leftCol.classList.contains('not-home')) {
+        showTab('home');
+        return;
+    }
+
     playerEl.classList.toggle('is-mini-player', isMiniPlayerActive);
     if (pipBtn) pipBtn.classList.toggle('active', isMiniPlayerActive);
     if (pipIcon) pipIcon.textContent = isMiniPlayerActive ? 'close_fullscreen' : 'picture_in_picture_alt';
@@ -5560,8 +5761,11 @@ function toggleMiniPlayer(forceState) {
     if (miniTitle) miniTitle.textContent = window.currentVideoTitle || 'Đang phát nhạc';
 
     if (isMiniPlayerActive) {
-        applyMiniPlayerSavedPos();
-        clampMiniPlayerPosition();
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                applyMiniPlayerSavedPos();
+            });
+        });
     } else {
         playerEl.style.transform = '';
     }
@@ -5917,34 +6121,25 @@ function switchRightTab(tabName) {
     if (tabChat && tabLyric) {
         tabChat.classList.toggle('active', tabName === 'chat');
         tabLyric.classList.toggle('active', tabName === 'lyric');
+        tabChat.style.fontWeight = '';
+        tabChat.style.color = '';
+        tabLyric.style.fontWeight = '';
+        tabLyric.style.color = '';
     }
 
     if (tabName === 'chat') {
-        if (tabChat) {
-            tabChat.style.fontWeight = '700';
-            tabChat.style.color = '#ffffff';
-        }
-        if (tabLyric) {
-            tabLyric.style.fontWeight = '500';
-            tabLyric.style.color = 'var(--sp-text-sub, var(--text-muted))';
-        }
         if (chatArea) chatArea.classList.remove('hidden');
         if (lyricArea) lyricArea.classList.add('hidden');
         if (chatFab) chatFab.classList.add('active-tab');
         if (lyricFab) lyricFab.classList.remove('active-tab');
     } else {
-        if (tabLyric) {
-            tabLyric.style.fontWeight = '700';
-            tabLyric.style.color = '#ffffff';
-        }
-        if (tabChat) {
-            tabChat.style.fontWeight = '500';
-            tabChat.style.color = 'var(--sp-text-sub, var(--text-muted))';
-        }
         if (lyricArea) lyricArea.classList.remove('hidden');
         if (chatArea) chatArea.classList.add('hidden');
         if (chatFab) chatFab.classList.remove('active-tab');
         if (lyricFab) lyricFab.classList.add('active-tab');
+        if (typeof window.renderLyricView === 'function') {
+            window.renderLyricView();
+        }
     }
 }
 
@@ -7332,75 +7527,110 @@ let untranslatedTop = 0;
 let playerWidth = 0;
 let playerHeight = 0;
 
-// Load saved position from localStorage
+// Load saved position from localStorage safely
 try {
     const savedPos = localStorage.getItem('mini_player_pos');
     if (savedPos) {
         const parsed = JSON.parse(savedPos);
-        if (typeof parsed.x === 'number' && typeof parsed.y === 'number') {
-            miniDragX = parsed.x;
-            miniDragY = parsed.y;
+        if (typeof parsed.x === 'number' && typeof parsed.y === 'number' && isFinite(parsed.x) && isFinite(parsed.y)) {
+            if (Math.abs(parsed.x) < window.innerWidth && Math.abs(parsed.y) < window.innerHeight) {
+                miniDragX = parsed.x;
+                miniDragY = parsed.y;
+            } else {
+                localStorage.removeItem('mini_player_pos');
+            }
         }
     }
 } catch (err) { }
 
 function applyMiniPlayerSavedPos() {
-    if (document.getElementById('left-column').classList.contains('not-home') || document.getElementById('left-column').classList.contains('mobile-mini')) {
-        if (miniDragX || miniDragY) {
-            miniPlayer.style.transform = `translate(${miniDragX}px, ${miniDragY}px)`;
-            clampMiniPlayerPosition();
-        }
+    const leftCol = document.getElementById('left-column');
+    if (!leftCol || !miniPlayer) return;
+    const isFloating = leftCol.classList.contains('not-home') || leftCol.classList.contains('mobile-mini') || miniPlayer.classList.contains('is-mini-player');
+    if (!isFloating) return;
+
+    if (miniDragX || miniDragY) {
+        miniPlayer.style.transform = `translate(${miniDragX}px, ${miniDragY}px)`;
+    } else {
+        miniPlayer.style.transform = '';
     }
+    clampMiniPlayerPosition();
 }
 
 // Show handle & restore position in mini mode
 const observer = new MutationObserver((mutations) => {
     mutations.forEach((m) => {
         if (m.attributeName === 'class') {
-            if (document.getElementById('left-column').classList.contains('not-home') || document.getElementById('left-column').classList.contains('mobile-mini')) {
-                dragHandle.style.display = 'block';
-                applyMiniPlayerSavedPos();
+            const leftCol = document.getElementById('left-column');
+            if (leftCol && (leftCol.classList.contains('not-home') || leftCol.classList.contains('mobile-mini'))) {
+                if (dragHandle) dragHandle.style.display = 'block';
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => {
+                        applyMiniPlayerSavedPos();
+                    });
+                });
             } else {
-                dragHandle.style.display = 'none';
-                miniPlayer.style.transform = '';
+                if (dragHandle) dragHandle.style.display = 'none';
+                if (miniPlayer) miniPlayer.style.transform = '';
             }
         }
     });
 });
-observer.observe(document.getElementById('left-column'), { attributes: true });
+if (document.getElementById('left-column')) {
+    observer.observe(document.getElementById('left-column'), { attributes: true });
+}
 
 function resetMiniPlayerDrag() {
     miniDragX = 0;
     miniDragY = 0;
-    miniPlayer.style.transform = '';
+    if (miniPlayer) miniPlayer.style.transform = '';
     try {
         localStorage.removeItem('mini_player_pos');
     } catch (e) { }
 }
 
 function clampMiniPlayerPosition() {
-    if (!document.getElementById('left-column').classList.contains('not-home') && !document.getElementById('left-column').classList.contains('mobile-mini') && !miniPlayer.classList.contains('is-mini-player')) {
-        return;
-    }
+    const leftCol = document.getElementById('left-column');
+    if (!leftCol || !miniPlayer) return;
+    const isFloating = leftCol.classList.contains('not-home') || leftCol.classList.contains('mobile-mini') || miniPlayer.classList.contains('is-mini-player');
+    if (!isFloating) return;
+
+    // Temporarily clear transform to get exact un-transformed rendered position
+    const prevTransform = miniPlayer.style.transform;
+    miniPlayer.style.transform = 'none';
     const rect = miniPlayer.getBoundingClientRect();
+    miniPlayer.style.transform = prevTransform;
+
     if (!rect.width || !rect.height) return;
 
-    const currentUnX = rect.left - miniDragX;
-    const currentUnY = rect.top - miniDragY;
-    const margin = 8;
+    const margin = 10;
+    const isMobile = window.innerWidth <= 768;
+    const topOffset = isMobile ? 56 : margin;
     const bottomBar = document.getElementById('spotify-bottom-bar');
     const bottomBarH = (bottomBar && !bottomBar.classList.contains('hidden') && bottomBar.offsetHeight > 0) ? bottomBar.offsetHeight : 80;
     const bottomOffset = bottomBarH + margin;
 
-    const minX = -currentUnX + margin;
-    const maxX = window.innerWidth - currentUnX - rect.width - margin;
-    const minY = -currentUnY + margin;
-    const maxY = window.innerHeight - currentUnY - rect.height - bottomOffset;
+    // Element's untranslated left/top is rect.left/rect.top
+    const minX = margin - rect.left;
+    const maxX = window.innerWidth - rect.left - rect.width - margin;
+    const minY = topOffset - rect.top;
+    const maxY = window.innerHeight - rect.top - rect.height - bottomOffset;
 
-    miniDragX = Math.min(Math.max(miniDragX, minX), Math.max(minX, maxX));
-    miniDragY = Math.min(Math.max(miniDragY, minY), Math.max(minY, maxY));
+    if (minX > maxX || minY > maxY) {
+        miniDragX = 0;
+        miniDragY = 0;
+        miniPlayer.style.transform = '';
+        return;
+    }
 
-    miniPlayer.style.transform = `translate(${miniDragX}px, ${miniDragY}px)`;
+    miniDragX = Math.min(Math.max(miniDragX, minX), maxX);
+    miniDragY = Math.min(Math.max(miniDragY, minY), maxY);
+
+    if (miniDragX === 0 && miniDragY === 0) {
+        miniPlayer.style.transform = '';
+    } else {
+        miniPlayer.style.transform = `translate(${miniDragX}px, ${miniDragY}px)`;
+    }
 }
 window.addEventListener('resize', clampMiniPlayerPosition);
 
@@ -7426,11 +7656,15 @@ function startMiniDrag(e) {
         window.getSelection().removeAllRanges();
     }
 
+    const prevTransform = miniPlayer.style.transform;
+    miniPlayer.style.transform = 'none';
     const rect = miniPlayer.getBoundingClientRect();
+    miniPlayer.style.transform = prevTransform;
+
     playerWidth = rect.width;
     playerHeight = rect.height;
-    untranslatedLeft = rect.left - miniDragX;
-    untranslatedTop = rect.top - miniDragY;
+    untranslatedLeft = rect.left;
+    untranslatedTop = rect.top;
 
     const clientX = e.type === 'touchstart' ? e.touches[0].clientX : e.clientX;
     const clientY = e.type === 'touchstart' ? e.touches[0].clientY : e.clientY;
@@ -7459,12 +7693,18 @@ function onMiniDrag(e) {
     const targetX = initialMiniX + dx;
     const targetY = initialMiniY + dy;
 
-    // Clamp within viewport boundaries with 4px margin
-    const margin = 4;
-    const minX = -untranslatedLeft + margin;
+    // Viewport boundaries
+    const margin = 8;
+    const isMobile = window.innerWidth <= 768;
+    const topOffset = isMobile ? 56 : margin;
+    const bottomBar = document.getElementById('spotify-bottom-bar');
+    const bottomBarH = (bottomBar && !bottomBar.classList.contains('hidden') && bottomBar.offsetHeight > 0) ? bottomBar.offsetHeight : 80;
+    const bottomOffset = bottomBarH + margin;
+
+    const minX = margin - untranslatedLeft;
     const maxX = window.innerWidth - untranslatedLeft - playerWidth - margin;
-    const minY = -untranslatedTop + margin;
-    const maxY = window.innerHeight - untranslatedTop - playerHeight - margin;
+    const minY = topOffset - untranslatedTop;
+    const maxY = window.innerHeight - untranslatedTop - playerHeight - bottomOffset;
 
     miniDragX = Math.min(Math.max(targetX, minX), Math.max(minX, maxX));
     miniDragY = Math.min(Math.max(targetY, minY), Math.max(minY, maxY));
@@ -8738,6 +8978,8 @@ let messengerFriends = [];
 let messengerPendingRequests = [];
 let messengerSentRequests = [];
 let messengerOnlineUserIds = new Set();
+let messengerOnlineUsers = [];
+let messengerOnlineUsersCache = new Map();
 let messengerCurrentSubTab = 'chats';
 let messengerFilterQuery = '';
 let messengerTypingTimeout = null;
@@ -8780,6 +9022,9 @@ function handleMessengerInitResult(data) {
     messengerSentRequests = data.sentRequests || [];
     messengerConversations = data.conversations || [];
     messengerOnlineUserIds = new Set((data.onlineUserIds || []).map(String));
+    messengerOnlineUsers = data.onlineUsers || [];
+    messengerOnlineUsersCache.clear();
+    messengerOnlineUsers.forEach(u => messengerOnlineUsersCache.set(String(u.id), u));
 
     messengerFriends.forEach(f => {
         f.online = messengerOnlineUserIds.has(String(f.id));
@@ -8806,7 +9051,8 @@ function updateMessengerBadges() {
     const navBadge = document.getElementById('navbar-messenger-badge');
     const sideBadge = document.getElementById('sidebar-messenger-badge');
     const reqBadge = document.getElementById('messenger-requests-badge');
-    const friendBadge = document.getElementById('messenger-friends-badge');
+    const chatsBadge = document.getElementById('messenger-chats-badge');
+    const onlineBadge = document.getElementById('messenger-online-badge');
 
     if (navBadge) {
         if (messengerTotalUnread > 0) {
@@ -8836,15 +9082,40 @@ function updateMessengerBadges() {
         }
     }
 
-    if (friendBadge) {
-        const fCount = messengerFriends.length;
-        if (fCount > 0) {
-            friendBadge.classList.remove('hidden');
-            friendBadge.textContent = fCount;
+    if (chatsBadge) {
+        if (messengerTotalUnread > 0) {
+            chatsBadge.classList.remove('hidden');
+            chatsBadge.textContent = messengerTotalUnread > 99 ? '99+' : messengerTotalUnread;
         } else {
-            friendBadge.classList.add('hidden');
+            chatsBadge.classList.add('hidden');
         }
     }
+
+    if (onlineBadge) {
+        const oCount = messengerOnlineUsers.length;
+        if (oCount > 0) {
+            onlineBadge.classList.remove('hidden');
+            onlineBadge.textContent = oCount > 99 ? '99+' : oCount;
+        } else {
+            onlineBadge.classList.add('hidden');
+        }
+    }
+}
+
+function refreshMessengerOnlineUsers() {
+    const uid = currentUserId || localStorage.getItem('musiclive_user_id');
+    if (typeof socket === 'undefined' || !socket.connected) return;
+    socket.emit('messenger:getOnlineUsers', { userId: uid }, (res) => {
+        if (res && Array.isArray(res.onlineUsers)) {
+            messengerOnlineUsers = res.onlineUsers;
+            messengerOnlineUsersCache.clear();
+            messengerOnlineUsers.forEach(u => messengerOnlineUsersCache.set(String(u.id), u));
+            updateMessengerBadges();
+            if (messengerCurrentSubTab === 'online') {
+                renderMessengerList();
+            }
+        }
+    });
 }
 
 function switchMessengerTab(subtab) {
@@ -8853,6 +9124,9 @@ function switchMessengerTab(subtab) {
         if (btn.getAttribute('data-subtab') === subtab) btn.classList.add('active');
         else btn.classList.remove('active');
     });
+    if (subtab === 'online') {
+        refreshMessengerOnlineUsers();
+    }
     renderMessengerList();
 }
 
@@ -8907,7 +9181,25 @@ function renderMessengerList() {
     const defaultAvatarSvg = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'><rect width='48' height='48' rx='24' fill='%231c2632'/><text x='50%' y='55%' dominant-baseline='middle' text-anchor='middle' fill='%2387cefa' font-size='18' font-weight='bold'>👤</text></svg>";
 
     if (messengerCurrentSubTab === 'chats') {
-        let list = messengerConversations;
+        // Merge conversations and friends into a single unified list
+        const friendIdsSet = new Set(messengerFriends.map(f => String(f.id)));
+        const mergedMap = new Map();
+
+        messengerConversations.forEach(c => {
+            if (c.friend) mergedMap.set(String(c.friend.id), c);
+        });
+        messengerFriends.forEach(f => {
+            if (!mergedMap.has(String(f.id))) {
+                mergedMap.set(String(f.id), {
+                    friend: f,
+                    lastMessage: null,
+                    unreadCount: 0,
+                    updatedAt: null
+                });
+            }
+        });
+
+        let list = Array.from(mergedMap.values());
         if (messengerFilterQuery) {
             list = list.filter(c => {
                 const f = c.friend;
@@ -8921,7 +9213,7 @@ function renderMessengerList() {
             listEl.innerHTML = `
                 <div style="text-align: center; color: var(--text-muted); padding: 40px 16px; font-size: 13.5px;">
                     <span class="material-symbols-outlined" style="font-size: 38px; color: rgba(255,255,255,0.2); display: block; margin-bottom: 8px;">forum</span>
-                    ${messengerFilterQuery ? 'Không tìm thấy đoạn chat phù hợp' : 'Chưa có đoạn chat nào.<br>Hãy bấm "+ Thêm bạn" để kết nối trò chuyện!'}
+                    ${messengerFilterQuery ? 'Không tìm thấy đoạn chat hoặc bạn bè phù hợp' : 'Chưa có đoạn chat hay bạn bè nào.<br>Hãy bấm "+ Thêm bạn" hoặc xem mục <b>Online</b> để kết nối!'}
                 </div>
             `;
             return;
@@ -8932,11 +9224,13 @@ function renderMessengerList() {
             if (!f) return '';
             const isActive = messengerActiveFriend && String(messengerActiveFriend.id) === String(f.id);
             const isOnline = messengerOnlineUserIds.has(String(f.id));
+            const isFriend = friendIdsSet.has(String(f.id));
             const avatarSrc = f.avatarUrl || defaultAvatarSvg;
             const timeStr = formatMessengerTime(c.updatedAt);
             const isUnread = (c.unreadCount || 0) > 0;
 
-            let snippetText = 'Đã kết nối bạn bè';
+            let snippetText = isOnline ? '● Đang hoạt động' : 'Đã kết nối bạn bè';
+            let snippetStyle = isOnline && !c.lastMessage ? 'color: #2ed573; font-weight: 600;' : '';
             if (c.lastMessage) {
                 const myUid = currentUserId || localStorage.getItem('musiclive_user_id');
                 const isMe = String(c.lastMessage.senderId) === String(myUid);
@@ -8966,19 +9260,24 @@ function renderMessengerList() {
                             <div class="messenger-convo-time">${timeStr}</div>
                         </div>
                         <div class="messenger-convo-msg-row">
-                            <div class="messenger-convo-snippet">${escapeHtml(snippetText)}</div>
+                            <div class="messenger-convo-snippet" style="${snippetStyle}">${escapeHtml(snippetText)}</div>
                             ${isUnread ? '<span class="messenger-unread-dot"></span>' : ''}
                         </div>
                     </div>
+                    ${isFriend ? `
+                        <button type="button" class="messenger-action-icon-btn" onclick="event.stopPropagation(); confirmUnfriend('${f.id}', '${escapeHtml(f.displayName || f.username)}')" title="Hủy kết bạn" style="width: 28px; height: 28px; flex-shrink: 0; opacity: 0.7;">
+                            <span class="material-symbols-outlined" style="font-size: 16px; color: #ff6b6b;">person_remove</span>
+                        </button>
+                    ` : ''}
                 </div>
             `;
         }).join('');
 
-    } else if (messengerCurrentSubTab === 'friends') {
-        let list = messengerFriends;
+    } else if (messengerCurrentSubTab === 'online') {
+        let list = messengerOnlineUsers || [];
         if (messengerFilterQuery) {
-            list = list.filter(f => {
-                const name = (f.displayName || f.username || '').toLowerCase();
+            list = list.filter(u => {
+                const name = (u.displayName || u.username || '').toLowerCase();
                 return name.includes(messengerFilterQuery);
             });
         }
@@ -8986,40 +9285,78 @@ function renderMessengerList() {
         if (list.length === 0) {
             listEl.innerHTML = `
                 <div style="text-align: center; color: var(--text-muted); padding: 40px 16px; font-size: 13.5px;">
-                    <span class="material-symbols-outlined" style="font-size: 38px; color: rgba(255,255,255,0.2); display: block; margin-bottom: 8px;">group</span>
-                    ${messengerFilterQuery ? 'Không tìm thấy bạn bè phù hợp' : 'Bạn chưa có người bạn nào.<br>Bấm nút "+ Thêm bạn" phía trên để tìm kiếm!'}
+                    <span class="material-symbols-outlined" style="font-size: 38px; color: rgba(46,213,115,0.35); display: block; margin-bottom: 8px;">wifi_tethering</span>
+                    ${messengerFilterQuery ? 'Không tìm thấy người dùng online phù hợp' : 'Hiện chưa có người dùng nào khác đang online trên web.'}
                 </div>
             `;
             return;
         }
 
-        listEl.innerHTML = list.map(f => {
-            const isOnline = messengerOnlineUserIds.has(String(f.id));
-            const avatarSrc = f.avatarUrl || defaultAvatarSvg;
-            const isAdm = isUserAdmin(f);
+        const headerHtml = `
+            <div style="padding: 6px 12px 4px; font-size: 11.5px; font-weight: 700; color: #2ed573; text-transform: uppercase; letter-spacing: 0.4px; display: flex; align-items: center; justify-content: space-between;">
+                <span>● Đang trực tuyến trên web (${list.length})</span>
+                <button type="button" onclick="refreshMessengerOnlineUsers()" style="background: transparent; border: none; color: var(--text-muted); cursor: pointer; display: inline-flex; align-items: center; gap: 3px; font-size: 11px;" title="Làm mới danh sách">
+                    <span class="material-symbols-outlined" style="font-size: 14px;">refresh</span> Làm mới
+                </button>
+            </div>
+        `;
+
+        listEl.innerHTML = headerHtml + list.map(u => {
+            const avatarSrc = u.avatarUrl || defaultAvatarSvg;
+            const isAdm = isUserAdmin(u);
             const badgeHtml = isAdm ? getTikTokVerifiedBadgeHtml() : '';
-            const cleanName = escapeHtml((f.displayName || f.username || '').replace(' 😎', '').trim());
+            const cleanName = escapeHtml((u.displayName || u.username || 'Người dùng').replace(' 😎', '').trim());
+            const isGuest = !!u.isGuest;
+            const isFriend = u.relationship === 'friends';
+
+            let actionHtml = '';
+            if (isGuest) {
+                actionHtml = `<span style="font-size: 11px; color: var(--text-muted); padding: 3px 8px; border-radius: 999px; background: rgba(255,255,255,0.06);">Khách</span>`;
+            } else if (isFriend) {
+                actionHtml = `
+                    <button type="button" class="messenger-action-icon-btn" onclick="event.stopPropagation(); openDirectChatFromOnline('${u.id}')" title="Nhắn tin" style="color: #2ed573; border-color: rgba(46,213,115,0.4);">
+                        <span class="material-symbols-outlined" style="font-size: 18px;">chat</span>
+                    </button>
+                `;
+            } else if (u.relationship === 'pending_sent') {
+                actionHtml = `
+                    <button type="button" class="messenger-action-icon-btn" onclick="event.stopPropagation(); openDirectChatFromOnline('${u.id}')" title="Nhắn tin">
+                        <span class="material-symbols-outlined" style="font-size: 17px; color: #0084ff;">chat</span>
+                    </button>
+                    <span style="font-size: 11px; color: var(--text-muted); padding: 4px 8px; border-radius: 999px; background: rgba(255,255,255,0.06);">Đã gửi</span>
+                `;
+            } else if (u.relationship === 'pending_received') {
+                actionHtml = `
+                    <button type="button" class="messenger-req-btn-accept" onclick="event.stopPropagation(); respondFriendRequest('${u.friendshipId}', 'accept')" style="padding: 5px 9px; font-size: 11.5px;">
+                        <span class="material-symbols-outlined" style="font-size: 14px;">check</span> Chấp nhận
+                    </button>
+                `;
+            } else {
+                actionHtml = `
+                    <button type="button" class="messenger-action-icon-btn" onclick="event.stopPropagation(); openDirectChatFromOnline('${u.id}')" title="Nhắn tin">
+                        <span class="material-symbols-outlined" style="font-size: 17px; color: #0084ff;">chat</span>
+                    </button>
+                    <button type="button" class="messenger-action-icon-btn" onclick="event.stopPropagation(); sendFriendRequest('${u.id}', this)" title="Kết bạn" style="color: #38bdf8; border-color: rgba(56,189,248,0.4);">
+                        <span class="material-symbols-outlined" style="font-size: 17px;">person_add</span>
+                    </button>
+                `;
+            }
+
+            const rowClick = isGuest ? '' : `onclick="openDirectChatFromOnline('${u.id}')"`;
 
             return `
-                <div class="messenger-friend-item" onclick="selectMessengerConversation('${f.id}')">
+                <div class="messenger-friend-item" ${rowClick} style="${isGuest ? 'cursor: default;' : ''}">
                     <div class="messenger-avatar-wrap">
                         <img src="${avatarSrc}" alt="avatar" class="messenger-avatar-img" referrerpolicy="no-referrer" onerror="this.onerror=null; this.src='${defaultAvatarSvg}';">
-                        <span class="messenger-online-dot ${isOnline ? 'online' : ''}"></span>
+                        <span class="messenger-online-dot online"></span>
                     </div>
                     <div class="messenger-convo-info">
-                        <div class="messenger-convo-name" style="color: ${f.nameColor || '#ffffff'};">${cleanName}${badgeHtml}</div>
-                        <div class="messenger-convo-snippet" style="color: ${isOnline ? '#2ed573' : 'var(--text-muted)'}; font-weight: ${isOnline ? '600' : '400'};">
-                            ${isOnline ? '● Đang hoạt động' : 'Ngoại tuyến'}
+                        <div class="messenger-convo-name" style="color: ${u.nameColor || '#ffffff'};">${cleanName}${badgeHtml}</div>
+                        <div class="messenger-convo-snippet" style="color: #2ed573; font-weight: 600;">
+                            ${isGuest ? '● Đang xem web (Khách)' : `● Đang online${isFriend ? ' • Bạn bè' : ''}`}
                         </div>
                     </div>
-                    <div class="messenger-req-actions">
-                        <button type="button" class="messenger-action-icon-btn" onclick="event.stopPropagation(); selectMessengerConversation('${f.id}')" title="Nhắn tin">
-                            <span class="material-symbols-outlined" style="font-size: 18px; color: #0084ff;">chat</span>
-                        </button>
-                        <button type="button" class="messenger-action-icon-btn" onclick="event.stopPropagation(); confirmUnfriend('${f.id}', '${escapeHtml(f.displayName || f.username)}')" title="Hủy kết bạn">
-                            <span class="material-symbols-outlined" style="font-size: 18px; color: #ff6b6b;">person_remove</span>
-                        </button>
-                    </div>
+                    <div class="messenger-req-actions">${actionHtml}</div>
                 </div>
             `;
         }).join('');
@@ -10008,6 +10345,11 @@ function openDirectChatFromSearch(targetUserId) {
     selectMessengerConversation(targetUserId, userObj);
 }
 
+function openDirectChatFromOnline(targetUserId) {
+    const userObj = messengerOnlineUsersCache.get(String(targetUserId));
+    selectMessengerConversation(targetUserId, userObj);
+}
+
 function renderSearchUsersResults(users) {
     const resultsList = document.getElementById('add-friend-results-list');
     if (!resultsList) return;
@@ -10271,6 +10613,7 @@ function registerMessengerSocketListeners() {
         }
 
         renderMessengerList();
+        refreshMessengerOnlineUsers();
     });
 
     socket.on('messenger:friendRequestReceived', (data) => {
@@ -11325,6 +11668,142 @@ socket.on('pollUpdated', (poll) => {
 // ============================================================
 // 4. CHIA SẺ KHOẢNH KHẮC / THẺ BÀI HÁT (SHAREABLE SONG CARD)
 // ============================================================
+function getCurrentSongLyricLines() {
+    if (typeof parsedLyrics !== 'undefined' && Array.isArray(parsedLyrics) && parsedLyrics.length > 0) {
+        return parsedLyrics.map(l => (l && l.text ? String(l.text).trim() : '')).filter(Boolean);
+    }
+    const lineEls = document.querySelectorAll('#lyric-content .lyric-line');
+    if (lineEls && lineEls.length > 0) {
+        return Array.from(lineEls).map(el => (el.textContent || '').trim()).filter(Boolean);
+    }
+    if (typeof lrcSearchResults !== 'undefined' && Array.isArray(lrcSearchResults) && typeof currentLrcIndex === 'number') {
+        const curItem = lrcSearchResults[currentLrcIndex];
+        if (curItem && curItem.plainLyrics) {
+            return String(curItem.plainLyrics).split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+        }
+    }
+    const lyricBox = document.getElementById('lyric-content');
+    if (lyricBox && !lyricBox.querySelector('.lyric-loading')) {
+        const raw = (lyricBox.innerText || '').trim();
+        if (raw && !raw.includes('Không có dữ liệu lời bài hát') && !raw.includes('Đang tìm lời bài hát')) {
+            return raw.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+        }
+    }
+    return [];
+}
+
+let selectedSongCardLyricIndices = new Set();
+
+function renderSongCardLyricPicker() {
+    const listEl = document.getElementById('song-card-lyric-list');
+    if (!listEl) return;
+
+    const lines = getCurrentSongLyricLines();
+    const quoteInput = document.getElementById('song-card-quote-input');
+    const currentQuoteLines = (quoteInput ? quoteInput.value : '').split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+    const activeLyricText = (document.querySelector('#lyric-content .lyric-line.active')?.textContent || '').trim();
+
+    if (lines.length === 0) {
+        selectedSongCardLyricIndices.clear();
+        updateSongCardClearBtn();
+        listEl.innerHTML = '<div class="song-card-lyric-empty">Bài hát hiện tại chưa có lời — bạn có thể tự nhập cảm nhận ở ô phía trên.</div>';
+        return;
+    }
+
+    // Sync selection state if not yet set from current quote
+    if (selectedSongCardLyricIndices.size === 0 && currentQuoteLines.length > 0) {
+        lines.forEach((line, idx) => {
+            if (currentQuoteLines.includes(line)) {
+                selectedSongCardLyricIndices.add(idx);
+            }
+        });
+    } else if (selectedSongCardLyricIndices.size === 0 && activeLyricText) {
+        const idx = lines.indexOf(activeLyricText);
+        if (idx !== -1) selectedSongCardLyricIndices.add(idx);
+    }
+
+    updateSongCardClearBtn();
+
+    listEl.innerHTML = lines.map((line, idx) => {
+        const isActive = selectedSongCardLyricIndices.has(idx);
+        return `<button type="button" class="song-card-lyric-chip ${isActive ? 'active' : ''}" data-lyric-idx="${idx}" onclick="selectSongCardLyricLine(${idx})">${escapeHtml(line)}</button>`;
+    }).join('');
+
+    const activeChip = listEl.querySelector('.song-card-lyric-chip.active');
+    if (activeChip && typeof activeChip.scrollIntoView === 'function') {
+        activeChip.scrollIntoView({ block: 'nearest' });
+    }
+}
+
+function updateSongCardClearBtn() {
+    const clearBtn = document.getElementById('song-card-lyric-clear-btn');
+    if (!clearBtn) return;
+    if (selectedSongCardLyricIndices.size > 0) {
+        clearBtn.classList.remove('hidden');
+        clearBtn.textContent = `Bỏ chọn (${selectedSongCardLyricIndices.size})`;
+    } else {
+        clearBtn.classList.add('hidden');
+    }
+}
+
+function selectSongCardLyricLine(idx) {
+    const lines = getCurrentSongLyricLines();
+    if (!lines[idx]) return;
+
+    if (selectedSongCardLyricIndices.has(idx)) {
+        selectedSongCardLyricIndices.delete(idx);
+    } else {
+        selectedSongCardLyricIndices.add(idx);
+    }
+
+    const sortedIndices = Array.from(selectedSongCardLyricIndices).sort((a, b) => a - b);
+    const combined = sortedIndices.map(i => lines[i]).filter(Boolean).join('\n');
+
+    const quoteInput = document.getElementById('song-card-quote-input');
+    if (quoteInput) {
+        quoteInput.value = combined.slice(0, 360);
+    }
+
+    const listEl = document.getElementById('song-card-lyric-list');
+    if (listEl) {
+        listEl.querySelectorAll('.song-card-lyric-chip').forEach((btn, i) => {
+            btn.classList.toggle('active', selectedSongCardLyricIndices.has(i));
+        });
+    }
+    updateSongCardClearBtn();
+    renderSongCardCanvas();
+}
+
+function clearSongCardLyricSelection() {
+    selectedSongCardLyricIndices.clear();
+    const quoteInput = document.getElementById('song-card-quote-input');
+    if (quoteInput) quoteInput.value = '';
+    const listEl = document.getElementById('song-card-lyric-list');
+    if (listEl) {
+        listEl.querySelectorAll('.song-card-lyric-chip').forEach(btn => btn.classList.remove('active'));
+    }
+    updateSongCardClearBtn();
+    renderSongCardCanvas();
+}
+
+function onSongCardQuoteManualInput() {
+    const lines = getCurrentSongLyricLines();
+    const quoteInput = document.getElementById('song-card-quote-input');
+    const typedLines = (quoteInput ? quoteInput.value : '').split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+    selectedSongCardLyricIndices.clear();
+    lines.forEach((line, idx) => {
+        if (typedLines.includes(line)) selectedSongCardLyricIndices.add(idx);
+    });
+    const listEl = document.getElementById('song-card-lyric-list');
+    if (listEl) {
+        listEl.querySelectorAll('.song-card-lyric-chip').forEach((btn, i) => {
+            btn.classList.toggle('active', selectedSongCardLyricIndices.has(i));
+        });
+    }
+    updateSongCardClearBtn();
+    renderSongCardCanvas();
+}
+
 function openSongCardModal() {
     const dlg = document.getElementById('song-card-modal');
     if (!dlg) return;
@@ -11339,6 +11818,7 @@ function openSongCardModal() {
         }
     }
 
+    renderSongCardLyricPicker();
     openDialogSafe(dlg);
 
     // Tải trước ảnh bìa bài hát qua proxy cùng tên miền để không bị lỗi CORS khi xuất ảnh PNG từ Canvas
@@ -11510,12 +11990,21 @@ function renderSongCardCanvas() {
     ctx.lineTo(W / 2 + 60, 520);
     ctx.stroke();
 
-    // 4. Câu Lyric / Tâm đắc
+    // 4. Câu Lyric / Tâm đắc (hỗ trợ nhiều dòng)
     ctx.fillStyle = '#e6f4ff';
-    ctx.font = 'italic 700 28px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
-    const quoteLines = wrapCanvasText(ctx, '“' + quoteText + '”', W - 160, 4);
-    quoteLines.forEach((line, idx) => {
-        ctx.fillText(line, W / 2, 580 + idx * 40);
+    const rawParagraphs = ('“' + quoteText + '”').split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+    const quoteFontSize = rawParagraphs.length > 2 ? 24 : 28;
+    const quoteLineHeight = rawParagraphs.length > 2 ? 34 : 40;
+    ctx.font = `italic 700 ${quoteFontSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`;
+    const quoteLines = [];
+    for (const para of rawParagraphs) {
+        const wrapped = wrapCanvasText(ctx, para, W - 160, 5 - quoteLines.length);
+        quoteLines.push(...wrapped);
+        if (quoteLines.length >= 5) break;
+    }
+    const startY = quoteLines.length > 3 ? 560 : 580;
+    quoteLines.slice(0, 5).forEach((line, idx) => {
+        ctx.fillText(line, W / 2, startY + idx * quoteLineHeight);
     });
 
     // 5. Chân thẻ (Người chia sẻ & thương hiệu)

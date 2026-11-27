@@ -1,0 +1,1214 @@
+/* ==========================================================================
+   3D VIRTUAL CAMPUS (PHÒNG NGHE NHẠC & PHÒNG HỌC ẢO 3D - 2937.ML)
+   ========================================================================== */
+
+.workspace-virtual3d-btn {
+    background: linear-gradient(135deg, rgba(135, 206, 250, 0.22), rgba(168, 85, 247, 0.22)) !important;
+    border: 1px solid rgba(135, 206, 250, 0.45) !important;
+    color: #e0f2fe !important;
+    box-shadow: 0 4px 15px rgba(135, 206, 250, 0.2) !important;
+    transition: all 0.25s cubic-bezier(0.22, 1, 0.36, 1) !important;
+}
+
+.workspace-virtual3d-btn:hover {
+    background: linear-gradient(135deg, rgba(135, 206, 250, 0.36), rgba(168, 85, 247, 0.36)) !important;
+    border-color: #87cefa !important;
+    color: #ffffff !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 6px 20px rgba(135, 206, 250, 0.35) !important;
+}
+
+/* Full Stage 3D HUD Overlay (sits above bottom player bar).
+   Canvas is a separate sibling so z-index layers cleanly in root stacking context:
+   #virtual3d-canvas-wrap (900) < #player-container (928) < #virtual3d-stage-overlay (950). */
+#virtual3d-stage-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 950;
+    pointer-events: none;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+#virtual3d-stage-overlay.hidden {
+    display: none !important;
+}
+
+#virtual3d-canvas-wrap {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 900;
+    pointer-events: auto;
+    background: radial-gradient(circle at 50% 30%, #0f172a 0%, #050811 100%);
+    overflow: hidden;
+    cursor: grab;
+}
+
+#virtual3d-canvas-wrap.hidden {
+    display: none !important;
+}
+
+#virtual3d-canvas-wrap:active {
+    cursor: grabbing;
+}
+
+#virtual3d-canvas-wrap canvas {
+    display: block;
+    width: 100% !important;
+    height: 100% !important;
+    outline: none;
+}
+
+/* ==========================================================================
+   REAL YOUTUBE VIDEO TRANSFORMED INTO 3D TV SCREEN (#player-container)
+   ========================================================================== */
+/* Break parent stacking contexts (.main-layout has z-index: 1 in redesign.css)
+   so #player-container (z-index: 928) renders ABOVE #virtual3d-canvas-wrap (z-index: 900)! */
+body.virtual3d-mode-active #main-room,
+body.virtual3d-mode-active .main-layout,
+body.virtual3d-mode-active #left-column,
+body.virtual3d-mode-active .left-column {
+    z-index: auto !important;
+    transform: none !important;
+    filter: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    perspective: none !important;
+    contain: none !important;
+    isolation: auto !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    pointer-events: none !important;
+}
+
+/* Hide 2D chrome elements so only the 3D Campus + TV + Bottom Music Bar are visible */
+body.virtual3d-mode-active .navbar,
+body.virtual3d-mode-active .sidebar,
+body.virtual3d-mode-active .fab-menu-container,
+body.virtual3d-mode-active #left-column > *:not(#player-container),
+body.virtual3d-mode-active #main-room > *:not(#left-column):not(.right-column) {
+    display: none !important;
+}
+
+body.virtual3d-mode-active #player-container.v3d-tv-projected {
+    display: block !important;
+    position: fixed !important;
+    z-index: 928 !important;
+    left: 0 !important;
+    top: 0 !important;
+    padding: 0 !important;
+    padding-bottom: 0 !important;
+    margin: 0 !important;
+    aspect-ratio: auto !important;
+    border-radius: 2px !important;
+    border: none !important;
+    box-shadow: 0 0 28px rgba(56, 189, 248, 0.35) !important;
+    background: #000 !important;
+    overflow: hidden !important;
+    transform-origin: 0 0 !important;
+    transition: none !important;
+    pointer-events: none !important;
+    max-width: none !important;
+    max-height: none !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    will-change: transform;
+}
+
+body.virtual3d-mode-active #player-container.v3d-tv-projected.v3d-tv-interactive {
+    pointer-events: auto !important;
+}
+
+body.virtual3d-mode-active #player-container.v3d-tv-projected #youtube-player,
+body.virtual3d-mode-active #player-container.v3d-tv-pinned-corner #youtube-player {
+    position: absolute !important;
+    inset: 0 !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+body.virtual3d-mode-active #player-container.v3d-tv-projected::before,
+body.virtual3d-mode-active #player-container.v3d-tv-projected::after {
+    display: none !important;
+    content: none !important;
+}
+
+body.virtual3d-mode-active #player-container.v3d-tv-projected .mini-player-header,
+body.virtual3d-mode-active #player-container.v3d-tv-projected .btn-landscape-player-expand,
+body.virtual3d-mode-active #player-container.v3d-tv-projected .video-reactions-dock {
+    display: none !important;
+}
+
+/* When TV is occluded by walls (e.g. user walked into Study Room without Pin Mini TV) */
+body.virtual3d-mode-active #player-container.v3d-tv-occluded {
+    position: fixed !important;
+    left: -9999px !important;
+    top: -9999px !important;
+    width: 320px !important;
+    height: 180px !important;
+    opacity: 0.01 !important;
+    pointer-events: none !important;
+    z-index: -1 !important;
+    transform: none !important;
+}
+
+/* When user pins Mini TV while studying in Study Room */
+body.virtual3d-mode-active #player-container.v3d-tv-pinned-corner {
+    position: fixed !important;
+    top: 68px !important;
+    right: 18px !important;
+    left: auto !important;
+    bottom: auto !important;
+    width: clamp(220px, 20vw, 310px) !important;
+    height: auto !important;
+    aspect-ratio: 16 / 9 !important;
+    padding: 0 !important;
+    padding-bottom: 0 !important;
+    z-index: 945 !important;
+    border-radius: 12px !important;
+    border: 2px solid rgba(135, 206, 250, 0.55) !important;
+    box-shadow: 0 14px 36px rgba(0, 0, 0, 0.85), 0 0 20px rgba(135, 206, 250, 0.3) !important;
+    transform: none !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+}
+
+body.virtual3d-mode-active #player-container.v3d-tv-pinned-corner .mini-player-header,
+body.virtual3d-mode-active #player-container.v3d-tv-pinned-corner .btn-landscape-player-expand,
+body.virtual3d-mode-active #player-container.v3d-tv-pinned-corner .video-reactions-dock {
+    display: none !important;
+}
+
+/* Hide right-column chat in 3D mode unless v3d-chat-open is explicitly toggled */
+body.virtual3d-mode-active:not(.v3d-chat-open) .right-column,
+body.virtual3d-mode-active:not(.v3d-chat-open) .right-column.chat-open {
+    display: none !important;
+}
+
+/* Keep right-column chat accessible as floating drawer in 3D mode when toggled */
+body.virtual3d-mode-active.v3d-chat-open .right-column {
+    position: fixed !important;
+    top: 68px !important;
+    right: 16px !important;
+    left: auto !important;
+    bottom: calc(var(--bottom-player-height, 80px) + 16px) !important;
+    width: min(350px, calc(100vw - 32px)) !important;
+    height: auto !important;
+    z-index: 955 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    border-radius: 18px !important;
+    background: rgba(12, 16, 28, 0.92) !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+    border: 1px solid rgba(135, 206, 250, 0.35) !important;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.85) !important;
+    pointer-events: auto !important;
+}
+
+/* Always show the Close (X) button inside the chat header when in 3D mode (even on Desktop!) */
+body.virtual3d-mode-active .right-column .chat-header .chat-close-btn {
+    display: inline-flex !important;
+    background: rgba(239, 68, 68, 0.22) !important;
+    border: 1px solid rgba(239, 68, 68, 0.45) !important;
+    color: #fca5a5 !important;
+}
+
+body.virtual3d-mode-active .right-column .chat-header .chat-close-btn:hover {
+    background: rgba(239, 68, 68, 0.42) !important;
+    color: #ffffff !important;
+}
+
+/* ==========================================================================
+   TOP HUD BAR IN 3D WORLD
+   ========================================================================== */
+.v3d-hud-top {
+    position: relative;
+    z-index: 965;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 12px 18px;
+    background: linear-gradient(to bottom, rgba(7, 11, 22, 0.92), rgba(7, 11, 22, 0.45), transparent);
+    pointer-events: none;
+}
+
+.v3d-hud-top > * {
+    pointer-events: auto;
+}
+
+.v3d-zone-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.v3d-zone-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 6px 14px;
+    border-radius: 999px;
+    background: rgba(15, 23, 42, 0.82);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(135, 206, 250, 0.4);
+    color: #f8fafc;
+    font-size: 13px;
+    font-weight: 700;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
+.v3d-online-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 11px;
+    border-radius: 999px;
+    background: rgba(34, 197, 94, 0.16);
+    border: 1px solid rgba(34, 197, 94, 0.4);
+    color: #86efac;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.v3d-online-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #4ade80;
+    box-shadow: 0 0 8px #4ade80;
+}
+
+/* Teleport & Action Pills */
+.v3d-nav-pills,
+.v3d-action-pills {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: nowrap;
+    background: rgba(15, 23, 42, 0.78);
+    backdrop-filter: blur(14px);
+    padding: 4px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
+}
+
+.v3d-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: #cbd5e1;
+    font-size: 12.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.v3d-btn .material-symbols-outlined {
+    font-size: 16px;
+}
+
+.v3d-btn:hover {
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.v3d-btn.active {
+    color: #87cefa;
+    background: rgba(135, 206, 250, 0.2);
+    border-color: rgba(135, 206, 250, 0.45);
+    box-shadow: 0 2px 10px rgba(135, 206, 250, 0.25);
+}
+
+.v3d-btn-exit {
+    background: rgba(239, 68, 68, 0.18) !important;
+    border-color: rgba(239, 68, 68, 0.4) !important;
+    color: #fca5a5 !important;
+}
+
+.v3d-btn-exit:hover {
+    background: rgba(239, 68, 68, 0.35) !important;
+    color: #ffffff !important;
+}
+
+/* ==========================================================================
+   ACCESSIBILITY HELPERS
+   ========================================================================== */
+.v3d-visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* ==========================================================================
+   INTERACTIVE SITTING PROMPT & STUDY DESK HUD (CENTER)
+   ========================================================================== */
+.v3d-bottom-hud {
+    position: absolute;
+    left: 50%;
+    bottom: 72px;
+    transform: translateX(-50%);
+    z-index: 942;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    pointer-events: none;
+    width: min(92vw, 560px);
+}
+
+.v3d-bottom-hud > * {
+    pointer-events: auto;
+}
+
+.v3d-interact-prompt {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 20px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, rgba(14, 116, 144, 0.92), rgba(30, 58, 138, 0.92));
+    border: 1.5px solid #87cefa;
+    color: #ffffff;
+    font-size: 13.5px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.65), 0 0 20px rgba(135, 206, 250, 0.45);
+    animation: v3dPulseBounce 1.8s infinite ease-in-out;
+    transition: transform 0.15s ease;
+}
+
+.v3d-interact-prompt:hover {
+    transform: scale(1.04);
+}
+
+.v3d-interact-prompt.hidden {
+    display: none !important;
+}
+
+.v3d-key-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2px 8px;
+    border-radius: 6px;
+    background: #87cefa;
+    color: #0f172a;
+    font-family: var(--font-mono, monospace);
+    font-size: 12px;
+    font-weight: 800;
+}
+
+@keyframes v3dPulseBounce {
+    0%, 100% {
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.65), 0 0 15px rgba(135, 206, 250, 0.4);
+    }
+    50% {
+        box-shadow: 0 12px 34px rgba(0, 0, 0, 0.75), 0 0 28px rgba(135, 206, 250, 0.75);
+    }
+}
+
+/* Seated Status Bar (Study Desk / Sofa) */
+.v3d-seated-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 10px 16px;
+    border-radius: 16px;
+    background: rgba(15, 23, 42, 0.9);
+    backdrop-filter: blur(16px);
+    border: 1.5px solid rgba(135, 206, 250, 0.45);
+    color: #f8fafc;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.75);
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.v3d-seated-bar.hidden {
+    display: none !important;
+}
+
+.v3d-seated-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #bae6fd;
+}
+
+.v3d-seated-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+/* ==========================================================================
+   BOTTOM-RIGHT EMOTE & JUMP CONTROLS BAR
+   ========================================================================== */
+.v3d-controls-dock {
+    position: absolute;
+    right: 16px;
+    bottom: 16px;
+    z-index: 940;
+    pointer-events: auto;
+}
+
+.v3d-controls-bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: rgba(15, 23, 42, 0.78);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+}
+
+.v3d-emote-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.08);
+    font-size: 15px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.18s ease, background-color 0.18s ease, border-color 0.18s ease;
+}
+
+.v3d-emote-btn:hover {
+    transform: translateY(-2px) scale(1.12);
+    background: rgba(135, 206, 250, 0.25);
+    border-color: rgba(135, 206, 250, 0.55);
+}
+
+.v3d-controls-hint {
+    font-size: 11px;
+    color: #cbd5e1;
+    padding-left: 8px;
+    border-left: 1px solid rgba(255, 255, 255, 0.15);
+    white-space: nowrap;
+}
+
+/* ==========================================================================
+   PLAY TOGETHER IN-WORLD CHAT DOCK (FLOATING GLASS LOG + QUICK INPUT PILL)
+   ========================================================================== */
+.v3d-pt-chat-dock {
+    position: absolute;
+    left: 16px;
+    bottom: 16px;
+    z-index: 945;
+    width: min(355px, calc(100vw - 32px));
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    pointer-events: none;
+}
+
+.v3d-pt-chat-dock > * {
+    pointer-events: auto;
+}
+
+.v3d-pt-chat-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 4px 8px 4px 10px;
+    border-radius: 12px;
+    background: rgba(15, 23, 42, 0.62);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(135, 206, 250, 0.22);
+    width: fit-content;
+    max-width: 100%;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+}
+
+.v3d-pt-header-title {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: transparent;
+    border: none;
+    color: #e0f2fe;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    padding: 2px 4px;
+}
+
+.v3d-pt-unread {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: 999px;
+    background: #f43f5e;
+    color: #ffffff;
+    font-size: 10.5px;
+    font-weight: 800;
+}
+
+.v3d-pt-unread.hidden {
+    display: none !important;
+}
+
+.v3d-pt-header-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+}
+
+.v3d-pt-icon-btn {
+    width: 26px;
+    height: 26px;
+    border-radius: 8px;
+    border: none;
+    background: rgba(255, 255, 255, 0.08);
+    color: #cbd5e1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.v3d-pt-icon-btn .material-symbols-outlined {
+    font-size: 15px;
+}
+
+.v3d-pt-icon-btn:hover {
+    background: rgba(135, 206, 250, 0.26);
+    color: #ffffff;
+}
+
+.v3d-pt-chat-list {
+    --scrollbar-thumb: rgba(148, 163, 184, 0.65);
+    --scrollbar-track: rgba(15, 23, 42, 0.25);
+
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    max-height: 150px;
+    overflow-y: auto;
+    padding: 8px 10px;
+    border-radius: 14px;
+    background: rgba(9, 14, 26, 0.56);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+    transition: max-height 0.22s ease, opacity 0.2s ease;
+}
+
+@supports not (scrollbar-color: auto) {
+    .v3d-pt-chat-list {
+        scrollbar-width: auto;
+    }
+    .v3d-pt-chat-list::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+    }
+    .v3d-pt-chat-list::-webkit-scrollbar-thumb {
+        background: var(--scrollbar-thumb);
+        border-radius: 999px;
+    }
+    .v3d-pt-chat-list::-webkit-scrollbar-track {
+        background: var(--scrollbar-track);
+    }
+}
+
+.v3d-pt-chat-dock.is-expanded .v3d-pt-chat-list {
+    max-height: 280px;
+    background: rgba(9, 14, 26, 0.78);
+}
+
+.v3d-pt-chat-dock.is-minimized .v3d-pt-chat-list,
+.v3d-pt-chat-dock.is-minimized .v3d-pt-chat-form,
+.v3d-pt-chat-dock.is-minimized .v3d-pt-quick-popover,
+.v3d-pt-chat-dock.is-minimized #v3d-pt-expand-btn,
+.v3d-pt-chat-dock.is-minimized #v3d-pt-min-btn {
+    display: none !important;
+}
+
+.v3d-pt-chat-dock.is-minimized .v3d-pt-chat-header {
+    background: rgba(14, 116, 144, 0.85);
+    border-color: rgba(125, 211, 252, 0.65);
+}
+
+.v3d-pt-msg-row {
+    font-size: 12.5px;
+    line-height: 1.38;
+    color: #f1f5f9;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.75);
+    word-break: break-word;
+    animation: v3dFadeSlideUp 0.18s ease-out;
+}
+
+.v3d-pt-msg-row.is-emote {
+    color: #fde047;
+    font-weight: 700;
+}
+
+.v3d-pt-msg-author {
+    font-weight: 800;
+    margin-right: 4px;
+}
+
+.v3d-pt-msg-badge {
+    font-size: 11px;
+    margin-right: 2px;
+}
+
+.v3d-pt-msg-media {
+    font-size: 11.5px;
+    color: #7dd3fc;
+    font-style: italic;
+}
+
+@keyframes v3dFadeSlideUp {
+    from {
+        opacity: 0;
+        transform: translateY(5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Play Together Input Pill Form */
+.v3d-pt-chat-form {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 5px 4px 6px;
+    border-radius: 999px;
+    background: rgba(15, 23, 42, 0.82);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1.5px solid rgba(135, 206, 250, 0.35);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+    transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.v3d-pt-chat-form:focus-within {
+    border-color: #38bdf8;
+    box-shadow: 0 8px 28px rgba(56, 189, 248, 0.35);
+    background: rgba(15, 23, 42, 0.95);
+}
+
+.v3d-pt-chat-form input {
+    flex: 1;
+    min-width: 0;
+    border: none;
+    background: transparent;
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 500;
+    outline: none;
+    padding: 4px 2px;
+}
+
+.v3d-pt-chat-form input::placeholder {
+    color: #94a3b8;
+}
+
+.v3d-pt-quick-trigger,
+.v3d-pt-send-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: transform 0.15s ease, background-color 0.15s ease;
+}
+
+.v3d-pt-quick-trigger {
+    background: rgba(250, 204, 21, 0.18);
+    color: #fde047;
+}
+
+.v3d-pt-quick-trigger:hover,
+.v3d-pt-quick-trigger.active {
+    background: rgba(250, 204, 21, 0.34);
+    transform: scale(1.06);
+}
+
+.v3d-pt-send-btn {
+    background: linear-gradient(135deg, #38bdf8, #0284c7);
+    color: #ffffff;
+    box-shadow: 0 3px 10px rgba(56, 189, 248, 0.4);
+}
+
+.v3d-pt-send-btn:hover {
+    transform: scale(1.06);
+}
+
+/* Quick Phrases & Emotes Popover above Chat Pill */
+.v3d-pt-quick-popover {
+    padding: 10px;
+    border-radius: 16px;
+    background: rgba(15, 23, 42, 0.94);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border: 1px solid rgba(135, 206, 250, 0.38);
+    box-shadow: 0 14px 36px rgba(0, 0, 0, 0.72);
+    color: #f8fafc;
+}
+
+.v3d-pt-quick-popover.hidden {
+    display: none !important;
+}
+
+.v3d-pt-quick-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+    color: #7dd3fc;
+    margin-bottom: 6px;
+}
+
+.v3d-pt-phrase-grid,
+.v3d-pt-emote-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+.v3d-pt-phrase-chip,
+.v3d-pt-emote-chip {
+    padding: 5px 10px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    background: rgba(255, 255, 255, 0.08);
+    color: #f1f5f9;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.v3d-pt-phrase-chip:hover,
+.v3d-pt-emote-chip:hover {
+    background: rgba(56, 189, 248, 0.25);
+    border-color: rgba(56, 189, 248, 0.55);
+    transform: translateY(-1px);
+}
+
+/* ==========================================================================
+   QUICK SEAT SELECTOR & PLAY TOGETHER WARDROBE POPOVERS
+   ========================================================================== */
+.v3d-seat-drawer,
+.v3d-avatar-drawer {
+    position: absolute;
+    top: 66px;
+    left: 18px;
+    z-index: 952;
+    width: min(350px, calc(100vw - 36px));
+    max-height: calc(100% - 140px);
+    overflow-y: auto;
+    padding: 14px;
+    border-radius: 18px;
+    background: rgba(15, 23, 42, 0.93);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(135, 206, 250, 0.35);
+    box-shadow: 0 18px 45px rgba(0, 0, 0, 0.8);
+    color: #f8fafc;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(148, 163, 184, 0.55) transparent;
+}
+
+.v3d-avatar-drawer {
+    left: auto;
+    right: 18px;
+}
+
+.v3d-seat-drawer.hidden,
+.v3d-avatar-drawer.hidden {
+    display: none !important;
+}
+
+.v3d-wardrobe-section + .v3d-wardrobe-section {
+    margin-top: 8px;
+}
+
+.v3d-chip-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.v3d-wardrobe-chip {
+    padding: 6px 10px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.06);
+    color: #e2e8f0;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.16s ease;
+}
+
+.v3d-wardrobe-chip:hover {
+    background: rgba(135, 206, 250, 0.18);
+    border-color: rgba(135, 206, 250, 0.45);
+}
+
+.v3d-wardrobe-chip.active {
+    background: rgba(56, 189, 248, 0.25);
+    border-color: #38bdf8;
+    color: #ffffff;
+    box-shadow: 0 0 12px rgba(56, 189, 248, 0.35);
+}
+
+.v3d-swatch-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.v3d-swatch-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.28);
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.v3d-swatch-btn:hover {
+    transform: scale(1.12);
+}
+
+.v3d-swatch-btn.active {
+    border-color: #ffffff;
+    transform: scale(1.14);
+    box-shadow: 0 0 0 2px #38bdf8;
+}
+
+.v3d-seat-drawer-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.v3d-seat-drawer-title {
+    font-size: 13.5px;
+    font-weight: 700;
+    color: #87cefa;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.v3d-seat-section-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: #94a3b8;
+    margin: 10px 0 6px;
+}
+
+.v3d-seat-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+}
+
+.v3d-seat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    padding: 8px 10px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #e2e8f0;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.18s ease;
+}
+
+.v3d-seat-item:hover:not(:disabled) {
+    background: rgba(135, 206, 250, 0.18);
+    border-color: rgba(135, 206, 250, 0.5);
+    transform: translateY(-1px);
+}
+
+.v3d-seat-item.mine {
+    background: rgba(34, 197, 94, 0.2);
+    border-color: #4ade80;
+    color: #bbf7d0;
+}
+
+.v3d-seat-item.occupied {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.v3d-seat-sub {
+    font-size: 10.5px;
+    color: #94a3b8;
+    font-weight: 500;
+}
+
+/* ==========================================================================
+   MOBILE VIRTUAL JOYSTICK & JUMP BUTTON FOR 3D MOVEMENT
+   ========================================================================== */
+.v3d-joystick-zone {
+    position: absolute;
+    left: 16px;
+    bottom: 18px;
+    width: 96px;
+    height: 96px;
+    border-radius: 50%;
+    background: rgba(15, 23, 42, 0.55);
+    border: 2px solid rgba(135, 206, 250, 0.35);
+    backdrop-filter: blur(8px);
+    z-index: 942;
+    display: none;
+    touch-action: none;
+}
+
+.v3d-joystick-knob {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 40px;
+    height: 40px;
+    margin-left: -20px;
+    margin-top: -20px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, #bae6fd, #38bdf8);
+    box-shadow: 0 4px 12px rgba(56, 189, 248, 0.6);
+    pointer-events: none;
+    transition: transform 0.05s linear;
+}
+
+.v3d-mobile-jump-btn {
+    position: absolute;
+    right: 18px;
+    bottom: 26px;
+    width: 54px;
+    height: 54px;
+    border-radius: 50%;
+    border: 2px solid rgba(135, 206, 250, 0.55);
+    background: linear-gradient(135deg, rgba(14, 116, 144, 0.85), rgba(30, 58, 138, 0.85));
+    color: #ffffff;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 942;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+    cursor: pointer;
+    touch-action: manipulation;
+}
+
+.v3d-mobile-jump-btn:active {
+    transform: scale(0.92);
+}
+
+@media (max-width: 900px), (pointer: coarse) {
+    .v3d-joystick-zone {
+        display: block;
+        left: 12px;
+        bottom: 16px;
+        width: 92px;
+        height: 92px;
+    }
+    .v3d-mobile-jump-btn {
+        display: flex;
+        right: 14px;
+        bottom: 22px;
+        width: 50px;
+        height: 50px;
+    }
+    .v3d-controls-dock {
+        display: none;
+    }
+
+    /* ---- Compact Top HUD: single-row scrollable bars ---- */
+    .v3d-hud-top {
+        padding: 6px 8px;
+        gap: 5px;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;          /* Firefox */
+        align-items: center;
+    }
+    .v3d-hud-top::-webkit-scrollbar {
+        display: none;                  /* Chrome / Safari */
+    }
+
+    /* Zone badge: compact, shrinkable */
+    .v3d-zone-group {
+        flex-shrink: 0;
+        gap: 5px;
+        flex-wrap: nowrap;
+    }
+    .v3d-zone-badge {
+        padding: 4px 10px;
+        font-size: 11px;
+        gap: 4px;
+        white-space: nowrap;
+    }
+    .v3d-zone-badge .material-symbols-outlined {
+        font-size: 15px;
+    }
+    .v3d-online-pill {
+        padding: 3px 8px;
+        font-size: 10.5px;
+        gap: 4px;
+        white-space: nowrap;
+    }
+
+    /* Nav & Action pill bars: horizontal scroll, no wrap */
+    .v3d-nav-pills,
+    .v3d-action-pills {
+        flex-wrap: nowrap;
+        flex-shrink: 0;
+        gap: 3px;
+        padding: 3px;
+    }
+
+    /* Buttons: icon-only on mobile to save space */
+    .v3d-btn {
+        padding: 5px 8px;
+        gap: 3px;
+        flex-shrink: 0;
+    }
+    .v3d-btn span:not(.material-symbols-outlined) {
+        display: none;                  /* hide text labels */
+    }
+    .v3d-btn .material-symbols-outlined {
+        font-size: 17px;
+    }
+
+    /* ---- Chat dock: positioned above joystick, below HUD ---- */
+    .v3d-pt-chat-dock {
+        left: 12px;
+        bottom: 118px;
+        top: auto;
+        width: min(260px, calc(100vw - 100px));
+    }
+    .v3d-pt-chat-list {
+        max-height: 72px;
+    }
+    .v3d-pt-chat-dock.is-expanded .v3d-pt-chat-list {
+        max-height: 140px;
+    }
+    .v3d-pt-chat-header {
+        padding: 3px 6px 3px 8px;
+    }
+    .v3d-pt-chat-form {
+        padding: 3px 4px 3px 5px;
+    }
+    .v3d-pt-chat-form input {
+        font-size: 12px;
+    }
+
+    /* ---- Bottom HUD: between joystick & jump btn ---- */
+    .v3d-bottom-hud {
+        bottom: 18px;
+        left: 112px;
+        right: 72px;
+        width: auto;
+        transform: none;
+    }
+    .v3d-interact-prompt {
+        padding: 7px 12px;
+        font-size: 12px;
+        max-width: 100%;
+    }
+    .v3d-seated-bar {
+        padding: 8px 10px;
+        gap: 6px;
+    }
+    .v3d-seated-info {
+        font-size: 11.5px;
+    }
+
+    /* ---- Drawers (seat / wardrobe): full-width on mobile ---- */
+    .v3d-seat-drawer,
+    .v3d-avatar-drawer {
+        top: 52px;
+        left: 8px;
+        right: 8px;
+        width: auto;
+        max-height: calc(100% - 120px);
+    }
+    .v3d-avatar-drawer {
+        left: 8px;
+        right: 8px;
+    }
+
+    /* ---- Pinned mini TV: smaller on mobile ---- */
+    body.virtual3d-mode-active #player-container.v3d-tv-pinned-corner {
+        top: 52px !important;
+        right: 10px !important;
+        width: clamp(160px, 28vw, 220px) !important;
+    }
+}

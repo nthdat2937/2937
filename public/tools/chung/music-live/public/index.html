@@ -17,7 +17,8 @@
     <link rel="stylesheet" href="styles.css?v=1.2">
     <link rel="stylesheet" href="/libs/liquid-glass/glass.css?v=2.1">
     <link rel="stylesheet" href="pomodoro.css?v=1.3">
-    <link rel="stylesheet" href="redesign.css?v=6.1">
+    <link rel="stylesheet" href="redesign.css?v=6.2">
+    <link rel="stylesheet" href="virtual-world-3d.css?v=1.3">
 </head>
 
 <body>
@@ -296,6 +297,10 @@
                 <span class="material-symbols-outlined">home</span>
                 <span class="sidebar-label">Trang chủ</span>
             </div>
+            <div class="sidebar-item liquid-glass-btn" onclick="openVirtual3DWorld('music')" data-tab="virtual3d" title="Bước vào Khuôn Viên Ảo 3D (Phòng Nhạc & Phòng Học)">
+                <span class="material-symbols-outlined" style="color:#87cefa;">view_in_ar</span>
+                <span class="sidebar-label">Phòng Ảo 3D</span>
+            </div>
             <div class="sidebar-item liquid-glass-btn" onclick="showTab('messenger')" data-tab="messenger" title="Tin nhắn">
                 <span class="material-symbols-outlined">chat</span>
                 <span class="sidebar-label">Tin nhắn</span>
@@ -357,6 +362,11 @@
                 <button type="button" id="workspace-study-tab" role="tab" aria-selected="false" aria-controls="study-panel" tabindex="-1">
                     <span class="material-symbols-outlined" aria-hidden="true">school</span> Phòng học
                     <span id="study-tab-badge" class="study-tab-badge hidden">0</span>
+                </button>
+                <button type="button" id="workspace-virtual3d-tab" class="workspace-virtual3d-btn liquid-glass-btn pill-btn" onclick="openVirtual3DWorld('music')" title="Bước vào Khuôn Viên Ảo 3D: Phòng Nhạc TV & Phòng Học Bàn Ghế">
+                    <span class="material-symbols-outlined" aria-hidden="true">view_in_ar</span>
+                    <span>Phòng Ảo 3D</span>
+                    <span id="virtual3d-tab-badge" class="study-tab-badge hidden">0</span>
                 </button>
                 <button type="button" id="workspace-focus-tab" class="workspace-focus-btn liquid-glass-btn pill-btn" onclick="toggleFocusMode()" title="Bật/Tắt chế độ tập trung (Esc)" aria-pressed="false">
                     <span class="material-symbols-outlined" id="focus-mode-icon" aria-hidden="true">center_focus_strong</span>
@@ -712,8 +722,14 @@
         </div>
 
         <div class="history-column hidden" id="history-column">
-            <h2 style="margin-bottom: 24px; font-family: var(--font-display); font-size: 24px; font-weight: 700;">Lịch
-                sử phát gần đây</h2>
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; flex-wrap: wrap; gap: 10px;">
+                <h2 style="margin: 0; font-family: var(--font-display); font-size: 24px; font-weight: 700;">Lịch sử phát gần đây</h2>
+                <button type="button" id="btn-clear-history" class="hidden" onclick="clearMusicHistoryAdmin()" title="Xóa lịch sử phát hiển thị (Admin)"
+                    style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 999px; border: 1px solid rgba(239, 68, 68, 0.4); background: rgba(239, 68, 68, 0.14); color: #fca5a5; font-size: 12.5px; font-weight: 700; cursor: pointer;">
+                    <span class="material-symbols-outlined" style="font-size: 16px;">delete_sweep</span>
+                    <span>Xóa lịch sử</span>
+                </button>
+            </div>
             <div id="history-list">
                 <div style="color:var(--text-muted);">Đang tải...</div>
             </div>
@@ -1111,17 +1127,18 @@
                         </div>
                         <div class="messenger-search-bar">
                             <span class="material-symbols-outlined">search</span>
-                            <input type="text" id="messenger-search-input" placeholder="Tìm bạn bè hoặc tin nhắn..." oninput="handleMessengerFilter(this.value)">
+                            <input type="text" id="messenger-search-input" placeholder="Tìm bạn bè, tin nhắn, người online..." oninput="handleMessengerFilter(this.value)">
                         </div>
                         <div class="messenger-tabs-nav">
                             <button type="button" class="messenger-tab-btn active" data-subtab="chats" onclick="switchMessengerTab('chats')">
                                 <span class="material-symbols-outlined">forum</span>
                                 <span>Hộp thư</span>
+                                <span id="messenger-chats-badge" class="messenger-tab-badge hidden">0</span>
                             </button>
-                            <button type="button" class="messenger-tab-btn" data-subtab="friends" onclick="switchMessengerTab('friends')">
-                                <span class="material-symbols-outlined">group</span>
-                                <span>Bạn bè</span>
-                                <span id="messenger-friends-badge" class="messenger-tab-badge hidden">0</span>
+                            <button type="button" class="messenger-tab-btn" data-subtab="online" onclick="switchMessengerTab('online')">
+                                <span class="material-symbols-outlined" style="color: #2ed573;">radio_button_checked</span>
+                                <span>Online</span>
+                                <span id="messenger-online-badge" class="messenger-tab-badge hidden">0</span>
                             </button>
                             <button type="button" class="messenger-tab-btn" data-subtab="requests" onclick="switchMessengerTab('requests')">
                                 <span class="material-symbols-outlined">person_add</span>
@@ -1270,29 +1287,21 @@
         </div>
 
         <div class="right-column">
-            <div class="chat-header" style="display:flex; justify-content:space-between; align-items:center;">
-                <div class="chat-tabs" style="display:flex; gap: 16px;">
-                    <span id="tab-chat" class="active" onclick="switchRightTab('chat')"
-                        style="cursor:pointer; font-weight:600; color:var(--accent); transition:0.2s;">Chat <span
-                            id="viewer-count"
-                            style="color:var(--text-muted); font-size:13px; margin-left: 4px; font-weight:400;">(<span
-                                class="material-symbols-outlined"
-                                style="font-size:14px; vertical-align:text-bottom;">visibility</span> 1)</span></span>
-                    <span id="tab-lyric" onclick="switchRightTab('lyric')"
-                        style="cursor:pointer; font-weight:500; color:var(--text-muted); transition:0.2s;">Lời bài
-                        hát</span>
+            <div class="chat-header">
+                <div class="chat-tabs">
+                    <span id="tab-chat" class="active" onclick="switchRightTab('chat')">Chat<span id="viewer-count" class="viewer-count-pill"><span class="material-symbols-outlined">visibility</span> 1</span></span>
+                    <span id="tab-lyric" onclick="switchRightTab('lyric')">Lời bài hát</span>
                 </div>
-                <div style="display:flex; gap: 8px; align-items: center;">
-                    <button id="sound-btn" class="sync-btn" onclick="toggleSound()" title="Bật/Tắt âm báo tin nhắn"
-                        style="display:flex;align-items:center;justify-content:center;"><span
-                            class="material-symbols-outlined"
-                            style="font-size:18px;">notifications_active</span></button>
-                    <button id="sync-btn" class="sync-btn hidden active" onclick="forceSync()"
-                        style="display:flex;align-items:center;gap:4px;justify-content:center;"><span
-                            class="material-symbols-outlined" style="font-size:18px;">play_arrow</span></button>
-                    <button class="chat-close-btn" onclick="toggleChatBubble()" title="Đóng chat"
-                        style="display:flex;align-items:center;justify-content:center;"><span
-                            class="material-symbols-outlined" style="font-size:20px;">close</span></button>
+                <div class="chat-header-actions">
+                    <button type="button" id="sound-btn" class="chat-action-btn sync-btn" onclick="toggleSound()" title="Bật/Tắt âm báo tin nhắn">
+                        <span class="material-symbols-outlined">notifications_active</span>
+                    </button>
+                    <button type="button" id="sync-btn" class="chat-action-btn sync-btn hidden" onclick="forceSync()" title="Đồng bộ phát nhạc với phòng">
+                        <span class="material-symbols-outlined">play_arrow</span>
+                    </button>
+                    <button type="button" class="chat-action-btn chat-close-btn" onclick="toggleChatBubble()" title="Đóng chat">
+                        <span class="material-symbols-outlined">close</span>
+                    </button>
                 </div>
             </div>
 
@@ -1367,23 +1376,31 @@
                         </button>
                     </div>
 
-                    <!-- Thanh công cụ tương tác phòng Live (Lời chúc, Bình chọn, Thẻ Bài Hát) -->
-                    <div class="chat-live-tools-strip" aria-label="Tương tác phòng Live">
-                        <button type="button" class="chat-live-tool-pill" onclick="openDedicationModal()" title="Gửi lời chúc / tâm sự âm nhạc hiện nổi trên màn hình">
-                            <span class="material-symbols-outlined">campaign</span>
-                            <span>Lời chúc Live</span>
-                        </button>
-                        <button type="button" class="chat-live-tool-pill" onclick="openPollModal()" title="Tạo cuộc thăm dò ý kiến trực tiếp trong khung chat">
-                            <span class="material-symbols-outlined">ballot</span>
-                            <span>Bình chọn</span>
-                        </button>
-                        <button type="button" class="chat-live-tool-pill" onclick="openSongCardModal()" title="Tạo & chia sẻ Thẻ Bài Hát kèm lời nhạc đang phát">
-                            <span class="material-symbols-outlined">photo_camera</span>
-                            <span>Thẻ Bài Hát</span>
-                        </button>
-                    </div>
-
                     <div class="chat-input-wrapper" id="chat-input-wrapper">
+                        <div class="chat-tools-menu-wrap" id="chat-tools-menu-wrap">
+                            <button type="button" class="picker-btn action-icon-btn chat-tools-menu-btn" id="chat-tools-menu-btn"
+                                onclick="toggleChatToolsMenu(event)" title="Tiện ích phòng Live & Lệnh" aria-expanded="false" aria-haspopup="true">
+                                <span class="material-symbols-outlined" style="font-size:20px;">add_circle</span>
+                            </button>
+                            <div id="chat-tools-popover" class="chat-tools-popover hidden" role="menu" aria-label="Menu tiện ích chat">
+                                <button type="button" class="chat-tools-popover-item" role="menuitem" onclick="closeChatToolsMenu(); openDedicationModal()" title="Gửi lời chúc / tâm sự âm nhạc hiện nổi trên màn hình">
+                                    <span class="material-symbols-outlined">campaign</span>
+                                    <span>Lời chúc Live</span>
+                                </button>
+                                <button type="button" class="chat-tools-popover-item" role="menuitem" onclick="closeChatToolsMenu(); openPollModal()" title="Tạo cuộc thăm dò ý kiến trực tiếp trong khung chat">
+                                    <span class="material-symbols-outlined">ballot</span>
+                                    <span>Bình chọn</span>
+                                </button>
+                                <button type="button" class="chat-tools-popover-item" role="menuitem" onclick="closeChatToolsMenu(); openSongCardModal()" title="Tạo & chia sẻ Thẻ Bài Hát kèm lời nhạc đang phát">
+                                    <span class="material-symbols-outlined">photo_camera</span>
+                                    <span>Thẻ Bài Hát</span>
+                                </button>
+                                <button type="button" class="chat-tools-popover-item" role="menuitem" onclick="closeChatToolsMenu(); openChatCommandsModal()" title="Xem danh sách câu lệnh có sẵn trong chat chung">
+                                    <span class="material-symbols-outlined">terminal</span>
+                                    <span>Lệnh</span>
+                                </button>
+                            </div>
+                        </div>
                         <button class="picker-btn action-icon-btn" id="emoji-toggle-btn" onclick="togglePicker()"
                             title="Emoji & GIF">😊</button>
                         <input type="text" id="chat-input" placeholder="Trò chuyện công khai..."
@@ -1491,9 +1508,6 @@
                     <div class="sp-bar-thumb" id="sp-bar-thumb">
                         <span class="material-symbols-outlined sp-bar-thumb-icon">music_note</span>
                     </div>
-                    <div class="sp-eq-badge" id="sp-eq-badge" aria-hidden="true">
-                        <span></span><span></span><span></span>
-                    </div>
                 </div>
                 <div class="sp-bar-info">
                     <div class="sp-bar-title" id="bottom-bar-title">Thưởng thức âm nhạc cùng mọi người</div>
@@ -1502,30 +1516,25 @@
                         <div class="sp-bar-sub" id="bottom-bar-artist">2937.ML Trực Tiếp</div>
                     </div>
                 </div>
-                <button type="button" class="sp-bar-heart-btn" onclick="triggerFloatingReaction('❤️')" title="Thả tim (❤️) - Bấm nhiều lần để bắn bùng nổ!">
-                    <span>❤️</span>
+                <button type="button" class="sp-bar-heart-btn" onclick="this.classList.toggle('liked'); triggerFloatingReaction('❤️')" title="Thả tim (❤️)">
+                    <span class="material-symbols-outlined sp-heart-icon">favorite</span>
                 </button>
             </div>
 
             <div class="sp-bar-center">
                 <div class="sp-bar-controls-row">
-                    <div class="sp-live-status-pill" id="sp-live-status-pill" title="Nhạc đang phát đồng bộ theo thời gian thực">
-                        <span class="sp-eq-inline" aria-hidden="true"><i></i><i></i><i></i></span>
-                        <span id="sp-live-status-text">Đang phát trực tiếp</span>
-                    </div>
-                    <div id="song-tools" class="sp-playback-controls admin-tools">
-                        <button id="btn-loop" class="btn-loop hidden liquid-glass-btn circle-btn" onclick="toggleLoop()" title="Bật/Tắt chế độ lặp lại">
-                            <span class="material-symbols-outlined" style="font-size:18px;">repeat</span>
-                        </button>
-                        <button id="btn-next-song" class="btn-next hidden liquid-glass-btn pill-btn" onclick="nextSong()" title="Qua bài">
-                            <span class="material-symbols-outlined" style="font-size:18px;">skip_next</span>
-                            <span class="sp-btn-label">Qua bài</span>
-                        </button>
-                        <button id="btn-dj-radio" class="btn-dj-radio hidden liquid-glass-btn pill-btn active" onclick="toggleDjRadio()" title="Tự động nối bài tương tự khi hết hàng đợi">
-                            <span class="material-symbols-outlined" style="font-size:18px;">radio</span>
-                            <span id="dj-radio-label">DJ Radio: Bật</span>
-                        </button>
-                    </div>
+                    <button type="button" id="btn-dj-radio" class="btn-dj-radio hidden sp-icon-ctrl active" onclick="toggleDjRadio()" title="DJ Radio: Tự động nối bài tương tự">
+                        <span class="material-symbols-outlined">shuffle</span>
+                    </button>
+                    <button type="button" class="sp-play-circle-btn" id="btn-sp-play-toggle" onclick="toggleSpotifyBarPlay()" title="Phát / Tạm dừng hoặc Đồng bộ">
+                        <span class="material-symbols-outlined" id="sp-play-circle-icon">pause</span>
+                    </button>
+                    <button type="button" id="btn-next-song" class="btn-next hidden sp-icon-ctrl" onclick="nextSong()" title="Qua bài">
+                        <span class="material-symbols-outlined">skip_next</span>
+                    </button>
+                    <button type="button" id="btn-loop" class="btn-loop hidden sp-icon-ctrl" onclick="toggleLoop()" title="Lặp lại bài hát">
+                        <span class="material-symbols-outlined">repeat</span>
+                    </button>
                 </div>
                 <div class="sp-bar-timeline">
                     <span class="sp-time-label" id="sp-time-current">0:00</span>
@@ -1546,9 +1555,8 @@
                         <span id="sp-mobile-chat-badge" class="sp-mobile-badge hidden-badge">0</span>
                     </button>
                 </div>
-                <button id="btn-toggle-pip" class="btn-toggle-pip liquid-glass-btn pill-btn" onclick="toggleMiniPlayer()" title="Thu nhỏ thành cửa sổ nổi góc màn hình (PiP)">
-                    <span class="material-symbols-outlined" id="pip-btn-icon" style="font-size:18px;">picture_in_picture_alt</span>
-                    <span id="pip-btn-label">Mini Player</span>
+                <button id="btn-toggle-pip" class="btn-toggle-pip sp-right-icon-btn" onclick="toggleMiniPlayer()" title="Mini Player (PiP)">
+                    <span class="material-symbols-outlined" id="pip-btn-icon">picture_in_picture_alt</span>
                 </button>
                 <div class="volume-control">
                     <span id="volume-icon" class="material-symbols-outlined" onclick="toggleVideoMute()" title="Bật/Tắt tiếng video">volume_up</span>
@@ -3024,7 +3032,15 @@
                 </div>
                 <div class="song-card-controls">
                     <label for="song-card-quote-input" class="modern-field-label">Câu lyric / cảm nhận muốn in lên thẻ:</label>
-                    <textarea id="song-card-quote-input" class="modern-dialog-textarea" rows="3" maxlength="160" placeholder="Nhập câu hát bạn thích nhất..." oninput="renderSongCardCanvas()"></textarea>
+                    <textarea id="song-card-quote-input" class="modern-dialog-textarea" rows="3" maxlength="360" placeholder="Nhập câu hát bạn thích nhất..." oninput="onSongCardQuoteManualInput()"></textarea>
+
+                    <div class="song-card-lyric-picker-wrap" id="song-card-lyric-picker-wrap">
+                        <div class="song-card-lyric-picker-head">
+                            <span class="modern-field-label" style="margin: 0;">🎵 Chọn nhanh câu lyric (chọn nhiều câu):</span>
+                            <button type="button" id="song-card-lyric-clear-btn" class="hidden" onclick="clearSongCardLyricSelection()" style="background: transparent; border: none; color: #7dd3fc; font-size: 11.5px; font-weight: 700; cursor: pointer; padding: 2px 6px;">Bỏ chọn</button>
+                        </div>
+                        <div id="song-card-lyric-list" class="song-card-lyric-list"></div>
+                    </div>
 
                     <label class="modern-field-label">Phong cách thẻ:</label>
                     <div class="dedication-theme-pills" id="song-card-theme-pills">
@@ -3048,8 +3064,262 @@
         </div>
     </dialog>
 
+    <!-- 5. Modal Danh Sách Câu Lệnh Chat Chung -->
+    <dialog id="chat-commands-modal" class="modern-app-dialog" aria-labelledby="chat-commands-dialog-title" onclick="if(event.target === this) closeChatCommandsModal()">
+        <div class="modern-dialog-inner" style="max-width: 520px;">
+            <div class="modern-dialog-header">
+                <div class="modern-dialog-title-wrap">
+                    <span class="material-symbols-outlined dialog-brand-icon">terminal</span>
+                    <div>
+                        <h3 id="chat-commands-dialog-title">Danh Sách Câu Lệnh Chat</h3>
+                        <p class="modern-dialog-sub" id="chat-commands-role-sub">Các lệnh có sẵn trong khung chat chung theo phân quyền</p>
+                    </div>
+                </div>
+                <button type="button" class="modern-dialog-close" onclick="closeChatCommandsModal()" title="Đóng">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <div id="chat-commands-list-body" style="display: flex; flex-direction: column; gap: 14px; max-height: 65vh; overflow-y: auto; padding-right: 4px;"></div>
+        </div>
+    </dialog>
+
+    <!-- ==========================================================================
+         3D VIRTUAL CAMPUS OVERLAY (PHÒNG NGHE NHẠC 3D & PHÒNG HỌC TẬP 3D)
+         ========================================================================== -->
+    <!-- WebGL 3D Canvas Container (separate from HUD overlay so z-index stacking works:
+         canvas 900 < player 928 < HUD overlay 950 in root stacking context) -->
+    <div id="virtual3d-canvas-wrap" class="hidden"></div>
+
+    <div id="virtual3d-stage-overlay" class="hidden" role="region" aria-label="Khuôn Viên Ảo 3D 2937.ML">
+        <!-- Top Navigation & Action HUD -->
+        <div class="v3d-hud-top">
+            <div class="v3d-zone-group">
+                <div class="v3d-zone-badge">
+                    <span class="material-symbols-outlined" style="color:#87cefa;font-size:18px;">view_in_ar</span>
+                    <span id="v3d-zone-badge-text">🎵 Phòng Nghe Nhạc 3D (Smart TV)</span>
+                </div>
+                <div class="v3d-online-pill">
+                    <span class="v3d-online-dot"></span>
+                    <span id="v3d-online-count">1 người trong 3D</span>
+                </div>
+            </div>
+
+            <!-- Quick Room Teleport Buttons -->
+            <div class="v3d-nav-pills">
+                <button type="button" id="v3d-nav-music" class="v3d-btn active" onclick="teleportVirtual3D('music')" title="Dịch chuyển đến Phòng Nghe Nhạc 3D (Xem TV)">
+                    <span class="material-symbols-outlined">tv</span>
+                    <span>Phòng Nhạc</span>
+                </button>
+                <button type="button" id="v3d-nav-yard" class="v3d-btn" onclick="teleportVirtual3D('yard')" title="Dạo Sân Khuôn Viên Giữa 2 Phòng">
+                    <span class="material-symbols-outlined">park</span>
+                    <span>Khuôn Viên</span>
+                </button>
+                <button type="button" id="v3d-nav-study" class="v3d-btn" onclick="teleportVirtual3D('study')" title="Dịch chuyển sang Phòng Học Tập 3D (Bàn Ghế Học)">
+                    <span class="material-symbols-outlined">menu_book</span>
+                    <span>Phòng Học</span>
+                </button>
+                <button type="button" class="v3d-btn" onclick="toggleSeatSelectorDrawer()" title="Chọn nhanh bàn học hoặc ghế sofa để ngồi">
+                    <span class="material-symbols-outlined">chair</span>
+                    <span>Chọn Bàn Ngồi</span>
+                </button>
+            </div>
+
+            <!-- TV & Avatar Controls -->
+            <div class="v3d-action-pills">
+                <button type="button" id="v3d-btn-theater" class="v3d-btn" onclick="toggleTheaterTVView()" title="Góc nhìn Rạp Hát cận cảnh màn hình TV 3D">
+                    <span class="material-symbols-outlined">personal_video</span>
+                    <span>Cận Cảnh TV</span>
+                </button>
+                <button type="button" id="v3d-btn-pin-tv" class="v3d-btn" onclick="togglePinMiniTV()" title="Ghim màn hình TV góc nhỏ khi đi sang Phòng Học">
+                    <span class="material-symbols-outlined">picture_in_picture_alt</span>
+                    <span>Ghim TV Nhỏ</span>
+                </button>
+                <button type="button" id="v3d-btn-wardrobe" class="v3d-btn" onclick="toggleAvatarWardrobeDrawer()" title="Tủ Đồ Play Together: Chọn Tóc, Trang Phục, Mũ & Màu Da">
+                    <span class="material-symbols-outlined">checkroom</span>
+                    <span>Tủ Đồ 3D</span>
+                </button>
+                <button type="button" id="v3d-btn-chat" class="v3d-btn" onclick="toggleVirtual3DChatDrawer()" title="Mở/Đóng Bảng Chat Đầy Đủ & Lời Bài Hát">
+                    <span class="material-symbols-outlined">lyrics</span>
+                    <span>Lời &amp; Poll</span>
+                </button>
+                <button type="button" class="v3d-btn v3d-btn-exit" onclick="closeVirtual3DWorld()" title="Thoát chế độ 3D về giao diện thường">
+                    <span class="material-symbols-outlined">close</span>
+                    <span>Thoát 3D</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Quick Seat Selector Popover (Study Desks & Lounge Sofas) -->
+        <div id="v3d-seat-drawer" class="v3d-seat-drawer hidden">
+            <div class="v3d-seat-drawer-head">
+                <div class="v3d-seat-drawer-title">
+                    <span class="material-symbols-outlined" style="font-size:18px;">event_seat</span>
+                    <span>Chọn Bàn Học &amp; Ghế Sofa 3D</span>
+                </div>
+                <button type="button" class="v3d-btn" onclick="toggleSeatSelectorDrawer()" style="padding:2px 6px;">✕</button>
+            </div>
+            <div class="v3d-seat-section-label">📖 Phòng Học Tập (6 Bàn Ghế Học)</div>
+            <div id="v3d-study-seats-grid" class="v3d-seat-grid"></div>
+            <div class="v3d-seat-section-label">🎵 Phòng Nhạc &amp; Sân Khuôn Viên</div>
+            <div id="v3d-music-seats-grid" class="v3d-seat-grid"></div>
+        </div>
+
+        <!-- Play Together Wardrobe / Character Customizer Popover -->
+        <div id="v3d-avatar-drawer" class="v3d-avatar-drawer hidden" role="dialog" aria-label="Tủ Đồ Nhân Vật 3D">
+            <div class="v3d-seat-drawer-head">
+                <div class="v3d-seat-drawer-title">
+                    <span class="material-symbols-outlined" style="font-size:18px;">face_retouching_natural</span>
+                    <span>Tủ Đồ Play Together</span>
+                </div>
+                <button type="button" class="v3d-btn" onclick="toggleAvatarWardrobeDrawer(false)" style="padding:2px 6px;" title="Đóng tủ đồ">✕</button>
+            </div>
+            <div class="v3d-wardrobe-section">
+                <div class="v3d-seat-section-label">💇 Kiểu Tóc</div>
+                <div id="v3d-hair-options" class="v3d-chip-grid"></div>
+            </div>
+            <div class="v3d-wardrobe-section">
+                <div class="v3d-seat-section-label">🎨 Màu Tóc</div>
+                <div id="v3d-haircolor-options" class="v3d-swatch-row"></div>
+            </div>
+            <div class="v3d-wardrobe-section">
+                <div class="v3d-seat-section-label">😊 Khuôn Mặt</div>
+                <div id="v3d-face-options" class="v3d-chip-grid"></div>
+            </div>
+            <div class="v3d-wardrobe-section">
+                <div class="v3d-seat-section-label">👕 Kiểu Áo &amp; Màu Áo</div>
+                <div id="v3d-top-options" class="v3d-chip-grid" style="margin-bottom:6px;"></div>
+                <div id="v3d-color-options" class="v3d-swatch-row"></div>
+            </div>
+            <div class="v3d-wardrobe-section">
+                <div class="v3d-seat-section-label">🩳 Màu Quần Short</div>
+                <div id="v3d-shortscolor-options" class="v3d-swatch-row"></div>
+            </div>
+            <div class="v3d-wardrobe-section">
+                <div class="v3d-seat-section-label">🩴 Giày &amp; Dép</div>
+                <div id="v3d-shoes-options" class="v3d-chip-grid"></div>
+            </div>
+            <div class="v3d-wardrobe-section">
+                <div class="v3d-seat-section-label">🎩 Mũ &amp; Phụ Kiện</div>
+                <div id="v3d-hat-options" class="v3d-chip-grid"></div>
+            </div>
+            <div class="v3d-wardrobe-section">
+                <div class="v3d-seat-section-label">✨ Màu Da</div>
+                <div id="v3d-skin-options" class="v3d-swatch-row"></div>
+            </div>
+        </div>
+
+        <!-- Play Together In-World Chat Dock (Floating Translucent Log + Quick Chat Pill Bar) -->
+        <section id="v3d-play-chat-dock" class="v3d-pt-chat-dock is-compact" aria-label="Chat trong phòng ảo 3D">
+            <div class="v3d-pt-chat-header">
+                <button type="button" id="v3d-pt-restore-pill" class="v3d-pt-header-title" onclick="setPlayChatMode(document.getElementById('v3d-play-chat-dock').classList.contains('is-minimized') ? 'compact' : 'minimized')" title="Thu gọn hoặc mở lại khung Chat">
+                    <span class="material-symbols-outlined" style="font-size:16px;color:#7dd3fc;">chat_bubble</span>
+                    <span>Chat Khuôn Viên</span>
+                    <span id="v3d-pt-unread-pill" class="v3d-pt-unread hidden">0</span>
+                </button>
+                <div class="v3d-pt-header-actions">
+                    <button type="button" id="v3d-pt-expand-btn" class="v3d-pt-icon-btn" onclick="togglePlayChatExpand()" title="Mở rộng / Thu nhỏ lịch sử chat">
+                        <span class="material-symbols-outlined">open_in_full</span>
+                    </button>
+                    <button type="button" class="v3d-pt-icon-btn" onclick="toggleVirtual3DChatDrawer()" title="Mở Bảng Chat Đầy Đủ / Lời Bài Hát / Poll">
+                        <span class="material-symbols-outlined">featured_play_list</span>
+                    </button>
+                    <button type="button" id="v3d-pt-min-btn" class="v3d-pt-icon-btn" onclick="setPlayChatMode('minimized')" title="Ẩn khung chat">
+                        <span class="material-symbols-outlined">visibility_off</span>
+                    </button>
+                </div>
+            </div>
+
+            <div id="v3d-pt-chat-list" class="v3d-pt-chat-list" role="log" aria-live="polite" aria-relevant="additions"></div>
+
+            <!-- Play Together Quick Phrases & Animated Emotes Popover -->
+            <div id="v3d-pt-quick-popover" class="v3d-pt-quick-popover hidden" role="dialog" aria-label="Câu chat nhanh &amp; Biểu cảm">
+                <div class="v3d-pt-quick-head">
+                    <span>⚡ Câu Nhanh Play Together</span>
+                    <button type="button" class="v3d-pt-icon-btn" onclick="togglePlayChatQuickPopover(false)" title="Đóng">
+                        <span class="material-symbols-outlined" style="font-size:15px;">close</span>
+                    </button>
+                </div>
+                <div id="v3d-pt-quick-phrases" class="v3d-pt-phrase-grid"></div>
+                <div class="v3d-pt-quick-head" style="margin-top:6px;">
+                    <span>🎭 Hành Động &amp; Biểu Cảm</span>
+                </div>
+                <div class="v3d-pt-emote-grid">
+                    <button type="button" class="v3d-pt-emote-chip" onclick="sendVirtual3DEmote('👋 Chào cả nhà!', 'wave')">👋 Vẫy tay</button>
+                    <button type="button" class="v3d-pt-emote-chip" onclick="sendVirtual3DEmote('❤️ Thả tim nè!', 'heart')">❤️ Thả tim</button>
+                    <button type="button" class="v3d-pt-emote-chip" onclick="sendVirtual3DEmote('🔥 Quẩy hết mình!', 'dance')">🔥 Quẩy</button>
+                    <button type="button" class="v3d-pt-emote-chip" onclick="sendVirtual3DEmote('👏 Tuyệt vời!', 'clap')">👏 Vỗ tay</button>
+                    <button type="button" class="v3d-pt-emote-chip" onclick="sendVirtual3DEmote('📖 Đang chăm học!', 'study')">📖 Học bài</button>
+                    <button type="button" class="v3d-pt-emote-chip" onclick="sendVirtual3DEmote('🎉 Quá đỉnh luôn!', 'jump')">🎉 Ăn mừng</button>
+                </div>
+            </div>
+
+            <form id="v3d-pt-chat-form" class="v3d-pt-chat-form">
+                <button type="button" id="v3d-pt-quick-btn" class="v3d-pt-quick-trigger" onclick="togglePlayChatQuickPopover()" title="Câu chat nhanh &amp; Hành động 3D">
+                    <span class="material-symbols-outlined" style="font-size:18px;">bolt</span>
+                </button>
+                <label for="v3d-pt-chat-input" class="v3d-visually-hidden">Nhập tin nhắn trong phòng ảo</label>
+                <input type="text" id="v3d-pt-chat-input" maxlength="240" autocomplete="off" placeholder="Nhấn Enter để chat...">
+                <button type="submit" id="v3d-pt-send-btn" class="v3d-pt-send-btn" title="Gửi tin nhắn">
+                    <span class="material-symbols-outlined" style="font-size:18px;">send</span>
+                </button>
+            </form>
+        </section>
+
+        <!-- Center Interaction Prompt & Seated Status Bar -->
+        <div class="v3d-bottom-hud">
+            <!-- Proximity Prompt to Sit -->
+            <button type="button" id="v3d-interact-prompt" class="v3d-interact-prompt hidden" onclick="triggerNearestVirtualSeat()">
+                <span class="v3d-key-badge">Phím F</span>
+                <span id="v3d-interact-text">🪑 Ngồi vào Bàn Học #1</span>
+            </button>
+
+            <!-- Active Seated Bar (Shown when sitting at a Study Desk or Sofa) -->
+            <div id="v3d-seated-bar" class="v3d-seated-bar hidden">
+                <div id="v3d-seated-label" class="v3d-seated-info">📖 Đang ngồi tại Bàn Học #1</div>
+                <div class="v3d-seated-actions">
+                    <button type="button" id="v3d-seated-pomo-btn" class="v3d-btn active" onclick="toggleVirtualPomodoroAction()">
+                        <span class="material-symbols-outlined">timer</span>
+                        <span>Bật/Dừng Pomodoro</span>
+                    </button>
+                    <button type="button" id="v3d-seated-tv-btn" class="v3d-btn active hidden" onclick="toggleTheaterTVView()">
+                        <span class="material-symbols-outlined">tv</span>
+                        <span>Xem Cận Cảnh TV</span>
+                    </button>
+                    <button type="button" class="v3d-btn v3d-btn-exit" onclick="standUpFromVirtualSeat()">
+                        <span class="material-symbols-outlined">directions_walk</span>
+                        <span>Đứng Dậy (F)</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom-Right Quick Emotes, Jump & Movement Guide -->
+        <div class="v3d-controls-dock">
+            <div class="v3d-controls-bar">
+                <button type="button" class="v3d-emote-btn" onclick="triggerVirtual3DJump()" title="Nhảy (Phím Space)">⬆️</button>
+                <button type="button" class="v3d-emote-btn" onclick="sendVirtual3DEmote('👋 Chào cả nhà!', 'wave')" title="Vẫy tay chào">👋</button>
+                <button type="button" class="v3d-emote-btn" onclick="sendVirtual3DEmote('❤️ Nhạc hay quá!', 'heart')" title="Thả tim">❤️</button>
+                <button type="button" class="v3d-emote-btn" onclick="sendVirtual3DEmote('🔥 Quẩy lên nào!', 'dance')" title="Quẩy">🔥</button>
+                <button type="button" class="v3d-emote-btn" onclick="sendVirtual3DEmote('📖 Đang tập trung học!', 'study')" title="Tập trung học">📖</button>
+                <button type="button" class="v3d-emote-btn" onclick="sendVirtual3DEmote('👏 Đỉnh của chóp!', 'clap')" title="Vỗ tay">👏</button>
+                <span class="v3d-controls-hint"><b>WASD</b> đi • <b>Space</b> nhảy • <b>F</b> ngồi ghế • <b>Enter</b> chat</span>
+            </div>
+        </div>
+
+        <!-- Mobile Quick Jump Button -->
+        <button type="button" id="v3d-mobile-jump-btn" class="v3d-mobile-jump-btn" onclick="triggerVirtual3DJump()" title="Nhảy">
+            <span class="material-symbols-outlined">arrow_upward</span>
+        </button>
+
+        <!-- Touch Virtual Joystick for Mobile / Tablet -->
+        <div id="v3d-joystick-zone" class="v3d-joystick-zone">
+            <div id="v3d-joystick-knob" class="v3d-joystick-knob"></div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="/socket.io/socket.io.js"></script>
+    <script src="/libs/three.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
     <script src="https://www.youtube.com/iframe_api"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
@@ -3058,9 +3328,10 @@
     <script src="/libs/liquid-glass/button.js"></script>
     <script src="/libs/liquid-glass/controls.js"></script>
     <script src="/libs/liquid-glass/liquid-glass.js"></script>
-    <script src="main.js?v=6.2"></script>
+    <script src="main.js?v=6.3"></script>
     <script src="pomodoro.js?v=1.1"></script>
     <script src="study-rooms.js?v=1.1"></script>
+    <script src="virtual-world-3d.js?v=1.4"></script>
     <script>
         // Sync Spotify Bottom Bar with current track info, thumbnail, timeline & mobile chat badge
         (function initSpotifyBottomBarSync() {
@@ -3138,6 +3409,10 @@
                         if (tTot) tTot.textContent = fmtTime(dur);
                         if (fillCenter) fillCenter.style.width = pct.toFixed(2) + '%';
                         if (fillTop) fillTop.style.width = pct.toFixed(2) + '%';
+                        var spPlayIcon = document.getElementById('sp-play-circle-icon');
+                        if (spPlayIcon && typeof player.getPlayerState === 'function') {
+                            spPlayIcon.textContent = player.getPlayerState() === 1 ? 'pause' : 'play_arrow';
+                        }
                     }
                 } catch (_) {}
             }

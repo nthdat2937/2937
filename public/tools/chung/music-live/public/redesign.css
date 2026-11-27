@@ -630,7 +630,11 @@ body {
     position: fixed !important;
     bottom: calc(var(--bottom-player-height, 80px) + 16px) !important;
     right: 20px !important;
+    left: auto !important;
+    top: auto !important;
     width: clamp(280px, 24vw, 380px) !important;
+    max-width: calc(100vw - 24px) !important;
+    max-height: calc(100vh - 120px) !important;
     height: auto !important;
     aspect-ratio: 16 / 9 !important;
     padding-bottom: 0 !important;
@@ -923,18 +927,16 @@ body {
     left: 0 !important;
     right: 0 !important;
     height: var(--bottom-player-height) !important;
-    background: rgba(7, 12, 18, 0.84) !important;
-    border-top: 1px solid rgba(176, 224, 250, 0.16) !important;
-    box-shadow: 0 -10px 36px rgba(0, 0, 0, 0.55) !important;
+    background: #000000 !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+    box-shadow: 0 -8px 28px rgba(0, 0, 0, 0.65) !important;
     z-index: 1000 !important;
     display: grid !important;
-    grid-template-columns: minmax(200px, 1fr) minmax(280px, 1.4fr) minmax(200px, 1fr) !important;
+    grid-template-columns: minmax(180px, 1fr) minmax(260px, 1.45fr) minmax(180px, 1fr) !important;
     align-items: center !important;
     gap: 16px !important;
-    padding: 0 24px !important;
+    padding: 0 18px !important;
     box-sizing: border-box !important;
-    backdrop-filter: blur(24px) saturate(180%) !important;
-    -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
 }
 
 /* Top Progress Hairline along the top edge of the bar */
@@ -1096,30 +1098,132 @@ body {
 }
 
 .sp-bar-heart-btn {
-    width: 34px;
-    height: 34px;
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.06);
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: transparent;
+    border: none;
     cursor: pointer;
-    font-size: 15px;
     padding: 0;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    color: var(--sp-text-sub);
-    transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.18s ease, border-color 0.18s ease;
+    color: #b3b3b3;
+    transition: transform 0.16s ease, color 0.16s ease;
+}
+
+.sp-bar-heart-btn .sp-heart-icon {
+    font-size: 19px;
 }
 
 .sp-bar-heart-btn:hover {
-    transform: scale(1.14);
-    background: rgba(255, 107, 129, 0.16);
-    border-color: rgba(255, 107, 129, 0.45);
+    transform: scale(1.1);
+    color: #ffffff;
+}
+
+.sp-bar-heart-btn.liked {
+    color: #1ed760;
 }
 
 .sp-bar-heart-btn:active {
     transform: scale(0.92);
+}
+
+/* Spotify-style center playback controls */
+.sp-play-circle-btn {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: none;
+    background: #ffffff;
+    color: #000000;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.15s ease, background-color 0.15s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+
+.sp-play-circle-btn:hover {
+    transform: scale(1.06);
+    background: #f0f0f0;
+}
+
+.sp-play-circle-btn:active {
+    transform: scale(0.95);
+}
+
+.sp-play-circle-btn .material-symbols-outlined {
+    font-size: 22px;
+    font-variation-settings: 'FILL' 1;
+}
+
+.sp-icon-ctrl {
+    position: relative;
+    width: 32px !important;
+    height: 32px !important;
+    border-radius: 50% !important;
+    border: none !important;
+    background: transparent !important;
+    color: #b3b3b3 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer;
+    padding: 0 !important;
+    transition: color 0.15s ease, transform 0.15s ease;
+}
+
+.sp-icon-ctrl:hover {
+    color: #ffffff !important;
+    transform: scale(1.06);
+}
+
+.sp-icon-ctrl.active {
+    color: #1ed760 !important;
+}
+
+.sp-icon-ctrl.active::after {
+    content: '';
+    position: absolute;
+    bottom: 1px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: #1ed760;
+}
+
+.sp-icon-ctrl .material-symbols-outlined {
+    font-size: 20px;
+}
+
+.sp-right-icon-btn {
+    width: 32px !important;
+    height: 32px !important;
+    border-radius: 50% !important;
+    border: none !important;
+    background: transparent !important;
+    color: #b3b3b3 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer;
+    padding: 0 !important;
+    transition: color 0.15s ease, transform 0.15s ease;
+}
+
+.sp-right-icon-btn:hover,
+.sp-right-icon-btn.active {
+    color: #1ed760 !important;
+    transform: scale(1.06);
+}
+
+.sp-right-icon-btn .material-symbols-outlined {
+    font-size: 19px;
 }
 
 /* Bottom Bar Center: 2-Row Controls + Timeline */
@@ -1200,110 +1304,34 @@ body {
     flex: 1;
     height: 4px;
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.14);
+    background: rgba(255, 255, 255, 0.22);
     overflow: hidden;
     position: relative;
+    transition: height 0.15s ease;
+}
+
+.sp-bar-timeline:hover .sp-timeline-track {
+    height: 5px;
 }
 
 .sp-timeline-fill {
     height: 100%;
     width: 0%;
     border-radius: 999px;
-    background: linear-gradient(90deg, var(--accent), var(--accent-strong, #b0e0fa));
-    box-shadow: 0 0 8px rgba(var(--brand-rgb), 0.5);
-    transition: width 0.45s linear;
+    background: #ffffff;
+    transition: width 0.45s linear, background-color 0.15s ease;
 }
 
-/* Spotify Skip, Loop, Radio Buttons */
-#btn-next-song {
-    background: linear-gradient(135deg, var(--accent-strong, #b0e0fa) 0%, var(--accent) 100%) !important;
-    color: #04121c !important;
-    font-weight: 800 !important;
-    font-size: 12.5px !important;
-    border: none !important;
-    border-radius: var(--radius-pill) !important;
-    height: 32px !important;
-    padding: 0 14px !important;
-    cursor: pointer !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    gap: 5px !important;
-    transition: transform 0.15s ease, filter 0.15s ease !important;
-    box-shadow: 0 4px 14px var(--sp-green-glow);
-    white-space: nowrap !important;
+.sp-bar-timeline:hover .sp-timeline-fill {
+    background: #1ed760;
 }
 
-#btn-next-song.hidden {
-    display: none !important;
-}
-
-#btn-next-song:hover {
-    filter: brightness(1.08);
-    transform: scale(1.04);
-}
-
-#btn-loop {
-    width: 32px !important;
-    height: 32px !important;
-    border-radius: 50% !important;
-    background: rgba(255, 255, 255, 0.07) !important;
-    border: 1px solid rgba(255, 255, 255, 0.14) !important;
-    color: var(--sp-text-sub) !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    cursor: pointer !important;
-    padding: 0 !important;
-    transition: all 0.15s ease !important;
-}
-
-#btn-loop.hidden {
-    display: none !important;
-}
-
-#btn-loop:hover {
-    color: var(--sp-text-main) !important;
-    background: rgba(255, 255, 255, 0.14) !important;
-    transform: scale(1.06);
-}
-
-#btn-loop.active {
-    color: var(--accent) !important;
-    border-color: var(--accent) !important;
-    background: rgba(var(--brand-rgb), 0.15) !important;
-    box-shadow: 0 0 10px var(--sp-green-glow);
-}
-
-#btn-dj-radio {
-    background: rgba(255, 255, 255, 0.07) !important;
-    border: 1px solid rgba(255, 255, 255, 0.14) !important;
-    color: var(--sp-text-sub) !important;
-    font-size: 12px !important;
-    font-weight: 700 !important;
-    border-radius: var(--radius-pill) !important;
-    height: 32px !important;
-    padding: 0 12px !important;
-    cursor: pointer !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    gap: 5px !important;
-    transition: all 0.15s ease !important;
-    white-space: nowrap !important;
-}
-
+/* Spotify Skip, Loop, Radio Icon Controls */
+#btn-next-song.hidden,
+#btn-loop.hidden,
 #btn-dj-radio.hidden {
     display: none !important;
 }
-
-#btn-dj-radio:hover {
-    color: var(--sp-text-main) !important;
-    background: rgba(255, 255, 255, 0.14) !important;
-    transform: scale(1.03);
-}
-
-#btn-dj-radio.active {
-    background: rgba(var(--brand-rgb), 0.15) !important;
     border-color: var(--accent) !important;
     color: var(--accent) !important;
     box-shadow: 0 0 12px var(--sp-green-glow);
@@ -1507,50 +1535,176 @@ body {
 }
 
 .chat-header {
-    background: var(--sp-black) !important;
-    border-bottom: 1px solid var(--sp-border) !important;
-    padding: 14px 18px !important;
-    height: 54px !important;
-    box-sizing: border-box;
+    background: rgba(18, 18, 18, 0.75) !important;
+    backdrop-filter: blur(16px) !important;
+    -webkit-backdrop-filter: blur(16px) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+    padding: 0 14px !important;
+    height: 52px !important;
+    box-sizing: border-box !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    gap: 8px !important;
+    flex-shrink: 0 !important;
 }
 
 .chat-tabs {
     display: inline-flex !important;
-    background: var(--sp-base) !important;
-    border: 1px solid var(--sp-border) !important;
-    border-radius: var(--radius-pill) !important;
+    align-items: center !important;
+    background: rgba(255, 255, 255, 0.06) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 999px !important;
     padding: 3px !important;
     gap: 3px !important;
-    align-items: center !important;
+    flex-shrink: 0 !important;
 }
 
-.chat-tabs span {
-    font-size: 13px !important;
-    font-weight: 700 !important;
+.chat-tabs span,
+.chat-tabs button {
+    font-size: 12.5px !important;
+    font-weight: 600 !important;
     cursor: pointer !important;
-    color: var(--sp-text-sub) !important;
-    padding: 5px 14px !important;
-    border-radius: var(--radius-pill) !important;
-    transition: all 0.2s ease !important;
+    color: rgba(255, 255, 255, 0.65) !important;
+    padding: 5px 12px !important;
+    border-radius: 999px !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
     position: relative !important;
     display: inline-flex !important;
     align-items: center !important;
+    justify-content: center !important;
     gap: 4px !important;
-    user-select: none;
+    user-select: none !important;
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+    line-height: 1.2 !important;
+    border: 1px solid transparent !important;
+    background: transparent !important;
 }
 
-.chat-tabs span:hover {
-    color: var(--sp-text-main) !important;
-}
-
-.chat-tabs span.active {
+.chat-tabs span:hover,
+.chat-tabs button:hover {
     color: #ffffff !important;
-    background: var(--sp-elevated) !important;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4) !important;
+    background: rgba(255, 255, 255, 0.08) !important;
+}
+
+.chat-tabs span.active,
+.chat-tabs button.active {
+    color: #87cefa !important;
+    background: rgba(135, 206, 250, 0.18) !important;
+    border: 1px solid rgba(135, 206, 250, 0.35) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35) !important;
 }
 
 .chat-tabs span.active::after {
     display: none !important;
+}
+
+/* Chat Header Action Buttons */
+.chat-header-actions {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    flex-shrink: 0 !important;
+}
+
+.chat-action-btn,
+.chat-header .sync-btn,
+.chat-header .chat-close-btn {
+    width: 32px !important;
+    height: 32px !important;
+    min-width: 32px !important;
+    padding: 0 !important;
+    border-radius: 50% !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    background: rgba(255, 255, 255, 0.08) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    color: #e2e8f0 !important;
+    cursor: pointer !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25) !important;
+    line-height: 1 !important;
+    outline: none !important;
+    box-sizing: border-box !important;
+}
+
+.chat-action-btn:hover,
+.chat-header .sync-btn:hover,
+.chat-header .chat-close-btn:hover {
+    background: rgba(135, 206, 250, 0.2) !important;
+    border-color: rgba(135, 206, 250, 0.45) !important;
+    color: #ffffff !important;
+    transform: translateY(-1px) !important;
+}
+
+.chat-action-btn:active,
+.chat-header .sync-btn:active,
+.chat-header .chat-close-btn:active {
+    transform: scale(0.93) !important;
+}
+
+/* Subtle Glowing Light Blue Pulse for Active Sync Button */
+.chat-header #sync-btn.active {
+    background: rgba(135, 206, 250, 0.25) !important;
+    border-color: #87cefa !important;
+    color: #87cefa !important;
+    box-shadow: 0 0 10px rgba(135, 206, 250, 0.5) !important;
+    animation: syncBtnPulse 1.8s infinite ease-in-out !important;
+}
+
+@keyframes syncBtnPulse {
+    0%, 100% {
+        box-shadow: 0 0 0 0 rgba(135, 206, 250, 0.6);
+    }
+    50% {
+        box-shadow: 0 0 0 5px rgba(135, 206, 250, 0);
+    }
+}
+
+/* Modern Viewer Count Pill Badge */
+.viewer-count-pill,
+#viewer-count {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 3px !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    color: var(--accent, #87cefa) !important;
+    background: rgba(135, 206, 250, 0.14) !important;
+    border: 1px solid rgba(135, 206, 250, 0.3) !important;
+    border-radius: 999px !important;
+    padding: 1px 6px !important;
+    margin-left: 3px !important;
+    white-space: nowrap !important;
+    vertical-align: middle !important;
+    line-height: 1.1 !important;
+}
+
+.viewer-count-pill .material-symbols-outlined,
+#viewer-count .material-symbols-outlined {
+    font-size: 12px !important;
+    line-height: 1 !important;
+    vertical-align: middle !important;
+}
+
+/* Close button responsive handling */
+@media (min-width: 900px) {
+    .chat-header .chat-close-btn {
+        display: none !important;
+    }
+}
+
+@media (max-width: 899px) {
+    .chat-header .chat-close-btn {
+        display: inline-flex !important;
+    }
+    .chat-header .chat-close-btn:hover {
+        background: rgba(239, 68, 68, 0.2) !important;
+        border-color: rgba(239, 68, 68, 0.4) !important;
+        color: #fca5a5 !important;
+    }
 }
 
 .chat-messages {
@@ -1578,10 +1732,13 @@ body {
     background: var(--sp-base) !important;
     border: 1px solid var(--sp-border) !important;
     border-radius: var(--radius-pill) !important;
-    padding: 4px 6px 4px 14px !important;
+    padding: 4px 6px 4px 8px !important;
     display: flex !important;
     align-items: center !important;
-    gap: 6px !important;
+    gap: 4px !important;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
     transition: border-color 0.2s, background 0.2s;
 }
 
@@ -1595,13 +1752,16 @@ body {
     border: none !important;
     color: var(--sp-text-main) !important;
     font-size: 13.5px !important;
-    flex: 1;
+    flex: 1 1 0% !important;
+    min-width: 0 !important;
+    width: 0;
     outline: none !important;
 }
 
 .chat-input-wrapper .action-icon-btn {
     width: 32px !important;
     height: 32px !important;
+    flex-shrink: 0 !important;
     border-radius: 50% !important;
     background: transparent !important;
     border: none !important;
@@ -2734,7 +2894,8 @@ body::before {
         right: 12px !important;
         bottom: auto !important;
         left: auto !important;
-        width: 156px !important;
+        width: clamp(140px, 42vw, 180px) !important;
+        max-width: calc(100vw - 24px) !important;
         height: auto !important;
         aspect-ratio: 16 / 9 !important;
         border-radius: 10px !important;
@@ -2937,14 +3098,16 @@ body::before {
     }
 
     .right-column .chat-header {
-        height: 48px !important;
+        height: 50px !important;
         padding: 0 12px !important;
-        background: rgba(0, 0, 0, 0.35) !important;
+        background: rgba(0, 0, 0, 0.45) !important;
     }
 
     .right-column .chat-tabs span {
-        font-size: 13px !important;
-        padding: 5px 12px !important;
+        font-size: 12px !important;
+        padding: 4px 10px !important;
+        white-space: nowrap !important;
+        flex-shrink: 0 !important;
     }
 
     .right-column .chat-input-area {
@@ -3365,47 +3528,129 @@ body::before {
     background: linear-gradient(90deg, var(--accent) 0%, #ffe082 100%);
 }
 
-/* 16.3 Quick Live Interactive Strip above Chat Input (Balanced 3-Column Grid on Desktop) */
-.chat-live-tools-strip {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 6px;
-    padding: 0 0 8px 0;
-    margin: 0;
+/* 16.3 Quick Live Interactive Menu Popover anchored before Chat Input */
+.chat-tools-menu-wrap {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
 }
 
-.chat-live-tool-pill {
-    display: inline-flex !important;
+.chat-tools-menu-btn.active {
+    color: var(--accent) !important;
+    background: rgba(135, 206, 250, 0.16) !important;
+}
+
+.chat-tools-popover {
+    position: absolute;
+    bottom: calc(100% + 10px);
+    left: 0;
+    z-index: 120;
+    min-width: 195px;
+    padding: 6px;
+    border-radius: 14px;
+    background: rgba(15, 23, 42, 0.96);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border: 1px solid rgba(135, 206, 250, 0.28);
+    box-shadow: 0 14px 36px rgba(0, 0, 0, 0.65);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.chat-tools-popover.hidden {
+    display: none !important;
+}
+
+.chat-tools-popover-item {
+    display: flex !important;
     align-items: center !important;
-    justify-content: center !important;
-    gap: 5px !important;
-    height: 32px !important;
-    padding: 0 8px !important;
+    justify-content: flex-start !important;
+    gap: 9px !important;
+    width: 100% !important;
+    padding: 8px 10px !important;
     border-radius: 10px !important;
+    border: 1px solid transparent !important;
+    background: transparent !important;
+    color: #e2e8f0 !important;
     font-family: var(--font-body) !important;
-    font-size: 11.5px !important;
-    font-weight: 700 !important;
-    color: #d6ecff !important;
-    background: rgba(255, 255, 255, 0.05) !important;
-    border: 1px solid rgba(176, 224, 250, 0.18) !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
     cursor: pointer !important;
     white-space: nowrap !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-    transition: background-color 0.18s ease, border-color 0.18s ease, transform 0.18s var(--ease-out-expo), color 0.18s ease !important;
+    text-align: left !important;
+    transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease !important;
 }
 
-.chat-live-tool-pill .material-symbols-outlined {
-    font-size: 15px !important;
+.chat-tools-popover-item .material-symbols-outlined {
+    font-size: 18px !important;
     color: var(--accent) !important;
     flex-shrink: 0;
 }
 
-.chat-live-tool-pill:hover:not(:disabled) {
+.chat-tools-popover-item:hover {
     background: rgba(135, 206, 250, 0.16) !important;
-    border-color: rgba(135, 206, 250, 0.45) !important;
+    border-color: rgba(135, 206, 250, 0.35) !important;
     color: #ffffff !important;
-    transform: translateY(-1px);
+}
+
+.song-card-lyric-picker-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.song-card-lyric-picker-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.song-card-lyric-list {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    max-height: 150px;
+    overflow-y: auto;
+    padding: 6px;
+    border-radius: 12px;
+    background: rgba(15, 23, 42, 0.55);
+    border: 1px solid rgba(135, 206, 250, 0.2);
+}
+
+.song-card-lyric-chip {
+    width: 100%;
+    text-align: left;
+    padding: 7px 10px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.04);
+    color: #cbd5e1;
+    font-size: 12.5px;
+    line-height: 1.35;
+    cursor: pointer;
+    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.song-card-lyric-chip:hover {
+    background: rgba(135, 206, 250, 0.14);
+    border-color: rgba(135, 206, 250, 0.4);
+    color: #ffffff;
+}
+
+.song-card-lyric-chip.active {
+    background: rgba(56, 189, 248, 0.22);
+    border-color: #38bdf8;
+    color: #ffffff;
+    font-weight: 600;
+}
+
+.song-card-lyric-empty {
+    font-size: 12px;
+    color: #94a3b8;
+    text-align: center;
+    padding: 10px 8px;
 }
 
 /* 16.4 Rich In-Chat Interactive Cards (Dedication, Poll, Song Card) */
@@ -4853,12 +5098,18 @@ dialog.modern-app-dialog.vietqr-dialog {
 }
 
 .premium-users-table :is(th, td) {
-    padding: 12px 14px;
+    padding: 11px 12px;
     text-align: start;
     vertical-align: middle;
     border-bottom: 1px solid rgba(176, 224, 250, 0.1);
     font-size: 13px;
     color: #e6f4ff;
+}
+
+.premium-users-table tbody td:nth-child(2) {
+    max-width: 220px;
+    overflow-wrap: anywhere;
+    word-break: break-word;
 }
 
 .premium-users-table thead {
@@ -4876,6 +5127,7 @@ dialog.modern-app-dialog.vietqr-dialog {
     letter-spacing: 0.05em;
     color: var(--accent-hover);
     border-bottom: 1px solid rgba(135, 206, 250, 0.28);
+    white-space: nowrap;
 }
 
 .premium-users-table tbody th {
@@ -4913,6 +5165,7 @@ dialog.modern-app-dialog.vietqr-dialog {
 .table-user-name {
     font-weight: 800;
     color: #ffffff;
+    white-space: nowrap;
 }
 
 .role-pill {
@@ -4923,6 +5176,7 @@ dialog.modern-app-dialog.vietqr-dialog {
     border-radius: 999px;
     font-size: 11.5px;
     font-weight: 800;
+    white-space: nowrap;
 }
 
 .role-pill .material-symbols-outlined {
@@ -4953,12 +5207,14 @@ dialog.modern-app-dialog.vietqr-dialog {
     gap: 6px;
     font-size: 12px;
     font-weight: 700;
+    white-space: nowrap;
 }
 
 .online-status-chip .dot {
     width: 8px;
     height: 8px;
     border-radius: 50%;
+    flex-shrink: 0;
 }
 
 .online-status-chip.online {
@@ -4979,20 +5235,24 @@ dialog.modern-app-dialog.vietqr-dialog {
 }
 
 .table-note-cell {
+    min-width: 150px;
     max-width: 240px;
     color: var(--text-sub);
     font-size: 12px;
+    line-height: 1.4;
 }
 
 .admin-table-btn {
     display: inline-flex;
     align-items: center;
     gap: 5px;
-    height: 32px;
-    padding: 0 11px;
+    min-height: 32px;
+    padding: 6px 12px;
     border-radius: 9px;
     font-size: 12px;
     font-weight: 800;
+    white-space: nowrap;
+    flex-shrink: 0;
     cursor: pointer;
     transition: transform 0.14s ease, filter 0.15s ease;
 }
@@ -5022,6 +5282,7 @@ dialog.modern-app-dialog.vietqr-dialog {
     font-size: 11.5px;
     font-weight: 700;
     color: var(--text-muted);
+    white-space: nowrap;
 }
 
 /* Container query stacked layout when table container is narrow (< 600px) */
