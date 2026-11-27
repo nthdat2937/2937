@@ -969,10 +969,14 @@
                     <!-- Thanh cấp quyền nhanh theo Tên / Email -->
                     <form class="admin-manual-grant-bar" onsubmit="event.preventDefault(); manualGrantPremiumByInput();">
                         <input type="text" id="admin-manual-user-input" class="modern-dialog-input" placeholder="Nhập Tên người dùng (Username) hoặc Email cần cấp VIP..." required>
-                        <input type="text" id="admin-manual-note-input" class="modern-dialog-input" placeholder="Ghi chú (vd: Đã chuyển khoản VCB 29k)...">
+                        <select id="admin-manual-role-select" class="modern-dialog-input" style="max-width: 150px;" title="Chọn gói cấp quyền">
+                            <option value="plus">⭐ Gói Plus</option>
+                            <option value="premium" selected>👑 Gói Premium</option>
+                        </select>
+                        <input type="text" id="admin-manual-note-input" class="modern-dialog-input" placeholder="Ghi chú (vd: Đã chuyển khoản VCB)...">
                         <button type="submit" class="modern-btn-primary">
                             <span class="material-symbols-outlined">add_moderator</span>
-                            <span>Cấp Quyền Premium</span>
+                            <span>Cấp Quyền</span>
                         </button>
                     </form>
 
@@ -984,6 +988,7 @@
                         </div>
                         <div class="admin-table-filters" id="admin-users-filter-pills">
                             <button type="button" class="ded-theme-pill active" data-role-filter="all" onclick="setAdminUsersRoleFilter('all')">Tất cả</button>
+                            <button type="button" class="ded-theme-pill" data-role-filter="plus" onclick="setAdminUsersRoleFilter('plus')">⭐ Plus</button>
                             <button type="button" class="ded-theme-pill" data-role-filter="premium" onclick="setAdminUsersRoleFilter('premium')">👑 Premium</button>
                             <button type="button" class="ded-theme-pill" data-role-filter="member" onclick="setAdminUsersRoleFilter('member')">👤 Member</button>
                             <button type="button" class="ded-theme-pill" data-role-filter="admin" onclick="setAdminUsersRoleFilter('admin')">🛡️ Admin</button>
@@ -1530,8 +1535,14 @@
                     <button type="button" id="btn-dj-radio" class="btn-dj-radio hidden sp-icon-ctrl active" onclick="toggleDjRadio()" title="DJ Radio: Tự động nối bài tương tự">
                         <span class="material-symbols-outlined">shuffle</span>
                     </button>
-                    <button type="button" class="sp-play-circle-btn" id="btn-sp-play-toggle" onclick="toggleSpotifyBarPlay()" title="Phát / Tạm dừng hoặc Đồng bộ">
+                    <button type="button" class="sp-icon-ctrl sp-seek-only-btn" onclick="seekSpotifyByDelta(-10)" title="Tua lùi 10 giây (Admin &amp; Premium)">
+                        <span class="material-symbols-outlined">replay_10</span>
+                    </button>
+                    <button type="button" class="sp-play-circle-btn hidden" id="btn-sp-play-toggle" onclick="toggleSpotifyBarPlay()" title="Phát / Tạm dừng (Chỉ Admin)">
                         <span class="material-symbols-outlined" id="sp-play-circle-icon">pause</span>
+                    </button>
+                    <button type="button" class="sp-icon-ctrl sp-seek-only-btn" onclick="seekSpotifyByDelta(10)" title="Tua tới 10 giây (Admin &amp; Premium)">
+                        <span class="material-symbols-outlined">forward_10</span>
                     </button>
                     <button type="button" id="btn-next-song" class="btn-next hidden sp-icon-ctrl" onclick="nextSong()" title="Qua bài">
                         <span class="material-symbols-outlined">skip_next</span>

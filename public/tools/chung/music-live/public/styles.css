@@ -879,9 +879,10 @@
             /* Member cannot touch */
         }
 
-        body.admin-mode .video-container #youtube-player {
+        body.admin-mode .video-container #youtube-player,
+        body.can-seek-video .video-container #youtube-player {
             pointer-events: auto;
-            /* Admin can touch */
+            /* Admin & Premium can touch */
         }
 
         .video-info {

@@ -2218,10 +2218,11 @@ async function buildAdminPremiumFullPayload() {
                 }
             }
         }
+        const storeRole = u.role === 'premium' ? 'premium' : (u.role === 'plus' ? 'plus' : 'member');
         if (existingEntry) {
             if (existingEntry.role !== 'admin') {
-                existingEntry.role = u.role === 'premium' ? 'premium' : 'member';
-                existingEntry.isPremium = existingEntry.role === 'premium';
+                existingEntry.role = storeRole;
+                existingEntry.isPremium = storeRole === 'premium' || storeRole === 'plus';
             }
             if (u.note) existingEntry.note = u.note;
             if (u.updatedAt) existingEntry.updatedAt = u.updatedAt;
@@ -2238,8 +2239,8 @@ async function buildAdminPremiumFullPayload() {
                     email: u.email || '',
                     avatarUrl: '',
                     nameColor: '#87cefa',
-                    role: u.role === 'premium' ? 'premium' : 'member',
-                    isPremium: u.role === 'premium',
+                    role: storeRole,
+                    isPremium: storeRole === 'premium' || storeRole === 'plus',
                     online: false,
                     note: u.note || '',
                     updatedAt: u.updatedAt || Date.now(),
@@ -2256,7 +2257,8 @@ async function buildAdminPremiumFullPayload() {
         const uname = String((connU && connU.name) || (sock && sock.username) || 'Thành viên').replace(/😎/g, '').trim();
         const lowerName = uname.toLowerCase();
         const isAdm = (connU && connU.role === 'admin') || (sock && sock.role === 'admin');
-        const isPrem = isAdm || Boolean((connU && connU.isPremium) || (sock && sock.isPremium));
+        const isPlus = !isAdm && ((connU && connU.role === 'plus') || (sock && sock.role === 'plus'));
+        const isPrem = isAdm || isPlus || Boolean((connU && connU.isPremium) || (sock && sock.isPremium));
 
         let target = uid ? mergedMap.get(uid) : null;
         if (!target && lowerName) {
@@ -2285,7 +2287,7 @@ async function buildAdminPremiumFullPayload() {
                 email: '',
                 avatarUrl: connU.avatarUrl || '',
                 nameColor: connU.nameColor || '#87cefa',
-                role: isAdm ? 'admin' : (isPrem ? 'premium' : 'member'),
+                role: isAdm ? 'admin' : (isPlus ? 'plus' : (isPrem ? 'premium' : 'member')),
                 isPremium: isPrem,
                 online: true,
                 note: isAdm ? 'Mặc định Admin là Premium' : '',
@@ -2297,7 +2299,7 @@ async function buildAdminPremiumFullPayload() {
 
     const usersList = Array.from(mergedMap.values()).sort((a, b) => {
         if (a.online !== b.online) return a.online ? -1 : 1;
-        const roleOrder = { admin: 0, premium: 1, member: 2 };
+        const roleOrder = { admin: 0, premium: 1, plus: 2, member: 3 };
         if (roleOrder[a.role] !== roleOrder[b.role]) return roleOrder[a.role] - roleOrder[b.role];
         return (b.updatedAt || 0) - (a.updatedAt || 0);
     });
@@ -3579,7 +3581,7 @@ io.on('connection', (socket) => {
     });
 
     socket.on('adminPlay', (time) => { if (socket.role === 'admin' || socket.role === 'premium') socket.broadcast.emit('memberPlay', time); });
-    socket.on('adminPause', () => { if (socket.role === 'admin') socket.broadcast.emit('memberPause'); });
+    socket.on('adminPause', () => { if (socket.role === 'admin' || socket.role === 'premium') socket.broadcast.emit('memberPause'); });
 
 
     socket.on('adminStartDrawGame', () => {

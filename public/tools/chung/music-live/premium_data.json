@@ -4,6 +4,7 @@
     "bankName": "MB Bank (Ngân hàng Quân Đội)",
     "accountNo": "10934537548",
     "accountName": "NGUYEN THANH DAT",
+    "plusAmount": 19000,
     "amount": 99000,
     "template": "compact2",
     "transferPrefix": "VIP2937"
@@ -17,7 +18,7 @@
       "email": "dat018565@gmail.com",
       "role": "member",
       "note": "Thu hồi về Member bởi Admin",
-      "updatedAt": 1793469107882,
+      "updatedAt": 1795779781440,
       "updatedBy": "nthdat"
     },
     "7ffc2ea5-14fe-47ea-baff-fd3368f97f79": {
@@ -29,6 +30,17 @@
       "role": "member",
       "note": "Thu hồi về Member bởi Admin",
       "updatedAt": 1793467297341,
+      "updatedBy": "nthdat"
+    },
+    "b293e10e-46de-4711-ae3a-6922fa0f8d2d": {
+      "key": "b293e10e-46de-4711-ae3a-6922fa0f8d2d",
+      "userId": "b293e10e-46de-4711-ae3a-6922fa0f8d2d",
+      "username": "CN Tdat",
+      "displayName": "CN Tdat",
+      "email": "",
+      "role": "premium",
+      "note": "Cấp gói Premium trực tiếp từ Bảng Admin",
+      "updatedAt": 1795781399522,
       "updatedBy": "nthdat"
     }
   },

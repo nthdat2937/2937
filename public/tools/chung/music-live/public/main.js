@@ -3191,6 +3191,7 @@ socket.on('authResult', (res) => {
 
         if (myRole === 'admin') {
             document.body.classList.add('admin-mode');
+            document.getElementById('btn-sp-play-toggle')?.classList.remove('hidden');
             document.getElementById('btn-next-song')?.classList.remove('hidden');
             document.getElementById('btn-loop')?.classList.remove('hidden');
             document.getElementById('btn-clear-history')?.classList.remove('hidden');
@@ -3206,6 +3207,7 @@ socket.on('authResult', (res) => {
             setTimeout(() => { if (window.LiquidGlass) window.LiquidGlass.refresh(); }, 60);
         } else {
             document.body.classList.remove('admin-mode');
+            document.getElementById('btn-sp-play-toggle')?.classList.add('hidden');
             document.getElementById('btn-next-song')?.classList.add('hidden');
             document.getElementById('btn-loop')?.classList.add('hidden');
             document.getElementById('btn-dj-radio')?.classList.add('hidden');
@@ -3332,6 +3334,7 @@ async function logout() {
     document.getElementById('menu-btn').classList.add('hidden');
 
     document.body.classList.remove('admin-mode');
+    document.getElementById('btn-sp-play-toggle')?.classList.add('hidden');
     document.getElementById('btn-next-song')?.classList.add('hidden');
     document.getElementById('btn-loop')?.classList.add('hidden');
     document.getElementById('btn-dj-radio')?.classList.add('hidden');
@@ -3440,6 +3443,7 @@ function clearMusicHistoryAdmin() {
 }
 
 function toggleSpotifyBarPlay() {
+    if (!canCurrentUserSeekVideo()) return;
     const icon = document.getElementById('sp-play-circle-icon');
     if (typeof player !== 'undefined' && player && typeof player.getPlayerState === 'function') {
         try {
@@ -3447,9 +3451,11 @@ function toggleSpotifyBarPlay() {
             if (st === 1) {
                 player.pauseVideo();
                 if (icon) icon.textContent = 'play_arrow';
+                if (typeof socket !== 'undefined') socket.emit('adminPause');
             } else {
                 player.playVideo();
                 if (icon) icon.textContent = 'pause';
+                if (typeof socket !== 'undefined') socket.emit('adminPlay', player.getCurrentTime ? player.getCurrentTime() : 0);
             }
             return;
         } catch (_) {}
@@ -5070,18 +5076,13 @@ function createPlayer() {
                         }
                     } catch (err) { }
                 }
-                if (myRole === 'admin') {
+                if (myRole === 'admin' || myRole === 'premium') {
                     if (window.ignoreNextStateChange && (Date.now() - window.lastSyncTime < 1500)) {
                         return;
                     }
                     if (e.data == YT.PlayerState.PLAYING) socket.emit('adminPlay', player.getCurrentTime());
                     if (e.data == YT.PlayerState.PAUSED) socket.emit('adminPause');
-                    if (e.data == YT.PlayerState.ENDED) socket.emit('videoEnded', window.currentVideoId);
-                } else if (myRole === 'premium') {
-                    if (window.ignoreNextStateChange && (Date.now() - window.lastSyncTime < 1500)) {
-                        return;
-                    }
-                    if (e.data == YT.PlayerState.PLAYING) socket.emit('adminPlay', player.getCurrentTime());
+                    if (myRole === 'admin' && e.data == YT.PlayerState.ENDED) socket.emit('videoEnded', window.currentVideoId);
                 }
             }
         }
@@ -7177,6 +7178,54 @@ function seekSpotifyTimeline(event) {
     player.seekTo(targetTime, true);
     socket.emit('adminPlay', targetTime);
 }
+
+function seekSpotifyByDelta(deltaSeconds) {
+    if (!canCurrentUserSeekVideo()) {
+        if (typeof showToastNotification === 'function') {
+            showToastNotification('👑 Chỉ tài khoản Premium hoặc Admin mới có quyền tua video!');
+        }
+        return;
+    }
+    if (!player || typeof player.getCurrentTime !== 'function' || typeof player.seekTo !== 'function') return;
+    const cur = player.getCurrentTime() || 0;
+    const dur = typeof player.getDuration === 'function' ? (player.getDuration() || 0) : 0;
+    let targetTime = Math.max(0, cur + deltaSeconds);
+    if (dur > 0) targetTime = Math.min(dur, targetTime);
+    player.seekTo(targetTime, true);
+    socket.emit('adminPlay', targetTime);
+}
+
+(function bindSpotifyTimelineScrub() {
+    const track = document.getElementById('sp-timeline-track');
+    if (!track) return;
+    let scrubbing = false;
+    const scrubAt = (clientX) => {
+        if (!canCurrentUserSeekVideo()) return;
+        if (!player || typeof player.getDuration !== 'function' || typeof player.seekTo !== 'function') return;
+        const dur = player.getDuration() || 0;
+        if (dur <= 0) return;
+        const rect = track.getBoundingClientRect();
+        const ratio = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+        const t = ratio * dur;
+        const fill = document.getElementById('sp-timeline-fill');
+        if (fill) fill.style.width = (ratio * 100).toFixed(2) + '%';
+        player.seekTo(t, true);
+        socket.emit('adminPlay', t);
+    };
+    track.addEventListener('pointerdown', (e) => {
+        if (!canCurrentUserSeekVideo()) return;
+        scrubbing = true;
+        try { track.setPointerCapture(e.pointerId); } catch (_) {}
+        scrubAt(e.clientX);
+    });
+    track.addEventListener('pointermove', (e) => {
+        if (!scrubbing) return;
+        scrubAt(e.clientX);
+    });
+    const endScrub = () => { scrubbing = false; };
+    track.addEventListener('pointerup', endScrub);
+    track.addEventListener('pointercancel', endScrub);
+})();
 
 function startLyricSync() {
     stopLyricSync();
@@ -10700,6 +10749,13 @@ function applyPremiumAccessUI() {
     const isPrem = isCurrentUserPremium();
     window.myIsPremium = isPrem;
     const isAdmin = (myRole === 'admin');
+    const canSeek = canCurrentUserSeekVideo();
+    document.body.classList.toggle('can-seek-video', canSeek);
+    document.getElementById('btn-sp-play-toggle')?.classList.toggle('hidden', !canSeek);
+    if (canSeek) {
+        const pEl = document.getElementById('player-container');
+        if (pEl) pEl.style.pointerEvents = 'auto';
+    }
 
     // Hiện mục Quản lý VIP và Kho Đoán hình ở Sidebar - CHỈ DÀNH CHO ADMIN
     const sidebarPremAdmin = document.getElementById('sidebar-premium-admin');
@@ -11306,6 +11362,7 @@ function renderAdminPremiumUsersTable() {
 
     const searchQ = (document.getElementById('admin-users-search-input')?.value || '').trim().toLowerCase();
     const filtered = adminPremiumUsersCache.filter(u => {
+        if (adminUsersRoleFilter === 'plus' && u.role !== 'plus') return false;
         if (adminUsersRoleFilter === 'premium' && u.role !== 'premium') return false;
         if (adminUsersRoleFilter === 'member' && u.role !== 'member') return false;
         if (adminUsersRoleFilter === 'admin' && u.role !== 'admin') return false;
@@ -11429,8 +11486,10 @@ function toggleUserPremiumRole(userId, username, targetRoleOrBool) {
 function manualGrantPremiumByInput() {
     if (typeof socket === 'undefined' || !socket || myRole !== 'admin') return;
     const userInput = document.getElementById('admin-manual-user-input');
+    const roleSelect = document.getElementById('admin-manual-role-select');
     const noteInput = document.getElementById('admin-manual-note-input');
     const rawVal = userInput ? userInput.value.trim() : '';
+    const selectedRole = (roleSelect && roleSelect.value === 'plus') ? 'plus' : 'premium';
     const noteVal = noteInput ? noteInput.value.trim() : '';
     if (!rawVal) return;
 
@@ -11438,8 +11497,9 @@ function manualGrantPremiumByInput() {
     socket.emit('premium:adminSetUserStatus', {
         username: isEmail ? '' : rawVal,
         email: isEmail ? rawVal : '',
+        role: selectedRole,
         isPremium: true,
-        note: noteVal || 'Cấp VIP thủ công bởi Admin'
+        note: noteVal || `Cấp gói ${selectedRole.toUpperCase()} thủ công bởi Admin`
     }, (res) => {
         if (res && res.success) {
             if (userInput) userInput.value = '';

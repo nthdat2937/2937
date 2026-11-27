@@ -1300,14 +1300,32 @@ body {
     font-variant-numeric: tabular-nums;
 }
 
+.sp-seek-only-btn {
+    display: none !important;
+}
+
+body.can-seek-video .sp-seek-only-btn {
+    display: inline-flex !important;
+}
+
 .sp-timeline-track {
     flex: 1;
     height: 4px;
     border-radius: 999px;
     background: rgba(255, 255, 255, 0.22);
-    overflow: hidden;
     position: relative;
+    touch-action: none;
     transition: height 0.15s ease;
+}
+
+.sp-timeline-track::before {
+    content: '';
+    position: absolute;
+    inset: -7px 0;
+}
+
+body.can-seek-video .sp-timeline-track {
+    cursor: pointer;
 }
 
 .sp-bar-timeline:hover .sp-timeline-track {
@@ -4397,6 +4415,8 @@ dialog.modern-app-dialog.vietqr-dialog {
 .vietqr-dialog-inner {
     padding: 16px 20px 18px 20px !important;
     gap: 10px !important;
+    overflow-y: auto !important;
+    max-height: calc(92vh - 4px) !important;
 }
 
 .vietqr-dialog-header {
