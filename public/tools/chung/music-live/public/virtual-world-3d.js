@@ -2529,17 +2529,23 @@
         });
 
         // Mouse & Touch Camera Orbit + Click-on-Chair Raycasting
+        let camPointerId = null;
         container.addEventListener('pointerdown', (e) => {
-            if (e.target.closest('.v3d-joystick-zone')) return;
+            if (!isActive || e.target.closest('.v3d-joystick-zone')) return;
+            if (camPointerId !== null) return;
+            camPointerId = e.pointerId;
             isDraggingCam = true;
             prevPointerX = e.clientX;
             prevPointerY = e.clientY;
             pointerDownX = e.clientX;
             pointerDownY = e.clientY;
+            try {
+                container.setPointerCapture(e.pointerId);
+            } catch (_) {}
         });
 
         window.addEventListener('pointermove', (e) => {
-            if (!isActive || !isDraggingCam) return;
+            if (!isActive || !isDraggingCam || e.pointerId !== camPointerId) return;
             const dx = e.clientX - prevPointerX;
             const dy = e.clientY - prevPointerY;
             prevPointerX = e.clientX;
@@ -2554,10 +2560,12 @@
             camPitch = Math.max(0.08, Math.min(1.15, camPitch + dy * 0.0055));
         });
 
-        window.addEventListener('pointerup', (e) => {
-            if (!isDraggingCam) return;
+        const endCamDrag = (e, allowClick) => {
+            if (!isDraggingCam || e.pointerId !== camPointerId) return;
             isDraggingCam = false;
+            camPointerId = null;
 
+            if (!allowClick) return;
             // Detect clean Click / Tap on a 3D Chair, Desk, or TV Screen
             const moveDist = Math.hypot(e.clientX - pointerDownX, e.clientY - pointerDownY);
             if (moveDist < 6 && renderer && camera) {
@@ -2581,7 +2589,10 @@
                     sitOnSeat(hits[0].object.userData.seatId);
                 }
             }
-        });
+        };
+
+        window.addEventListener('pointerup', (e) => endCamDrag(e, true));
+        window.addEventListener('pointercancel', (e) => endCamDrag(e, false));
 
         container.addEventListener('wheel', (e) => {
             if (!isActive) return;

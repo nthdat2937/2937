@@ -48,6 +48,7 @@
     bottom: 0;
     z-index: 900;
     pointer-events: auto;
+    touch-action: none;
     background: radial-gradient(circle at 50% 30%, #0f172a 0%, #050811 100%);
     overflow: hidden;
     cursor: grab;
@@ -66,6 +67,7 @@
     width: 100% !important;
     height: 100% !important;
     outline: none;
+    touch-action: none;
 }
 
 /* ==========================================================================
@@ -1028,6 +1030,7 @@ body.virtual3d-mode-active .right-column .chat-header .chat-close-btn:hover {
     backdrop-filter: blur(8px);
     z-index: 942;
     display: none;
+    pointer-events: auto;
     touch-action: none;
 }
 
@@ -1062,6 +1065,7 @@ body.virtual3d-mode-active .right-column .chat-header .chat-close-btn:hover {
     z-index: 942;
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
     cursor: pointer;
+    pointer-events: auto;
     touch-action: manipulation;
 }
 
@@ -1088,63 +1092,69 @@ body.virtual3d-mode-active .right-column .chat-header .chat-close-btn:hover {
         display: none;
     }
 
-    /* ---- Compact Top HUD: single-row scrollable bars ---- */
+    /* ---- Compact Top HUD: wraps cleanly within screen width (no horizontal overflow) ---- */
     .v3d-hud-top {
         padding: 6px 8px;
         gap: 5px;
-        flex-wrap: nowrap;
-        overflow-x: auto;
-        overflow-y: hidden;
-        -webkit-overflow-scrolling: touch;
-        scrollbar-width: none;          /* Firefox */
+        flex-wrap: wrap;
+        overflow-x: visible;
         align-items: center;
-    }
-    .v3d-hud-top::-webkit-scrollbar {
-        display: none;                  /* Chrome / Safari */
+        justify-content: space-between;
+        width: 100%;
+        max-width: 100vw;
+        box-sizing: border-box;
     }
 
     /* Zone badge: compact, shrinkable */
     .v3d-zone-group {
-        flex-shrink: 0;
+        flex: 1 1 100%;
+        min-width: 0;
         gap: 5px;
         flex-wrap: nowrap;
+        justify-content: space-between;
     }
     .v3d-zone-badge {
         padding: 4px 10px;
         font-size: 11px;
         gap: 4px;
         white-space: nowrap;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
     .v3d-zone-badge .material-symbols-outlined {
         font-size: 15px;
+        flex-shrink: 0;
     }
     .v3d-online-pill {
         padding: 3px 8px;
         font-size: 10.5px;
         gap: 4px;
         white-space: nowrap;
+        flex-shrink: 0;
     }
 
-    /* Nav & Action pill bars: horizontal scroll, no wrap */
+    /* Nav & Action pill bars: wrap nicely if needed, never overflow off-screen */
     .v3d-nav-pills,
     .v3d-action-pills {
-        flex-wrap: nowrap;
-        flex-shrink: 0;
-        gap: 3px;
+        flex-wrap: wrap;
+        flex-shrink: 1;
+        max-width: 100%;
+        gap: 2px;
         padding: 3px;
     }
 
-    /* Buttons: icon-only on mobile to save space */
+    /* Buttons: compact icon-only on mobile to fit all buttons on screen */
     .v3d-btn {
-        padding: 5px 8px;
-        gap: 3px;
+        padding: 5px 6px;
+        gap: 2px;
         flex-shrink: 0;
     }
     .v3d-btn span:not(.material-symbols-outlined) {
         display: none;                  /* hide text labels */
     }
     .v3d-btn .material-symbols-outlined {
-        font-size: 17px;
+        font-size: 16px;
     }
 
     /* ---- Chat dock: positioned above joystick, below HUD ---- */
@@ -1194,11 +1204,11 @@ body.virtual3d-mode-active .right-column .chat-header .chat-close-btn:hover {
     /* ---- Drawers (seat / wardrobe): full-width on mobile ---- */
     .v3d-seat-drawer,
     .v3d-avatar-drawer {
-        top: 52px;
+        top: 84px;
         left: 8px;
         right: 8px;
         width: auto;
-        max-height: calc(100% - 120px);
+        max-height: calc(100% - 140px);
     }
     .v3d-avatar-drawer {
         left: 8px;

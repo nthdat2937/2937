@@ -1932,7 +1932,8 @@ ${webContext}`;
 // PREMIUM ACCOUNTS, VIETQR CONFIG & LIVE INTERACTIVE ROOM STATE
 // ============================================================
 const PREMIUM_DATA_FILE = path.join(__dirname, 'premium_data.json');
-const premiumUsers = new Set(); // Lưu userId hoặc username (lowercase) đã nâng cấp Premium
+const plusUsers = new Set(); // Lưu userId hoặc username (lowercase) gói Plus
+const premiumUsers = new Set(); // Lưu userId hoặc username (lowercase) gói Premium (bao gồm Plus + tua video)
 const revokedPremiumUsers = new Set(); // Lưu userId hoặc username bị Admin thu hồi về Member
 const livePolls = new Map();    // pollId -> { id, question, authorName, authorColor, createdAt, options: [{ text, voters: Set }] }
 
@@ -1942,6 +1943,7 @@ let premiumDataStore = {
         bankName: 'MB Bank (Ngân hàng Quân Đội)',
         accountNo: '0987654321',
         accountName: 'CHU TRAM NHAC 2937 ML',
+        plusAmount: 19000,
         amount: 29000,
         template: 'compact2',
         transferPrefix: 'VIP2937'
@@ -1975,13 +1977,17 @@ function loadPremiumDataStore() {
         console.error('⚠️ Lỗi đọc file premium_data.json:', err.message);
     }
 
+    plusUsers.clear();
     premiumUsers.clear();
     revokedPremiumUsers.clear();
     Object.values(premiumDataStore.users || {}).forEach(u => {
         if (!u) return;
         const uIdKey = u.userId ? String(u.userId).trim() : '';
         const uNameKey = u.username ? String(u.username).replace(/😎/g, '').trim().toLowerCase() : '';
-        if (u.role === 'premium') {
+        if (u.role === 'plus') {
+            if (uIdKey) plusUsers.add(uIdKey);
+            if (uNameKey) plusUsers.add(uNameKey);
+        } else if (u.role === 'premium') {
             if (uIdKey) premiumUsers.add(uIdKey);
             if (uNameKey) premiumUsers.add(uNameKey);
         } else if (u.role === 'member') {
@@ -2019,7 +2025,7 @@ function buildVietQrTransferContent(username, userId) {
     return `${prefix} ${cleanSlug}${shortSuffix ? ' ' + shortSuffix : ''}`.trim();
 }
 
-async function grantOrRevokePremium({ userId, username, displayName, email, isPremium, note, updatedBy }) {
+async function grantOrRevokePremium({ userId, username, displayName, email, isPremium, targetRole, note, updatedBy }) {
     const cleanUsername = String(username || displayName || '').replace(/😎/g, '').trim();
     const lowerName = cleanUsername.toLowerCase();
     const cleanUserId = userId ? String(userId).trim() : '';
@@ -2027,7 +2033,11 @@ async function grantOrRevokePremium({ userId, username, displayName, email, isPr
     if (!recordKey) return null;
 
     const existing = premiumDataStore.users[recordKey] || (lowerName && premiumDataStore.users[lowerName]) || {};
-    const newRole = isPremium ? 'premium' : 'member';
+    const resolvedRole = (targetRole === 'plus' || targetRole === 'premium' || targetRole === 'member')
+        ? targetRole
+        : (isPremium ? 'premium' : 'member');
+    const newRole = resolvedRole;
+    const hasVipAccess = (newRole === 'plus' || newRole === 'premium');
 
     const updatedRecord = {
         key: recordKey,
@@ -2046,21 +2056,36 @@ async function grantOrRevokePremium({ userId, username, displayName, email, isPr
         delete premiumDataStore.users[lowerName];
     }
 
-    if (isPremium) {
+    if (newRole === 'plus') {
+        if (cleanUserId) {
+            plusUsers.add(cleanUserId);
+            premiumUsers.delete(cleanUserId);
+            revokedPremiumUsers.delete(cleanUserId);
+        }
+        if (lowerName) {
+            plusUsers.add(lowerName);
+            premiumUsers.delete(lowerName);
+            revokedPremiumUsers.delete(lowerName);
+        }
+    } else if (newRole === 'premium') {
         if (cleanUserId) {
             premiumUsers.add(cleanUserId);
+            plusUsers.delete(cleanUserId);
             revokedPremiumUsers.delete(cleanUserId);
         }
         if (lowerName) {
             premiumUsers.add(lowerName);
+            plusUsers.delete(lowerName);
             revokedPremiumUsers.delete(lowerName);
         }
     } else {
         if (cleanUserId) {
+            plusUsers.delete(cleanUserId);
             premiumUsers.delete(cleanUserId);
             revokedPremiumUsers.add(cleanUserId);
         }
         if (lowerName) {
+            plusUsers.delete(lowerName);
             premiumUsers.delete(lowerName);
             revokedPremiumUsers.add(lowerName);
         }
@@ -2096,15 +2121,15 @@ async function grantOrRevokePremium({ userId, username, displayName, email, isPr
         const matchName = lowerName && sockCleanName && sockCleanName === lowerName;
         if (matchId || matchName) {
             if (sock.role !== 'admin') {
-                sock.isPremium = Boolean(isPremium);
-                sock.role = isPremium ? 'premium' : 'member';
+                sock.isPremium = hasVipAccess;
+                sock.role = newRole;
                 const connU = connectedUsers.get(sId);
                 if (connU) {
-                    connU.isPremium = Boolean(isPremium);
+                    connU.isPremium = hasVipAccess;
                     connU.role = sock.role;
                 }
                 sock.emit('premiumStatusUpdated', {
-                    isPremium: Boolean(isPremium),
+                    isPremium: hasVipAccess,
                     role: sock.role,
                     updatedBy: updatedBy || 'Admin'
                 });
@@ -2112,11 +2137,12 @@ async function grantOrRevokePremium({ userId, username, displayName, email, isPr
         }
     }
 
-    if (isPremium) {
+    if (hasVipAccess) {
+        const tierLabel = newRole === 'plus' ? '2937.ML PLUS' : '2937.ML PREMIUM';
         io.emit('newMessage', {
             id: 'sys-vip-' + Date.now() + '-' + Math.random().toString(36).slice(2, 5),
             name: 'Hệ thống 👑',
-            text: `👑 Chúc mừng **[${cleanUsername || 'Thành viên'}]** đã chính thức trở thành **2937.ML PREMIUM**!`,
+            text: `👑 Chúc mừng **[${cleanUsername || 'Thành viên'}]** đã chính thức trở thành **${tierLabel}**!`,
             role: 'system'
         });
     }
@@ -2148,9 +2174,12 @@ async function buildAdminPremiumFullPayload() {
                             role = 'member';
                         } else if (premiumUsers.has(uid) || (lowerName && premiumUsers.has(lowerName))) {
                             role = 'premium';
+                        } else if (plusUsers.has(uid) || (lowerName && plusUsers.has(lowerName))) {
+                            role = 'plus';
                         }
                     }
                     const storeEntry = premiumDataStore.users[uid] || (lowerName ? premiumDataStore.users[lowerName] : null);
+                    const finalRole = role === 'admin' ? 'admin' : (role === 'premium' ? 'premium' : (role === 'plus' ? 'plus' : 'member'));
                     mergedMap.set(uid, {
                         key: uid,
                         userId: uid,
@@ -2159,8 +2188,8 @@ async function buildAdminPremiumFullPayload() {
                         email: p.email || (storeEntry && storeEntry.email) || '',
                         avatarUrl: p.avatar_url || '',
                         nameColor: p.name_color || '#87cefa',
-                        role: role === 'admin' ? 'admin' : (role === 'premium' ? 'premium' : 'member'),
-                        isPremium: role === 'admin' || role === 'premium',
+                        role: finalRole,
+                        isPremium: finalRole === 'admin' || finalRole === 'premium' || finalRole === 'plus',
                         online: isUserOnline(uid),
                         note: storeEntry ? (storeEntry.note || '') : '',
                         updatedAt: storeEntry ? storeEntry.updatedAt : (p.updated_at ? new Date(p.updated_at).getTime() : 0),
@@ -2410,8 +2439,14 @@ io.on('connection', (socket) => {
                 premiumUsers.has(lowerUname) ||
                 premiumUsers.has(lowerSockName)
             );
-            socket.role = isUserPremium ? 'premium' : 'member';
-            socket.isPremium = isUserPremium;
+            const isUserPlus = !isExplicitlyRevoked && !isUserPremium && (
+                resolvedRole === 'plus' ||
+                (userId && plusUsers.has(String(userId))) ||
+                plusUsers.has(lowerUname) ||
+                plusUsers.has(lowerSockName)
+            );
+            socket.role = isUserPremium ? 'premium' : (isUserPlus ? 'plus' : 'member');
+            socket.isPremium = isUserPremium || isUserPlus;
             socket.nameColor = resolvedColor || '#3ea6ff';
             socket.avatarUrl = resolvedAvatar;
             userAvatars.set(username.toLowerCase(), resolvedAvatar);
@@ -3126,8 +3161,11 @@ io.on('connection', (socket) => {
     socket.on('premium:requestPayment', async (data, callback) => {
         const cleanName = String((data && data.username) || socket.username || 'Thành viên').replace(/😎/g, '').trim();
         const uid = String((data && data.userId) || socket.userId || '').trim();
+        const tier = (data && data.tier === 'plus') ? 'plus' : 'premium';
         const transferContent = buildVietQrTransferContent(cleanName, uid);
-        const amount = Number(premiumDataStore.vietqrConfig.amount) || 29000;
+        const amount = tier === 'plus'
+            ? (Number(premiumDataStore.vietqrConfig.plusAmount) || 19000)
+            : (Number(premiumDataStore.vietqrConfig.amount) || 29000);
 
         // Kiểm tra xem đã có yêu cầu pending nào của user này chưa
         let reqObj = (premiumDataStore.paymentRequests || []).find(r =>
@@ -3137,12 +3175,17 @@ io.on('connection', (socket) => {
             )
         );
 
-        if (!reqObj) {
+        if (reqObj) {
+            reqObj.tier = tier;
+            reqObj.amount = amount;
+            savePremiumDataStore();
+        } else {
             reqObj = {
                 id: 'pay-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6).toUpperCase(),
                 userId: uid,
                 username: cleanName,
                 displayName: cleanName,
+                tier,
                 amount,
                 transferContent,
                 status: 'pending',
@@ -3194,6 +3237,7 @@ io.on('connection', (socket) => {
             bankName: String(cfg.bankName || premiumDataStore.vietqrConfig.bankName || 'MB Bank').trim(),
             accountNo: String(cfg.accountNo || '').replace(/\s+/g, '').trim(),
             accountName: String(cfg.accountName || '').trim().toUpperCase(),
+            plusAmount: Math.max(1000, Number(cfg.plusAmount) || premiumDataStore.vietqrConfig.plusAmount || 19000),
             amount: Math.max(1000, Number(cfg.amount) || 29000),
             template: ['compact2', 'compact', 'qr_only', 'print'].includes(cfg.template) ? cfg.template : 'compact2',
             transferPrefix: String(cfg.transferPrefix || 'VIP2937').replace(/[^a-zA-Z0-9]/g, '').toUpperCase() || 'VIP2937'
@@ -3225,12 +3269,14 @@ io.on('connection', (socket) => {
         reqObj.processedBy = (socket.username || 'Admin').replace(/😎/g, '').trim();
         savePremiumDataStore();
 
+        const approvedRole = reqObj.tier === 'plus' ? 'plus' : 'premium';
         await grantOrRevokePremium({
             userId: reqObj.userId,
             username: reqObj.username,
             displayName: reqObj.displayName || reqObj.username,
             isPremium: true,
-            note: `Thanh toán VietQR (${Number(reqObj.amount || 0).toLocaleString('vi-VN')}đ • ${reqObj.transferContent})`,
+            targetRole: approvedRole,
+            note: `Thanh toán VietQR gói ${approvedRole.toUpperCase()} (${Number(reqObj.amount || 0).toLocaleString('vi-VN')}đ • ${reqObj.transferContent})`,
             updatedBy: reqObj.processedBy
         });
 
@@ -3282,7 +3328,7 @@ io.on('connection', (socket) => {
             if (typeof callback === 'function') callback({ success: false, message: 'Chỉ Admin mới có quyền quản lý tài khoản Premium!' });
             return;
         }
-        const { userId, username, email, isPremium, note } = data || {};
+        const { userId, username, email, isPremium, role: requestedRole, note } = data || {};
         let targetUserId = userId ? String(userId).trim() : '';
         let targetUsername = String(username || '').replace(/😎/g, '').trim();
         let targetEmail = String(email || '').trim();
@@ -3322,13 +3368,17 @@ io.on('connection', (socket) => {
         }
 
         const adminName = (socket.username || 'Admin').replace(/😎/g, '').trim();
+        const targetRole = (requestedRole === 'plus' || requestedRole === 'premium' || requestedRole === 'member')
+            ? requestedRole
+            : (isPremium ? 'premium' : 'member');
         const record = await grantOrRevokePremium({
             userId: targetUserId,
             username: targetUsername || targetEmail,
             displayName: targetUsername || targetEmail,
             email: targetEmail,
-            isPremium: Boolean(isPremium),
-            note: note !== undefined ? String(note).trim() : (isPremium ? 'Cấp quyền bởi Admin' : 'Thu hồi về Member'),
+            isPremium: targetRole === 'plus' || targetRole === 'premium',
+            targetRole,
+            note: note !== undefined ? String(note).trim() : (targetRole === 'plus' ? 'Cấp gói Plus bởi Admin' : (targetRole === 'premium' ? 'Cấp gói Premium bởi Admin' : 'Thu hồi về Member')),
             updatedBy: adminName
         });
 
@@ -3528,7 +3578,7 @@ io.on('connection', (socket) => {
         }
     });
 
-    socket.on('adminPlay', (time) => { if (socket.role === 'admin') socket.broadcast.emit('memberPlay', time); });
+    socket.on('adminPlay', (time) => { if (socket.role === 'admin' || socket.role === 'premium') socket.broadcast.emit('memberPlay', time); });
     socket.on('adminPause', () => { if (socket.role === 'admin') socket.broadcast.emit('memberPause'); });
 
 
@@ -4605,7 +4655,9 @@ app.post('/api/vietqr-webhook', async (req, res) => {
         const body = req.body || {};
         // Hỗ trợ cả cấu trúc JSON của SePay (content, transferAmount) và Casso (data: [{ description, amount }])
         const transactions = Array.isArray(body.data) ? body.data : [body];
-        const minAmount = Number(premiumDataStore.vietqrConfig.amount) || 29000;
+        const plusMinAmount = Number(premiumDataStore.vietqrConfig.plusAmount) || 19000;
+        const premMinAmount = Number(premiumDataStore.vietqrConfig.amount) || 29000;
+        const minAmount = Math.min(plusMinAmount, premMinAmount);
         const prefix = String(premiumDataStore.vietqrConfig.transferPrefix || 'VIP2937').toUpperCase();
         const approvedList = [];
 
@@ -4622,6 +4674,9 @@ app.post('/api/vietqr-webhook', async (req, res) => {
             );
 
             if (matchedReq) {
+                const reqRequired = Number(matchedReq.amount) || premMinAmount;
+                if (txAmount < reqRequired) continue;
+                const matchedRole = matchedReq.tier === 'plus' ? 'plus' : 'premium';
                 matchedReq.status = 'approved';
                 matchedReq.processedAt = Date.now();
                 matchedReq.processedBy = 'VietQR Auto Webhook';
@@ -4632,7 +4687,8 @@ app.post('/api/vietqr-webhook', async (req, res) => {
                     username: matchedReq.username,
                     displayName: matchedReq.displayName || matchedReq.username,
                     isPremium: true,
-                    note: `Tự động duyệt qua Webhook VietQR (${txAmount.toLocaleString('vi-VN')}đ)`,
+                    targetRole: matchedRole,
+                    note: `Tự động duyệt ${matchedRole.toUpperCase()} qua Webhook VietQR (${txAmount.toLocaleString('vi-VN')}đ)`,
                     updatedBy: 'VietQR Auto Webhook'
                 });
                 approvedList.push(matchedReq.username);
@@ -4644,12 +4700,14 @@ app.post('/api/vietqr-webhook', async (req, res) => {
             const m = rawContent.match(regex);
             if (m && m[1]) {
                 const targetSlug = m[1].trim();
+                const autoRole = txAmount >= premMinAmount ? 'premium' : 'plus';
                 await grantOrRevokePremium({
                     userId: '',
                     username: targetSlug,
                     displayName: targetSlug,
                     isPremium: true,
-                    note: `Tự động duyệt qua Webhook VietQR (${txAmount.toLocaleString('vi-VN')}đ)`,
+                    targetRole: autoRole,
+                    note: `Tự động duyệt ${autoRole.toUpperCase()} qua Webhook VietQR (${txAmount.toLocaleString('vi-VN')}đ)`,
                     updatedBy: 'VietQR Auto Webhook'
                 });
                 approvedList.push(targetSlug);

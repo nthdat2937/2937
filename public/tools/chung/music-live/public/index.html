@@ -1065,7 +1065,11 @@
                                     <input type="text" id="admin-vietqr-account-name" class="modern-dialog-input" placeholder="VD: NGUYEN VAN A" required oninput="previewAdminVietqrConfig()">
                                 </div>
                                 <div>
-                                    <label for="admin-vietqr-amount" class="modern-field-label">Giá gói nâng cấp Premium (VNĐ):</label>
+                                    <label for="admin-vietqr-plus-amount" class="modern-field-label">Giá gói Plus (VNĐ):</label>
+                                    <input type="number" id="admin-vietqr-plus-amount" class="modern-dialog-input" min="1000" step="1000" placeholder="19000" required oninput="previewAdminVietqrConfig()">
+                                </div>
+                                <div>
+                                    <label for="admin-vietqr-amount" class="modern-field-label">Giá gói Premium (VNĐ):</label>
                                     <input type="number" id="admin-vietqr-amount" class="modern-dialog-input" min="1000" step="1000" placeholder="29000" required oninput="previewAdminVietqrConfig()">
                                 </div>
                             </div>
@@ -1538,7 +1542,7 @@
                 </div>
                 <div class="sp-bar-timeline">
                     <span class="sp-time-label" id="sp-time-current">0:00</span>
-                    <div class="sp-timeline-track" id="sp-timeline-track">
+                    <div class="sp-timeline-track" id="sp-timeline-track" onclick="seekSpotifyTimeline(event)" title="Bấm để tua (Admin &amp; Premium)">
                         <div class="sp-timeline-fill" id="sp-timeline-fill"></div>
                     </div>
                     <span class="sp-time-label" id="sp-time-total">0:00</span>
@@ -2826,11 +2830,39 @@
                 </button>
             </div>
 
-            <!-- Dải đặc quyền VIP 1 dòng siêu gọn -->
-            <div class="vietqr-perks-strip">
-                <span class="v-perk-pill"><span class="material-symbols-outlined">lock_open_right</span> Mở khóa tất cả trang</span>
-                <span class="v-perk-pill"><span class="material-symbols-outlined">verified</span> Huy hiệu 👑 VIP chat</span>
-                <span class="v-perk-pill"><span class="material-symbols-outlined">bolt</span> Duyệt tự động 24/7</span>
+            <!-- Bảng so sánh & chọn gói Plus / Premium -->
+            <div class="vietqr-tiers-grid" id="vietqr-tiers-grid">
+                <button type="button" class="vietqr-tier-card" data-tier="plus" onclick="selectUpgradeTier('plus')">
+                    <div class="v-tier-head">
+                        <span class="v-tier-badge plus">⭐ PLUS</span>
+                        <span class="v-tier-tag" id="vietqr-plus-price-badge">19.000đ</span>
+                    </div>
+                    <ul class="v-tier-list">
+                        <li>Mở khóa Lịch sử, Top nhạc, Góp ý</li>
+                        <li>Huy hiệu 👑 VIP &amp; nền cá nhân</li>
+                        <li class="muted">Không bao gồm tua video</li>
+                    </ul>
+                </button>
+                <button type="button" class="vietqr-tier-card active" data-tier="premium" onclick="selectUpgradeTier('premium')">
+                    <div class="v-tier-head">
+                        <span class="v-tier-badge premium">👑 PREMIUM</span>
+                        <span class="v-tier-tag hot" id="vietqr-premium-price-badge">29.000đ</span>
+                    </div>
+                    <ul class="v-tier-list">
+                        <li>Bao gồm <strong>tất cả quyền lợi của Plus</strong></li>
+                        <li><strong>Được tua video</strong> trực tiếp trong phòng</li>
+                        <li>Duyệt tự động &amp; hỗ trợ ưu tiên</li>
+                    </ul>
+                </button>
+            </div>
+
+            <!-- Quy định chống spam & chống phá -->
+            <div class="vietqr-rules-box" role="note" aria-label="Quy định sử dụng gói">
+                <span class="material-symbols-outlined">gavel</span>
+                <div>
+                    <strong>Quy định chống Spam &amp; Chống Phá:</strong>
+                    Nghiêm cấm spam tin nhắn/lệnh, phá hoại phòng nhạc, tua video liên tục gây rối hoặc lạm dụng tính năng. Nếu vi phạm sẽ bị <strong>thu hồi gói vĩnh viễn và không hoàn tiền</strong>.
+                </div>
             </div>
 
             <!-- Khu vực Thanh toán Chuyển khoản Ngân hàng VietQR dành cho Member -->

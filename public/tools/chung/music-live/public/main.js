@@ -266,8 +266,8 @@ function restoreRoomPlayerFromTopTab() {
 }
 
 function showTab(tab) {
-    // Tài khoản Member chỉ được truy cập Trang chủ; tài khoản Premium & Admin mới truy cập được các tab khác
-    if (tab !== 'home' && typeof isCurrentUserPremium === 'function' && !isCurrentUserPremium()) {
+    // Tài khoản Member được truy cập Trang chủ & Tin nhắn; các tab khác cần Premium hoặc Admin
+    if (tab !== 'home' && tab !== 'messenger' && typeof isCurrentUserPremium === 'function' && !isCurrentUserPremium()) {
         if (typeof openPremiumModal === 'function') openPremiumModal(true);
         if (typeof showToastNotification === 'function') {
             showToastNotification('👑 Tài khoản Member chỉ truy cập được Trang chủ! Hãy nâng cấp Premium để mở khóa toàn bộ tính năng.');
@@ -5077,6 +5077,11 @@ function createPlayer() {
                     if (e.data == YT.PlayerState.PLAYING) socket.emit('adminPlay', player.getCurrentTime());
                     if (e.data == YT.PlayerState.PAUSED) socket.emit('adminPause');
                     if (e.data == YT.PlayerState.ENDED) socket.emit('videoEnded', window.currentVideoId);
+                } else if (myRole === 'premium') {
+                    if (window.ignoreNextStateChange && (Date.now() - window.lastSyncTime < 1500)) {
+                        return;
+                    }
+                    if (e.data == YT.PlayerState.PLAYING) socket.emit('adminPlay', player.getCurrentTime());
                 }
             }
         }
@@ -7144,11 +7149,33 @@ function parseLyrics(lrc) {
     }
 }
 
+function canCurrentUserSeekVideo() {
+    return typeof myRole !== 'undefined' && (myRole === 'admin' || myRole === 'premium');
+}
+
 function seekLyric(time) {
-    if (myRole === 'admin' && player && typeof player.seekTo === 'function') {
+    if (canCurrentUserSeekVideo() && player && typeof player.seekTo === 'function') {
         player.seekTo(time, true);
         socket.emit('adminPlay', time);
     }
+}
+
+function seekSpotifyTimeline(event) {
+    if (!canCurrentUserSeekVideo()) {
+        if (typeof showToastNotification === 'function') {
+            showToastNotification('👑 Chỉ tài khoản Premium hoặc Admin mới có quyền tua video!');
+        }
+        return;
+    }
+    const track = document.getElementById('sp-timeline-track');
+    if (!track || !player || typeof player.getDuration !== 'function' || typeof player.seekTo !== 'function') return;
+    const dur = player.getDuration() || 0;
+    if (dur <= 0) return;
+    const rect = track.getBoundingClientRect();
+    const ratio = Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width));
+    const targetTime = ratio * dur;
+    player.seekTo(targetTime, true);
+    socket.emit('adminPlay', targetTime);
 }
 
 function startLyricSync() {
@@ -10664,7 +10691,7 @@ let cachedSongCoverImg = null;
 let cachedSongCoverVid = '';
 
 function isCurrentUserPremium() {
-    if (typeof myRole !== 'undefined' && (myRole === 'admin' || myRole === 'premium')) return true;
+    if (typeof myRole !== 'undefined' && (myRole === 'admin' || myRole === 'premium' || myRole === 'plus')) return true;
     if (window.myIsPremium) return true;
     return false;
 }
@@ -10695,8 +10722,8 @@ function applyPremiumAccessUI() {
         }
     }
 
-    // Ẩn/Hiện các tab ngoài Trang chủ tùy theo quyền Member hay Premium
-    const restrictedTabs = ['messenger', 'history', 'top', 'feedback'];
+    // Ẩn/Hiện các tab ngoài Trang chủ tùy theo quyền Member hay Premium (Tin nhắn mở cho cả Member)
+    const restrictedTabs = ['history', 'top', 'feedback'];
     restrictedTabs.forEach(tabName => {
         const sbItem = document.querySelector(`.sidebar-item[data-tab="${tabName}"]`);
         if (sbItem) {
@@ -10704,9 +10731,14 @@ function applyPremiumAccessUI() {
         }
     });
 
+    const sbMsgItem = document.querySelector('.sidebar-item[data-tab="messenger"]');
+    if (sbMsgItem) {
+        sbMsgItem.classList.remove('premium-hidden-tab');
+    }
+
     const navMsgBtn = document.getElementById('navbar-messenger-btn');
     if (navMsgBtn) {
-        navMsgBtn.classList.toggle('premium-hidden-tab', !isPrem);
+        navMsgBtn.classList.remove('premium-hidden-tab');
     }
 
     // Cập nhật nút Nâng cấp Premium ở Sidebar & Navbar
@@ -10716,8 +10748,8 @@ function applyPremiumAccessUI() {
         sbUpgrade.classList.toggle('is-premium-active', isPrem);
         if (sbPremLabel) {
             sbPremLabel.textContent = isPrem
-                ? (myRole === 'admin' ? 'Admin Premium' : 'Đã mở khóa VIP')
-                : 'Nâng cấp Premium';
+                ? (myRole === 'admin' ? 'Admin Premium' : (myRole === 'plus' ? 'Đã mở khóa Plus' : 'Đã mở khóa Premium'))
+                : 'Nâng cấp gói VIP';
         }
     }
 
@@ -10727,15 +10759,17 @@ function applyPremiumAccessUI() {
         navPremBtn.classList.toggle('is-premium-active', isPrem);
         if (navPremLabel) {
             navPremLabel.textContent = isPrem
-                ? (myRole === 'admin' ? 'ADMIN VIP' : 'PREMIUM')
-                : 'Nâng cấp Premium';
+                ? (myRole === 'admin' ? 'ADMIN VIP' : (myRole === 'plus' ? 'PLUS' : 'PREMIUM'))
+                : 'Nâng cấp VIP';
         }
     }
 
-    // Nếu là Member mà đang đứng ở tab khác ngoài Trang chủ -> đưa về Trang chủ
+    // Nếu là Member mà đang đứng ở tab bị giới hạn -> đưa về Trang chủ (trừ tab Tin nhắn)
     if (!isPrem) {
         const homeCol = document.getElementById('left-column');
-        if (homeCol && homeCol.classList.contains('not-home')) {
+        const msgCol = document.getElementById('messenger-column');
+        const isInMessenger = msgCol && !msgCol.classList.contains('hidden');
+        if (homeCol && homeCol.classList.contains('not-home') && !isInMessenger) {
             showTab('home');
         }
     }
@@ -10779,17 +10813,25 @@ let currentVietqrPublicConfig = {
     bankName: 'MB Bank (Ngân hàng Quân Đội)',
     accountNo: '0987654321',
     accountName: 'CHU TRAM NHAC 2937 ML',
+    plusAmount: 19000,
     amount: 29000,
     template: 'compact2',
     transferPrefix: 'VIP2937'
 };
 let currentMyPendingRequest = null;
 
-function buildClientVietqrUrl(cfg, transferContent) {
+function getSelectedUpgradeAmount(cfg) {
+    const c = cfg || currentVietqrPublicConfig;
+    return selectedUpgradeTier === 'plus'
+        ? Math.max(1000, Number(c.plusAmount) || 19000)
+        : Math.max(1000, Number(c.amount) || 29000);
+}
+
+function buildClientVietqrUrl(cfg, transferContent, overrideAmount) {
     const bankId = encodeURIComponent(String(cfg.bankId || 'MB').trim().toUpperCase());
     const accNo = encodeURIComponent(String(cfg.accountNo || '0987654321').replace(/\s+/g, '').trim());
     const tpl = encodeURIComponent(['compact2', 'compact', 'qr_only', 'print'].includes(cfg.template) ? cfg.template : 'compact2');
-    const amount = Math.max(1000, Number(cfg.amount) || 29000);
+    const amount = Math.max(1000, Number(overrideAmount || cfg.amount) || 29000);
     const addInfo = encodeURIComponent(String(transferContent || 'VIP2937 MEMBER').trim());
     const accName = encodeURIComponent(String(cfg.accountName || 'CHU TRAM NHAC 2937 ML').trim().toUpperCase());
     return `https://img.vietqr.io/image/${bankId}-${accNo}-${tpl}.png?amount=${amount}&addInfo=${addInfo}&accountName=${accName}`;
@@ -10823,8 +10865,15 @@ function renderVietqrCheckoutBox(cfg, transferContent, pendingReq) {
     const finalContent = (currentMyPendingRequest && currentMyPendingRequest.transferContent)
         || transferContent
         || getClientDefaultTransferContent();
-    const qrUrl = buildClientVietqrUrl(currentVietqrPublicConfig, finalContent);
-    const amountNum = Math.max(1000, Number(currentVietqrPublicConfig.amount) || 29000);
+    const plusAmt = Math.max(1000, Number(currentVietqrPublicConfig.plusAmount) || 19000);
+    const premAmt = Math.max(1000, Number(currentVietqrPublicConfig.amount) || 29000);
+    const amountNum = getSelectedUpgradeAmount(currentVietqrPublicConfig);
+    const qrUrl = buildClientVietqrUrl(currentVietqrPublicConfig, finalContent, amountNum);
+
+    const plusBadge = document.getElementById('vietqr-plus-price-badge');
+    if (plusBadge) plusBadge.textContent = plusAmt.toLocaleString('vi-VN') + 'đ';
+    const premBadge = document.getElementById('vietqr-premium-price-badge');
+    if (premBadge) premBadge.textContent = premAmt.toLocaleString('vi-VN') + 'đ';
 
     const qrImg = document.getElementById('vietqr-checkout-img');
     if (qrImg) qrImg.src = qrUrl;
@@ -10870,7 +10919,7 @@ function copyVietqrField(elementId, label) {
 }
 
 function copyVietqrRawAmount() {
-    const amount = String(Number(currentVietqrPublicConfig.amount) || 29000);
+    const amount = String(getSelectedUpgradeAmount(currentVietqrPublicConfig));
     if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(amount).catch(() => {});
     }
@@ -10879,10 +10928,21 @@ function copyVietqrRawAmount() {
     }
 }
 
+let selectedUpgradeTier = 'premium';
+
+function selectUpgradeTier(tier) {
+    selectedUpgradeTier = (tier === 'plus') ? 'plus' : 'premium';
+    document.querySelectorAll('#vietqr-tiers-grid .vietqr-tier-card').forEach(btn => {
+        btn.classList.toggle('active', btn.getAttribute('data-tier') === selectedUpgradeTier);
+    });
+    renderVietqrCheckoutBox(currentVietqrPublicConfig, getClientDefaultTransferContent(), currentMyPendingRequest);
+}
+
 function openPremiumModal() {
     const dlg = document.getElementById('premium-upgrade-modal');
     if (!dlg) return;
     const isPrem = isCurrentUserPremium();
+    const isFullPremium = (typeof myRole !== 'undefined' && (myRole === 'admin' || myRole === 'premium'));
     const tierText = document.getElementById('premium-current-tier-text');
     const actionBox = document.getElementById('premium-upgrade-action-box');
     const activeBox = document.getElementById('premium-already-active-box');
@@ -10890,14 +10950,15 @@ function openPremiumModal() {
 
     if (statusMsg) statusMsg.classList.add('hidden');
     if (tierText) {
-        tierText.textContent = isPrem
-            ? (myRole === 'admin' ? 'Trạng thái: 👑 Quản trị viên (Mặc định Premium)' : 'Trạng thái: 👑 Tài khoản Premium')
-            : 'Trạng thái: Tài khoản Member (Chỉ truy cập Trang chủ)';
+        tierText.textContent = isFullPremium
+            ? (myRole === 'admin' ? 'Trạng thái: 👑 Quản trị viên (Toàn quyền)' : 'Trạng thái: 👑 Tài khoản PREMIUM (Bao gồm Plus + Tua video)')
+            : (myRole === 'plus' ? 'Trạng thái: ⭐ Tài khoản PLUS (Có thể nâng lên Premium để tua video)' : 'Trạng thái: Tài khoản Member (Chỉ truy cập Trang chủ & Tin nhắn)');
     }
-    if (actionBox) actionBox.classList.toggle('hidden', isPrem);
-    if (activeBox) activeBox.classList.toggle('hidden', !isPrem);
+    if (actionBox) actionBox.classList.toggle('hidden', isFullPremium);
+    if (activeBox) activeBox.classList.toggle('hidden', !isFullPremium);
 
-    if (!isPrem) {
+    if (!isFullPremium) {
+        if (myRole === 'plus') selectUpgradeTier('premium');
         renderVietqrCheckoutBox(currentVietqrPublicConfig, getClientDefaultTransferContent(), currentMyPendingRequest);
         if (typeof socket !== 'undefined' && socket) {
             socket.emit('premium:getPublicConfig', null, (res) => {
@@ -10956,12 +11017,13 @@ function submitPremiumBankPaymentRequest() {
 
     if (typeof socket === 'undefined' || !socket) return;
 
-    socket.emit('premium:requestPayment', { userId: uid, username: uname }, (res) => {
+    socket.emit('premium:requestPayment', { userId: uid, username: uname, tier: selectedUpgradeTier }, (res) => {
         if (res && res.success) {
             currentMyPendingRequest = res.request;
             renderVietqrCheckoutBox(res.vietqrConfig || currentVietqrPublicConfig, res.request?.transferContent, res.request);
             if (statusMsg) {
-                statusMsg.textContent = '✅ Đã gửi xác nhận chuyển khoản! Hệ thống / Admin sẽ kiểm tra và nâng cấp tài khoản của bạn lên PREMIUM ngay.';
+                const tierName = selectedUpgradeTier === 'plus' ? 'PLUS' : 'PREMIUM';
+                statusMsg.textContent = `✅ Đã gửi xác nhận chuyển khoản gói ${tierName}! Hệ thống / Admin sẽ kiểm tra và kích hoạt ngay.`;
                 statusMsg.classList.remove('hidden');
             }
             if (typeof showToastNotification === 'function') {
@@ -10973,7 +11035,7 @@ function submitPremiumBankPaymentRequest() {
 
 socket.on('premiumStatusUpdated', (data) => {
     if (!data) return;
-    const isPrem = Boolean(data.isPremium || data.role === 'admin' || data.role === 'premium');
+    const isPrem = Boolean(data.isPremium || data.role === 'admin' || data.role === 'premium' || data.role === 'plus');
     window.myIsPremium = isPrem;
     if (data.role) {
         myRole = data.role;
@@ -11095,6 +11157,7 @@ function populateAdminVietqrConfigForm(cfg) {
     const bankSel = document.getElementById('admin-vietqr-bank-id');
     const accNoInput = document.getElementById('admin-vietqr-account-no');
     const accNameInput = document.getElementById('admin-vietqr-account-name');
+    const plusAmountInput = document.getElementById('admin-vietqr-plus-amount');
     const amountInput = document.getElementById('admin-vietqr-amount');
     const prefixInput = document.getElementById('admin-vietqr-prefix');
     const tplSel = document.getElementById('admin-vietqr-template');
@@ -11103,6 +11166,7 @@ function populateAdminVietqrConfigForm(cfg) {
     if (bankSel && document.activeElement !== bankSel) bankSel.value = cfg.bankId || 'MB';
     if (accNoInput && document.activeElement !== accNoInput) accNoInput.value = cfg.accountNo || '';
     if (accNameInput && document.activeElement !== accNameInput) accNameInput.value = cfg.accountName || '';
+    if (plusAmountInput && document.activeElement !== plusAmountInput) plusAmountInput.value = cfg.plusAmount || 19000;
     if (amountInput && document.activeElement !== amountInput) amountInput.value = cfg.amount || 29000;
     if (prefixInput && document.activeElement !== prefixInput) prefixInput.value = cfg.transferPrefix || 'VIP2937';
     if (tplSel && document.activeElement !== tplSel) tplSel.value = cfg.template || 'compact2';
@@ -11114,6 +11178,7 @@ function previewAdminVietqrConfig() {
     const bankSel = document.getElementById('admin-vietqr-bank-id');
     const accNoInput = document.getElementById('admin-vietqr-account-no');
     const accNameInput = document.getElementById('admin-vietqr-account-name');
+    const plusAmountInput = document.getElementById('admin-vietqr-plus-amount');
     const amountInput = document.getElementById('admin-vietqr-amount');
     const prefixInput = document.getElementById('admin-vietqr-prefix');
     const tplSel = document.getElementById('admin-vietqr-template');
@@ -11121,16 +11186,17 @@ function previewAdminVietqrConfig() {
     const bankId = bankSel ? bankSel.value : 'MB';
     const accountNo = accNoInput ? accNoInput.value.trim() : '0987654321';
     const accountName = accNameInput ? accNameInput.value.trim().toUpperCase() : 'CHU TRAM NHAC 2937 ML';
+    const plusAmount = Math.max(1000, Number(plusAmountInput ? plusAmountInput.value : 19000) || 19000);
     const amount = Math.max(1000, Number(amountInput ? amountInput.value : 29000) || 29000);
     const prefix = (prefixInput ? prefixInput.value.trim().toUpperCase() : 'VIP2937') || 'VIP2937';
     const template = tplSel ? tplSel.value : 'compact2';
 
     const previewImg = document.getElementById('admin-vietqr-preview-img');
     const previewCap = document.getElementById('admin-vietqr-preview-caption');
-    const qrUrl = buildClientVietqrUrl({ bankId, accountNo, accountName, amount, template }, `${prefix} TEN_THANH_VIEN`);
+    const qrUrl = buildClientVietqrUrl({ bankId, accountNo, accountName, amount, template }, `${prefix} TEN_THANH_VIEN`, amount);
 
     if (previewImg) previewImg.src = qrUrl;
-    if (previewCap) previewCap.textContent = `${bankId} • ${accountNo || 'Chưa nhập STK'} • ${amount.toLocaleString('vi-VN')}đ`;
+    if (previewCap) previewCap.textContent = `${bankId} • ${accountNo || 'Chưa nhập STK'} • Plus ${plusAmount.toLocaleString('vi-VN')}đ / Premium ${amount.toLocaleString('vi-VN')}đ`;
 }
 
 function saveAdminVietqrConfig() {
@@ -11141,6 +11207,7 @@ function saveAdminVietqrConfig() {
     const bankName = (selectedOpt && selectedOpt.getAttribute('data-name')) || bankId;
     const accountNo = document.getElementById('admin-vietqr-account-no')?.value.trim() || '';
     const accountName = document.getElementById('admin-vietqr-account-name')?.value.trim().toUpperCase() || '';
+    const plusAmount = Math.max(1000, Number(document.getElementById('admin-vietqr-plus-amount')?.value) || 19000);
     const amount = Math.max(1000, Number(document.getElementById('admin-vietqr-amount')?.value) || 29000);
     const transferPrefix = document.getElementById('admin-vietqr-prefix')?.value.trim().toUpperCase() || 'VIP2937';
     const template = document.getElementById('admin-vietqr-template')?.value || 'compact2';
@@ -11150,6 +11217,7 @@ function saveAdminVietqrConfig() {
         bankName,
         accountNo,
         accountName,
+        plusAmount,
         amount,
         transferPrefix,
         template
@@ -11264,7 +11332,9 @@ function renderAdminPremiumUsersTable() {
         if (u.role === 'admin') {
             roleBadgeHtml = `<span class="role-pill role-admin"><span class="material-symbols-outlined">shield_person</span> Admin (VIP)</span>`;
         } else if (u.role === 'premium') {
-            roleBadgeHtml = `<span class="role-pill role-premium"><span class="material-symbols-outlined">workspace_premium</span> Premium VIP</span>`;
+            roleBadgeHtml = `<span class="role-pill role-premium"><span class="material-symbols-outlined">workspace_premium</span> Premium</span>`;
+        } else if (u.role === 'plus') {
+            roleBadgeHtml = `<span class="role-pill role-plus"><span class="material-symbols-outlined">star</span> Plus</span>`;
         } else {
             roleBadgeHtml = `<span class="role-pill role-member"><span class="material-symbols-outlined">person</span> Member</span>`;
         }
@@ -11279,20 +11349,32 @@ function renderAdminPremiumUsersTable() {
         let actionBtnHtml = '';
         if (u.role === 'admin') {
             actionBtnHtml = `<span class="admin-immutable-tag">Mặc định Vĩnh viễn</span>`;
-        } else if (u.role === 'premium') {
-            actionBtnHtml = `
-                <button type="button" class="admin-table-btn revoke" onclick="toggleUserPremiumRole('${jsSafeUid}', '${jsSafeUname}', false)">
-                    <span class="material-symbols-outlined">person_remove</span>
-                    <span>Hạ về Member</span>
-                </button>
-            `;
         } else {
-            actionBtnHtml = `
-                <button type="button" class="admin-table-btn grant" onclick="toggleUserPremiumRole('${jsSafeUid}', '${jsSafeUname}', true)">
-                    <span class="material-symbols-outlined">workspace_premium</span>
-                    <span>Nâng lên VIP</span>
-                </button>
-            `;
+            actionBtnHtml = `<div style="display:flex; gap:5px; align-items:center; flex-wrap:nowrap;">`;
+            if (u.role !== 'plus') {
+                actionBtnHtml += `
+                    <button type="button" class="admin-table-btn grant" onclick="toggleUserPremiumRole('${jsSafeUid}', '${jsSafeUname}', 'plus')" title="Cấp gói Plus">
+                        <span>+ Plus</span>
+                    </button>
+                `;
+            }
+            if (u.role !== 'premium') {
+                actionBtnHtml += `
+                    <button type="button" class="admin-table-btn grant" onclick="toggleUserPremiumRole('${jsSafeUid}', '${jsSafeUname}', 'premium')" title="Cấp gói Premium (Tua video)">
+                        <span class="material-symbols-outlined">workspace_premium</span>
+                        <span>Premium</span>
+                    </button>
+                `;
+            }
+            if (u.role === 'plus' || u.role === 'premium') {
+                actionBtnHtml += `
+                    <button type="button" class="admin-table-btn revoke" onclick="toggleUserPremiumRole('${jsSafeUid}', '${jsSafeUname}', 'member')" title="Thu hồi về Member">
+                        <span class="material-symbols-outlined">person_remove</span>
+                        <span>Thu hồi</span>
+                    </button>
+                `;
+            }
+            actionBtnHtml += `</div>`;
         }
 
         return `
@@ -11315,19 +11397,30 @@ function renderAdminPremiumUsersTable() {
     }).join('');
 }
 
-function toggleUserPremiumRole(userId, username, makePremium) {
+function toggleUserPremiumRole(userId, username, targetRoleOrBool) {
     if (typeof socket === 'undefined' || !socket || myRole !== 'admin') return;
+    const role = (targetRoleOrBool === 'plus' || targetRoleOrBool === 'premium' || targetRoleOrBool === 'member')
+        ? targetRoleOrBool
+        : (targetRoleOrBool ? 'premium' : 'member');
+    const noteMap = {
+        plus: 'Cấp gói Plus trực tiếp từ Bảng Admin',
+        premium: 'Cấp gói Premium trực tiếp từ Bảng Admin',
+        member: 'Thu hồi về Member bởi Admin'
+    };
     socket.emit('premium:adminSetUserStatus', {
         userId,
         username,
-        isPremium: Boolean(makePremium),
-        note: makePremium ? 'Cấp quyền VIP trực tiếp từ Bảng Admin' : 'Thu hồi về Member bởi Admin'
+        role,
+        isPremium: role === 'plus' || role === 'premium',
+        note: noteMap[role]
     }, (res) => {
         if (res && res.success && typeof showToastNotification === 'function') {
             showToastNotification(
-                makePremium
-                    ? `👑 Đã nâng cấp [${username}] lên tài khoản PREMIUM!`
-                    : `ℹ️ Đã chuyển [${username}] về tài khoản Member.`
+                role === 'premium'
+                    ? `👑 Đã nâng cấp [${username}] lên gói PREMIUM!`
+                    : (role === 'plus'
+                        ? `⭐ Đã nâng cấp [${username}] lên gói PLUS!`
+                        : `ℹ️ Đã chuyển [${username}] về tài khoản Member.`)
             );
         }
     });
